@@ -1,0 +1,6 @@
+{
+  "name": "Runica: D&D Character Sheet Manager",
+  "description": "A dynamic and functional D&D character sheet manager. Create, manage, and share your characters with friends. Features offline access and AI-powered backstory generation.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
