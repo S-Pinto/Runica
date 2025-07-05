@@ -25,14 +25,12 @@ jobs:
       - name: Build project # Esegui la build di Vite
         run: npm run build
         env:
-          # Se usi variabili d'ambiente nel tuo codice (es. per l'API Key),
-          # devi fornirle qui come segreti o variabili di repository.
-          # Per ora, la lasciamo commentata se non è strettamente necessario per la build.
-          # VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # Questa è la riga che devi aggiungere o decommentare
+          VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       - name: Deploy to GitHub Pages # Deploys la cartella 'dist'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }} # Token di autenticazione fornito da GitHub
           publish_dir: ./dist # Questa è la cartella che verrà deployata!
-          publish_branch: gh-pages # Il branch su cui verrà deployato il contenuto (GitHub Pages di default)
+          publish_branch: gh-pages # Il branch su cui verrà deployato il contenuto (GitHub Pages di default per action)
