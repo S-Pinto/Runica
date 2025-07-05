@@ -3,34 +3,33 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main # Esegui questo workflow ogni volta che fai un push sul branch 'main'
+      - main
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest # Esegui il job su una macchina virtuale Ubuntu
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout # Scarica il codice del repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Node.js # Configura Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # O la versione di Node.js che stai usando localmente (es. '18', '20', '22')
+          node-version: '20' # Assicurati che sia una versione di Node.js supportata e stabile
           cache: 'npm'
 
-      - name: Install dependencies # Installa le dipendenze del progetto
+      - name: Install dependencies
         run: npm install
 
-      - name: Build project # Esegui la build di Vite
+      - name: Build project
         run: npm run build
         env:
-          # Questa è la riga che devi aggiungere o decommentare
           VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
-      - name: Deploy to GitHub Pages # Deploys la cartella 'dist'
+      - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }} # Token di autenticazione fornito da GitHub
-          publish_dir: ./dist # Questa è la cartella che verrà deployata!
-          publish_branch: gh-pages # Il branch su cui verrà deployato il contenuto (GitHub Pages di default per action)
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
