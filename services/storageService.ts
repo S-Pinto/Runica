@@ -1,5 +1,5 @@
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from '../firebaseConfig'; // Import the potentially undefined storage instance
+import { auth } from '../firebaseConfig'; // storage is no longer needed
+import imageCompression from 'browser-image-compression';
 
 /**
  * Converts a File object to a Base64 encoded string.
@@ -17,28 +17,33 @@ const fileToBase64 = (file: File): Promise<string> => {
 };
 
 /**
- * Handles uploading a character image.
- * If online, it uploads to Firebase Storage and returns the download URL.
- * If offline, it converts the image to a Base64 string for local storage.
+ * Handles character image processing by compressing it and converting it to a Base64 string.
+ * This allows for larger original images while keeping the stored size in Firestore manageable.
  * @param file The image file to upload.
  * @param characterId The ID of the character.
- * @returns A promise that resolves to either a Firebase URL or a Base64 data URL.
+ * @returns A promise that resolves to a Base64 data URL.
  */
 export const uploadCharacterImage = async (file: File, characterId: string): Promise<string> => {
     if (!file) {
         throw new Error("No file provided for upload.");
     }
-
-    // If Firebase Storage is available (online mode)
-    if (storage) {
-        const storageRef = ref(storage, `character-images/${characterId}/${file.name}`);
-        await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(storageRef);
-        return downloadURL;
-    } 
-    // Otherwise (offline mode), store as Base64
-    else {
-        console.log("Offline mode: Storing image as Base64 data URL.");
-        return fileToBase64(file);
+    
+    const options = {
+      maxSizeMB: 0.75,                // Target size: 750KB
+      maxWidthOrHeight: 1024,         // Optional: Resizes the image for better performance and smaller size
+      useWebWorker: true,             // Optional: Uses a web worker to avoid blocking the main thread
+    };
+    
+    try {
+        console.log(`Original image size: ${(file.size / 1024).toFixed(2)} KB`);
+        // Compress the image using the defined options
+        const compressedFile = await imageCompression(file, options);
+        console.log(`Compressed image size: ${(compressedFile.size / 1024).toFixed(2)} KB`);
+        // Convert the newly compressed file to Base64 for storage
+        return fileToBase64(compressedFile);
+    } catch (error) {
+        console.error('Error during image compression:', error);
+        // Re-throw a user-friendly error
+        throw new Error('Failed to process the image. Please try again or select a different one.');
     }
 };
