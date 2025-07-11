@@ -33,7 +33,7 @@ export const BackIcon = ({ className }: { className?: string }) => (
 
 export const SaveIcon = ({ className }: { className?: string }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-       <path strokeLinecap="round" strokeLinejoin="round" d="M9 3H4.5A1.5 1.5 0 003 4.5v15A1.5 1.5 0 004.5 21h15a1.5 1.5 0 001.5-1.5V9.75M9 3V4.5A1.5 1.5 0 017.5 6h-3A1.5 1.5 0 013 4.5V3m6 0v6M9 12a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+       <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
     </svg>
 );
 
