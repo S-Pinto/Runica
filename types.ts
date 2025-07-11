@@ -119,4 +119,7 @@ export interface ICharacter {
     [level: number]: { max: number; used: number };
   };
   customResources: CustomResource[];
+
+  // Syncing
+  lastUpdated: number;
 }

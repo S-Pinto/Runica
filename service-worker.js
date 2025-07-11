@@ -1,14 +1,12 @@
 
-const CACHE_NAME = 'runica-cache-v1';
+const CACHE_NAME = 'runica-cache-v2';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/index.tsx',
-  // Note: In a real build, you'd cache the generated JS/CSS files.
-  // This setup is for the development environment provided.
 ];
 
 self.addEventListener('install', event => {
+  // Perform install steps
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -19,16 +17,39 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+  // This service worker uses a cache-first strategy with dynamic caching.
   event.respondWith(
     caches.match(event.request)
       .then(response => {
+        // Cache hit - return response
         if (response) {
           return response;
         }
-        return fetch(event.request);
-      }
-    )
-  );
+
+        const fetchRequest = event.request.clone();
+
+        return fetch(fetchRequest).then(
+          response => {
+            // Check if we received a valid response
+            if(!response || response.status !== 200 || response.type !== 'basic') {
+              return response;
+            }
+
+            const responseToCache = response.clone();
+
+            caches.open(CACHE_NAME)
+              .then(cache => {
+                // We only cache GET requests.
+                if (event.request.method === 'GET') {
+                    cache.put(event.request, responseToCache);
+                }
+              });
+
+            return response;
+          }
+        );
+      })
+    );
 });
 
 self.addEventListener('activate', event => {
