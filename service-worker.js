@@ -1,21 +1,16 @@
 
-const CACHE_NAME = 'runica-cache-v2';
-const urlsToCache = [
-  '/',
-  '/index.html',
-];
+const CACHE_NAME = 'runica-cache-v4'; // Incremented version to ensure old cache is cleared
 
+// The install event is now focused on ensuring the new service worker activates quickly.
 self.addEventListener('install', event => {
-  // Perform install steps
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
-      })
-  );
+  // self.skipWaiting() forces the waiting service worker to become the
+  // active service worker. This is useful for getting the latest updates
+  // to the user faster.
+  self.skipWaiting();
 });
 
+// The fetch event handler remains the same. It uses a cache-first, then network
+// strategy with dynamic caching. This is robust for an app with hashed assets.
 self.addEventListener('fetch', event => {
   // This service worker uses a cache-first strategy with dynamic caching.
   event.respondWith(
@@ -30,8 +25,9 @@ self.addEventListener('fetch', event => {
 
         return fetch(fetchRequest).then(
           response => {
-            // Check if we received a valid response
-            if(!response || response.status !== 200 || response.type !== 'basic') {
+            // Check if we received a valid response.
+            // We cache successful same-origin requests and all opaque (cross-origin) requests.
+            if(!response || (response.status !== 200 && response.type === 'basic')) {
               return response;
             }
 
@@ -52,6 +48,8 @@ self.addEventListener('fetch', event => {
     );
 });
 
+// The activate event cleans up old caches, which is crucial when a new
+// service worker with a new CACHE_NAME is activated.
 self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
