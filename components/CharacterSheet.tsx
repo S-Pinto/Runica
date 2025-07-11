@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ICharacter, AbilityScores, Currency, Skill } from '../types';
 import * as characterService from '../services/characterService';
 import * as geminiService from '../services/geminiService';
-import { SparklesIcon, BackIcon, SaveIcon, TrashIcon } from './icons';
+import * as storageService from '../services/storageService';
+import { SparklesIcon, BackIcon, SaveIcon, TrashIcon, PhotoIcon } from './icons';
 import { Spellbook } from './Spellbook';
 import { FeatureList } from './FeatureList';
 import { EquipmentList } from './EquipmentList';
@@ -93,6 +94,8 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
     const [isGenerating, setIsGenerating] = useState(false);
     const [personalityPrompt, setPersonalityPrompt] = useState('');
     const [activeTab, setActiveTab] = useState<Tab>('main');
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
     const isNewCharacter = characterId === 'new';
     
     useEffect(() => {
@@ -105,6 +108,9 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
                 charData = await characterService.getCharacter(characterId);
             }
             setCharacter(charData);
+            if (charData?.imageUrl) {
+                setImagePreview(charData.imageUrl);
+            }
             setLoading(false);
         };
         loadCharacter();
@@ -118,11 +124,24 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
     const handleSaveClick = async () => {
         if (!character) return;
         setIsSaving(true);
-        const id = isNewCharacter ? `char_${Date.now()}` : character.id;
-        const charToSave: ICharacter = { ...character, id, proficiencyBonus, lastUpdated: Date.now() };
-        const savedChar = await characterService.saveCharacter(charToSave);
-        setIsSaving(false);
-        onSaveComplete(savedChar.id);
+
+        try {
+            const id = isNewCharacter ? `char_${Date.now()}` : character.id;
+            let imageUrl = character.imageUrl || '';
+
+            if (imageFile) {
+                imageUrl = await storageService.uploadCharacterImage(imageFile, id);
+            }
+
+            const charToSave: ICharacter = { ...character, id, imageUrl, proficiencyBonus, lastUpdated: Date.now() };
+            const savedChar = await characterService.saveCharacter(charToSave);
+            onSaveComplete(savedChar.id);
+        } catch (error) {
+            console.error("Failed to save character:", error);
+            alert("An error occurred while saving. Please try again.");
+        } finally {
+            setIsSaving(false);
+        }
     };
     
     const handleDeleteClick = async () => {
@@ -131,6 +150,19 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
         }
     };
     
+    const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setImageFile(file);
+            // Crea un'anteprima locale
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         if (!character) return;
         const { name, value, type } = e.target;
@@ -267,6 +299,22 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
                 <div id="panel-main" role="tabpanel" aria-labelledby="tab-main" hidden={activeTab !== 'main'}>
                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="space-y-4 md:col-span-1">
+                            <div>
+                                <label className="block text-sm font-medium text-zinc-400">Character Portrait</label>
+                                <div className="mt-1 flex items-center gap-4">
+                                    <span className="inline-block h-24 w-24 rounded-lg overflow-hidden bg-zinc-700">
+                                        {imagePreview ? (
+                                            <img src={imagePreview} alt="Character portrait" className="h-full w-full object-cover" />
+                                        ) : (
+                                            <PhotoIcon className="h-full w-full text-zinc-500 p-4" />
+                                        )}
+                                    </span>
+                                    <input type="file" id="imageUpload" className="hidden" accept="image/png, image/jpeg, image/webp, image/gif" onChange={handleImageFileChange} />
+                                    <label htmlFor="imageUpload" className="cursor-pointer rounded-md bg-zinc-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-zinc-600">
+                                        Change
+                                    </label>
+                                </div>
+                            </div>
                             <InputField label="Character Name" name="name" type="text" value={character.name} onChange={handleFieldChange} placeholder="e.g., Eldrin" />
                             <div className="grid grid-cols-2 gap-2">
                                 <InputField label="Class" name="class" type="text" value={character.class} onChange={handleFieldChange} placeholder="e.g., Wizard" />

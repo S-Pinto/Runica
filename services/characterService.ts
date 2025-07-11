@@ -1,6 +1,7 @@
 import { ICharacter, AbilityScores, Skill } from '../types';
-import { db, auth } from '../firebaseConfig';
+import { db, auth, storage } from '../firebaseConfig';
 import { collection, doc, getDocs, setDoc, deleteDoc, writeBatch, onSnapshot, query, CollectionReference, getDoc } from 'firebase/firestore';
+import { ref as storageRef, uploadString, getDownloadURL } from 'firebase/storage';
 
 const getProficiencyBonus = (level: number): number => Math.ceil(level / 4) + 1;
 const getModifier = (score: number) => Math.floor((score - 10) / 2);
@@ -168,14 +169,33 @@ export const migrateLocalDataToFirestore = async () => {
     const cloudCharacters = cloudSnapshot.docs.map(d => d.data() as ICharacter);
     
     let migratedCount = 0;
-    localCharacters.forEach(localChar => {
+    // Use a for...of loop to handle async operations correctly inside the loop.
+    for (const localChar of localCharacters) {
         const cloudVersion = cloudCharacters.find(c => c.id === localChar.id);
         if (!cloudVersion || (localChar.lastUpdated > (cloudVersion.lastUpdated || 0))) {
+            
+            // Handle migrating locally stored images (Base64) to Firebase Storage
+            if (storage && localChar.imageUrl && localChar.imageUrl.startsWith('data:image/')) {
+                try {
+                    console.log(`Migrating image for character ${localChar.name}...`);
+                    const imageRef = storageRef(storage, `character-images/${localChar.id}/portrait.png`);
+                    // Upload the Base64 data URL string
+                    const uploadResult = await uploadString(imageRef, localChar.imageUrl, 'data_url');
+                    // Get the new download URL and update the character data
+                    const downloadURL = await getDownloadURL(uploadResult.ref);
+                    localChar.imageUrl = downloadURL;
+                    console.log(`Image for ${localChar.name} migrated to: ${downloadURL}`);
+                } catch (error) {
+                    console.error(`Failed to migrate image for character ${localChar.id}:`, error);
+                    // Continue migrating text data even if the image fails.
+                }
+            }
+
             const docRef = doc(coll, localChar.id);
             batch.set(docRef, localChar);
             migratedCount++;
         }
-    });
+    }
 
     if (migratedCount > 0) {
         try {

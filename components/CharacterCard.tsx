@@ -1,6 +1,6 @@
 import React from 'react';
 import { ICharacter } from '../types';
-import { TrashIcon, EditIcon } from './icons';
+import { TrashIcon, EditIcon, PhotoIcon } from './icons';
 
 interface CharacterCardProps {
   character: ICharacter;
@@ -17,6 +17,15 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSelec
 
   return (
     <div onClick={onSelect} className="bg-zinc-800 rounded-lg shadow-lg overflow-hidden transition-all duration-300 hover:shadow-amber-500/20 hover:scale-105 group relative cursor-pointer">
+      <div className="h-32 bg-zinc-700/50 relative">
+        {character.imageUrl ? (
+          <img src={character.imageUrl} alt={character.name} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-zinc-600">
+            <PhotoIcon className="w-16 h-16" />
+          </div>
+        )}
+      </div>
       <div className="p-5">
         <h3 className="text-xl font-bold font-cinzel text-amber-400 truncate">{character.name || 'Unnamed Adventurer'}</h3>
         <p className="text-zinc-400 capitalize text-sm">{character.race || 'Race'} {character.class || 'Class'} &bull; Level {character.level}</p>

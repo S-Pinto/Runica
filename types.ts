@@ -66,6 +66,7 @@ export interface CustomResource {
 
 export interface ICharacter {
   id: string;
+  imageUrl?: string;
   name: string;
   class: string;
   subclass: string;

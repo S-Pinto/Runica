@@ -1,6 +1,7 @@
 import { initializeApp, FirebaseApp } from "firebase/app";
 import { getAuth, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
+import { getStorage, FirebaseStorage } from "firebase/storage";
 
 // Firebase configuration is loaded from Vite's environment variables.
 // Vite exposes variables prefixed with `VITE_` to the client-side code.
@@ -18,6 +19,7 @@ const firebaseConfig = {
 let app: FirebaseApp | undefined;
 let auth: Auth | undefined;
 let db: Firestore | undefined;
+let storage: FirebaseStorage | undefined;
 
 // We only initialize Firebase if the necessary configuration variables are present.
 // This allows the app to run in a local-only mode without a Firebase backend.
@@ -26,6 +28,7 @@ if (firebaseConfig.apiKey && firebaseConfig.projectId) {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
+    storage = getStorage(app);
     console.log("Firebase initialized successfully.");
   } catch (error) {
     console.error("Error initializing Firebase. Please check your configuration.", error);
@@ -35,4 +38,4 @@ if (firebaseConfig.apiKey && firebaseConfig.projectId) {
 }
 
 // Export the potentially undefined services. The rest of the app must handle this.
-export { app, auth, db };
+export { app, auth, db, storage };
