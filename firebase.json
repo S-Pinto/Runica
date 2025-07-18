@@ -30,7 +30,8 @@
     }
   ],
   "hosting": {
-    "public": "public",
+    "site": "runica-dnd-companion",
+    "public": "dist",
     "ignore": [
       "firebase.json",
       "**/.*",
