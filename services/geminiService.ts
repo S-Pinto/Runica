@@ -1,13 +1,12 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { ICharacter } from '../types';
 
-const API_KEY = process.env.API_KEY;
+// The API key must be prefixed with VITE_ to be exposed to the client-side code by Vite.
+// This key is sourced from Netlify's environment variables during the build process.
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
-if (!API_KEY) {
-  console.warn("API_KEY environment variable not set. Gemini features will not work.");
-}
-
-const ai = new GoogleGenAI({ apiKey: API_KEY as string });
+// Initialize the AI client only if the API key is provided.
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 interface PersonalityFields {
     personalityTraits: string;
@@ -16,14 +15,18 @@ interface PersonalityFields {
     flaws: string;
 }
 
+const ERROR_RESPONSE: Partial<PersonalityFields> = {
+    personalityTraits: "AI generation failed. The API key might be missing or invalid.",
+    ideals: "Error generating ideals.",
+    bonds: "Error generating bonds.",
+    flaws: "Error generating flaws.",
+};
+
+
 export const generatePersonality = async (character: ICharacter, customPrompt?: string): Promise<Partial<PersonalityFields>> => {
-  if (!API_KEY) {
-    return Promise.resolve({
-        personalityTraits: "AI functionality is disabled. API key not configured.",
-        ideals: "AI functionality is disabled. API key not configured.",
-        bonds: "AI functionality is disabled. API key not configured.",
-        flaws: "AI functionality is disabled. API key not configured.",
-    });
+  if (!ai) {
+    console.error("Gemini AI client is not initialized. Make sure VITE_GEMINI_API_KEY is set.");
+    return ERROR_RESPONSE;
   }
   
   const { name, race, 'class': characterClass, background, alignment } = character;
@@ -47,21 +50,25 @@ export const generatePersonality = async (character: ICharacter, customPrompt?: 
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-preview-04-17',
+      model: 'gemini-2.5-flash',
       contents: prompt,
       config: {
         responseMimeType: "application/json",
+        responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+                personalityTraits: { type: Type.STRING },
+                ideals: { type: Type.STRING },
+                bonds: { type: Type.STRING },
+                flaws: { type: Type.STRING },
+            }
+        }
       },
     });
     
-    let jsonStr = response.text.trim();
-    const fenceRegex = /^```(\w*)?\s*\n?(.*?)\n?\s*```$/s;
-    const match = jsonStr.match(fenceRegex);
-    if (match && match[2]) {
-      jsonStr = match[2].trim();
-    }
-    
+    const jsonStr = response.text.trim();
     const parsedData = JSON.parse(jsonStr);
+
     return {
         personalityTraits: parsedData.personalityTraits || "",
         ideals: parsedData.ideals || "",
@@ -71,11 +78,6 @@ export const generatePersonality = async (character: ICharacter, customPrompt?: 
 
   } catch (error) {
     console.error("Error generating personality:", error);
-    return {
-        personalityTraits: "Error generating personality. Please check the console.",
-        ideals: "Error generating ideals.",
-        bonds: "Error generating bonds.",
-        flaws: "Error generating flaws.",
-    };
+    return ERROR_RESPONSE;
   }
 };

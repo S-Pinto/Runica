@@ -10,8 +10,12 @@ const getModifier = (score: number) => Math.floor((score - 10) / 2);
 const formatModifier = (mod: number) => (mod >= 0 ? `+${mod}` : String(mod));
 type PlayTab = 'main' | 'abilities' | 'combat' | 'spells' | 'inventory' | 'info';
 
-const TabButton = ({ label, isActive, onClick }: { label: string, isActive: boolean, onClick: () => void }) => (
+const TabButton = ({ label, isActive, onClick, id, controls }: { label: string, isActive: boolean, onClick: () => void, id: string, controls: string }) => (
     <button
+        id={id}
+        role="tab"
+        aria-selected={isActive}
+        aria-controls={controls}
         onClick={onClick}
         className={`px-4 py-2 text-sm sm:text-base font-medium rounded-t-lg transition-colors whitespace-nowrap ${
             isActive
@@ -269,6 +273,14 @@ const InfoTabView = ({ character }: { character: ICharacter }) => {
     );
 };
 
+const PLAY_TABS: { key: PlayTab; label: string }[] = [
+    { key: 'main', label: 'Main' },
+    { key: 'abilities', label: 'Abilities' },
+    { key: 'combat', label: 'Combat' },
+    { key: 'spells', label: 'Spells' },
+    { key: 'inventory', label: 'Inventory' },
+    { key: 'info', label: 'Info' },
+];
 
 // --- WRAPPER & MAIN RENDER ---
 export const PlayView: React.FC<{characterId: string, onGoToEdit: () => void, onBack: () => void}> = ({ characterId, onGoToEdit, onBack }) => {
@@ -296,18 +308,6 @@ export const PlayView: React.FC<{characterId: string, onGoToEdit: () => void, on
     if (loading || !character) {
         return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-amber-500"></div></div>;
     }
-
-    const renderTabContent = () => {
-        switch (activeTab) {
-            case 'main': return <MainTabView character={character} onUpdate={handleUpdateAndSave} />;
-            case 'abilities': return <AbilitiesDisplay character={character} />;
-            case 'combat': return <CombatTabView character={character} />;
-            case 'spells': return <SpellsTabView character={character} onUpdate={handleUpdateAndSave} />;
-            case 'inventory': return <InventoryTabView character={character} onUpdate={handleUpdateAndSave} />;
-            case 'info': return <InfoTabView character={character} />;
-            default: return null;
-        }
-    }
     
     return (
         <div className="max-w-7xl mx-auto p-4 sm:p-6">
@@ -326,17 +326,38 @@ export const PlayView: React.FC<{characterId: string, onGoToEdit: () => void, on
                 </button>
             </header>
 
-            <nav className="flex space-x-1 mb-6 border-b border-zinc-700 overflow-x-auto">
-                <TabButton label="Main" isActive={activeTab === 'main'} onClick={() => setActiveTab('main')} />
-                <TabButton label="Abilities" isActive={activeTab === 'abilities'} onClick={() => setActiveTab('abilities')} />
-                <TabButton label="Combat" isActive={activeTab === 'combat'} onClick={() => setActiveTab('combat')} />
-                <TabButton label="Spells" isActive={activeTab === 'spells'} onClick={() => setActiveTab('spells')} />
-                <TabButton label="Inventory" isActive={activeTab === 'inventory'} onClick={() => setActiveTab('inventory')} />
-                <TabButton label="Info" isActive={activeTab === 'info'} onClick={() => setActiveTab('info')} />
-            </nav>
+            <div role="tablist" aria-label="Character View Sections" className="flex space-x-1 mb-6 border-b border-zinc-700 overflow-x-auto">
+                {PLAY_TABS.map(tab => (
+                    <TabButton
+                        key={tab.key}
+                        id={`play-tab-${tab.key}`}
+                        controls={`play-panel-${tab.key}`}
+                        label={tab.label}
+                        isActive={activeTab === tab.key}
+                        onClick={() => setActiveTab(tab.key)}
+                    />
+                ))}
+            </div>
             
             <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-b-lg rounded-tr-lg">
-                {renderTabContent()}
+                <div id="play-panel-main" role="tabpanel" aria-labelledby="play-tab-main" hidden={activeTab !== 'main'}>
+                    <MainTabView character={character} onUpdate={handleUpdateAndSave} />
+                </div>
+                 <div id="play-panel-abilities" role="tabpanel" aria-labelledby="play-tab-abilities" hidden={activeTab !== 'abilities'}>
+                    <AbilitiesDisplay character={character} />
+                </div>
+                <div id="play-panel-combat" role="tabpanel" aria-labelledby="play-tab-combat" hidden={activeTab !== 'combat'}>
+                    <CombatTabView character={character} />
+                </div>
+                 <div id="play-panel-spells" role="tabpanel" aria-labelledby="play-tab-spells" hidden={activeTab !== 'spells'}>
+                    <SpellsTabView character={character} onUpdate={handleUpdateAndSave} />
+                </div>
+                 <div id="play-panel-inventory" role="tabpanel" aria-labelledby="play-tab-inventory" hidden={activeTab !== 'inventory'}>
+                    <InventoryTabView character={character} onUpdate={handleUpdateAndSave} />
+                </div>
+                <div id="play-panel-info" role="tabpanel" aria-labelledby="play-tab-info" hidden={activeTab !== 'info'}>
+                    <InfoTabView character={character} />
+                </div>
             </div>
         </div>
     );

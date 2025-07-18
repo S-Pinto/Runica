@@ -66,6 +66,7 @@ export interface CustomResource {
 
 export interface ICharacter {
   id: string;
+  imageUrl?: string;
   name: string;
   class: string;
   subclass: string;
@@ -119,4 +120,7 @@ export interface ICharacter {
     [level: number]: { max: number; used: number };
   };
   customResources: CustomResource[];
+
+  // Syncing
+  lastUpdated: number;
 }

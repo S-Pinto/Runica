@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ICharacter, AbilityScores, Currency, Skill } from '../types';
 import * as characterService from '../services/characterService';
 import * as geminiService from '../services/geminiService';
-import { SparklesIcon, BackIcon, SaveIcon, TrashIcon } from './icons';
+import * as storageService from '../services/storageService';
+import { SparklesIcon, BackIcon, SaveIcon, TrashIcon, PhotoIcon } from './icons';
 import { Spellbook } from './Spellbook';
 import { FeatureList } from './FeatureList';
 import { EquipmentList } from './EquipmentList';
@@ -17,8 +18,12 @@ const formatModifier = (mod: number) => (mod >= 0 ? `+${mod}` : String(mod));
 const ABILITIES: (keyof AbilityScores)[] = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
 
 // --- Sub-components ---
-const TabButton = ({ label, isActive, onClick }: { label: string, isActive: boolean, onClick: () => void }) => (
+const TabButton = ({ label, isActive, onClick, controls, id }: { label: string, isActive: boolean, onClick: () => void, controls: string, id: string }) => (
     <button
+        id={id}
+        role="tab"
+        aria-selected={isActive}
+        aria-controls={controls}
         onClick={onClick}
         className={`px-3 py-2 text-sm font-medium rounded-t-lg transition-colors whitespace-nowrap ${
             isActive
@@ -73,6 +78,15 @@ interface CharacterSheetProps {
     onDelete: (id: string) => void;
 }
 
+const TABS: { key: Tab; label: string }[] = [
+    { key: 'main', label: 'Main' },
+    { key: 'stats', label: 'Stats & Skills' },
+    { key: 'combat', label: 'Combat & Features' },
+    { key: 'bio', label: 'Biography & Notes' },
+    { key: 'inventory', label: 'Inventory' },
+    { key: 'spells', label: 'Spells' },
+];
+
 export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onBack, onSaveComplete, onDelete }) => {
     const [character, setCharacter] = useState<ICharacter | null>(null);
     const [loading, setLoading] = useState(true);
@@ -80,6 +94,8 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
     const [isGenerating, setIsGenerating] = useState(false);
     const [personalityPrompt, setPersonalityPrompt] = useState('');
     const [activeTab, setActiveTab] = useState<Tab>('main');
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
     const isNewCharacter = characterId === 'new';
     
     useEffect(() => {
@@ -92,6 +108,9 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
                 charData = await characterService.getCharacter(characterId);
             }
             setCharacter(charData);
+            if (charData?.imageUrl) {
+                setImagePreview(charData.imageUrl);
+            }
             setLoading(false);
         };
         loadCharacter();
@@ -105,11 +124,24 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
     const handleSaveClick = async () => {
         if (!character) return;
         setIsSaving(true);
-        const id = isNewCharacter ? `char_${Date.now()}` : character.id;
-        const charToSave: ICharacter = { ...character, id, proficiencyBonus };
-        const savedChar = await characterService.saveCharacter(charToSave);
-        setIsSaving(false);
-        onSaveComplete(savedChar.id);
+
+        try {
+            const id = isNewCharacter ? `char_${Date.now()}` : character.id;
+            let imageUrl = character.imageUrl || '';
+
+            if (imageFile) {
+                imageUrl = await storageService.uploadCharacterImage(imageFile, id);
+            }
+
+            const charToSave: ICharacter = { ...character, id, imageUrl, proficiencyBonus, lastUpdated: Date.now() };
+            const savedChar = await characterService.saveCharacter(charToSave);
+            onSaveComplete(savedChar.id);
+        } catch (error) {
+            console.error("Failed to save character:", error);
+            alert("An error occurred while saving. Please try again.");
+        } finally {
+            setIsSaving(false);
+        }
     };
     
     const handleDeleteClick = async () => {
@@ -118,6 +150,19 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
         }
     };
     
+    const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setImageFile(file);
+            // Crea un'anteprima locale
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         if (!character) return;
         const { name, value, type } = e.target;
@@ -238,18 +283,38 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
             </header>
 
             <div className="bg-zinc-800 border border-zinc-700 shadow-2xl shadow-amber-900/10 rounded-lg p-4 sm:p-6">
-                <nav className="flex space-x-1 mb-6 border-b border-zinc-700 overflow-x-auto">
-                    <TabButton label="Main" isActive={activeTab === 'main'} onClick={() => setActiveTab('main')} />
-                    <TabButton label="Stats & Skills" isActive={activeTab === 'stats'} onClick={() => setActiveTab('stats')} />
-                    <TabButton label="Combat & Features" isActive={activeTab === 'combat'} onClick={() => setActiveTab('combat')} />
-                    <TabButton label="Biography & Notes" isActive={activeTab === 'bio'} onClick={() => setActiveTab('bio')} />
-                    <TabButton label="Inventory" isActive={activeTab === 'inventory'} onClick={() => setActiveTab('inventory')} />
-                    <TabButton label="Spells" isActive={activeTab === 'spells'} onClick={() => setActiveTab('spells')} />
-                </nav>
+                <div role="tablist" aria-label="Character Sheet Sections" className="flex space-x-1 mb-6 border-b border-zinc-700 overflow-x-auto">
+                    {TABS.map(tab => (
+                         <TabButton 
+                            key={tab.key}
+                            id={`tab-${tab.key}`}
+                            label={tab.label} 
+                            isActive={activeTab === tab.key} 
+                            onClick={() => setActiveTab(tab.key)} 
+                            controls={`panel-${tab.key}`}
+                        />
+                    ))}
+                </div>
 
-                <div className={activeTab === 'main' ? 'block' : 'hidden'}>
+                <div id="panel-main" role="tabpanel" aria-labelledby="tab-main" hidden={activeTab !== 'main'}>
                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="space-y-4 md:col-span-1">
+                            <div>
+                                <label className="block text-sm font-medium text-zinc-400">Character Portrait</label>
+                                <div className="mt-1 flex items-center gap-4">
+                                    <span className="inline-block h-24 w-24 rounded-lg overflow-hidden bg-zinc-700">
+                                        {imagePreview ? (
+                                            <img src={imagePreview} alt="Character portrait" className="h-full w-full object-cover" />
+                                        ) : (
+                                            <PhotoIcon className="h-full w-full text-zinc-500 p-4" />
+                                        )}
+                                    </span>
+                                    <input type="file" id="imageUpload" className="hidden" accept="image/png, image/jpeg, image/webp, image/gif" onChange={handleImageFileChange} />
+                                    <label htmlFor="imageUpload" className="cursor-pointer rounded-md bg-zinc-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-zinc-600">
+                                        Change
+                                    </label>
+                                </div>
+                            </div>
                             <InputField label="Character Name" name="name" type="text" value={character.name} onChange={handleFieldChange} placeholder="e.g., Eldrin" />
                             <div className="grid grid-cols-2 gap-2">
                                 <InputField label="Class" name="class" type="text" value={character.class} onChange={handleFieldChange} placeholder="e.g., Wizard" />
@@ -299,7 +364,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
                     </div>
                 </div>
 
-                <div className={`${activeTab === 'stats' ? 'block' : 'hidden'}`}>
+                <div id="panel-stats" role="tabpanel" aria-labelledby="tab-stats" hidden={activeTab !== 'stats'}>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {ABILITIES.map(abilityKey => {
                             const abilityScore = character.abilityScores[abilityKey];
@@ -375,7 +440,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
                     </div>
                 </div>
                 
-                 <div className={`${activeTab === 'combat' ? 'block' : 'hidden'} min-h-[60vh]`}>
+                 <div id="panel-combat" role="tabpanel" aria-labelledby="tab-combat" hidden={activeTab !== 'combat'} className="min-h-[60vh]">
                      <div className="flex flex-col lg:flex-row gap-6 h-full">
                         <div className="flex-1 lg:w-1/2 flex flex-col">
                             <AttackList character={character} onUpdateCharacter={setCharacter} />
@@ -386,7 +451,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
                     </div>
                 </div>
 
-                <div className={`${activeTab === 'bio' ? 'block' : 'hidden'} min-h-[60vh]`}>
+                <div id="panel-bio" role="tabpanel" aria-labelledby="tab-bio" hidden={activeTab !== 'bio'} className="min-h-[60vh]">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                        <div className="flex flex-col gap-6">
                            <TextAreaInput label="Personality Traits" name="personalityTraits" value={character.personalityTraits} onChange={handleFieldChange} />
@@ -417,7 +482,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
                     </div>
                 </div>
                 
-                <div className={`${activeTab === 'inventory' ? 'block' : 'hidden'} min-h-[60vh]`}>
+                <div id="panel-inventory" role="tabpanel" aria-labelledby="tab-inventory" hidden={activeTab !== 'inventory'} className="min-h-[60vh]">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-1">
                              <h3 className="text-lg font-cinzel text-amber-400 mb-4">Currency</h3>
@@ -441,7 +506,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
                     </div>
                 </div>
 
-                <div className={`${activeTab === 'spells' ? 'block' : 'hidden'} min-h-[60vh] space-y-6`}>
+                <div id="panel-spells" role="tabpanel" aria-labelledby="tab-spells" hidden={activeTab !== 'spells'} className="min-h-[60vh] space-y-6">
                     <div className="bg-zinc-900/50 p-4 rounded-lg">
                         <h4 className="text-lg font-cinzel text-amber-400 mb-3">Maximum Spell Slots</h4>
                         <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-3">
