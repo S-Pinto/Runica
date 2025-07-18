@@ -27,7 +27,7 @@ if (firebaseConfig.apiKey && firebaseConfig.projectId) {
   try {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
-    db = getFirestore(app);
+    db = getFirestore(app, "runica-db");
     storage = getStorage(app);
     console.log("Firebase initialized successfully.");
   } catch (error) {
