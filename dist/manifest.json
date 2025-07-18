@@ -1,0 +1,23 @@
+
+{
+  "name": "Runica: D&D Character Manager",
+  "short_name": "Runica",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#18181b",
+  "theme_color": "#f59e0b",
+  "description": "A dynamic and functional D&D character sheet manager with offline access and AI-powered backstory generation.",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
