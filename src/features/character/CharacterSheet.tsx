@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ICharacter, AbilityScores, Currency, Skill } from '../types';
-import * as characterService from '../services/characterService';
-import * as geminiService from '../services/geminiService';
-import * as authService from '../services/authService';
-import * as storageService from '../services/storageService';
-import { SparklesIcon, BackIcon, SaveIcon, TrashIcon, PhotoIcon } from './icons';
-import { Spellbook } from './Spellbook';
-import { FeatureList } from './FeatureList';
-import { EquipmentList } from './EquipmentList';
-import { AttackList } from './AttackList';
-import { CustomResourceEditor } from './CustomResourceEditor';
-import { ImageUploader } from '../components/ImageUploader';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ICharacter, AbilityScores, Currency, Skill } from './characterTypes';
+import * as characterService from './characterService';
+import * as geminiService from '../../services/geminiService';
+import * as authService from '../../services/authService';
+import { SparklesIcon, BackIcon, SaveIcon, TrashIcon, PhotoIcon } from '../../components/ui/icons';
+import { Spellbook } from './components/Spellbook';
+import { FeatureList } from './components/FeatureList';
+import { EquipmentList } from './components/EquipmentList';
+import { AttackList } from './components/AttackList';
+import { CustomResourceEditor } from './components/CustomResourceEditor';
 
 
 // --- Type Aliases & Helpers ---
@@ -73,13 +72,6 @@ const TextAreaInput = ({ label, name, value, onChange, placeholder }: { label: s
 );
 
 // --- Main Component ---
-interface CharacterSheetProps {
-    characterId: string;
-    onBack: () => void;
-    onSaveComplete: (id: string) => void;
-    onDelete: (id: string) => void;
-}
-
 const TABS: { key: Tab; label: string }[] = [
     { key: 'main', label: 'Main' },
     { key: 'stats', label: 'Stats & Skills' },
@@ -89,7 +81,9 @@ const TABS: { key: Tab; label: string }[] = [
     { key: 'spells', label: 'Spells' },
 ];
 
-export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onBack, onSaveComplete, onDelete }) => {
+export const CharacterSheet: React.FC = () => {
+    const { id: characterId } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     const [character, setCharacter] = useState<ICharacter | null>(null);
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -98,13 +92,13 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
     const [activeTab, setActiveTab] = useState<Tab>('main');
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const isNewCharacter = characterId === 'new';
+    const isNewCharacter = !characterId;
     
     useEffect(() => {
         const loadCharacter = async () => {
             setLoading(true);
             let charData;
-            if (isNewCharacter) {
+            if (!characterId) { // Route is /character/new
                 charData = { ...characterService.createNewCharacter(), id: 'temp_new' };
             } else {
                 charData = await characterService.getCharacter(characterId);
@@ -116,7 +110,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
             setLoading(false);
         };
         loadCharacter();
-    }, [characterId, isNewCharacter]);
+    }, [characterId]);
 
     const proficiencyBonus = useMemo(() => {
         if (!character) return 0;
@@ -130,7 +124,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
         try {
             // Use a temporary ID for new characters until they are saved for the first time.
             // This ensures the image can be associated with the character even before the first save.
-            const id = isNewCharacter && character.id === 'temp_new' ? `char_${Date.now()}` : character.id;
+            const id = isNewCharacter ? `char_${Date.now()}` : character.id;
             let finalImageUrl = character.imageUrl || '';
 
             if (imageFile) {
@@ -151,7 +145,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
 
             const charToSave: ICharacter = { ...character, id, imageUrl: finalImageUrl, proficiencyBonus, lastUpdated: Date.now() };
             const savedChar = await characterService.saveCharacter(charToSave);
-            onSaveComplete(savedChar.id);
+            navigate(`/character/${savedChar.id}/play`);
         } catch (error) {
             console.error("Failed to save character:", error);
             alert("An error occurred while saving. Please try again.");
@@ -162,7 +156,18 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
     
     const handleDeleteClick = async () => {
         if (character && !isNewCharacter && window.confirm(`Are you sure you want to permanently delete ${character.name}?`)) {
-            onDelete(character.id);
+            await characterService.deleteCharacter(character.id);
+            navigate('/');
+        }
+    };
+
+    const handleBackClick = () => {
+        if (isNewCharacter) {
+            navigate('/');
+        } else if (character) {
+            navigate(`/character/${character.id}/play`);
+        } else {
+            navigate(-1); // Go back in history as a fallback
         }
     };
     
@@ -281,9 +286,9 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
     return (
         <div className="max-w-7xl mx-auto p-4 sm:p-6">
             <header className="flex justify-between items-center mb-4 border-b border-zinc-700 pb-4">
-                <button onClick={onBack} className="flex items-center gap-2 text-zinc-300 hover:text-amber-400 transition-colors">
+                <button onClick={handleBackClick} className="flex items-center gap-2 text-zinc-300 hover:text-amber-400 transition-colors">
                     <BackIcon className="w-5 h-5" />
-                    {isNewCharacter ? 'Cancel Creation' : 'Back to Play View'}
+                    {isNewCharacter ? 'Cancel Creation' : 'Back to Play'}
                 </button>
                 <div className="flex items-center gap-2">
                     {!isNewCharacter && (

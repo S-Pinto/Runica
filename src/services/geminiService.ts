@@ -3,7 +3,7 @@
 // 1. CAMBIAMO GLI IMPORT
 // Non importiamo più GoogleGenAI, ma i tool per chiamare le Cloud Functions.
 import { getFunctions, httpsCallable, HttpsCallableResult } from "firebase/functions";
-import { ICharacter } from '../types';
+import { ICharacter } from '../src/features/character/characterTypes';
 
 // 2. NIENTE PIÙ CHIAVE API QUI!
 // La riga 'const apiKey = import.meta.env.VITE_GEMINI_API_KEY;' viene eliminata.

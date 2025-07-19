@@ -1,5 +1,5 @@
 import React from 'react';
-import { ICharacter, AbilityScores } from '../types';
+import { ICharacter, AbilityScores } from '../characterTypes';
 
 const getModifier = (score: number) => Math.floor((score - 10) / 2);
 const formatModifier = (mod: number) => (mod >= 0 ? `+${mod}` : String(mod));

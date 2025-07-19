@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { ICharacter, Feature } from '../types';
-import { TrashIcon, EditIcon, PlusCircleIcon } from './icons';
+import { ICharacter, Feature } from '../characterTypes';
+import { TrashIcon, EditIcon, PlusCircleIcon } from '../../../components/ui/icons';
 
 const DEFAULT_FEATURE: Omit<Feature, 'id'> = {
   name: '',

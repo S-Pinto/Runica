@@ -1,6 +1,6 @@
 import React from 'react';
-import { ICharacter } from '../types';
-import { TrashIcon, EditIcon, PhotoIcon } from './icons';
+import { ICharacter } from '../characterTypes';
+import { TrashIcon, EditIcon, PhotoIcon } from '../../../components/ui/icons';
 
 interface CharacterCardProps {
   character: ICharacter;

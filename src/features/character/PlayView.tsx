@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ICharacter, CustomResource, Attack, Feature, EquipmentItem, Currency } from '../types';
-import * as characterService from '../services/characterService';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ICharacter, CustomResource, Attack, Feature, EquipmentItem, Currency } from './characterTypes';
+import * as characterService from './characterService';
 import { BackIcon, EditIcon } from './icons';
 import { AbilitiesDisplay } from './AbilitiesDisplay';
 import { PlayViewSpellList } from './PlayViewSpellList';
@@ -283,12 +284,18 @@ const PLAY_TABS: { key: PlayTab; label: string }[] = [
 ];
 
 // --- WRAPPER & MAIN RENDER ---
-export const PlayView: React.FC<{characterId: string, onGoToEdit: () => void, onBack: () => void}> = ({ characterId, onGoToEdit, onBack }) => {
+export const PlayView: React.FC = () => {
+    const { id: characterId } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     const [character, setCharacter] = useState<ICharacter | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<PlayTab>('main');
 
     useEffect(() => {
+        if (!characterId) {
+            setLoading(false);
+            return;
+        }
         const loadCharacter = async () => {
             setLoading(true);
             const charData = await characterService.getCharacter(characterId);
@@ -305,14 +312,18 @@ export const PlayView: React.FC<{characterId: string, onGoToEdit: () => void, on
         characterService.saveCharacter(newCharacter); // Auto-save on change
     };
     
-    if (loading || !character) {
+    if (loading) {
         return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-amber-500"></div></div>;
     }
     
+    if (!character) {
+        return <div className="text-center p-8">Character not found.</div>;
+    }
+
     return (
         <div className="max-w-7xl mx-auto p-4 sm:p-6">
             <header className="flex justify-between items-center mb-6 border-b border-zinc-700 pb-4">
-                <button onClick={onBack} className="flex items-center gap-2 text-zinc-300 hover:text-amber-400 transition-colors">
+                <button onClick={() => navigate('/')} className="flex items-center gap-2 text-zinc-300 hover:text-amber-400 transition-colors">
                     <BackIcon className="w-5 h-5" /> Back to List
                 </button>
                 <div className="text-center">
@@ -321,7 +332,7 @@ export const PlayView: React.FC<{characterId: string, onGoToEdit: () => void, on
                     {character.race} {character.class} {character.subclass && `(${character.subclass})`} &bull; Level {character.level} &bull; {character.alignment}
                   </p>
                 </div>
-                <button onClick={onGoToEdit} className="flex items-center gap-2 px-4 py-2 bg-zinc-700 text-white font-bold rounded-lg shadow-md hover:bg-zinc-600 transition-colors">
+                <button onClick={() => navigate(`/character/${characterId}/edit`)} className="flex items-center gap-2 px-4 py-2 bg-zinc-700 text-white font-bold rounded-lg shadow-md hover:bg-zinc-600 transition-colors">
                     <EditIcon className="w-5 h-5" /> Edit Sheet
                 </button>
             </header>

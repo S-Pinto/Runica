@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { ICharacter, Spell } from '../types';
-import { TrashIcon, EditIcon, PlusCircleIcon } from './icons';
+import { ICharacter, Spell } from '../characterTypes';
+import { TrashIcon, EditIcon, PlusCircleIcon } from '../../../components/ui/icons';
 
 const DEFAULT_SPELL: Omit<Spell, 'id'> = {
   name: '',

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ICharacter, Spell } from '../types';
+import { ICharacter, Spell } from '../characterTypes';
 
 const SpellCard = ({ spell, onToggleExpand, isExpanded }: { spell: Spell; onToggleExpand: () => void; isExpanded: boolean; }) => (
     <div className="bg-zinc-700/50 rounded-lg">

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import Cropper, { ReactCropperElement } from 'react-cropper';
 import 'cropperjs/dist/cropper.css';
-import { uploadImageBlob, compressImage } from '../services/storageService';
+import { uploadImageBlob, compressImage } from '../../../../services/storageService';
 
 interface ImageUploaderProps {
     characterId: string;

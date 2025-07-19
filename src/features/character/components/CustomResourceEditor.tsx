@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ICharacter, CustomResource } from '../types';
-import { TrashIcon, EditIcon, PlusCircleIcon } from './icons';
+import { ICharacter, CustomResource } from '../characterTypes';
+import { TrashIcon, EditIcon, PlusCircleIcon } from '../../../components/ui/icons';
 
 const DEFAULT_RESOURCE: Omit<CustomResource, 'id' | 'used'> = {
   name: '',

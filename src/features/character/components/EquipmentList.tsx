@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { ICharacter, EquipmentItem } from '../types';
-import { TrashIcon, EditIcon, PlusCircleIcon } from './icons';
+import { ICharacter, EquipmentItem } from '../characterTypes';
+import { TrashIcon, EditIcon, PlusCircleIcon } from '../../../components/ui/icons';
 
 const DEFAULT_ITEM: Omit<EquipmentItem, 'id'> = {
   name: '',

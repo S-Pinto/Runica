@@ -1,15 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { ICharacter } from '../types';
-import * as characterService from '../services/characterService';
-import * as authService from '../services/authService';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useOutletContext } from 'react-router-dom';
+import { ICharacter } from './characterTypes';
+import * as characterService from './characterService';
+import * as authService from '../../services/authService';
 import type { User } from 'firebase/auth';
 import { CharacterCard } from './CharacterCard';
 import { UserPlusIcon } from './icons';
-
-interface CharacterListProps {
-  onSelectCharacter: (id: string) => void;
-  currentUser: User | null;
-}
 
 const AuthDisplay = ({ user }: { user: User | null }) => {
     if (user) {
@@ -41,9 +37,11 @@ const AuthDisplay = ({ user }: { user: User | null }) => {
 };
 
 
-export const CharacterList: React.FC<CharacterListProps> = ({ onSelectCharacter, currentUser }) => {
+export const CharacterList: React.FC = () => {
   const [characters, setCharacters] = useState<ICharacter[]>([]);
   const [loading, setLoading] = useState(true);
+  const { currentUser } = useOutletContext<{ currentUser: User | null }>();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setLoading(true);
@@ -55,8 +53,12 @@ export const CharacterList: React.FC<CharacterListProps> = ({ onSelectCharacter,
     return () => unsubscribe(); // Cleanup the listener
   }, [currentUser]); // Rerun when user logs in/out
 
-  const handleCreateCharacter = () => {
-    onSelectCharacter('new');
+  const handleSelectCharacter = (id: string) => {
+    if (id === 'new') {
+      navigate('/character/new');
+    } else {
+      navigate(`/character/${id}/play`);
+    }
   };
 
   const handleDeleteCharacter = async (id: string, name: string) => {
@@ -86,7 +88,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({ onSelectCharacter,
 
       <div className="flex flex-col items-center">
         <button
-            onClick={handleCreateCharacter}
+            onClick={() => handleSelectCharacter('new')}
             className="mb-10 flex items-center gap-2 px-6 py-3 bg-amber-600 text-white font-bold rounded-lg shadow-md hover:bg-amber-500 transition-all duration-300 transform hover:scale-105"
         >
             <UserPlusIcon className="w-5 h-5" />
@@ -99,7 +101,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({ onSelectCharacter,
                 <CharacterCard 
                 key={char.id} 
                 character={char} 
-                onSelect={() => onSelectCharacter(char.id)}
+                onSelect={() => handleSelectCharacter(char.id)}
                 onDelete={(e) => {
                     e.stopPropagation();
                     handleDeleteCharacter(char.id, char.name);

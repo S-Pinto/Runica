@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { ICharacter, Attack } from '../types';
-import { TrashIcon, EditIcon, PlusCircleIcon } from './icons';
+import { ICharacter, Attack } from '../characterTypes';
+import { TrashIcon, EditIcon, PlusCircleIcon } from '../../../components/ui/icons';
 
 const DEFAULT_ATTACK: Omit<Attack, 'id'> = {
   name: '',
