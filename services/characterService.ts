@@ -1,6 +1,7 @@
 import { ICharacter, AbilityScores, Skill } from '../types';
-import { db, auth } from '../firebaseConfig'; // storage is no longer needed
+import { db, auth } from '../firebaseConfig';
 import { collection, doc, getDocs, setDoc, deleteDoc, writeBatch, onSnapshot, query, CollectionReference, getDoc } from 'firebase/firestore';
+import * as storageService from './storageService';
 
 const getProficiencyBonus = (level: number): number => Math.ceil(level / 4) + 1;
 const getModifier = (score: number) => Math.floor((score - 10) / 2);
@@ -153,28 +154,52 @@ export const deleteCharacter = async (id: string): Promise<void> => {
 };
 
 export const migrateLocalDataToFirestore = async () => {
-    if (!db || !auth?.currentUser) return;
+    // Ensure we are online and all services are available for migration
+    if (!db || !auth?.currentUser || !storageService.uploadCharacterImageFromDataUrl) {
+        return;
+    }
+
     const localCharacters = getLocalCharacters();
-    if (localCharacters.length === 0) return;
+    if (localCharacters.length === 0) {
+        return;
+    }
 
     if (!window.confirm("You have local characters saved on this device. Do you want to move them to your account? This will merge them with any existing characters on your account.")) {
         return;
     }
+
     const coll = getCharactersCollection();
-    if (!coll) return;
+    if (!coll) return; // Should not happen due to the check above, but good for type safety
 
     const batch = writeBatch(db);
     const cloudSnapshot = await getDocs(coll);
     const cloudCharacters = cloudSnapshot.docs.map(d => d.data() as ICharacter);
     
     let migratedCount = 0;
-    // Use a for...of loop to handle async operations correctly inside the loop.
+
     for (const localChar of localCharacters) {
         const cloudVersion = cloudCharacters.find(c => c.id === localChar.id);
+        
+        // Only migrate if local character is newer or doesn't exist in the cloud.
         if (!cloudVersion || (localChar.lastUpdated > (cloudVersion.lastUpdated || 0))) {
+            const charToMigrate = { ...localChar };
 
+            // If the image is a local base64 string, upload it to Storage first.
+            if (charToMigrate.imageUrl && charToMigrate.imageUrl.startsWith('data:image')) {
+                try {
+                    // We've already confirmed auth.currentUser is not null
+                    const userId = auth.currentUser!.uid;
+                    charToMigrate.imageUrl = await storageService.uploadCharacterImageFromDataUrl(charToMigrate.imageUrl, userId, charToMigrate.id);
+                } catch (error) {
+                    console.error(`Failed to upload image for character ${charToMigrate.name}. It will be saved with the local data URL.`, error);
+                    // After a failed upload, the imageUrl is still a base64 string.
+                    // Setting it to empty prevents the Firestore size limit error.
+                    charToMigrate.imageUrl = '';
+                }
+            }
+            
             const docRef = doc(coll, localChar.id);
-            batch.set(docRef, localChar);
+            batch.set(docRef, charToMigrate);
             migratedCount++;
         }
     }
@@ -183,12 +208,14 @@ export const migrateLocalDataToFirestore = async () => {
         try {
             await batch.commit();
             alert(`${migratedCount} character(s) migrated to your account.`);
-            saveLocalCharacters([]);
+            // On successful migration, clear local storage.
+            saveLocalCharacters([]); 
         } catch (error) {
             console.error("Failed to migrate characters:", error);
             alert("There was an error migrating your characters. They remain on this device for now.");
         }
     } else {
         alert("No characters needed to be migrated. Your cloud data is up to date.");
+        saveLocalCharacters([]); // Also clear if everything is already up-to-date.
     }
 };

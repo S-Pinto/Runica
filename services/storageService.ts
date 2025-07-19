@@ -1,49 +1,59 @@
-import { auth } from '../firebaseConfig'; // storage is no longer needed
+import { storage } from '../firebaseConfig';
+import { ref, uploadBytes, getDownloadURL, uploadString, StringFormat } from "firebase/storage";
 import imageCompression from 'browser-image-compression';
 
 /**
- * Converts a File object to a Base64 encoded string.
- * This is used to store images locally when the user is offline.
- * @param file The file to convert.
- * @returns A promise that resolves with the Base64 string.
+ * Compresses an image file before upload.
+ * @param file The image file to compress.
+ * @returns A promise that resolves with the compressed file.
  */
-const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = error => reject(error);
-    });
-};
+export async function compressImage(file: File): Promise<File> {
+    const options = {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1024,
+      useWebWorker: true,
+    };
+    try {
+        return await imageCompression(file, options);
+    } catch (error) {
+        console.error('Image compression failed:', error);
+        return file; // Return original file if compression fails
+    }
+}
 
 /**
- * Handles character image processing by compressing it and converting it to a Base64 string.
- * This allows for larger original images while keeping the stored size in Firestore manageable.
+ * Uploads a character image file to Firebase Storage.
+ * This function will only be available if Firebase Storage is initialized.
  * @param file The image file to upload.
- * @param characterId The ID of the character.
- * @returns A promise that resolves to a Base64 data URL.
+ * @param userId The ID of the user who owns the character.
+ * @param characterId The ID of the character this image belongs to.
  */
-export const uploadCharacterImage = async (file: File, characterId: string): Promise<string> => {
-    if (!file) {
-        throw new Error("No file provided for upload.");
-    }
-    
-    const options = {
-      maxSizeMB: 0.75,                // Target size: 750KB
-      maxWidthOrHeight: 1024,         // Optional: Resizes the image for better performance and smaller size
-      useWebWorker: true,             // Optional: Uses a web worker to avoid blocking the main thread
-    };
-    
-    try {
-        console.log(`Original image size: ${(file.size / 1024).toFixed(2)} KB`);
-        // Compress the image using the defined options
-        const compressedFile = await imageCompression(file, options);
-        console.log(`Compressed image size: ${(compressedFile.size / 1024).toFixed(2)} KB`);
-        // Convert the newly compressed file to Base64 for storage
-        return fileToBase64(compressedFile);
-    } catch (error) {
-        console.error('Error during image compression:', error);
-        // Re-throw a user-friendly error
-        throw new Error('Failed to process the image. Please try again or select a different one.');
-    }
-};
+export let uploadCharacterImage: ((file: File, userId: string, characterId: string) => Promise<string>) | undefined;
+
+/**
+ * Uploads a character image from a data URL (base64) to Firebase Storage.
+ * Used for migrating local data to the cloud.
+ * This function will only be available if Firebase Storage is initialized.
+ * @param dataUrl The base64 data URL of the image.
+ * @param userId The ID of the user who owns the character.
+ * @param characterId The ID of the character this image belongs to.
+ */
+export let uploadCharacterImageFromDataUrl: ((dataUrl: string, userId: string, characterId: string) => Promise<string>) | undefined;
+
+if (storage) {
+  // By defining these within the `if (storage)` block, TypeScript correctly infers
+  // that `storage` is of type `FirebaseStorage` and not `undefined`.
+  uploadCharacterImage = async (file: File, userId: string, characterId: string): Promise<string> => {
+    const compressedFile = await compressImage(file);
+    const storageRef = ref(storage, `users/${userId}/character-portraits/${characterId}`);
+    await uploadBytes(storageRef, compressedFile);
+    return getDownloadURL(storageRef);
+  };
+
+  uploadCharacterImageFromDataUrl = async (dataUrl: string, userId: string, characterId: string): Promise<string> => {
+    const storageRef = ref(storage, `users/${userId}/character-portraits/${characterId}`);
+    // Upload the data URL string directly
+    await uploadString(storageRef, dataUrl, StringFormat.DATA_URL);
+    return getDownloadURL(storageRef);
+  };
+}

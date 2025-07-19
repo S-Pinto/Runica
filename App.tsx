@@ -4,30 +4,16 @@ import { CharacterList } from './components/CharacterList';
 import { CharacterSheet } from './components/CharacterSheet';
 import { PlayView } from './components/PlayView';
 import * as characterService from './services/characterService';
-import * as authService from './services/authService';
-import type { User } from 'firebase/auth';
+import { useAuth } from './src/providers/AuthProvider';
 
 type ViewState = 'list' | 'play' | 'edit';
 
 const App: React.FC = () => {
+  // Otteniamo lo stato dal nostro nuovo AuthProvider invece di gestirlo qui
+  const { currentUser, loading } = useAuth();
+
   const [viewState, setViewState] = useState<ViewState>('list');
   const [activeCharacterId, setActiveCharacterId] = useState<string | null>(null);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [authInitialized, setAuthInitialized] = useState(false);
-
-
-  useEffect(() => {
-    const unsubscribe = authService.onAuthSateChangedListener((user) => {
-      setCurrentUser(user);
-      if (user) {
-        // User just logged in, check if they have local data to migrate
-        characterService.migrateLocalDataToFirestore();
-      }
-      setAuthInitialized(true);
-    });
-
-    return unsubscribe; // Cleanup subscription on unmount
-  }, []);
 
   const handleSelectCharacter = (id: string) => {
     setActiveCharacterId(id);
@@ -64,7 +50,7 @@ const App: React.FC = () => {
     handleReturnToList();
   }
   
-  if (!authInitialized) {
+  if (loading) {
       return (
         <div className="flex justify-center items-center h-screen">
             <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-amber-500"></div>

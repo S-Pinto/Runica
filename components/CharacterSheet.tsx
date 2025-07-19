@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ICharacter, AbilityScores, Currency, Skill } from '../types';
 import * as characterService from '../services/characterService';
 import * as geminiService from '../services/geminiService';
+import * as authService from '../services/authService';
 import * as storageService from '../services/storageService';
 import { SparklesIcon, BackIcon, SaveIcon, TrashIcon, PhotoIcon } from './icons';
 import { Spellbook } from './Spellbook';
@@ -9,6 +10,7 @@ import { FeatureList } from './FeatureList';
 import { EquipmentList } from './EquipmentList';
 import { AttackList } from './AttackList';
 import { CustomResourceEditor } from './CustomResourceEditor';
+import { ImageUploader } from '../components/ImageUploader';
 
 
 // --- Type Aliases & Helpers ---
@@ -126,14 +128,28 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId, onB
         setIsSaving(true);
 
         try {
-            const id = isNewCharacter ? `char_${Date.now()}` : character.id;
-            let imageUrl = character.imageUrl || '';
+            // Use a temporary ID for new characters until they are saved for the first time.
+            // This ensures the image can be associated with the character even before the first save.
+            const id = isNewCharacter && character.id === 'temp_new' ? `char_${Date.now()}` : character.id;
+            let finalImageUrl = character.imageUrl || '';
 
             if (imageFile) {
-                imageUrl = await storageService.uploadCharacterImage(imageFile, id);
+                const user = authService.getCurrentUser();
+                // If we are online, storage service is available, AND user is logged in, upload.
+                if (storageService.uploadCharacterImage && user) {
+                    try {
+                        finalImageUrl = await storageService.uploadCharacterImage(imageFile, user.uid, id);
+                    } catch (uploadError) {
+                        console.error("Image upload failed, saving with local data URL:", uploadError);
+                        finalImageUrl = imagePreview || '';
+                    }
+                } else {
+                    // Offline or not logged in: use the local data URL from the preview.
+                    finalImageUrl = imagePreview || '';
+                }
             }
 
-            const charToSave: ICharacter = { ...character, id, imageUrl, proficiencyBonus, lastUpdated: Date.now() };
+            const charToSave: ICharacter = { ...character, id, imageUrl: finalImageUrl, proficiencyBonus, lastUpdated: Date.now() };
             const savedChar = await characterService.saveCharacter(charToSave);
             onSaveComplete(savedChar.id);
         } catch (error) {
