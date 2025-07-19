@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ICharacter } from './characterTypes';
 import * as characterService from './characterService';
 import * as authService from '../../services/authService';
-import type { User } from 'firebase/auth';
-import { CharacterCard } from './CharacterCard';
-import { UserPlusIcon } from './icons';
+import { useAuth } from '../../providers/AuthProvider';
+import { CharacterCard } from './components/CharacterCard';
+import { UserPlusIcon } from '../../components/ui/icons';
 
-const AuthDisplay = ({ user }: { user: User | null }) => {
-    if (user) {
+
+const AuthDisplay = () => {
+    const { currentUser } = useAuth();
+
+    if (currentUser) {
         return (
             <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-2">
-                    <img src={user.photoURL || undefined} alt="User" className="w-8 h-8 rounded-full" />
-                    <span className="text-zinc-300 hidden sm:inline">{user.displayName || user.email}</span>
+                    <img src={currentUser.photoURL || ''} alt="User" className="w-8 h-8 rounded-full" />
+                    <span className="text-zinc-300 hidden sm:inline">{currentUser.displayName || currentUser.email}</span>
                 </div>
                 <button 
                     onClick={() => authService.signOutUser()}
@@ -40,7 +43,7 @@ const AuthDisplay = ({ user }: { user: User | null }) => {
 export const CharacterList: React.FC = () => {
   const [characters, setCharacters] = useState<ICharacter[]>([]);
   const [loading, setLoading] = useState(true);
-  const { currentUser } = useOutletContext<{ currentUser: User | null }>();
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -59,6 +62,11 @@ export const CharacterList: React.FC = () => {
     } else {
       navigate(`/character/${id}/play`);
     }
+  };
+
+  const handleEditCharacter = (id: string) => {
+    // Naviga alla pagina di modifica del personaggio
+    navigate(`/character/${id}/edit`);
   };
 
   const handleDeleteCharacter = async (id: string, name: string) => {
@@ -83,7 +91,7 @@ export const CharacterList: React.FC = () => {
           <h1 className="text-4xl sm:text-5xl font-bold text-amber-400 font-cinzel tracking-wider">RUNICA</h1>
           <p className="text-zinc-400 mt-1">Your D&D Companion</p>
         </div>
-        <AuthDisplay user={currentUser} />
+        <AuthDisplay />
       </header>
 
       <div className="flex flex-col items-center">

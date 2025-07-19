@@ -1,7 +1,7 @@
 import { ICharacter, AbilityScores, Skill } from './characterTypes';
 import { db, auth } from '../../lib/firebaseConfig';
 import { collection, doc, getDocs, setDoc, deleteDoc, writeBatch, onSnapshot, query, CollectionReference, getDoc } from 'firebase/firestore';
-import * as storageService from '../../../services/storageService';
+import * as storageService from '../../services/storageService';
 
 const getProficiencyBonus = (level: number): number => Math.ceil(level / 4) + 1;
 const getModifier = (score: number) => Math.floor((score - 10) / 2);

@@ -1,4 +1,4 @@
-import { storage } from '../src/lib/firebaseConfig';
+import { storage } from '../lib/firebaseConfig';
 import { ref, uploadBytes, getDownloadURL, uploadString, StringFormat } from "firebase/storage";
 import imageCompression from 'browser-image-compression';
 

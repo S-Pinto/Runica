@@ -1,16 +1,19 @@
-/** @type {import('tailwindcss').Config} */
-export default {
-  content: [
-    "./index.html",
-    "./**/*.{js,ts,jsx,tsx}",
-  ],
-  theme: {
-    extend: {
-      fontFamily: {
-        'cinzel': ['Cinzel', 'serif'],
-        'inter': ['Inter', 'sans-serif'],
-      }
+{
+  /** @type {import('tailwindcss').Config} */
+  export default {
+    content: [
+      "./index.html",
+      "./src/**/*.{js,ts,jsx,tsx}", // This is the key change
+    ],
+    theme: {
+      extend: {
+        fontFamily: {
+          // Assuming you want to use these fonts with Tailwind classes
+          'cinzel': ['Cinzel', 'serif'],
+          'inter': ['Inter', 'sans-serif'],
+        },
+      },
     },
-  },
-  plugins: [],
+    plugins: [],
+  }
 }

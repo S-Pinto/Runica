@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { ICharacter, Feature } from '../characterTypes';
+import { Feature } from '../characterTypes';
+import { useCharacter } from '../CharacterProvider';
 import { TrashIcon, EditIcon, PlusCircleIcon } from '../../../components/ui/icons';
 
 const DEFAULT_FEATURE: Omit<Feature, 'id'> = {
@@ -43,9 +44,12 @@ const FeatureForm = ({
   );
 };
 
-export const FeatureList = ({ character, onUpdateCharacter }: { character: ICharacter; onUpdateCharacter: (updatedCharacter: ICharacter) => void; }) => {
+export const FeatureList = () => {
+  const { character, updateCharacter } = useCharacter();
   const [editingFeature, setEditingFeature] = useState<Feature | 'new' | null>(null);
   const [expandedFeatures, setExpandedFeatures] = useState<Record<string, boolean>>({});
+
+  if (!character) return null;
 
   const handleSaveFeature = (featureData: Feature | Omit<Feature, 'id'>) => {
     let updatedFeatures: Feature[];
@@ -55,14 +59,14 @@ export const FeatureList = ({ character, onUpdateCharacter }: { character: IChar
       const newFeature: Feature = { ...featureData, id: `feat_${Date.now()}` };
       updatedFeatures = [...character.featuresAndTraits, newFeature];
     }
-    onUpdateCharacter({ ...character, featuresAndTraits: updatedFeatures });
+    updateCharacter({ featuresAndTraits: updatedFeatures });
     setEditingFeature(null);
   };
 
   const handleDeleteFeature = (featureId: string) => {
     if (window.confirm('Are you sure you want to delete this feature?')) {
       const updatedFeatures = character.featuresAndTraits.filter(f => f.id !== featureId);
-      onUpdateCharacter({ ...character, featuresAndTraits: updatedFeatures });
+      updateCharacter({ featuresAndTraits: updatedFeatures });
     }
   };
 

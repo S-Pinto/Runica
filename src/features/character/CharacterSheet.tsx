@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ICharacter, AbilityScores, Currency, Skill } from './characterTypes';
+import { useCharacter } from './CharacterProvider';
 import * as characterService from './characterService';
 import * as geminiService from '../../services/geminiService';
 import * as authService from '../../services/authService';
@@ -82,32 +83,29 @@ const TABS: { key: Tab; label: string }[] = [
 ];
 
 export const CharacterSheet: React.FC = () => {
-    const { id: characterId } = useParams<{ id: string }>();
+    const { characterId } = useParams<{ characterId: string }>();
     const navigate = useNavigate();
-    const [character, setCharacter] = useState<ICharacter | null>(null);
-    const [loading, setLoading] = useState(true);
+    const { character, setCharacter, updateCharacter } = useCharacter();
     const [isSaving, setIsSaving] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
     const [personalityPrompt, setPersonalityPrompt] = useState('');
     const [activeTab, setActiveTab] = useState<Tab>('main');
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const isNewCharacter = !characterId;
+    const isNewCharacter = window.location.pathname.endsWith('/character/new');
     
     useEffect(() => {
         const loadCharacter = async () => {
-            setLoading(true);
             let charData;
             if (!characterId) { // Route is /character/new
                 charData = { ...characterService.createNewCharacter(), id: 'temp_new' };
             } else {
                 charData = await characterService.getCharacter(characterId);
             }
-            setCharacter(charData);
+            setCharacter(charData); // Ora questo aggiorna il context
             if (charData?.imageUrl) {
                 setImagePreview(charData.imageUrl);
             }
-            setLoading(false);
         };
         loadCharacter();
     }, [characterId]);
@@ -193,7 +191,7 @@ export const CharacterSheet: React.FC = () => {
             processedValue = parseInt(value) || 0;
         }
 
-        setCharacter(prev => ({ ...prev!, [name]: processedValue }));
+        updateCharacter({ [name]: processedValue });
     };
 
     const handleCurrencyChange = (currency: keyof Currency, value: number) => {
@@ -262,7 +260,7 @@ export const CharacterSheet: React.FC = () => {
         setIsGenerating(true);
         const personalityFields = await geminiService.generatePersonality(character, personalityPrompt);
         setCharacter(prev => ({...prev!, ...personalityFields}));
-        setIsGenerating(false);
+        setIsGenerating(false); 
     };
 
     const initiative = useMemo(() => {
@@ -279,7 +277,7 @@ export const CharacterSheet: React.FC = () => {
         };
     }, [character?.spellcastingAbility, character?.abilityScores, proficiencyBonus]);
 
-    if (loading || !character) {
+    if (!character) {
         return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-amber-500"></div></div>;
     }
     
@@ -464,10 +462,10 @@ export const CharacterSheet: React.FC = () => {
                  <div id="panel-combat" role="tabpanel" aria-labelledby="tab-combat" hidden={activeTab !== 'combat'} className="min-h-[60vh]">
                      <div className="flex flex-col lg:flex-row gap-6 h-full">
                         <div className="flex-1 lg:w-1/2 flex flex-col">
-                            <AttackList character={character} onUpdateCharacter={setCharacter} />
+                            <AttackList />
                         </div>
                         <div className="flex-1 lg:w-1/2 flex flex-col">
-                            <FeatureList character={character} onUpdateCharacter={(c) => setCharacter(c)} />
+                            <FeatureList />
                         </div>
                     </div>
                 </div>
@@ -522,7 +520,7 @@ export const CharacterSheet: React.FC = () => {
                              </div>
                         </div>
                         <div className="lg:col-span-2">
-                            <EquipmentList character={character} onUpdateCharacter={setCharacter} />
+                            <EquipmentList />
                         </div>
                     </div>
                 </div>
@@ -545,8 +543,8 @@ export const CharacterSheet: React.FC = () => {
                             ))}
                         </div>
                     </div>
-                    <CustomResourceEditor character={character} onUpdateCharacter={setCharacter} />
-                    <Spellbook character={character} onUpdateCharacter={(c) => setCharacter(c)} />
+                    <CustomResourceEditor />
+                    <Spellbook />
                 </div>
             </div>
         </div>

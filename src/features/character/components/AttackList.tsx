@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { ICharacter, Attack } from '../characterTypes';
+import { Attack } from '../characterTypes';
+import { useCharacter } from '../CharacterProvider';
 import { TrashIcon, EditIcon, PlusCircleIcon } from '../../../components/ui/icons';
 
 const DEFAULT_ATTACK: Omit<Attack, 'id'> = {
@@ -47,8 +48,11 @@ const AttackForm = ({
   );
 };
 
-export const AttackList = ({ character, onUpdateCharacter }: { character: ICharacter; onUpdateCharacter: (updatedCharacter: ICharacter) => void; }) => {
+export const AttackList = () => {
+  const { character, updateCharacter } = useCharacter();
   const [editingAttack, setEditingAttack] = useState<Attack | 'new' | null>(null);
+
+  if (!character) return null;
 
   const handleSaveAttack = (attackData: Attack | Omit<Attack, 'id'>) => {
     let updatedAttacks: Attack[];
@@ -58,14 +62,14 @@ export const AttackList = ({ character, onUpdateCharacter }: { character: IChara
       const newAttack: Attack = { ...attackData, id: `attack_${Date.now()}` };
       updatedAttacks = [...character.attacks, newAttack];
     }
-    onUpdateCharacter({ ...character, attacks: updatedAttacks });
+    updateCharacter({ attacks: updatedAttacks });
     setEditingAttack(null);
   };
 
   const handleDeleteAttack = (attackId: string) => {
     if (window.confirm('Are you sure you want to delete this attack?')) {
       const updatedAttacks = character.attacks.filter(f => f.id !== attackId);
-      onUpdateCharacter({ ...character, attacks: updatedAttacks });
+      updateCharacter({ attacks: updatedAttacks });
     }
   };
 

@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
-import { ICharacter, EquipmentItem } from '../characterTypes';
+import { EquipmentItem } from '../characterTypes';
+import { useCharacter } from '../CharacterProvider';
 import { TrashIcon, EditIcon, PlusCircleIcon } from '../../../components/ui/icons';
+import React, { useState, useMemo } from 'react';
 
 const DEFAULT_ITEM: Omit<EquipmentItem, 'id'> = {
   name: '',
@@ -79,9 +80,12 @@ const ItemForm = ({
   );
 };
 
-export const EquipmentList = ({ character, onUpdateCharacter }: { character: ICharacter; onUpdateCharacter: (updatedCharacter: ICharacter) => void; }) => {
+export const EquipmentList = () => {
+  const { character, updateCharacter } = useCharacter();
   const [editingItem, setEditingItem] = useState<EquipmentItem | 'new' | null>(null);
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
+
+    if (!character) return null;
 
   const handleSaveItem = (itemData: EquipmentItem | Omit<EquipmentItem, 'id'>) => {
     let updatedEquipment: EquipmentItem[];
@@ -91,14 +95,14 @@ export const EquipmentList = ({ character, onUpdateCharacter }: { character: ICh
       const newItem: EquipmentItem = { ...itemData, id: `item_${Date.now()}` };
       updatedEquipment = [...character.equipment, newItem];
     }
-    onUpdateCharacter({ ...character, equipment: updatedEquipment });
+    updateCharacter({ equipment: updatedEquipment });
     setEditingItem(null);
   };
 
   const handleDeleteItem = (itemId: string) => {
     if (window.confirm('Are you sure you want to delete this item?')) {
       const updatedEquipment = character.equipment.filter(f => f.id !== itemId);
-      onUpdateCharacter({ ...character, equipment: updatedEquipment });
+      updateCharacter({ equipment: updatedEquipment });
     }
   };
 

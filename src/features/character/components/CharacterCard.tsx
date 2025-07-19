@@ -4,16 +4,12 @@ import { TrashIcon, EditIcon, PhotoIcon } from '../../../components/ui/icons';
 
 interface CharacterCardProps {
   character: ICharacter;
-  onSelect: () => void;
+  onSelect: () => void; // Per la vista di gioco
   onDelete: (e: React.MouseEvent) => void;
+  onEdit: (e: React.MouseEvent) => void; // Per la modifica
 }
 
 export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSelect, onDelete }) => {
-  
-  const handleEditClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onSelect();
-  };
 
   return (
     <div onClick={onSelect} className="bg-zinc-800 rounded-lg shadow-lg overflow-hidden transition-all duration-300 hover:shadow-amber-500/20 hover:scale-105 group relative cursor-pointer">
@@ -42,7 +38,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSelec
       </div>
       <div className="absolute top-3 right-3 flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
-          onClick={handleEditClick}
+          onClick={onEdit}
           className="p-2 rounded-full bg-zinc-700 hover:bg-amber-500 text-zinc-300 hover:text-white transition-colors"
           aria-label={`Edit ${character.name}`}
         >

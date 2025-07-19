@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ICharacter, CustomResource, Attack, Feature, EquipmentItem, Currency } from './characterTypes';
 import * as characterService from './characterService';
-import { BackIcon, EditIcon } from './icons';
-import { AbilitiesDisplay } from './AbilitiesDisplay';
-import { PlayViewSpellList } from './PlayViewSpellList';
+import { useCharacter } from './CharacterProvider';
+import { BackIcon, EditIcon } from '../../components/ui/icons';
+import { AbilitiesDisplay } from './components/AbilitiesDisplay';
+import { PlayViewSpellList } from './components/PlayViewSpellList';
 
 // --- UTILITIES ---
 const getModifier = (score: number) => Math.floor((score - 10) / 2);
@@ -36,26 +37,40 @@ const StatBox = ({ label, value, subValue, className }: { label: string; value: 
     </div>
 );
 
-const rollSimpleDice = (diceString: string): { total: number; pretty: string } => {
-    if (!diceString || typeof diceString !== 'string') return { total: 0, pretty: 'Invalid' };
-    const match = diceString.match(/(\d+)d(\d+)/);
-    if (!match) return { total: 0, pretty: 'Invalid' };
-    const numDice = parseInt(match[1], 10);
-    const diceType = parseInt(match[2], 10);
+const rollDiceExpression = (diceString: string): { total: number; pretty: string } => {
+    if (!diceString || typeof diceString !== 'string') return { total: 0, pretty: 'Invalid input' };
+    const parts = diceString.replace(/[\s()]/g, '').split('+');
     let total = 0;
-    const rolls: number[] = [];
-    for (let i = 0; i < numDice; i++) {
-        const roll = Math.floor(Math.random() * diceType) + 1;
-        rolls.push(roll);
-        total += roll;
+    const prettyParts: string[] = [];
+    const diceRegex = /(\d+)d(\d+)/i;
+    for (const part of parts) {
+        if (!part) continue;
+        const diceMatch = part.match(diceRegex);
+        if (diceMatch) {
+            const numDice = parseInt(diceMatch[1], 10);
+            const diceType = parseInt(diceMatch[2], 10);
+            if (isNaN(numDice) || isNaN(diceType)) continue;
+            const rolls = Array.from({ length: numDice }, () => Math.floor(Math.random() * diceType) + 1);
+            const subTotal = rolls.reduce((a, b) => a + b, 0);
+            total += subTotal;
+            prettyParts.push(`[${rolls.join('+')}]`);
+        } else {
+            const modifier = parseInt(part, 10);
+            if (!isNaN(modifier)) {
+                total += modifier;
+                prettyParts.push(String(modifier));
+            }
+        }
     }
-    return { total, pretty: `[${rolls.join('+')}]` };
+    if (prettyParts.length === 0) return { total: 0, pretty: 'Invalid Format' };
+    return { total, pretty: `${prettyParts.join(' + ')} = ${total}` };
 };
 
 // --- TAB SUB-COMPONENTS ---
 
-const MainTabView = ({ character, onUpdate }: { character: ICharacter, onUpdate: (d: Partial<ICharacter>) => void }) => {
+const MainTabView = () => {
     const [hitDiceRoll, setHitDiceRoll] = useState<string | null>(null);
+    const { character, updateCharacter } = useCharacter();
 
     const conModifier = getModifier(character.abilityScores.constitution);
     const passivePerception = useMemo(() => {
@@ -97,19 +112,18 @@ const MainTabView = ({ character, onUpdate }: { character: ICharacter, onUpdate:
     const spendHitDie = () => {
         if (character.hitDice.used >= character.level) return;
 
-        const { total, pretty } = rollSimpleDice(character.hitDice.total);
-        const healing = Math.max(1, total + conModifier);
-        const newCurrentHp = Math.min(character.hp.max, character.hp.current + healing);
+        const { total: healing, pretty: rollDetails } = rollDiceExpression(`${character.hitDice.total}+${conModifier}`);
+        const newCurrentHp = Math.min(character.hp.max, character.hp.current + Math.max(1, healing));
 
-        setHitDiceRoll(`${pretty} + ${conModifier} = ${healing} HP`);
-        onUpdate({
+        setHitDiceRoll(`${rollDetails} HP`);
+        updateCharacter({
             hp: { ...character.hp, current: newCurrentHp },
             hitDice: { ...character.hitDice, used: character.hitDice.used + 1 }
         });
     };
 
     const resetHitDice = () => {
-        onUpdate({ hitDice: { ...character.hitDice, used: 0 } });
+        updateCharacter({ hitDice: { ...character.hitDice, used: 0 } });
         setHitDiceRoll(null);
     }
 
@@ -122,8 +136,8 @@ const MainTabView = ({ character, onUpdate }: { character: ICharacter, onUpdate:
                 <StatBox label="Proficiency" value={formatModifier(character.proficiencyBonus)} />
                 <StatBox label="Passive Perception" value={passivePerception} className="col-span-2 sm:col-span-1" />
             </div>
-            <HPTracker hp={character.hp} onHpChange={(newHp) => onUpdate({ hp: newHp })} />
-            <DeathSavesTracker saves={character.deathSaves} onSaveChange={(newSaves) => onUpdate({ deathSaves: newSaves })} />
+            <HPTracker />
+            <DeathSavesTracker />
             
             <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700">
                 <h3 className="text-lg font-cinzel text-amber-400 mb-3">Hit Dice</h3>
@@ -145,14 +159,16 @@ const MainTabView = ({ character, onUpdate }: { character: ICharacter, onUpdate:
     );
 };
 
-const CombatTabView = ({ character }: { character: ICharacter }) => (
+const CombatTabView = () => {
+    const { character } = useCharacter();
+    return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <AttacksAndCantrips items={character.attacks || []} />
         <FeaturesList title="Features & Traits" items={character.featuresAndTraits || []} />
     </div>
-);
-
-const SpellsTabView = ({ character, onUpdate }: { character: ICharacter, onUpdate: (d: Partial<ICharacter>) => void }) => {
+)};
+const SpellsTabView = () => {
+    const { character, updateCharacter } = useCharacter();
     const spellcastingAbility = character.spellcastingAbility;
     const spellcastingModifier = spellcastingAbility ? getModifier(character.abilityScores[spellcastingAbility]) : 0;
     const spellSaveDC = spellcastingAbility ? 8 + character.proficiencyBonus + spellcastingModifier : '-';
@@ -172,32 +188,49 @@ const SpellsTabView = ({ character, onUpdate }: { character: ICharacter, onUpdat
                         </div>
                     </div>
                  </div>
-                 <ResourceTracker title="Spell Slots" slots={character.spellSlots} onSlotChange={(newSlots) => onUpdate({ spellSlots: newSlots })} />
+                 <ResourceTracker title="Spell Slots" slots={character.spellSlots} onSlotChange={(newSlots) => updateCharacter({ spellSlots: newSlots })} />
                  {character.customResources && character.customResources.length > 0 && (
-                     <ResourceTracker title="Other Resources" slots={character.customResources} onSlotChange={(newResources) => onUpdate({ customResources: newResources })} isCustom />
+                     <ResourceTracker title="Other Resources" slots={character.customResources} onSlotChange={(newResources) => updateCharacter({ customResources: newResources })} isCustom />
                  )}
             </div>
             <div className="lg:col-span-2">
-                <PlayViewSpellList character={character} />
+                <PlayViewSpellList />
             </div>
         </div>
     );
 };
-
-const InventoryTabView = ({ character, onUpdate }: { character: ICharacter, onUpdate: (d: Partial<ICharacter>) => void }) => {
+const InventoryTabView = () => {
+    const { character, updateCharacter } = useCharacter();
     
     const handleToggleEquip = (itemId: string) => {
+        const clickedItem = character.equipment.find(item => item.id === itemId);
+        if (!clickedItem) return;
+
+        const isEquipping = !clickedItem.equipped;
+
         const newEquipment = character.equipment.map(item => {
+            // The item being clicked
             if (item.id === itemId) {
-                return { ...item, equipped: !item.equipped };
+                return { ...item, equipped: isEquipping };
             }
-            // If equipping armor, unequip other armor. Shields are separate.
-            if (item.id !== itemId && item.armorType && item.armorType !== 'shield' && character.equipment.find(i=>i.id === itemId)?.armorType !== 'shield') {
-                return { ...item, equipped: false };
+
+            // If we are equipping the clicked item, we might need to unequip others.
+            if (isEquipping) {
+                const isClickedItemArmor = clickedItem.armorType && clickedItem.armorType !== 'shield';
+                const isCurrentItemArmor = item.equipped && item.armorType && item.armorType !== 'shield';
+
+                // If equipping armor, unequip other armor.
+                if (isClickedItemArmor && isCurrentItemArmor) {
+                    return { ...item, equipped: false };
+                }
+                // If equipping a shield, unequip other shields.
+                if (clickedItem.armorType === 'shield' && item.equipped && item.armorType === 'shield') {
+                    return { ...item, equipped: false };
+                }
             }
-            return item;
+            return item; // Otherwise, return the item as is.
         });
-        onUpdate({ equipment: newEquipment });
+        updateCharacter({ equipment: newEquipment });
     };
 
     const armor = character.equipment.filter(i => i.armorType && i.armorType !== 'shield');
@@ -251,7 +284,8 @@ const InventoryTabView = ({ character, onUpdate }: { character: ICharacter, onUp
     );
 };
 
-const InfoTabView = ({ character }: { character: ICharacter }) => {
+const InfoTabView = () => {
+    const { character } = useCharacter();
     const InfoBlock = ({ title, content }: { title: string; content: string }) => (
         <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700 flex-grow">
             <h3 className="text-lg font-cinzel text-amber-400 mb-2">{title}</h3>
@@ -285,41 +319,46 @@ const PLAY_TABS: { key: PlayTab; label: string }[] = [
 
 // --- WRAPPER & MAIN RENDER ---
 export const PlayView: React.FC = () => {
-    const { id: characterId } = useParams<{ id: string }>();
+    const { characterId } = useParams<{ characterId: string }>();
     const navigate = useNavigate();
-    const [character, setCharacter] = useState<ICharacter | null>(null);
-    const [loading, setLoading] = useState(true);
+    const { character, setCharacter, updateCharacter } = useCharacter();
     const [activeTab, setActiveTab] = useState<PlayTab>('main');
+    const isInitialMount = useRef(true);
 
     useEffect(() => {
         if (!characterId) {
-            setLoading(false);
             return;
         }
         const loadCharacter = async () => {
-            setLoading(true);
             const charData = await characterService.getCharacter(characterId);
             setCharacter(charData);
-            setLoading(false);
         };
         loadCharacter();
-    }, [characterId]);
+    }, [characterId, setCharacter]);
 
-    const handleUpdateAndSave = (updatedData: Partial<ICharacter>) => {
-        if (!character) return;
-        const newCharacter = { ...character, ...updatedData };
-        setCharacter(newCharacter);
-        characterService.saveCharacter(newCharacter); // Auto-save on change
-    };
+    // Auto-save character on changes, with debounce
+    useEffect(() => {
+        // Don't save on the initial load, only on subsequent updates
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
+
+        if (character) {
+            const handler = setTimeout(() => {
+                characterService.saveCharacter(character);
+            }, 1500); // Debounce save for 1.5 seconds
+
+            return () => {
+                clearTimeout(handler);
+            };
+        }
+    }, [character]); // This effect runs whenever the character object changes.
     
-    if (loading) {
+    if (!character) {
         return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-amber-500"></div></div>;
     }
     
-    if (!character) {
-        return <div className="text-center p-8">Character not found.</div>;
-    }
-
     return (
         <div className="max-w-7xl mx-auto p-4 sm:p-6">
             <header className="flex justify-between items-center mb-6 border-b border-zinc-700 pb-4">
@@ -352,22 +391,22 @@ export const PlayView: React.FC = () => {
             
             <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-b-lg rounded-tr-lg">
                 <div id="play-panel-main" role="tabpanel" aria-labelledby="play-tab-main" hidden={activeTab !== 'main'}>
-                    <MainTabView character={character} onUpdate={handleUpdateAndSave} />
+                    <MainTabView />
                 </div>
                  <div id="play-panel-abilities" role="tabpanel" aria-labelledby="play-tab-abilities" hidden={activeTab !== 'abilities'}>
-                    <AbilitiesDisplay character={character} />
+                    <AbilitiesDisplay />
                 </div>
                 <div id="play-panel-combat" role="tabpanel" aria-labelledby="play-tab-combat" hidden={activeTab !== 'combat'}>
-                    <CombatTabView character={character} />
+                    <CombatTabView />
                 </div>
                  <div id="play-panel-spells" role="tabpanel" aria-labelledby="play-tab-spells" hidden={activeTab !== 'spells'}>
-                    <SpellsTabView character={character} onUpdate={handleUpdateAndSave} />
+                    <SpellsTabView />
                 </div>
                  <div id="play-panel-inventory" role="tabpanel" aria-labelledby="play-tab-inventory" hidden={activeTab !== 'inventory'}>
-                    <InventoryTabView character={character} onUpdate={handleUpdateAndSave} />
+                    <InventoryTabView />
                 </div>
                 <div id="play-panel-info" role="tabpanel" aria-labelledby="play-tab-info" hidden={activeTab !== 'info'}>
-                    <InfoTabView character={character} />
+                    <InfoTabView />
                 </div>
             </div>
         </div>
@@ -377,7 +416,9 @@ export const PlayView: React.FC = () => {
 
 // --- HELPER SUB-COMPONENTS (COPIED FROM OLD PLAYVIEW FOR SELF-CONTAINMENT) ---
 
-const HPTracker = ({ hp, onHpChange }: { hp: ICharacter['hp'], onHpChange: (newHp: ICharacter['hp']) => void }) => {
+const HPTracker = () => {
+    const { character, updateCharacter } = useCharacter();
+    const { hp } = character;
     const [damage, setDamage] = useState('');
     const [healing, setHealing] = useState('');
     const [tempHpInput, setTempHpInput] = useState('');
@@ -389,7 +430,7 @@ const HPTracker = ({ hp, onHpChange }: { hp: ICharacter['hp'], onHpChange: (newH
             const newTemporary = hp.temporary - damageToTemp;
             const remainingDamage = amount - damageToTemp;
             const newCurrent = Math.max(0, hp.current - remainingDamage);
-            onHpChange({ ...hp, current: newCurrent, temporary: newTemporary });
+            updateCharacter({ hp: { ...hp, current: newCurrent, temporary: newTemporary } });
             setDamage('');
         }
     };
@@ -398,7 +439,7 @@ const HPTracker = ({ hp, onHpChange }: { hp: ICharacter['hp'], onHpChange: (newH
         const amount = parseInt(healing, 10);
         if (!isNaN(amount) && amount > 0) {
             const newCurrent = Math.min(hp.max, hp.current + amount);
-            onHpChange({ ...hp, current: newCurrent });
+            updateCharacter({ hp: { ...hp, current: newCurrent } });
             setHealing('');
         }
     };
@@ -406,7 +447,7 @@ const HPTracker = ({ hp, onHpChange }: { hp: ICharacter['hp'], onHpChange: (newH
     const applyTempHp = () => {
         const amount = parseInt(tempHpInput, 10);
         if (!isNaN(amount) && amount >= 0) {
-            onHpChange({ ...hp, temporary: amount });
+            updateCharacter({ hp: { ...hp, temporary: amount } });
             setTempHpInput('');
         }
     };
@@ -490,11 +531,13 @@ const ResourceTracker = ({ title, slots, onSlotChange, isCustom }: { title: stri
     );
 };
 
-const DeathSavesTracker = ({ saves, onSaveChange }: { saves: ICharacter['deathSaves'], onSaveChange: (newSaves: ICharacter['deathSaves']) => void }) => {
+const DeathSavesTracker = () => {
+    const { character, updateCharacter } = useCharacter();
+    const { deathSaves: saves } = character;
     const handleToggle = (type: 'successes' | 'failures', index: number) => {
         const currentCount = saves[type];
         const newCount = index < currentCount ? index : index + 1;
-        onSaveChange({ ...saves, [type]: newCount });
+        updateCharacter({ deathSaves: { ...saves, [type]: newCount } });
     };
     return (
         <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700">
@@ -523,10 +566,6 @@ const DeathSavesTracker = ({ saves, onSaveChange }: { saves: ICharacter['deathSa
 
 const AttacksAndCantrips = ({ items }: {items: Attack[]}) => {
     const [results, setResults] = useState<Record<string, {atk?: string, dmg?: string}>>({});
-    const rollDice = (diceString: string): { total: number; pretty: string } => {
-        if (!diceString || typeof diceString !== 'string') return { total: 0, pretty: 'Invalid input' };
-        const parts = diceString.replace(/[\s()]/g, '').split('+');
-        let total = 0;
         const prettyParts: string[] = [];
         const diceRegex = /(\d+)d(\d+)/;
         for (const part of parts) {

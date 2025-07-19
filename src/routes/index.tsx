@@ -2,9 +2,10 @@ import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import App from '../App'; // Il nostro layout principale
-import AuthProvider, { useAuth } from '../providers/AuthProvider';
+import { useAuth } from '../providers/AuthProvider';
 
 // Importa le tue pagine dalla cartella 'features'
+import { CharacterProvider } from '../features/character/CharacterProvider';
 import { CharacterList } from '../features/character/CharacterList';
 import { CharacterSheet } from '../features/character/CharacterSheet';
 import { PlayView } from '../features/character/PlayView';
@@ -37,7 +38,9 @@ export const router = createBrowserRouter([
         path: 'character/new', // Rotta per creare un nuovo personaggio
         element: (
           <ProtectedRoute>
-            <CharacterSheet characterId="new" />
+            <CharacterProvider>
+              <CharacterSheet />
+            </CharacterProvider>
           </ProtectedRoute>
         ),
       },
@@ -45,7 +48,9 @@ export const router = createBrowserRouter([
         path: 'character/:characterId/edit', // Rotta per modificare un personaggio
         element: (
           <ProtectedRoute>
-            <CharacterSheet />
+            <CharacterProvider>
+              <CharacterSheet />
+            </CharacterProvider>
           </ProtectedRoute>
         ),
       },
@@ -53,7 +58,9 @@ export const router = createBrowserRouter([
         path: 'character/:characterId', // Rotta per la vista di gioco
         element: (
           <ProtectedRoute>
-            <PlayView />
+            <CharacterProvider>
+              <PlayView />
+            </CharacterProvider>
           </ProtectedRoute>
         ),
       },
@@ -65,4 +72,3 @@ export const router = createBrowserRouter([
     ],
   },
 ]);
-

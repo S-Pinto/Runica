@@ -5,7 +5,7 @@ import {
     onAuthStateChanged,
     User
 } from "firebase/auth";
-import { auth } from "../src/lib/firebaseConfig";
+import { auth } from '../lib/firebaseConfig';
 
 const provider = new GoogleAuthProvider();
 

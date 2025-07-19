@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { ICharacter, Spell } from '../characterTypes';
+import { CustomResource, Spell } from '../characterTypes';
+import { useCharacter } from '../CharacterProvider';
 import { TrashIcon, EditIcon, PlusCircleIcon } from '../../../components/ui/icons';
+import { ICharacter } from '../characterTypes';
 
 const DEFAULT_SPELL: Omit<Spell, 'id'> = {
   name: '',
@@ -79,9 +81,12 @@ const SpellCard = ({ spell, onEdit, onDelete, onToggleExpand, isExpanded }: { sp
 );
 
 
-export const Spellbook = ({ character, onUpdateCharacter }: { character: ICharacter; onUpdateCharacter: (updatedCharacter: ICharacter) => void; }) => {
+export const Spellbook = () => {
+  const { character, updateCharacter } = useCharacter();
   const [editingSpell, setEditingSpell] = useState<Spell | 'new' | null>(null);
   const [expandedSpells, setExpandedSpells] = useState<Record<string, boolean>>({});
+
+  if (!character) return null;
 
   const handleSaveSpell = (spellData: Spell | Omit<Spell, 'id'>) => {
     let updatedSpells: Spell[];
@@ -91,14 +96,14 @@ export const Spellbook = ({ character, onUpdateCharacter }: { character: ICharac
       const newSpell: Spell = { ...spellData, id: `spell_${Date.now()}` };
       updatedSpells = [...character.spells, newSpell];
     }
-    onUpdateCharacter({ ...character, spells: updatedSpells });
+    updateCharacter({ spells: updatedSpells });
     setEditingSpell(null);
   };
 
   const handleDeleteSpell = (spellId: string) => {
     if (window.confirm('Are you sure you want to delete this spell?')) {
       const updatedSpells = character.spells.filter(s => s.id !== spellId);
-      onUpdateCharacter({ ...character, spells: updatedSpells });
+      updateCharacter({ spells: updatedSpells });
     }
   };
   
