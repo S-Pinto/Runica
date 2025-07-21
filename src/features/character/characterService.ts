@@ -47,7 +47,7 @@ export const createNewCharacter = (): ICharacter => {
       wisdom: { proficient: false }, charisma: { proficient: false },
     },
     skills: getDefaultSkills(abilityScores),
-    armorClass: 10 + getModifier(abilityScores.dexterity), 
+    unarmoredDefense: { base: 10, abilities: ['dexterity'] },
     initiative: getModifier(abilityScores.dexterity), 
     speed: 30,
     hp: { max: 10, current: 10, temporary: 0 },
@@ -65,7 +65,55 @@ export const createNewCharacter = (): ICharacter => {
         7: { max: 0, used: 0 }, 8: { max: 0, used: 0 }, 9: { max: 0, used: 0 },
     },
     customResources: [],
+    imageUrl: '',
   };
+};
+
+export const calculateArmorClass = (character: ICharacter): number => {
+  if (!character) {
+      return 10;
+  }
+
+  const dexModifier = getModifier(character.abilityScores.dexterity);
+  let calculatedAC = 0;
+
+  const equippedArmor = character.equipment?.find(
+      (item) => item.equipped && ['light', 'medium', 'heavy'].includes(item.armorType || '')
+  );
+
+  const equippedShield = character.equipment?.find(
+      (item) => item.equipped && item.armorType === 'shield'
+  );
+
+  if (equippedArmor) {
+      const armorAC = equippedArmor.armorClass || 0;
+      switch (equippedArmor.armorType) {
+          case 'light':
+              calculatedAC = armorAC + dexModifier;
+              break;
+          case 'medium':
+              calculatedAC = armorAC + Math.min(2, dexModifier);
+              break;
+          case 'heavy':
+              calculatedAC = armorAC;
+              break;
+      }
+  } else {
+      // Unarmored AC: Base (e.g. 10, or 13 for Mage Armor) + DEX modifier.
+      // Also covers features like Monk/Barbarian Unarmored Defense.
+      let unarmoredAC = character.unarmoredDefense.base || 10;
+      const addedModifiers = new Set<keyof AbilityScores>();
+      character.unarmoredDefense.abilities.forEach(ability => {
+          unarmoredAC += getModifier(character.abilityScores[ability]);
+      });
+      calculatedAC = unarmoredAC;
+  }
+  
+  if (equippedShield) {
+      calculatedAC += equippedShield.armorClass || 2; // Default to +2 if ac is not specified on the shield item
+  }
+
+  return calculatedAC;
 };
 
 const LOCAL_STORAGE_KEY = 'runica-characters';

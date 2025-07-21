@@ -45,25 +45,25 @@ const ResourceForm = ({
   );
 };
 
-export const CustomResourceEditor = ({ character, onUpdateCharacter }: { character: ICharacter; onUpdateCharacter: (updatedCharacter: ICharacter) => void; }) => {
+export const CustomResourceEditor = ({ character, onUpdateCharacter }: { character: ICharacter; onUpdateCharacter: (updatedFields: Partial<ICharacter>) => void; }) => {
   const [editingResource, setEditingResource] = useState<CustomResource | 'new' | null>(null);
 
   const handleSave = (resourceData: Omit<CustomResource, 'id' | 'used'> | Omit<CustomResource, 'used'>) => {
     let updatedResources: CustomResource[];
     if ('id' in resourceData) {
-      updatedResources = character.customResources.map(r => r.id === resourceData.id ? {...r, name: resourceData.name, max: resourceData.max} : r);
+      updatedResources = (character.customResources || []).map(r => r.id === resourceData.id ? {...r, name: resourceData.name, max: resourceData.max} : r);
     } else {
       const newResource: CustomResource = { ...resourceData, id: `resource_${Date.now()}`, used: 0 };
-      updatedResources = [...character.customResources, newResource];
+      updatedResources = [...(character.customResources || []), newResource];
     }
-    onUpdateCharacter({ ...character, customResources: updatedResources });
+    onUpdateCharacter({ customResources: updatedResources });
     setEditingResource(null);
   };
 
   const handleDelete = (resourceId: string) => {
     if (window.confirm('Are you sure you want to delete this resource?')) {
-      const updatedResources = character.customResources.filter(r => r.id !== resourceId);
-      onUpdateCharacter({ ...character, customResources: updatedResources });
+      const updatedResources = (character.customResources || []).filter(r => r.id !== resourceId);
+      onUpdateCharacter({ customResources: updatedResources });
     }
   };
 

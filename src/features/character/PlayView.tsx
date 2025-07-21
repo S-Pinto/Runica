@@ -2,14 +2,13 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ICharacter, CustomResource, Attack, Feature, EquipmentItem, Currency } from './characterTypes';
 import * as characterService from './characterService';
-import { useCharacter } from './CharacterProvider';
-import { BackIcon, EditIcon } from '../../components/ui/icons';
-import { AbilitiesDisplay } from './components/AbilitiesDisplay';
+import { useCharacter } from './CharacterProvider'; 
+import { BackIcon, EditIcon, ChevronDownIcon } from '../../components/ui/icons';
+import { AbilitiesDisplay } from './components/AbilitiesDisplay'; 
 import { PlayViewSpellList } from './components/PlayViewSpellList';
+import { getModifier, formatModifier } from './utils/characterUtils';
+import { StatBox } from './components/ui/StatBox';
 
-// --- UTILITIES ---
-const getModifier = (score: number) => Math.floor((score - 10) / 2);
-const formatModifier = (mod: number) => (mod >= 0 ? `+${mod}` : String(mod));
 type PlayTab = 'main' | 'abilities' | 'combat' | 'spells' | 'inventory' | 'info';
 
 const TabButton = ({ label, isActive, onClick, id, controls }: { label: string, isActive: boolean, onClick: () => void, id: string, controls: string }) => (
@@ -27,14 +26,6 @@ const TabButton = ({ label, isActive, onClick, id, controls }: { label: string, 
     >
         {label}
     </button>
-);
-
-const StatBox = ({ label, value, subValue, className }: { label: string; value: string | number; subValue?: string; className?: string }) => (
-    <div className={`flex flex-col items-center justify-center p-3 bg-zinc-800 border border-zinc-700 rounded-lg text-center ${className}`}>
-        <span className="text-2xl sm:text-3xl font-bold font-mono text-white">{value}</span>
-        <span className="text-xs uppercase tracking-wider text-zinc-400 mt-1">{label}</span>
-        {subValue && <span className="text-xs text-zinc-500">{subValue}</span>}
-    </div>
 );
 
 const rollDiceExpression = (diceString: string): { total: number; pretty: string } => {
@@ -83,31 +74,6 @@ const MainTabView = () => {
         }
         return 10 + wisdomMod + bonus;
     }, [character]);
-
-    const calculatedAC = useMemo(() => {
-        const dexMod = getModifier(character.abilityScores.dexterity);
-        let baseAC = 10 + dexMod;
-        let shieldBonus = 0;
-
-        const equippedArmor = character.equipment.find(item => item.equipped && ['light', 'medium', 'heavy'].includes(item.armorType || ''));
-        const equippedShield = character.equipment.find(item => item.equipped && item.armorType === 'shield');
-
-        if (equippedShield) {
-            shieldBonus = equippedShield.armorClass || 2;
-        }
-
-        if (equippedArmor) {
-            const armorAC = equippedArmor.armorClass || 0;
-            switch (equippedArmor.armorType) {
-                case 'light': baseAC = armorAC + dexMod; break;
-                case 'medium': baseAC = armorAC + Math.min(dexMod, 2); break;
-                case 'heavy': baseAC = armorAC; break;
-            }
-        } else {
-             // Unarmored Defense for Barbarian/Monk could be added here
-        }
-        return baseAC + shieldBonus;
-    }, [character.abilityScores, character.equipment]);
     
     const spendHitDie = () => {
         if (character.hitDice.used >= character.level) return;
@@ -130,7 +96,10 @@ const MainTabView = () => {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="md:col-span-2 lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-                <StatBox label="Armor Class" value={calculatedAC} />
+                <StatBox 
+                    label="Armor Class" 
+                    value={useMemo(() => characterService.calculateArmorClass(character), [character])} 
+                />
                 <StatBox label="Initiative" value={formatModifier(character.initiative)} />
                 <StatBox label="Speed" value={`${character.speed}ft`} subValue={`≈ ${Math.round(character.speed * 0.3)}m`} />
                 <StatBox label="Proficiency" value={formatModifier(character.proficiencyBonus)} />
@@ -200,88 +169,110 @@ const SpellsTabView = () => {
     );
 };
 const InventoryTabView = () => {
-    const { character, updateCharacter } = useCharacter();
-    
-    const handleToggleEquip = (itemId: string) => {
-        const clickedItem = character.equipment.find(item => item.id === itemId);
-        if (!clickedItem) return;
+  const { character, updateCharacter } = useCharacter();
+  const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
-        const isEquipping = !clickedItem.equipped;
+  const handleToggleEquip = (itemId: string) => {
+    const clickedItem = character.equipment.find(item => item.id === itemId);
+    if (!clickedItem) return;
 
-        const newEquipment = character.equipment.map(item => {
-            // The item being clicked
-            if (item.id === itemId) {
-                return { ...item, equipped: isEquipping };
-            }
+    const isEquipping = !clickedItem.equipped;
 
-            // If we are equipping the clicked item, we might need to unequip others.
-            if (isEquipping) {
-                const isClickedItemArmor = clickedItem.armorType && clickedItem.armorType !== 'shield';
-                const isCurrentItemArmor = item.equipped && item.armorType && item.armorType !== 'shield';
+    const newEquipment = character.equipment.map(item => {
+      if (item.id === itemId) {
+        return { ...item, equipped: isEquipping };
+      }
+      if (isEquipping) {
+        const isClickedItemArmor = clickedItem.armorType && clickedItem.armorType !== 'shield';
+        const isCurrentItemArmor = item.equipped && item.armorType && item.armorType !== 'shield';
+        if (isClickedItemArmor && isCurrentItemArmor) {
+          return { ...item, equipped: false };
+        }
+        if (clickedItem.armorType === 'shield' && item.equipped && item.armorType === 'shield') {
+          return { ...item, equipped: false };
+        }
+      }
+      return item;
+    });
+    updateCharacter({ equipment: newEquipment });
+  };
 
-                // If equipping armor, unequip other armor.
-                if (isClickedItemArmor && isCurrentItemArmor) {
-                    return { ...item, equipped: false };
-                }
-                // If equipping a shield, unequip other shields.
-                if (clickedItem.armorType === 'shield' && item.equipped && item.armorType === 'shield') {
-                    return { ...item, equipped: false };
-                }
-            }
-            return item; // Otherwise, return the item as is.
-        });
-        updateCharacter({ equipment: newEquipment });
+  const handleToggleExpand = (itemId: string) => {
+    setExpandedItem(prev => (prev === itemId ? null : itemId));
+  };
+
+  const { equippableItems, backpackItems } = useMemo(() => {
+    const equippable: EquipmentItem[] = [];
+    const backpack: EquipmentItem[] = [];
+    (character.equipment || []).forEach(item => {
+      if (item.armorType) {
+        equippable.push(item);
+      } else {
+        backpack.push(item);
+      }
+    });
+    return { 
+      equippableItems: equippable.sort((a, b) => a.name.localeCompare(b.name)),
+      backpackItems: backpack.sort((a, b) => a.name.localeCompare(b.name)),
     };
+  }, [character.equipment]);
 
-    const armor = character.equipment.filter(i => i.armorType && i.armorType !== 'shield');
-    const shields = character.equipment.filter(i => i.armorType === 'shield');
-    const backpack = character.equipment.filter(i => !i.armorType);
-
-    const ItemList = ({ title, items }: { title: string; items: EquipmentItem[] }) => (
-        <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700">
-            <h3 className="text-lg font-cinzel text-amber-400 mb-3">{title}</h3>
-            {items.length === 0 ? <p className="text-zinc-500 text-sm text-center py-4">None.</p> : (
-            <div className="space-y-2">
-                {items.map(item => (
-                    <div key={item.id} className="bg-zinc-700/50 rounded-lg p-3 text-sm flex justify-between items-center">
-                        <div>
-                            <p className="font-semibold text-amber-300">{item.name} <span className="text-xs text-zinc-400">(x{item.quantity})</span></p>
-                            {item.description && <p className="text-xs text-zinc-300">{item.description}</p>}
-                        </div>
-                        {item.armorType && (
-                            <button onClick={() => handleToggleEquip(item.id)} className={`px-3 py-1 text-xs font-bold rounded ${item.equipped ? 'bg-amber-500 text-white' : 'bg-zinc-600 hover:bg-zinc-500'}`}>
-                                {item.equipped ? 'Equipped' : 'Equip'}
-                            </button>
-                        )}
-                    </div>
-                ))}
-            </div>
-            )}
-        </div>
-    );
-
-    return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-1 space-y-6">
-                 <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700">
-                    <h3 className="text-lg font-cinzel text-amber-400 mb-3">Currency</h3>
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                        {(Object.keys(character.currency) as Array<keyof Currency>).map(c => (
-                            <div key={c}>
-                                <p className="text-xl font-mono text-white">{character.currency[c]}</p>
-                                <p className="text-xs uppercase text-zinc-400">{c}</p>
-                            </div>
-                        ))}
-                    </div>
+  const ItemList = ({ title, items }: { title: string; items: EquipmentItem[] }) => (
+    <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700">
+      <h3 className="text-lg font-cinzel text-amber-400 mb-3">{title}</h3>
+      {items.length === 0 ? <p className="text-zinc-500 text-sm text-center py-4">None.</p> : (
+        <div className="space-y-2">
+          {items.map(item => (
+            <div key={item.id} className="bg-zinc-700/50 rounded-lg text-sm">
+              <div className="p-3 flex items-center justify-between">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <button onClick={() => handleToggleExpand(item.id)} className="flex-shrink-0 text-zinc-400 hover:text-white">
+                    <ChevronDownIcon className={`w-5 h-5 transition-transform ${expandedItem === item.id ? 'rotate-180' : ''}`} />
+                  </button>
+                  <p className="font-semibold text-amber-300 truncate" title={item.name}>{item.name} <span className="text-xs text-zinc-400">(x{item.quantity})</span></p>
                 </div>
-                <ItemList title="Armor" items={armor} />
-                <ItemList title="Shields" items={shields} />
+                {item.armorType && (
+                  <button onClick={() => handleToggleEquip(item.id)} className={`px-3 py-1 text-xs font-bold rounded ${item.equipped ? 'bg-amber-500 text-white' : 'bg-zinc-600 hover:bg-zinc-500'}`}>
+                    {item.equipped ? 'Equipped' : 'Equip'}
+                  </button>
+                )}
+              </div>
+              {expandedItem === item.id && (
+                <div className="p-3 border-t border-zinc-600/50 bg-zinc-900/30 space-y-2">
+                  {item.armorType && (
+                    <p><strong className="text-zinc-400 capitalize">{item.armorType} Armor</strong>
+                      {item.armorClass ? <span className="text-zinc-300"> (AC: {item.armorClass})</span> : ''}
+                    </p>
+                  )}
+                  <p className="text-zinc-300 whitespace-pre-wrap">{item.description || 'No description.'}</p>
+                </div>
+              )}
             </div>
-            <div className="lg:col-span-2">
-                <ItemList title="Backpack" items={backpack} />
-            </div>
+          ))}
         </div>
-    );
+      )}
+    </div>
+  );
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-1 space-y-6">
+        <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700">
+          <h3 className="text-lg font-cinzel text-amber-400 mb-3">Currency</h3>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            {(Object.keys(character.currency) as Array<keyof Currency>).map(c => (
+              <div key={c}>
+                <p className="text-xl font-mono text-white">{character.currency[c]}</p>
+                <p className="text-xs uppercase text-zinc-400">{c}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <ItemList title="Equippable Gear" items={equippableItems} />
+      </div>
+      <div className="lg:col-span-2"><ItemList title="Backpack" items={backpackItems} /></div>
+    </div>
+  );
 };
 
 const InfoTabView = () => {
@@ -390,22 +381,22 @@ export const PlayView: React.FC = () => {
             </div>
             
             <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-b-lg rounded-tr-lg">
-                <div id="play-panel-main" role="tabpanel" aria-labelledby="play-tab-main" hidden={activeTab !== 'main'}>
+                <div id="play-panel-main" role="tabpanel" aria-labelledby="play-tab-main" style={{ display: activeTab === 'main' ? 'block' : 'none' }}>
                     <MainTabView />
                 </div>
-                 <div id="play-panel-abilities" role="tabpanel" aria-labelledby="play-tab-abilities" hidden={activeTab !== 'abilities'}>
+                 <div id="play-panel-abilities" role="tabpanel" aria-labelledby="play-tab-abilities" style={{ display: activeTab === 'abilities' ? 'block' : 'none' }}>
                     <AbilitiesDisplay />
                 </div>
-                <div id="play-panel-combat" role="tabpanel" aria-labelledby="play-tab-combat" hidden={activeTab !== 'combat'}>
+                <div id="play-panel-combat" role="tabpanel" aria-labelledby="play-tab-combat" style={{ display: activeTab === 'combat' ? 'block' : 'none' }}>
                     <CombatTabView />
                 </div>
-                 <div id="play-panel-spells" role="tabpanel" aria-labelledby="play-tab-spells" hidden={activeTab !== 'spells'}>
+                 <div id="play-panel-spells" role="tabpanel" aria-labelledby="play-tab-spells" style={{ display: activeTab === 'spells' ? 'block' : 'none' }}>
                     <SpellsTabView />
                 </div>
-                 <div id="play-panel-inventory" role="tabpanel" aria-labelledby="play-tab-inventory" hidden={activeTab !== 'inventory'}>
+                 <div id="play-panel-inventory" role="tabpanel" aria-labelledby="play-tab-inventory" style={{ display: activeTab === 'inventory' ? 'block' : 'none' }}>
                     <InventoryTabView />
                 </div>
-                <div id="play-panel-info" role="tabpanel" aria-labelledby="play-tab-info" hidden={activeTab !== 'info'}>
+                <div id="play-panel-info" role="tabpanel" aria-labelledby="play-tab-info" style={{ display: activeTab === 'info' ? 'block' : 'none' }}>
                     <InfoTabView />
                 </div>
             </div>
@@ -566,30 +557,6 @@ const DeathSavesTracker = () => {
 
 const AttacksAndCantrips = ({ items }: {items: Attack[]}) => {
     const [results, setResults] = useState<Record<string, {atk?: string, dmg?: string}>>({});
-        const prettyParts: string[] = [];
-        const diceRegex = /(\d+)d(\d+)/;
-        for (const part of parts) {
-            if (!part) continue;
-            const diceMatch = part.match(diceRegex);
-            if (diceMatch) {
-                const numDice = parseInt(diceMatch[1], 10);
-                const diceType = parseInt(diceMatch[2], 10);
-                let subTotal = 0;
-                const rolls = Array.from({ length: numDice }, () => Math.floor(Math.random() * diceType) + 1);
-                subTotal = rolls.reduce((a, b) => a + b, 0);
-                total += subTotal;
-                prettyParts.push(`[${rolls.join('+')}]`);
-            } else {
-                const modifier = parseInt(part, 10);
-                if (!isNaN(modifier)) {
-                    total += modifier;
-                    prettyParts.push(String(modifier));
-                }
-            }
-        }
-        if (prettyParts.length === 0) return { total: 0, pretty: 'Invalid Format' };
-        return { total, pretty: `${prettyParts.join(' + ')} = ${total}` };
-    };
     const handleAttackRoll = (attack: Attack) => {
         const modifier = parseInt(attack.bonus) || 0;
         const d20Roll = Math.floor(Math.random() * 20) + 1;
@@ -598,7 +565,7 @@ const AttacksAndCantrips = ({ items }: {items: Attack[]}) => {
         setResults(prev => ({ ...prev, [attack.id]: { ...prev[attack.id], atk: pretty } }));
     };
     const handleDamageRoll = (attack: Attack) => {
-        const { pretty } = rollDice(attack.damage);
+        const { pretty } = rollDiceExpression(attack.damage);
         setResults(prev => ({ ...prev, [attack.id]: { ...prev[attack.id], dmg: pretty } }));
     };
     return (

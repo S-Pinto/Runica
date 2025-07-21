@@ -60,7 +60,7 @@ export const CharacterList: React.FC = () => {
     if (id === 'new') {
       navigate('/character/new');
     } else {
-      navigate(`/character/${id}/play`);
+      navigate(`/character/${id}`);
     }
   };
 
@@ -113,6 +113,10 @@ export const CharacterList: React.FC = () => {
                 onDelete={(e) => {
                     e.stopPropagation();
                     handleDeleteCharacter(char.id, char.name);
+                }}
+                onEdit={(e) => {
+                    e.stopPropagation();
+                    handleEditCharacter(char.id);
                 }}
                 />
             ))}

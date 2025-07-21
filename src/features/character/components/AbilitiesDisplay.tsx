@@ -1,11 +1,16 @@
 import React from 'react';
 import { ICharacter, AbilityScores } from '../characterTypes';
+import { useCharacter } from '../CharacterProvider';
 
 const getModifier = (score: number) => Math.floor((score - 10) / 2);
 const formatModifier = (mod: number) => (mod >= 0 ? `+${mod}` : String(mod));
 const ABILITIES: (keyof AbilityScores)[] = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
 
-export const AbilitiesDisplay = ({ character }: { character: ICharacter }) => {
+export const AbilitiesDisplay = () => {
+    const { character } = useCharacter();
+
+    if (!character) return null;
+
     const { proficiencyBonus, abilityScores, savingThrows, skills } = character;
 
     return (

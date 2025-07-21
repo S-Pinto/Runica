@@ -4,19 +4,20 @@ import { ICharacter, AbilityScores, Currency, Skill } from './characterTypes';
 import { useCharacter } from './CharacterProvider';
 import * as characterService from './characterService';
 import * as geminiService from '../../services/geminiService';
+import * as storageService from '../../services/storageService';
 import * as authService from '../../services/authService';
 import { SparklesIcon, BackIcon, SaveIcon, TrashIcon, PhotoIcon } from '../../components/ui/icons';
 import { Spellbook } from './components/Spellbook';
 import { FeatureList } from './components/FeatureList';
 import { EquipmentList } from './components/EquipmentList';
 import { AttackList } from './components/AttackList';
-import { CustomResourceEditor } from './components/CustomResourceEditor';
+import { CustomResourceEditor } from './components/CustomResourceEditor'; 
+import { StatBox } from './components/ui/StatBox';
+import { getModifier, formatModifier } from './utils/characterUtils';
 
 
 // --- Type Aliases & Helpers ---
 type Tab = 'main' | 'stats' | 'combat' | 'bio' | 'spells' | 'inventory';
-const getModifier = (score: number) => Math.floor((score - 10) / 2);
-const formatModifier = (mod: number) => (mod >= 0 ? `+${mod}` : String(mod));
 const ABILITIES: (keyof AbilityScores)[] = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
 
 // --- Sub-components ---
@@ -49,13 +50,6 @@ const InputField = ({label, name, type, value, onChange, placeholder, className}
         placeholder={placeholder}
         className="mt-1 block w-full bg-zinc-700 border border-zinc-600 rounded-md shadow-sm py-2 px-3 text-zinc-100 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
       />
-    </div>
-);
-
-const StatBox = ({label, value, className}: {label: string; value: string | number; className?: string}) => (
-    <div className={`flex flex-col items-center justify-center p-3 bg-zinc-700/50 rounded-lg text-center ${className}`}>
-        <span className="text-3xl font-bold font-mono text-white">{value}</span>
-        <span className="text-xs uppercase tracking-wider text-zinc-400 mt-1">{label}</span>
     </div>
 );
 
@@ -95,6 +89,7 @@ export const CharacterSheet: React.FC = () => {
     const isNewCharacter = window.location.pathname.endsWith('/character/new');
     
     useEffect(() => {
+        let isMounted = true;
         const loadCharacter = async () => {
             let charData;
             if (!characterId) { // Route is /character/new
@@ -102,13 +97,18 @@ export const CharacterSheet: React.FC = () => {
             } else {
                 charData = await characterService.getCharacter(characterId);
             }
-            setCharacter(charData); // Ora questo aggiorna il context
-            if (charData?.imageUrl) {
-                setImagePreview(charData.imageUrl);
+            if (isMounted) {
+                setCharacter(charData); // Ora questo aggiorna il context
+                if (charData?.imageUrl) {
+                    setImagePreview(charData.imageUrl);
+                }
             }
         };
         loadCharacter();
-    }, [characterId]);
+        return () => {
+            isMounted = false;
+        };
+    }, [characterId, setCharacter]);
 
     const proficiencyBonus = useMemo(() => {
         if (!character) return 0;
@@ -141,9 +141,9 @@ export const CharacterSheet: React.FC = () => {
                 }
             }
 
-            const charToSave: ICharacter = { ...character, id, imageUrl: finalImageUrl, proficiencyBonus, lastUpdated: Date.now() };
+            const charToSave: ICharacter = { ...character, id, imageUrl: finalImageUrl, proficiencyBonus, initiative, lastUpdated: Date.now() };
             const savedChar = await characterService.saveCharacter(charToSave);
-            navigate(`/character/${savedChar.id}/play`);
+            navigate(`/character/${savedChar.id}`);
         } catch (error) {
             console.error("Failed to save character:", error);
             alert("An error occurred while saving. Please try again.");
@@ -163,7 +163,7 @@ export const CharacterSheet: React.FC = () => {
         if (isNewCharacter) {
             navigate('/');
         } else if (character) {
-            navigate(`/character/${character.id}/play`);
+            navigate(`/character/${character.id}`);
         } else {
             navigate(-1); // Go back in history as a fallback
         }
@@ -246,6 +246,21 @@ export const CharacterSheet: React.FC = () => {
             return s;
         });
         setCharacter(prev => ({ ...prev!, skills: newSkills }));
+    };
+
+    const handleUnarmoredBaseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!character) return;
+        const newBase = parseInt(e.target.value, 10) || 0;
+        updateCharacter({ unarmoredDefense: { ...character.unarmoredDefense, base: newBase } });
+    };
+
+    const handleUnarmoredAbilityToggle = (ability: keyof AbilityScores) => {
+        if (!character) return;
+        const currentAbilities = character.unarmoredDefense?.abilities || [];
+        const newAbilities = currentAbilities.includes(ability)
+            ? currentAbilities.filter(a => a !== ability)
+            : [...currentAbilities, ability];
+        updateCharacter({ unarmoredDefense: { ...character.unarmoredDefense, base: character.unarmoredDefense?.base || 10, abilities: newAbilities } });
     };
 
     const handleSpellSlotChange = (level: number, value: number) => {
@@ -366,7 +381,25 @@ export const CharacterSheet: React.FC = () => {
                             <InputField label="Hit Dice" name="hitDice" type="text" value={character.hitDice.total} onChange={handleHitDiceChange} placeholder="e.g. 1d8" />
                         </div>
                         <div className="grid grid-cols-2 gap-4 md:col-span-1">
-                            <InputField label="Armor Class" name="armorClass" type="number" value={character.armorClass} onChange={handleFieldChange} className="col-span-1"/>
+                            <div className="col-span-2 bg-zinc-900/50 p-3 rounded-lg">
+                                <h4 className="text-sm font-medium text-zinc-400 mb-2">Unarmored Defense</h4>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <InputField label="Base AC" name="unarmoredBase" type="number" value={character.unarmoredDefense?.base ?? 10} onChange={handleUnarmoredBaseChange} className="flex-1"/>
+                                    <span className="pt-6 text-xl text-zinc-400">+</span>
+                                    <div className="flex-1 pt-6 text-center text-zinc-200">Modifiers</div>
+                                </div>
+                                <div className="grid grid-cols-3 gap-x-2 gap-y-1">
+                                    {ABILITIES.map(ability => (
+                                        <label key={ability} className="flex items-center gap-1.5 text-xs cursor-pointer">
+                                            <input type="checkbox" 
+                                                checked={character.unarmoredDefense?.abilities.includes(ability) ?? false}
+                                                onChange={() => handleUnarmoredAbilityToggle(ability)}
+                                                className="w-4 h-4 rounded text-amber-600 bg-zinc-800 border-zinc-600 focus:ring-amber-500" />
+                                            <span className="text-zinc-300 uppercase">{ability.substring(0,3)}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
                             <StatBox label="Initiative" value={formatModifier(initiative)} />
                             <InputField label="Speed" name="speed" type="number" value={character.speed} onChange={handleFieldChange} className="col-span-1"/>
                             <StatBox label="Proficiency" value={formatModifier(proficiencyBonus)} />
@@ -543,7 +576,7 @@ export const CharacterSheet: React.FC = () => {
                             ))}
                         </div>
                     </div>
-                    <CustomResourceEditor />
+                    <CustomResourceEditor character={character} onUpdateCharacter={updateCharacter} />
                     <Spellbook />
                 </div>
             </div>

@@ -1,25 +1,13 @@
 import React from 'react';
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 
 import App from '../App'; // Il nostro layout principale
-import { useAuth } from '../providers/AuthProvider';
 
 // Importa le tue pagine dalla cartella 'features'
 import { CharacterProvider } from '../features/character/CharacterProvider';
 import { CharacterList } from '../features/character/CharacterList';
 import { CharacterSheet } from '../features/character/CharacterSheet';
 import { PlayView } from '../features/character/PlayView';
-
-// Un componente per le rotte protette
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { currentUser } = useAuth();
-  if (!currentUser) {
-    // Se non c'è utente, reindirizza alla home (o a una pagina di login)
-    // Qui potresti mostrare un messaggio o un componente di login
-    return <p>Please log in to see your characters.</p>;
-  }
-  return <>{children}</>;
-};
 
 export const router = createBrowserRouter([
   {
@@ -28,40 +16,30 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true, // Pagina principale (es. CharacterList)
-        element: (
-          <ProtectedRoute>
-            <CharacterList />
-          </ProtectedRoute>
-        ),
+        element: <CharacterList />,
       },
       {
         path: 'character/new', // Rotta per creare un nuovo personaggio
         element: (
-          <ProtectedRoute>
-            <CharacterProvider>
-              <CharacterSheet />
-            </CharacterProvider>
-          </ProtectedRoute>
+          <CharacterProvider>
+            <CharacterSheet />
+          </CharacterProvider>
         ),
       },
       {
         path: 'character/:characterId/edit', // Rotta per modificare un personaggio
         element: (
-          <ProtectedRoute>
-            <CharacterProvider>
-              <CharacterSheet />
-            </CharacterProvider>
-          </ProtectedRoute>
+          <CharacterProvider>
+            <CharacterSheet />
+          </CharacterProvider>
         ),
       },
       {
         path: 'character/:characterId', // Rotta per la vista di gioco
         element: (
-          <ProtectedRoute>
-            <CharacterProvider>
-              <PlayView />
-            </CharacterProvider>
-          </ProtectedRoute>
+          <CharacterProvider>
+            <PlayView />
+          </CharacterProvider>
         ),
       },
       // Aggiungi qui altre rotte, come una pagina 404

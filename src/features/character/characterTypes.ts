@@ -64,6 +64,11 @@ export interface CustomResource {
   used: number;
 }
 
+export interface UnarmoredDefense {
+  base: number;
+  abilities: (keyof AbilityScores)[];
+}
+
 export interface ICharacter {
   id: string;
   imageUrl?: string;
@@ -83,7 +88,7 @@ export interface ICharacter {
     [key in keyof AbilityScores]: { proficient: boolean };
   };
   skills: Skill[];
-  armorClass: number;
+  unarmoredDefense: UnarmoredDefense;
   initiative: number;
   speed: number;
   hp: {

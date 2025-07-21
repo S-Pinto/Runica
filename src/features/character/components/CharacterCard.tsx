@@ -1,6 +1,7 @@
 import React from 'react';
 import { ICharacter } from '../characterTypes';
 import { TrashIcon, EditIcon, PhotoIcon } from '../../../components/ui/icons';
+import { calculateArmorClass } from '../characterService';
 
 interface CharacterCardProps {
   character: ICharacter;
@@ -9,10 +10,10 @@ interface CharacterCardProps {
   onEdit: (e: React.MouseEvent) => void; // Per la modifica
 }
 
-export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSelect, onDelete }) => {
+export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSelect, onDelete, onEdit }) => {
 
   return (
-    <div onClick={onSelect} className="bg-zinc-800 rounded-lg shadow-lg overflow-hidden transition-all duration-300 hover:shadow-amber-500/20 hover:scale-105 group relative cursor-pointer">
+    <div onClick={onSelect} className="bg-zinc-800 rounded-lg shadow-lg overflow-hidden transition-all duration-300 hover:shadow-amber-500/20 hover:scale-105 group relative cursor-pointer" role="button" tabIndex={0}>
       <div className="h-32 bg-zinc-700/50 relative">
         {character.imageUrl ? (
           <img src={character.imageUrl} alt={character.name} className="w-full h-full object-cover" />
@@ -32,7 +33,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSelec
           </div>
           <div className="flex items-center gap-1.5" title="Armor Class">
             <span className="font-bold text-sky-400">AC</span>
-            <span>{character.armorClass}</span>
+            <span>{calculateArmorClass(character)}</span>
           </div>
         </div>
       </div>

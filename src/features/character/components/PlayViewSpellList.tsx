@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { ICharacter, Spell } from '../characterTypes';
+import { Spell } from '../characterTypes';
+import { useCharacter } from '../CharacterProvider';
 
 const SpellCard = ({ spell, onToggleExpand, isExpanded }: { spell: Spell; onToggleExpand: () => void; isExpanded: boolean; }) => (
     <div className="bg-zinc-700/50 rounded-lg">
@@ -27,7 +28,8 @@ const SpellCard = ({ spell, onToggleExpand, isExpanded }: { spell: Spell; onTogg
 );
 
 
-export const PlayViewSpellList = ({ character }: { character: ICharacter }) => {
+export const PlayViewSpellList = () => {
+  const { character } = useCharacter();
   const [expandedSpells, setExpandedSpells] = useState<Record<string, boolean>>({});
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -36,6 +38,7 @@ export const PlayViewSpellList = ({ character }: { character: ICharacter }) => {
   };
 
   const spellsByLevel = useMemo(() => {
+    if (!character) return {};
     const filteredSpells = character.spells.filter(spell => 
         spell.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -44,9 +47,11 @@ export const PlayViewSpellList = ({ character }: { character: ICharacter }) => {
       acc[spell.level].sort((a,b) => a.name.localeCompare(b.name));
       return acc;
     }, {} as Record<number, Spell[]>);
-  }, [character.spells, searchTerm]);
+  }, [character, searchTerm]);
 
   const sortedLevels = Object.keys(spellsByLevel).map(Number).sort((a, b) => a - b);
+
+  if (!character) return null;
 
   return (
     <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700 flex flex-col h-auto max-h-[calc(100vh-10rem)]">
