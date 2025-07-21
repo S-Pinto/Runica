@@ -8,11 +8,13 @@ import { CharacterProvider } from '../features/character/CharacterProvider';
 import { CharacterList } from '../features/character/CharacterList';
 import { CharacterSheet } from '../features/character/CharacterSheet';
 import { PlayView } from '../features/character/PlayView';
+import { ErrorBoundary, NotFound } from '../components/ErrorBoundary'; // Importa i tuoi componenti
 
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <App />, // App.tsx è il layout che contiene l'Outlet
+    errorElement: <ErrorBoundary />, // Aggiungi qui l'error boundary
     children: [
       {
         index: true, // Pagina principale (es. CharacterList)
@@ -45,7 +47,7 @@ export const router = createBrowserRouter([
       // Aggiungi qui altre rotte, come una pagina 404
       {
         path: '*',
-        element: <h1>404: Page Not Found</h1>,
+        element: <NotFound />,
       },
     ],
   },

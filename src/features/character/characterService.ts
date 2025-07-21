@@ -101,9 +101,9 @@ export const calculateArmorClass = (character: ICharacter): number => {
   } else {
       // Unarmored AC: Base (e.g. 10, or 13 for Mage Armor) + DEX modifier.
       // Also covers features like Monk/Barbarian Unarmored Defense.
-      let unarmoredAC = character.unarmoredDefense.base || 10;
-      const addedModifiers = new Set<keyof AbilityScores>();
-      character.unarmoredDefense.abilities.forEach(ability => {
+      const unarmoredDefense = character.unarmoredDefense || { base: 10, abilities: [] };
+      let unarmoredAC = unarmoredDefense.base;
+      unarmoredDefense.abilities.forEach(ability => {
           unarmoredAC += getModifier(character.abilityScores[ability]);
       });
       calculatedAC = unarmoredAC;

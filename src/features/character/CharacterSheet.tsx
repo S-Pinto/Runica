@@ -91,14 +91,19 @@ export const CharacterSheet: React.FC = () => {
     useEffect(() => {
         let isMounted = true;
         const loadCharacter = async () => {
-            let charData;
+            let loadedData;
             if (!characterId) { // Route is /character/new
-                charData = { ...characterService.createNewCharacter(), id: 'temp_new' };
+                loadedData = { ...characterService.createNewCharacter(), id: 'temp_new' };
             } else {
-                charData = await characterService.getCharacter(characterId);
+                loadedData = await characterService.getCharacter(characterId);
             }
+
+            // **MIGRAZIONE DATI**: Assicura che i personaggi vecchi abbiano le nuove proprietà.
+            // Unisce i dati caricati con un personaggio "vuoto" per riempire i campi mancanti.
+            const charData = { ...characterService.createNewCharacter(), ...loadedData };
+
             if (isMounted) {
-                setCharacter(charData); // Ora questo aggiorna il context
+                setCharacter(charData);
                 if (charData?.imageUrl) {
                     setImagePreview(charData.imageUrl);
                 }
@@ -251,7 +256,7 @@ export const CharacterSheet: React.FC = () => {
     const handleUnarmoredBaseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!character) return;
         const newBase = parseInt(e.target.value, 10) || 0;
-        updateCharacter({ unarmoredDefense: { ...character.unarmoredDefense, base: newBase } });
+        updateCharacter({ unarmoredDefense: { base: newBase, abilities: character.unarmoredDefense?.abilities || [] } });
     };
 
     const handleUnarmoredAbilityToggle = (ability: keyof AbilityScores) => {
@@ -260,7 +265,7 @@ export const CharacterSheet: React.FC = () => {
         const newAbilities = currentAbilities.includes(ability)
             ? currentAbilities.filter(a => a !== ability)
             : [...currentAbilities, ability];
-        updateCharacter({ unarmoredDefense: { ...character.unarmoredDefense, base: character.unarmoredDefense?.base || 10, abilities: newAbilities } });
+        updateCharacter({ unarmoredDefense: { base: character.unarmoredDefense?.base ?? 10, abilities: newAbilities } });
     };
 
     const handleSpellSlotChange = (level: number, value: number) => {
@@ -297,7 +302,7 @@ export const CharacterSheet: React.FC = () => {
     }
     
     return (
-        <div className="max-w-7xl mx-auto p-4 sm:p-6">
+        <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:pt-8">
             <header className="flex justify-between items-center mb-4 border-b border-zinc-700 pb-4">
                 <button onClick={handleBackClick} className="flex items-center gap-2 text-zinc-300 hover:text-amber-400 transition-colors">
                     <BackIcon className="w-5 h-5" />

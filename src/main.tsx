@@ -5,6 +5,8 @@ import ReactDOM from 'react-dom/client'; // Assicurati che l'import sia corretto
 import { RouterProvider } from 'react-router-dom';
 import { AuthProvider } from './providers/AuthProvider';
 import { router } from './routes/index'; // Importa il router
+import './index.css';
+
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

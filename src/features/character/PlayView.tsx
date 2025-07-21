@@ -351,7 +351,7 @@ export const PlayView: React.FC = () => {
     }
     
     return (
-        <div className="max-w-7xl mx-auto p-4 sm:p-6">
+        <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:pt-8">
             <header className="flex justify-between items-center mb-6 border-b border-zinc-700 pb-4">
                 <button onClick={() => navigate('/')} className="flex items-center gap-2 text-zinc-300 hover:text-amber-400 transition-colors">
                     <BackIcon className="w-5 h-5" /> Back to List

@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Outlet } from 'react-router-dom';
+import { Header } from './components/layout/Header';
 
 // App.tsx non ha più bisogno di conoscere l'utente o lo stato di caricamento,
 // perché la logica di protezione delle rotte è gestita in `src/routes/index.tsx`.
@@ -10,11 +11,15 @@ const App: React.FC = () => {
   // o rimanere qui se vuoi un caricamento globale. Per ora lo togliamo per semplicità.
 
   return (
-    <main className="min-h-screen">
-      {/* Outlet renderizzerà il componente figlio corretto in base all'URL */}
-      {/* I componenti figli useranno `useAuth()` direttamente per accedere a currentUser */}
-      <Outlet />
-    </main>
+    <div className="min-h-screen bg-zinc-900 text-zinc-200">
+      <Header />
+      <main>
+        <Outlet />
+      </main>
+      <footer className="text-center text-sm text-zinc-500 py-4">
+        <p>&copy; {new Date().getFullYear()} RUNICA. All rights reserved.</p>
+      </footer>
+    </div>  
   );
 };
 
