@@ -26,14 +26,27 @@ self.addEventListener('fetch', (event) => {
     if (event.request.method !== 'GET') {
         return;
     }
+    
+    const url = new URL(event.request.url);
 
+    // IMPORTANT: Do not cache API requests to Firebase or other dynamic services.
+    // Always fetch them from the network.
+    if (url.hostname.includes('googleapis.com')) {
+        // Respond with a network request and do not cache it.
+        return;
+    }
+
+    // For other requests (your app's assets: HTML, CSS, JS, images),
+    // use the Stale-While-Revalidate strategy.
     event.respondWith(
         caches.open(CACHE_NAME).then((cache) => {
             return cache.match(event.request).then((cachedResponse) => {
                 // Fetch from network in the background to update the cache.
                 const fetchPromise = fetch(event.request).then((networkResponse) => {
-                    // We clone the response because it's a stream and can only be consumed once.
-                    cache.put(event.request, networkResponse.clone());
+                    // Check if we received a valid response before caching
+                    if (networkResponse && networkResponse.status === 200) {
+                        cache.put(event.request, networkResponse.clone());
+                    }
                     return networkResponse;
                 });
 
