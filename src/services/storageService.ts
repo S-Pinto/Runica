@@ -37,6 +37,20 @@ export const uploadCharacterImage = async (file: File, userId: string, character
 };
 
 /**
+ * Uploads a character image Blob (e.g., from a canvas or cropper) to Firebase Storage.
+ * @param imageBlob The image Blob to upload.
+ * @param userId The ID of the user who owns the character.
+ * @param characterId The ID of the character this image belongs to.
+ */
+export const uploadImageBlob = async (imageBlob: Blob, userId: string, characterId: string): Promise<string> => {
+    const { storage } = getFirebase();
+    const imageRef = ref(storage, `users/${userId}/character-portraits/${characterId}`);
+    await uploadBytes(imageRef, imageBlob);
+    return await getDownloadURL(imageRef);
+};
+
+
+/**
  * Uploads a character image from a data URL (base64) to Firebase Storage.
  * Used for migrating local data to the cloud.
  * @param dataUrl The base64 data URL of the image.

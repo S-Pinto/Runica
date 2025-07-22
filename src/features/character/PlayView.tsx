@@ -356,11 +356,20 @@ export const PlayView: React.FC = () => {
                 <button onClick={() => navigate('/')} className="flex items-center gap-2 text-zinc-300 hover:text-amber-400 transition-colors">
                     <BackIcon className="w-5 h-5" /> Back to List
                 </button>
-                <div className="text-center">
-                  <h1 className="text-2xl sm:text-3xl font-cinzel text-amber-400">{character.name}</h1>
-                  <p className="text-zinc-400 capitalize text-sm">
-                    {character.race} {character.class} {character.subclass && `(${character.subclass})`} &bull; Level {character.level} &bull; {character.alignment}
-                  </p>
+                <div className="flex items-center gap-4 text-center">
+                    {character.imageUrl && (
+                        <img 
+                            src={character.imageUrl} 
+                            alt={character.name} 
+                            className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-zinc-600 shadow-md"
+                        />
+                    )}
+                    <div>
+                        <h1 className="text-2xl sm:text-3xl font-cinzel text-amber-400">{character.name}</h1>
+                        <p className="text-zinc-400 capitalize text-sm">
+                            {character.race} {character.class} {character.subclass && `(${character.subclass})`} &bull; Level {character.level} &bull; {character.alignment}
+                        </p>
+                    </div>
                 </div>
                 <button onClick={() => navigate(`/character/${characterId}/edit`)} className="flex items-center gap-2 px-4 py-2 bg-zinc-700 text-white font-bold rounded-lg shadow-md hover:bg-zinc-600 transition-colors">
                     <EditIcon className="w-5 h-5" /> Edit Sheet
