@@ -2,8 +2,8 @@
 
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import type { User } from 'firebase/auth';
-import * as authService from '../../services/authService';
-import * as characterService from '../../services/characterService';
+import * as authService from '../services/authService';
+import * as characterService from '../features/character/characterService';
 
 interface AuthContextType {
   currentUser: User | null;
