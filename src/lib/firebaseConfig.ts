@@ -27,7 +27,9 @@ if (firebaseConfig.apiKey && firebaseConfig.projectId) {
   try {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
-    db = getFirestore(app, "runica-db");
+    // The database ID is typically inferred from the projectId.
+    // Specifying it is only needed for non-default databases.
+    db = getFirestore(app);
     storage = getStorage(app);
     console.log("Firebase initialized successfully.");
   } catch (error) {
