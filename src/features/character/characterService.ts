@@ -1,5 +1,5 @@
 import { ICharacter, AbilityScores, Skill } from './characterTypes';
-import { db, auth } from '../../lib/firebaseConfig';
+import { getFirebase } from '../../lib/getFirebase';
 import { collection, doc, getDocs, setDoc, deleteDoc, writeBatch, onSnapshot, query, CollectionReference, getDoc } from 'firebase/firestore';
 import * as storageService from '../../services/storageService';
 
@@ -137,8 +137,14 @@ const saveLocalCharacters = (characters: ICharacter[]) => {
 };
 
 const getCharactersCollection = (): CollectionReference | null => {
-    if (!db || !auth?.currentUser) return null;
-    return collection(db, 'users', auth.currentUser.uid, 'characters');
+    try {
+        const { db, auth } = getFirebase();
+        if (!auth.currentUser) return null;
+        return collection(db, 'users', auth.currentUser.uid, 'characters');
+    } catch (error) {
+        // Firebase is not initialized, so we are in offline mode.
+        return null;
+    }
 };
 
 const getCharacterDocRef = (id: string) => {
@@ -202,10 +208,16 @@ export const deleteCharacter = async (id: string): Promise<void> => {
 };
 
 export const migrateLocalDataToFirestore = async () => {
-    // Ensure we are online and all services are available for migration
-    if (!db || !auth?.currentUser || !storageService.uploadCharacterImageFromDataUrl) {
+    let db, auth;
+    try {
+        // Ensure we are online and all services are available for migration
+        ({ db, auth } = getFirebase());
+    } catch (error) {
+        // Firebase not initialized, cannot migrate.
         return;
     }
+
+    if (!auth.currentUser || !storageService.uploadCharacterImageFromDataUrl) return;
 
     const localCharacters = getLocalCharacters();
     if (localCharacters.length === 0) {
@@ -235,7 +247,7 @@ export const migrateLocalDataToFirestore = async () => {
             // If the image is a local base64 string, upload it to Storage first.
             if (charToMigrate.imageUrl && charToMigrate.imageUrl.startsWith('data:image')) {
                 try {
-                    // We've already confirmed auth.currentUser is not null
+                    // We've already confirmed auth.currentUser is not null above
                     const userId = auth.currentUser!.uid;
                     charToMigrate.imageUrl = await storageService.uploadCharacterImageFromDataUrl(charToMigrate.imageUrl, userId, charToMigrate.id);
                 } catch (error) {

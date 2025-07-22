@@ -1,4 +1,4 @@
-import { storage } from '../lib/firebaseConfig';
+import { getFirebase } from '../lib/getFirebase';
 import { ref, uploadBytes, getDownloadURL, uploadString, StringFormat } from "firebase/storage";
 import imageCompression from 'browser-image-compression';
 
@@ -28,32 +28,25 @@ export async function compressImage(file: File): Promise<File> {
  * @param userId The ID of the user who owns the character.
  * @param characterId The ID of the character this image belongs to.
  */
-export let uploadCharacterImage: ((file: File, userId: string, characterId: string) => Promise<string>) | undefined;
-
-/**
- * Uploads a character image from a data URL (base64) to Firebase Storage.
- * Used for migrating local data to the cloud.
- * This function will only be available if Firebase Storage is initialized.
- * @param dataUrl The base64 data URL of the image.
- * @param userId The ID of the user who owns the character.
- * @param characterId The ID of the character this image belongs to.
- */
-export let uploadCharacterImageFromDataUrl: ((dataUrl: string, userId: string, characterId: string) => Promise<string>) | undefined;
-
-if (storage) {
-  // By defining these within the `if (storage)` block, TypeScript correctly infers
-  // that `storage` is of type `FirebaseStorage` and not `undefined`.
-  uploadCharacterImage = async (file: File, userId: string, characterId: string): Promise<string> => {
+export const uploadCharacterImage = async (file: File, userId: string, characterId: string): Promise<string> => {
+    const { storage } = getFirebase();
     const compressedFile = await compressImage(file);
     const storageRef = ref(storage, `users/${userId}/character-portraits/${characterId}`);
     await uploadBytes(storageRef, compressedFile);
     return getDownloadURL(storageRef);
-  };
+};
 
-  uploadCharacterImageFromDataUrl = async (dataUrl: string, userId: string, characterId: string): Promise<string> => {
+/**
+ * Uploads a character image from a data URL (base64) to Firebase Storage.
+ * Used for migrating local data to the cloud.
+ * @param dataUrl The base64 data URL of the image.
+ * @param userId The ID of the user who owns the character.
+ * @param characterId The ID of the character this image belongs to.
+ */
+export const uploadCharacterImageFromDataUrl = async (dataUrl: string, userId: string, characterId: string): Promise<string> => {
+    const { storage } = getFirebase();
     const storageRef = ref(storage, `users/${userId}/character-portraits/${characterId}`);
     // Upload the data URL string directly
     await uploadString(storageRef, dataUrl, StringFormat.DATA_URL);
     return getDownloadURL(storageRef);
   };
-}

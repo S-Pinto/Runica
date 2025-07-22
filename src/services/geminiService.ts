@@ -2,8 +2,9 @@
 
 // 1. CAMBIAMO GLI IMPORT
 // Non importiamo più GoogleGenAI, ma i tool per chiamare le Cloud Functions.
-import { getFunctions, httpsCallable, HttpsCallableResult } from "firebase/functions";
-import { ICharacter } from '../src/features/character/characterTypes';
+import { getFunctions, httpsCallable, HttpsCallableResult } from 'firebase/functions';
+import { getFirebase } from '../lib/getFirebase';
+import { ICharacter } from '../features/character/characterTypes';
 
 // 2. NIENTE PIÙ CHIAVE API QUI!
 // La riga 'const apiKey = import.meta.env.VITE_GEMINI_API_KEY;' viene eliminata.
@@ -31,10 +32,14 @@ const ERROR_RESPONSE: Partial<PersonalityFields> = {
 
 // 3. CREIAMO UN RIFERIMENTO ALLA NOSTRA FUNZIONE
 // Questa funzione 'callable' gestisce per noi l'autenticazione e la comunicazione.
-const callGemini = httpsCallable<string, GeminiFunctionResponse>(
-    getFunctions(), 
-    'callGemini' // Il nome esatto della funzione che abbiamo deployato
-);
+const getCallable = () => {
+    const { app } = getFirebase();
+    const functions = getFunctions(app, 'europe-west1');
+    return httpsCallable<string, GeminiFunctionResponse>(
+        functions, 
+        'callGemini' // Il nome esatto della funzione che abbiamo deployato
+    );
+};
 
 // La firma della funzione rimane IDENTICA, così non devi cambiare il componente CharacterSheet.
 export const generatePersonality = async (character: ICharacter, customPrompt?: string): Promise<Partial<PersonalityFields>> => {
@@ -62,7 +67,8 @@ export const generatePersonality = async (character: ICharacter, customPrompt?: 
     try {
         // 5. SOSTITUIAMO LA CHIAMATA DIRETTA CON LA CHIAMATA ALLA FUNZIONE
         console.log("Calling Cloud Function 'callGemini'...");
-        const result: HttpsCallableResult<GeminiFunctionResponse> = await callGemini(prompt);
+        const callGeminiFunction = getCallable();
+        const result: HttpsCallableResult<GeminiFunctionResponse> = await callGeminiFunction(prompt);
 
         if (!result.data.success || !result.data.response) {
             throw new Error("La Cloud Function ha riportato un errore: " + result.data.response);
