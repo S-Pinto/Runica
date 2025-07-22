@@ -2,14 +2,17 @@
 export default {
   content: [
     "./index.html",
-    "./**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
       fontFamily: {
-        'cinzel': ['Cinzel', 'serif'],
-        'inter': ['Inter', 'sans-serif'],
-      }
+        sans: ['ui-sans-serif', 'system-ui', 'sans-serif'],
+        serif: ['ui-serif', 'Georgia', 'serif'],
+        mono: ['ui-monospace', 'SFMono-Regular', 'monospace'],
+        cinzel: ['Cinzel', 'serif'],
+        norse: ['Norse', 'serif'], // Aggiungiamo il nostro nuovo font
+      },
     },
   },
   plugins: [],
