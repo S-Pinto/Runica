@@ -1,6 +1,22 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode, useMemo } from 'react';
 
-type Theme = 'theme-amber' | 'theme-sapphire' | 'theme-twilight' | 'theme-evergreen' | 'theme-crimson'; // Aggiungi qui nuovi temi
+const THEME_IDS = [
+  'theme-amber',
+  'theme-sapphire',
+  'theme-twilight',
+  'theme-evergreen',
+  'theme-crimson',
+  'theme-rose',
+  'theme-veridian',
+  'theme-obsidian',
+  'theme-solaris',
+  'theme-aether',
+  'theme-grove',
+  'theme-celestial', // New Light Theme
+  'theme-nocturne',   // New Dark Theme
+] as const;
+
+type Theme = typeof THEME_IDS[number];
 
 interface ThemeContextType {
   theme: Theme;
@@ -17,7 +33,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const root = window.document.documentElement;
-    root.classList.remove('theme-amber', 'theme-sapphire', 'theme-twilight', 'theme-evergreen', 'theme-crimson'); // Rimuovi tutti i temi
+    root.classList.remove(...THEME_IDS);
     root.classList.add(theme);
     localStorage.setItem('app-theme', theme);
   }, [theme]);

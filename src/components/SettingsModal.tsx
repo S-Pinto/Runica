@@ -9,10 +9,18 @@ interface SettingsModalProps {
 
 const THEMES = [
   { id: 'theme-amber', name: 'Ambra', color: 'bg-amber-400' },
-  { id: 'theme-sapphire', name: 'Zaffiro', color: 'bg-indigo-400' },
+  { id: 'theme-sapphire', name: 'Zaffiro', color: 'bg-cyan-400' },
   { id: 'theme-twilight', name: 'Crepuscolo', color: 'bg-violet-400' },
   { id: 'theme-evergreen', name: 'Foresta', color: 'bg-emerald-400' },
   { id: 'theme-crimson', name: 'Cremisi', color: 'bg-red-500' },
+  { id: 'theme-rose', name: 'Rosato', color: 'bg-rose-500' },
+  { id: 'theme-veridian', name: 'Veridiano', color: 'bg-green-400' },
+  { id: 'theme-obsidian', name: 'Ossidiana', color: 'bg-gray-300' },
+  { id: 'theme-solaris', name: 'Solaris', color: 'bg-orange-500' },
+  { id: 'theme-aether', name: 'Etere', color: 'bg-fuchsia-500' },
+  { id: 'theme-grove', name: 'Bosco', color: 'bg-lime-500' },
+  { id: 'theme-nocturne', name: 'Notturno', color: 'bg-violet-500' },
+  { id: 'theme-celestial', name: 'Celeste', color: 'bg-indigo-600' },
 ];
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {

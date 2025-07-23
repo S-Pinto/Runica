@@ -1,31 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ICharacter } from './characterTypes';
-import * as characterService from './characterService';
 import { useAuth } from '../../providers/AuthProvider';
 import { CharacterCard } from './components/CharacterCard';
 import { UserPlusIcon } from '../../components/ui/icons';
+import { useCharacter } from './CharacterProvider';
 
 
 export const CharacterList: React.FC = () => {
-  const [characters, setCharacters] = useState<ICharacter[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { characters, loading, deleteCharacter } = useCharacter();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    setLoading(true);
-    const unsubscribe = characterService.onCharactersSnapshot((chars) => {
-      const migratedChars = chars.map(char => ({
-        ...characterService.createNewCharacter(),
-        ...char,
-      }));
-      setCharacters(migratedChars.sort((a, b) => a.name.localeCompare(b.name)));
-      setLoading(false);
-    });
-
-    return () => unsubscribe(); // Cleanup the listener
-  }, [currentUser]); // Rerun when user logs in/out
 
   const handleSelectCharacter = (id: string) => {
     if (id === 'new') {
@@ -42,8 +26,7 @@ export const CharacterList: React.FC = () => {
 
   const handleDeleteCharacter = async (id: string, name: string) => {
     if (window.confirm(`Are you sure you want to delete ${name}? This cannot be undone.`)) {
-      await characterService.deleteCharacter(id);
-      // Real-time listener will update the list automatically
+      await deleteCharacter(id);
     }
   };
 
@@ -57,7 +40,7 @@ export const CharacterList: React.FC = () => {
 
   return (
     <div className="p-4 sm:p-8 max-w-7xl mx-auto pt-12">
-      <h2 className="text-3xl font-cinzel text-center text-zinc-300 mb-8">Your Characters</h2>
+      <h2 className="text-3xl font-cinzel text-center text-foreground mb-8">Your Characters</h2>
       <div className="flex flex-col items-center">
         <button
             onClick={() => handleSelectCharacter('new')}
@@ -86,8 +69,8 @@ export const CharacterList: React.FC = () => {
             ))}
             </div>
         ) : (
-            <div className="text-center w-full max-w-2xl mt-8 py-16 px-6 bg-zinc-800/50 rounded-lg">
-                <h2 className="text-2xl font-semibold text-zinc-300 font-cinzel">Your adventure awaits!</h2>
+            <div className="text-center w-full max-w-2xl mt-8 py-16 px-6 bg-card/50 rounded-lg border border-border">
+                <h2 className="text-2xl font-semibold text-foreground font-cinzel">Your adventure awaits!</h2>
                 <p className="text-text-muted mt-2">
                   {currentUser 
                     ? "You have no characters synced to this account." 

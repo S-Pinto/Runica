@@ -37,7 +37,7 @@ export const AbilitiesDisplay = () => {
                                 {/* Saving Throw */}
                                 <div className="flex items-center justify-between text-sm text-foreground">
                                     <div className="flex items-center gap-2">
-                                        <span className={`w-3 h-3 rounded-full border-2 ${savingThrow.proficient ? 'bg-primary border-primary-foreground/50' : 'border-muted-foreground'}`}></span>
+                                        <span className={`w-3 h-3 rounded-full border-2 transition-colors ${savingThrow.proficient ? 'bg-primary border-primary' : 'bg-transparent border-border'}`}></span>
                                         <span>Saving Throw</span>
                                     </div>
                                     <span className="font-mono font-bold text-base text-foreground">{formatModifier(savingThrowBonus)}</span>
@@ -46,17 +46,17 @@ export const AbilitiesDisplay = () => {
                                 {/* Skills */}
                                 {relevantSkills.map(skill => {
                                     const skillBonus = abilityModifier + (skill.proficient ? proficiencyBonus : 0) + (skill.expertise ? proficiencyBonus : 0);
-                                    let proficiencyIndicatorClass = 'border-muted-foreground';
+                                    let proficiencyIndicatorClass = 'bg-transparent border-border';
                                     if (skill.expertise) {
-                                        proficiencyIndicatorClass = 'bg-accent border-accent-foreground/50';
+                                        proficiencyIndicatorClass = 'bg-accent border-accent ring-2 ring-offset-2 ring-offset-muted/60 ring-accent';
                                     } else if (skill.proficient) {
-                                        proficiencyIndicatorClass = 'bg-primary border-primary-foreground/50';
+                                        proficiencyIndicatorClass = 'bg-primary border-primary';
                                     }
 
                                     return (
                                         <div key={skill.name} className="flex items-center justify-between text-sm text-foreground">
                                             <div className="flex items-center gap-2">
-                                                <span className={`w-3 h-3 rounded-full border-2 ${proficiencyIndicatorClass}`}></span>
+                                                <span className={`w-3 h-3 rounded-full border-2 transition-all ${proficiencyIndicatorClass}`}></span>
                                                 <span>{skill.name}</span>
                                             </div>
                                             <span className="font-mono font-bold text-base text-foreground">{formatModifier(skillBonus)}</span>
