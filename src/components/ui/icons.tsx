@@ -34,7 +34,7 @@ export const BackIcon = (props: IconProps) => (
 
 export const SaveIcon = (props: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 3.75V16.5a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 16.5V3.75m13.5 0H5.25m11.25 0v.008h.008v-.008h-.008zM12 18.75h.008v.008h-.008v-.008z" />
     </svg>
 );
 
@@ -64,30 +64,24 @@ export const DownloadIcon = (props: IconProps) => (
 
 export const ShareIosIcon = (props: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 100-2.186m0 2.186c-.18.324-.283.696-.283 1.093s.103.77.283 1.093m-7.5-12.28a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093" />
     </svg>
 );
 
 export const UserPlusIcon = (props: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 14.25a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5zM12 18a6.75 6.75 0 00-6.75-6.75H4.5A2.25 2.25 0 002.25 14.25v4.5A2.25 2.25 0 004.5 21h15A2.25 2.25 0 0021.75 18v-4.5A6.75 6.75 0 0012 18zm9-7.5h-3m1.5-1.5v3m0-3v3" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
     </svg>
 );
 
 export const PlusCircleIcon = (props: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
 );
 export const CheckIcon = (props: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 12l4.5 4.5L18.75 9" />
-    </svg>
-);
-
-export const CloseIcon = (props: IconProps) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
 );
 
@@ -123,13 +117,13 @@ export const BellIcon = (props: IconProps) => (
 
 export const HeartIcon = (props: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.75s-6.75-4.5-9-7.5C1.5 11.25 3 8.25 6 6c2.25-1.5 4.5-1.5 6 0s3.75 1.5 6 0c3-2.25 4.5-5.25 3-8.25-2.25-3-9-7.5-9-7.5s-6.75 4.5-9 7.5c-1.5 3 0 6 3 8.25s4.5 1.5 6 0c2.25-1.5 3-1.5 6 0s4.5 2.25 6 4c2.25 1.5 3 4.5-.75 7.5C18.75 17.25 12 21.75 12 21.75z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
     </svg>
 );
 
 export const GlobeIcon = (props: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5zM12 6v12m6-6H6m12-3.75a9.75 9.75 0 01-3.75-3.75m-4.5 0A9.75 9.75 0 006 8.25m12 7.5a9.75 9.75 0 01-3.75 3.75m-4.5 0A9.75 9.75 0 006 15.75" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0zM12 2.25c-3.995 0-7.58-1.255-10.5-3.375m10.5 16.5c3.995 0 7.58 1.255 10.5 3.375M3.375 6.75c1.095-1.095 2.46-1.92 3.875-2.475M16.75 19.5c1.415-.555 2.78-1.38 3.875-2.475" />
     </svg>
 );
 
@@ -165,7 +159,7 @@ export const ArrowDownIcon = (props: IconProps) => (
 
 export const RefreshIcon = (props: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4.5-4.5M6 12a6 6 0 1112 0 6 6 0 01-12 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.667 0l3.181-3.183m-4.991-2.691L7.929 7.929a8.25 8.25 0 00-11.667 0L2.985 11.955" />
     </svg>
 );  
 
@@ -183,7 +177,8 @@ export const CalendarIcon = (props: IconProps) => (
 
 export const SettingsIcon = (props: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5zM4.5 12a7.5 7.5 0 1115 0A7.5 7.5 0 014.5 12z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.242 1.417l-1.07 1.07c-.127.127-.213.289-.27.461a4.5 4.5 0 010 .752c.057.172.143.334.27.461l1.07 1.07c.48.48.577 1.232.242 1.417l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.217-.456a4.5 4.5 0 01-1.075-.124.938.938 0 01-.22.127c-.332.183-.582.495-.645.87l-.213 1.281c-.09.543-.56.94-1.11.94h-2.593c-.55 0-1.02-.398-1.11-.94l-.213-1.281a4.5 4.5 0 01-.645-.87.938.938 0 01-.22-.127 4.5 4.5 0 01-1.075-.124l-1.217.456a1.125 1.125 0 01-1.37-.49l-1.296-2.247a1.125 1.125 0 01.242-1.417l1.07-1.07c.127-.127.213-.289.27-.461a4.5 4.5 0 010-.752 4.49 4.49 0 01-.27-.461l-1.07-1.07a1.125 1.125 0 01-.242-1.417l1.296-2.247a1.125 1.125 0 011.37-.49l1.217.456c.355.133.75.072 1.075-.124.073-.044.146-.087.22-.127.332-.183-.582-.495-.645-.87l.213-1.281z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
 );
 
@@ -193,3 +188,11 @@ export const StarIcon = (props: IconProps) => (
     </svg>
 );
 
+export const GoogleIcon = (props: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48px" height="48px" {...props}>
+        <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
+        <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
+        <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
+        <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.574l6.19,5.238C39.99,36.62,44,30.638,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
+    </svg>
+);

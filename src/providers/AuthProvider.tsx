@@ -8,9 +8,16 @@ import * as characterService from '../features/character/characterService';
 interface AuthContextType {
   currentUser: User | null;
   loading: boolean;
+  signInWithGoogle: () => Promise<void>;
+  signOutUser: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({ currentUser: null, loading: true });
+const AuthContext = createContext<AuthContextType>({
+  currentUser: null,
+  loading: true,
+  signInWithGoogle: () => Promise.reject('Auth provider not initialized'),
+  signOutUser: () => Promise.reject('Auth provider not initialized'),
+});
 
 // Questo è un custom hook che useremo nei componenti per accedere allo stato dell'utente
 export const useAuth = () => useContext(AuthContext);
@@ -42,7 +49,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return unsubscribe; // Cleanup subscription on unmount
   }, []);
 
-  const value = { currentUser, loading };
+  const value = {
+    currentUser,
+    loading,
+    signInWithGoogle: authService.signInWithGoogle,
+    signOutUser: authService.signOutUser,
+  };
 
   // Questo componente "avvolge" la tua app e le fornisce lo stato dell'utente
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

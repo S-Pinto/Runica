@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -7,13 +7,25 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['ui-sans-serif', 'system-ui', 'sans-serif'],
-        serif: ['ui-serif', 'Georgia', 'serif'],
-        mono: ['ui-monospace', 'SFMono-Regular', 'monospace'],
+        norse: ['Norse', 'serif'],
+        sans: ['Inter', 'sans-serif'],
         cinzel: ['Cinzel', 'serif'],
-        norse: ['Norse', 'serif'], // Aggiungiamo il nostro nuovo font
+      },
+      colors: {
+        background: 'rgb(var(--color-background) / <alpha-value>)',
+        foreground: 'rgb(var(--color-foreground) / <alpha-value>)',
+        card: 'rgb(var(--color-card) / <alpha-value>)',
+        border: 'rgb(var(--color-border) / <alpha-value>)',
+        input: 'rgb(var(--color-input) / <alpha-value>)',
+        text: 'rgb(var(--color-text) / <alpha-value>)',
+        'text-muted': 'rgb(var(--color-text-muted) / <alpha-value>)',
+        accent: 'rgb(var(--color-accent) / <alpha-value>)',
+        'accent-dark': 'rgb(var(--color-accent-dark) / <alpha-value>)',
+        'accent-foreground': 'rgb(var(--color-accent-foreground) / <alpha-value>)',
       },
     },
   },
-  plugins: [],
-}
+  plugins: [
+    require('@tailwindcss/forms'),
+  ],
+};

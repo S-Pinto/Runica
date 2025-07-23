@@ -4,6 +4,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client'; // Assicurati che l'import sia corretto
 import { RouterProvider } from 'react-router-dom';
 import { AuthProvider } from './providers/AuthProvider';
+import { ThemeProvider } from './providers/ThemeProvider';
 import { router } from './routes/index';
 import './lib/firebaseConfig'; // Importa per l'effetto di inizializzazione di Firebase
 import './index.css';
@@ -16,8 +17,10 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </ThemeProvider>
   </React.StrictMode>
 );

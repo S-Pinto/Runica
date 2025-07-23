@@ -20,8 +20,8 @@ const TabButton = ({ label, isActive, onClick, id, controls }: { label: string, 
         onClick={onClick}
         className={`px-4 py-2 text-sm sm:text-base font-medium rounded-t-lg transition-colors whitespace-nowrap ${
             isActive
-                ? 'bg-zinc-800 text-amber-400 border-b-2 border-amber-400'
-                : 'text-zinc-400 hover:bg-zinc-800/60 border-b-2 border-transparent'
+                ? 'bg-card text-accent border-b-2 border-accent'
+                : 'text-muted-foreground hover:bg-muted border-b-2 border-transparent'
         }`}
     >
         {label}
@@ -108,21 +108,21 @@ const MainTabView = () => {
             <HPTracker />
             <DeathSavesTracker />
             
-            <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700">
-                <h3 className="text-lg font-cinzel text-amber-400 mb-3">Hit Dice</h3>
-                <p className="text-center text-3xl font-bold font-mono text-white mb-3">{character.level - character.hitDice.used} / {character.level}</p>
+            <div className="bg-card p-4 rounded-lg border border-border">
+                <h3 className="text-lg font-cinzel text-accent mb-3">Hit Dice</h3>
+                <p className="text-center text-3xl font-bold font-mono text-foreground mb-3">{character.level - character.hitDice.used} / {character.level}</p>
                 <div className="flex gap-2">
-                    <button onClick={spendHitDie} disabled={character.hitDice.used >= character.level} className="w-full bg-green-800/80 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition-colors disabled:bg-zinc-600 disabled:cursor-not-allowed">
+                    <button onClick={spendHitDie} disabled={character.hitDice.used >= character.level} className="w-full bg-primary/80 hover:bg-primary text-primary-foreground font-bold py-2 px-4 rounded-md transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed">
                         Spend ({character.hitDice.total})
                     </button>
-                    <button onClick={resetHitDice} className="bg-sky-800/80 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-md transition-colors">Reset</button>
+                    <button onClick={resetHitDice} className="bg-secondary/80 hover:bg-secondary text-secondary-foreground font-bold py-2 px-4 rounded-md transition-colors">Reset</button>
                 </div>
-                {hitDiceRoll && <p className="text-center text-amber-300 font-mono mt-3 p-2 bg-zinc-900/50 rounded-md">{hitDiceRoll}</p>}
+                {hitDiceRoll && <p className="text-center text-accent font-mono mt-3 p-2 bg-muted/50 rounded-md">{hitDiceRoll}</p>}
             </div>
 
-            <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700">
-                <h3 className="text-lg font-cinzel text-amber-400 mb-3">Languages</h3>
-                <p className="text-zinc-300 whitespace-pre-wrap">{character.languages || 'None'}</p>
+            <div className="bg-card p-4 rounded-lg border border-border">
+                <h3 className="text-lg font-cinzel text-accent mb-3">Languages</h3>
+                <p className="text-foreground whitespace-pre-wrap">{character.languages || 'None'}</p>
             </div>
         </div>
     );
@@ -146,14 +146,14 @@ const SpellsTabView = () => {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1 space-y-6">
-                 <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700">
-                    <h3 className="text-lg font-cinzel text-amber-400 mb-3 text-center">Spellcasting</h3>
+                 <div className="bg-card p-4 rounded-lg border border-border">
+                    <h3 className="text-lg font-cinzel text-accent mb-3 text-center">Spellcasting</h3>
                     <div className="grid grid-cols-2 gap-4">
                         <StatBox label="Save DC" value={spellSaveDC} />
                         <StatBox label="Attack Bonus" value={formatModifier(spellAttackBonus)} />
                         <div className="col-span-2 text-center">
-                            <p className="text-xs uppercase tracking-wider text-zinc-400">Ability</p>
-                            <p className="text-xl font-bold text-white capitalize">{spellcastingAbility || 'None'}</p>
+                            <p className="text-xs uppercase tracking-wider text-muted-foreground">Ability</p>
+                            <p className="text-xl font-bold text-foreground capitalize">{spellcastingAbility || 'None'}</p>
                         </div>
                     </div>
                  </div>
@@ -218,33 +218,33 @@ const InventoryTabView = () => {
   }, [character.equipment]);
 
   const ItemList = ({ title, items }: { title: string; items: EquipmentItem[] }) => (
-    <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700">
-      <h3 className="text-lg font-cinzel text-amber-400 mb-3">{title}</h3>
-      {items.length === 0 ? <p className="text-zinc-500 text-sm text-center py-4">None.</p> : (
+    <div className="bg-card p-4 rounded-lg border border-border">
+      <h3 className="text-lg font-cinzel text-accent mb-3">{title}</h3>
+      {items.length === 0 ? <p className="text-muted-foreground text-sm text-center py-4">None.</p> : (
         <div className="space-y-2">
           {items.map(item => (
-            <div key={item.id} className="bg-zinc-700/50 rounded-lg text-sm">
+            <div key={item.id} className="bg-card/50 rounded-lg text-sm">
               <div className="p-3 flex items-center justify-between">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <button onClick={() => handleToggleExpand(item.id)} className="flex-shrink-0 text-zinc-400 hover:text-white">
+                  <button onClick={() => handleToggleExpand(item.id)} className="flex-shrink-0 text-muted-foreground hover:text-foreground">
                     <ChevronDownIcon className={`w-5 h-5 transition-transform ${expandedItem === item.id ? 'rotate-180' : ''}`} />
                   </button>
-                  <p className="font-semibold text-amber-300 truncate" title={item.name}>{item.name} <span className="text-xs text-zinc-400">(x{item.quantity})</span></p>
+                  <p className="font-semibold text-accent truncate" title={item.name}>{item.name} <span className="text-xs text-muted-foreground">(x{item.quantity})</span></p>
                 </div>
                 {item.armorType && (
-                  <button onClick={() => handleToggleEquip(item.id)} className={`px-3 py-1 text-xs font-bold rounded ${item.equipped ? 'bg-amber-500 text-white' : 'bg-zinc-600 hover:bg-zinc-500'}`}>
+                  <button onClick={() => handleToggleEquip(item.id)} className={`px-3 py-1 text-xs font-bold rounded ${item.equipped ? 'bg-primary text-primary-foreground' : 'bg-secondary hover:bg-secondary/80'}`}>
                     {item.equipped ? 'Equipped' : 'Equip'}
                   </button>
                 )}
               </div>
               {expandedItem === item.id && (
-                <div className="p-3 border-t border-zinc-600/50 bg-zinc-900/30 space-y-2">
+                <div className="p-3 border-t border-border/50 bg-muted/30 space-y-2">
                   {item.armorType && (
-                    <p><strong className="text-zinc-400 capitalize">{item.armorType} Armor</strong>
-                      {item.armorClass ? <span className="text-zinc-300"> (AC: {item.armorClass})</span> : ''}
+                    <p><strong className="text-muted-foreground capitalize">{item.armorType} Armor</strong>
+                      {item.armorClass ? <span className="text-foreground"> (AC: {item.armorClass})</span> : ''}
                     </p>
                   )}
-                  <p className="text-zinc-300 whitespace-pre-wrap">{item.description || 'No description.'}</p>
+                  <p className="text-foreground whitespace-pre-wrap">{item.description || 'No description.'}</p>
                 </div>
               )}
             </div>
@@ -257,13 +257,13 @@ const InventoryTabView = () => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-1 space-y-6">
-        <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700">
-          <h3 className="text-lg font-cinzel text-amber-400 mb-3">Currency</h3>
+        <div className="bg-card p-4 rounded-lg border border-border">
+          <h3 className="text-lg font-cinzel text-accent mb-3">Currency</h3>
           <div className="grid grid-cols-3 gap-2 text-center">
             {(Object.keys(character.currency) as Array<keyof Currency>).map(c => (
               <div key={c}>
-                <p className="text-xl font-mono text-white">{character.currency[c]}</p>
-                <p className="text-xs uppercase text-zinc-400">{c}</p>
+                <p className="text-xl font-mono text-foreground">{character.currency[c]}</p>
+                <p className="text-xs uppercase text-muted-foreground">{c}</p>
               </div>
             ))}
           </div>
@@ -278,9 +278,9 @@ const InventoryTabView = () => {
 const InfoTabView = () => {
     const { character } = useCharacter();
     const InfoBlock = ({ title, content }: { title: string; content: string }) => (
-        <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700 flex-grow">
-            <h3 className="text-lg font-cinzel text-amber-400 mb-2">{title}</h3>
-            <p className="text-zinc-300 whitespace-pre-wrap">{content || 'Not set.'}</p>
+        <div className="bg-card p-4 rounded-lg border border-border flex-grow">
+            <h3 className="text-lg font-cinzel text-accent mb-2">{title}</h3>
+            <p className="text-foreground whitespace-pre-wrap">{content || 'Not set.'}</p>
         </div>
     );
     return (
@@ -347,13 +347,13 @@ export const PlayView: React.FC = () => {
     }, [character]); // This effect runs whenever the character object changes.
     
     if (!character) {
-        return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-amber-500"></div></div>;
+        return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-accent"></div></div>;
     }
     
     return (
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:pt-8">
-            <header className="flex justify-between items-center mb-6 border-b border-zinc-700 pb-4">
-                <button onClick={() => navigate('/')} className="flex items-center gap-2 text-zinc-300 hover:text-amber-400 transition-colors">
+            <header className="flex justify-between items-center mb-6 border-b border-border pb-4">
+                <button onClick={() => navigate('/')} className="flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors">
                     <BackIcon className="w-5 h-5" /> Back to List
                 </button>
                 <div className="flex items-center gap-4 text-center">
@@ -361,22 +361,22 @@ export const PlayView: React.FC = () => {
                         <img 
                             src={character.imageUrl} 
                             alt={character.name} 
-                            className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-zinc-600 shadow-md"
+                            className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-border shadow-md"
                         />
                     )}
                     <div>
-                        <h1 className="text-2xl sm:text-3xl font-cinzel text-amber-400">{character.name}</h1>
-                        <p className="text-zinc-400 capitalize text-sm">
+                        <h1 className="text-2xl sm:text-3xl font-cinzel text-accent">{character.name}</h1>
+                        <p className="text-muted-foreground capitalize text-sm">
                             {character.race} {character.class} {character.subclass && `(${character.subclass})`} &bull; Level {character.level} &bull; {character.alignment}
                         </p>
                     </div>
                 </div>
-                <button onClick={() => navigate(`/character/${characterId}/edit`)} className="flex items-center gap-2 px-4 py-2 bg-zinc-700 text-white font-bold rounded-lg shadow-md hover:bg-zinc-600 transition-colors">
+                <button onClick={() => navigate(`/character/${characterId}/edit`)} className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground font-bold rounded-lg shadow-md hover:bg-secondary/80 transition-colors">
                     <EditIcon className="w-5 h-5" /> Edit Sheet
                 </button>
             </header>
 
-            <div role="tablist" aria-label="Character View Sections" className="flex space-x-1 mb-6 border-b border-zinc-700 overflow-x-auto">
+            <div role="tablist" aria-label="Character View Sections" className="flex space-x-1 mb-6 border-b border-border overflow-x-auto">
                 {PLAY_TABS.map(tab => (
                     <TabButton
                         key={tab.key}
@@ -389,7 +389,7 @@ export const PlayView: React.FC = () => {
                 ))}
             </div>
             
-            <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-b-lg rounded-tr-lg">
+            <div className="bg-muted/50 p-4 sm:p-6 rounded-b-lg rounded-tr-lg">
                 <div id="play-panel-main" role="tabpanel" aria-labelledby="play-tab-main" style={{ display: activeTab === 'main' ? 'block' : 'none' }}>
                     <MainTabView />
                 </div>
@@ -453,26 +453,26 @@ const HPTracker = () => {
     };
 
     return (
-        <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700">
-            <h3 className="text-lg font-cinzel text-amber-400 mb-3 text-center">Hit Points</h3>
+        <div className="bg-card p-4 rounded-lg border border-border">
+            <h3 className="text-lg font-cinzel text-accent mb-3 text-center">Hit Points</h3>
             <div className="text-center mb-4">
-                <span className="text-5xl font-bold text-red-400">{hp.current}</span>
-                {hp.temporary > 0 && <span className="text-3xl font-bold text-sky-400" title="Temporary HP"> +{hp.temporary}</span>}
-                <span className="text-2xl text-zinc-400"> / {hp.max}</span>
+                <span className="text-5xl font-bold text-destructive">{hp.current}</span>
+                {hp.temporary > 0 && <span className="text-3xl font-bold text-accent" title="Temporary HP"> +{hp.temporary}</span>}
+                <span className="text-2xl text-muted-foreground"> / {hp.max}</span>
             </div>
             <div className="grid grid-cols-2 gap-3 mb-3">
                 <div className="flex flex-col">
-                     <input type="number" value={damage} onChange={e => setDamage(e.target.value)} onKeyDown={e => e.key === 'Enter' && applyDamage()} placeholder="Damage" className="bg-zinc-700 text-center rounded-md p-2 border border-zinc-600 focus:ring-red-500 focus:border-red-500" />
-                     <button onClick={applyDamage} className="bg-red-800/80 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md mt-1 transition-colors">Apply</button>
+                     <input type="number" value={damage} onChange={e => setDamage(e.target.value)} onKeyDown={e => e.key === 'Enter' && applyDamage()} placeholder="Damage" className="bg-input text-center rounded-md p-2 border border-border focus:ring-destructive focus:border-destructive" />
+                     <button onClick={applyDamage} className="bg-destructive/80 hover:bg-destructive text-destructive-foreground font-bold py-2 px-4 rounded-md mt-1 transition-colors">Apply</button>
                 </div>
                  <div className="flex flex-col">
-                     <input type="number" value={healing} onChange={e => setHealing(e.target.value)} onKeyDown={e => e.key === 'Enter' && applyHealing()} placeholder="Healing" className="bg-zinc-700 text-center rounded-md p-2 border border-zinc-600 focus:ring-green-500 focus:border-green-500" />
-                     <button onClick={applyHealing} className="bg-green-800/80 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md mt-1 transition-colors">Apply</button>
+                     <input type="number" value={healing} onChange={e => setHealing(e.target.value)} onKeyDown={e => e.key === 'Enter' && applyHealing()} placeholder="Healing" className="bg-input text-center rounded-md p-2 border border-border focus:ring-primary focus:border-primary" />
+                     <button onClick={applyHealing} className="bg-primary/80 hover:bg-primary text-primary-foreground font-bold py-2 px-4 rounded-md mt-1 transition-colors">Apply</button>
                 </div>
             </div>
              <div className="flex flex-col">
-                 <input type="number" value={tempHpInput} onChange={e => setTempHpInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && applyTempHp()} placeholder="Set/Replace Temp HP" className="bg-zinc-700 text-center rounded-md p-2 border border-zinc-600 focus:ring-sky-500 focus:border-sky-500" />
-                 <button onClick={applyTempHp} className="bg-sky-800/80 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-md mt-1 transition-colors">Set Temp HP</button>
+                 <input type="number" value={tempHpInput} onChange={e => setTempHpInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && applyTempHp()} placeholder="Set/Replace Temp HP" className="bg-input text-center rounded-md p-2 border border-border focus:ring-accent focus:border-accent" />
+                 <button onClick={applyTempHp} className="bg-accent/80 hover:bg-accent text-accent-foreground font-bold py-2 px-4 rounded-md mt-1 transition-colors">Set Temp HP</button>
             </div>
         </div>
     );
@@ -501,9 +501,9 @@ const ResourceTracker = ({ title, slots, onSlotChange, isCustom }: { title: stri
     const hasSlots = entries.some(entry => (isCustom ? (entry as CustomResource).max > 0 : (entry[1] as any).max > 0));
 
     return (
-        <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700">
-            <h3 className="text-lg font-cinzel text-amber-400 mb-3">{title}</h3>
-            {!hasSlots && <p className="text-zinc-500 text-sm text-center">No resources available.</p>}
+        <div className="bg-card p-4 rounded-lg border border-border">
+            <h3 className="text-lg font-cinzel text-accent mb-3">{title}</h3>
+            {!hasSlots && <p className="text-muted-foreground text-sm text-center">No resources available.</p>}
             <div className="space-y-3">
                 {entries.map((entry) => {
                     const [key, data] = isCustom ? [(entry as CustomResource).id, entry as CustomResource] : entry;
@@ -512,13 +512,13 @@ const ResourceTracker = ({ title, slots, onSlotChange, isCustom }: { title: stri
 
                     return (
                         <div key={key} className="flex items-center">
-                            <span className="font-bold text-zinc-400 w-24 truncate" title={level}>{level}:</span>
+                            <span className="font-bold text-muted-foreground w-24 truncate" title={level}>{level}:</span>
                             <div className="flex flex-wrap gap-2">
                                 {Array.from({ length: data.max }).map((_, i) => (
                                     <button
                                         key={i}
                                         onClick={() => toggleSlot(key, i)}
-                                        className={`w-5 h-5 rounded-md border-2 transition-colors ${i < data.used ? 'bg-amber-500 border-amber-400' : 'bg-zinc-600 border-zinc-500 hover:border-amber-400'}`}
+                                        className={`w-5 h-5 rounded-md border-2 transition-colors ${i < data.used ? 'bg-primary border-primary/80' : 'bg-muted border-border hover:border-accent'}`}
                                         aria-label={`Slot ${i + 1} for ${level}. ${i < data.used ? 'Used' : 'Available'}`}
                                     />
                                 ))}
@@ -540,22 +540,22 @@ const DeathSavesTracker = () => {
         updateCharacter({ deathSaves: { ...saves, [type]: newCount } });
     };
     return (
-        <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700">
-             <h3 className="text-lg font-cinzel text-amber-400 mb-3">Death Saves</h3>
+        <div className="bg-card p-4 rounded-lg border border-border">
+             <h3 className="text-lg font-cinzel text-accent mb-3">Death Saves</h3>
              <div className="space-y-2">
                  <div className="flex items-center justify-between">
-                     <span className="font-semibold text-zinc-300">Successes</span>
+                     <span className="font-semibold text-foreground">Successes</span>
                      <div className="flex gap-2">
                          {Array.from({length: 3}).map((_, i) => (
-                            <input key={i} type="checkbox" checked={i < saves.successes} onChange={() => handleToggle('successes', i)} className="w-5 h-5 rounded-full text-green-500 bg-zinc-600 border-zinc-500 focus:ring-green-500" />
+                            <input key={i} type="checkbox" checked={i < saves.successes} onChange={() => handleToggle('successes', i)} className="w-5 h-5 rounded-full text-primary bg-input border-border focus:ring-primary" />
                          ))}
                      </div>
                  </div>
                  <div className="flex items-center justify-between">
-                     <span className="font-semibold text-zinc-300">Failures</span>
+                     <span className="font-semibold text-foreground">Failures</span>
                      <div className="flex gap-2">
                          {Array.from({length: 3}).map((_, i) => (
-                            <input key={i} type="checkbox" checked={i < saves.failures} onChange={() => handleToggle('failures', i)} className="w-5 h-5 rounded-full text-red-500 bg-zinc-600 border-zinc-500 focus:ring-red-500"/>
+                            <input key={i} type="checkbox" checked={i < saves.failures} onChange={() => handleToggle('failures', i)} className="w-5 h-5 rounded-full text-destructive bg-input border-border focus:ring-destructive"/>
                          ))}
                      </div>
                  </div>
@@ -578,27 +578,27 @@ const AttacksAndCantrips = ({ items }: {items: Attack[]}) => {
         setResults(prev => ({ ...prev, [attack.id]: { ...prev[attack.id], dmg: pretty } }));
     };
     return (
-         <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700 flex flex-col h-full">
-            <h3 className="text-lg font-cinzel text-amber-400 mb-3">Attacks & Cantrips</h3>
+         <div className="bg-card p-4 rounded-lg border border-border flex flex-col h-full">
+            <h3 className="text-lg font-cinzel text-accent mb-3">Attacks & Cantrips</h3>
             <div className="space-y-3 flex-grow overflow-y-auto pr-2 -mr-2 max-h-[calc(50vh-5rem)]">
-                {items.length === 0 && <p className="text-zinc-500 text-sm text-center py-4">None.</p>}
+                {items.length === 0 && <p className="text-muted-foreground text-sm text-center py-4">None.</p>}
                 {items.map(item => (
-                     <div key={item.id} className="bg-zinc-700/50 rounded-lg text-sm p-3 space-y-2">
+                     <div key={item.id} className="bg-card/50 rounded-lg text-sm p-3 space-y-2">
                         <div className="flex justify-between items-start">
-                            <span className="font-semibold text-amber-300 text-base">{item.name}</span>
-                            <div className="flex gap-4 font-mono text-zinc-300 text-right">
+                            <span className="font-semibold text-accent text-base">{item.name}</span>
+                            <div className="flex gap-4 font-mono text-foreground text-right">
                                 <span title="Attack Bonus">{item.bonus}</span>
                                 <span title="Damage">{item.damage}</span>
                             </div>
                         </div>
                         <div className="flex justify-end items-center gap-2">
-                             <button onClick={() => handleAttackRoll(item)} className="text-xs bg-zinc-600 hover:bg-zinc-500 rounded px-3 py-1.5 transition-colors font-bold">ATK</button>
-                             <button onClick={() => handleDamageRoll(item)} className="text-xs bg-red-800/80 hover:bg-red-700 rounded px-3 py-1.5 transition-colors font-bold">DMG</button>
+                             <button onClick={() => handleAttackRoll(item)} className="text-xs bg-secondary hover:bg-secondary/80 rounded px-3 py-1.5 transition-colors font-bold">ATK</button>
+                             <button onClick={() => handleDamageRoll(item)} className="text-xs bg-destructive/80 hover:bg-destructive rounded px-3 py-1.5 transition-colors font-bold">DMG</button>
                         </div>
                          {(results[item.id]?.atk || results[item.id]?.dmg) &&
-                             <div className="text-xs text-zinc-300 bg-zinc-900/50 p-2 rounded-md border-l-2 border-amber-500 space-y-1">
-                                 {results[item.id].atk && <div><strong>Attack:</strong> <span className="font-mono text-amber-300">{results[item.id].atk}</span></div>}
-                                 {results[item.id].dmg && <div><strong>Damage:</strong> <span className="font-mono text-red-400">{results[item.id].dmg}</span></div>}
+                             <div className="text-xs text-foreground bg-muted/50 p-2 rounded-md border-l-2 border-accent space-y-1">
+                                 {results[item.id].atk && <div><strong>Attack:</strong> <span className="font-mono text-accent">{results[item.id].atk}</span></div>}
+                                 {results[item.id].dmg && <div><strong>Damage:</strong> <span className="font-mono text-destructive">{results[item.id].dmg}</span></div>}
                              </div>
                          }
                     </div>
@@ -611,18 +611,18 @@ const AttacksAndCantrips = ({ items }: {items: Attack[]}) => {
 const FeaturesList = ({ title, items }: {title: string; items: Feature[]}) => {
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
     return (
-         <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700 flex flex-col h-full">
-            <h3 className="text-lg font-cinzel text-amber-400 mb-3">{title}</h3>
+         <div className="bg-card p-4 rounded-lg border border-border flex flex-col h-full">
+            <h3 className="text-lg font-cinzel text-accent mb-3">{title}</h3>
             <div className="space-y-2 flex-grow overflow-y-auto pr-2 -mr-2 max-h-[calc(50vh-5rem)]">
-                {items.length === 0 && <p className="text-zinc-500 text-sm text-center py-4">None.</p>}
+                {items.length === 0 && <p className="text-muted-foreground text-sm text-center py-4">None.</p>}
                 {items.map(item => (
-                     <div key={item.id} className="bg-zinc-700/50 rounded-lg text-sm">
+                     <div key={item.id} className="bg-card/50 rounded-lg text-sm">
                          <div className="flex items-center justify-between p-3 cursor-pointer w-full text-left" onClick={() => item.description && setExpanded(e => ({...e, [item.id]: !e[item.id]}))}>
-                           <span className="font-semibold text-amber-300">{item.name}</span>
+                           <span className="font-semibold text-accent">{item.name}</span>
                          </div>
                          {expanded[item.id] && item.description && (
-                           <div className="p-3 border-t border-zinc-600/50 bg-zinc-900/30">
-                             <p className="text-zinc-300 whitespace-pre-wrap">{item.description}</p>
+                           <div className="p-3 border-t border-border/50 bg-muted/30">
+                             <p className="text-foreground whitespace-pre-wrap">{item.description}</p>
                            </div>
                          )}
                     </div>

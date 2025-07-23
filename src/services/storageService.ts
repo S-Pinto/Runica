@@ -1,18 +1,14 @@
 import { getFirebase } from '../lib/getFirebase';
 import { ref, uploadBytes, getDownloadURL, uploadString, StringFormat } from "firebase/storage";
-import imageCompression from 'browser-image-compression';
+import imageCompression, { Options } from 'browser-image-compression';
 
 /**
  * Compresses an image file before upload.
  * @param file The image file to compress.
+ * @param options The compression options from browser-image-compression.
  * @returns A promise that resolves with the compressed file.
  */
-export async function compressImage(file: File): Promise<File> {
-    const options = {
-      maxSizeMB: 1,
-      maxWidthOrHeight: 1024,
-      useWebWorker: true,
-    };
+export async function compressImage(file: File, options: Options): Promise<File> {
     try {
         return await imageCompression(file, options);
     } catch (error) {
@@ -30,7 +26,11 @@ export async function compressImage(file: File): Promise<File> {
  */
 export const uploadCharacterImage = async (file: File, userId: string, characterId: string): Promise<string> => {
     const { storage } = getFirebase();
-    const compressedFile = await compressImage(file);
+    const compressedFile = await compressImage(file, {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1024,
+        useWebWorker: true,
+    });
     const storageRef = ref(storage, `users/${userId}/character-portraits/${characterId}`);
     await uploadBytes(storageRef, compressedFile);
     return getDownloadURL(storageRef);
@@ -64,3 +64,22 @@ export const uploadCharacterImageFromDataUrl = async (dataUrl: string, userId: s
     await uploadString(storageRef, dataUrl, StringFormat.DATA_URL);
     return getDownloadURL(storageRef);
   };
+
+/**
+ * Uploads a user's profile image to Firebase Storage.
+ * Handles compression before upload.
+ * @param file The image file to upload.
+ * @param userId The ID of the user.
+ * @returns A promise that resolves with the public download URL of the image.
+ */
+export const uploadUserProfileImage = async (file: File, userId: string): Promise<string> => {
+    const { storage } = getFirebase();
+    const compressedFile = await compressImage(file, {
+        maxSizeMB: 0.5,
+        maxWidthOrHeight: 512,
+        useWebWorker: true,
+    });
+    const storageRef = ref(storage, `users/${userId}/profile.jpg`);
+    await uploadBytes(storageRef, compressedFile);
+    return getDownloadURL(storageRef);
+};

@@ -27,3 +27,88 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root, .theme-amber {
+    --color-background: 24 24 27; /* zinc-900 */
+    --color-foreground: 250 250 250; /* zinc-50 */
+    --color-card: 39 39 42; /* zinc-800 */
+    --color-border: 63 63 70; /* zinc-700 */
+    --color-input: 82 82 91; /* zinc-600 */
+    
+    --color-text: 228 228 231; /* zinc-200 */
+    --color-text-muted: 161 161 170; /* zinc-400 */
+    
+    --color-accent: 245 158 11; /* amber-500 */
+    --color-accent-dark: 180 83 9; /* amber-700 */
+    --color-accent-foreground: 24 24 27; /* zinc-900 */
+  }
+  .theme-sapphire {
+    --color-background: 23 37 84; /* indigo-950 */
+    --color-foreground: 238 242 255; /* indigo-50 */
+    --color-card: 30 41 59; /* slate-800 */
+    --color-border: 51 65 85; /* slate-700 */
+    --color-input: 71 85 105; /* slate-600 */
+
+    --color-text: 226 232 240; /* slate-200 */
+    --color-text-muted: 165 180 252; /* indigo-300 */
+    
+    --color-accent: 99 102 241; /* indigo-500 */
+    --color-accent-dark: 67 56 202; /* indigo-700 */
+    --color-accent-foreground: 255 255 255; /* white */
+  }
+  .theme-twilight {
+    --color-background: 26 25 42;      /* Dark, desaturated purple */
+    --color-foreground: 240 242 250;   /* Light, cool gray */
+    --color-card: 40 39 61;            /* Slightly lighter dark purple */
+    --color-border: 61 60 86;          /* Muted purple-gray */
+    --color-input: 81 80 110;          /* Lighter purple-gray */
+    
+    --color-text: 226 232 240;         /* slate-200 */
+    --color-text-muted: 165 153 214;   /* Muted, light purple */
+    
+    --color-accent: 192 132 252;       /* violet-400 */
+    --color-accent-dark: 147 112 219;  /* violet-500 */
+    --color-accent-foreground: 255 255 255; /* white */
+  }
+  .theme-evergreen {
+    --color-background: 20 34 33;      /* Very dark green */
+    --color-foreground: 239 244 240;   /* Light, warm off-white */
+    --color-card: 28 48 46;            /* Darker green */
+    --color-border: 45 71 69;          /* Muted green */
+    --color-input: 61 92 90;           /* Lighter green */
+
+    --color-text: 220 237 228;         /* Light green-tinted white */
+    --color-text-muted: 148 181 172;   /* Muted, light green */
+
+    --color-accent: 52 211 153;        /* emerald-400 */
+    --color-accent-dark: 16 185 129;   /* emerald-500 */
+    --color-accent-foreground: 20 34 33; /* Very dark green */
+  }
+  .theme-crimson {
+    --color-background: 28 23 23;      /* Very dark, reddish black */
+    --color-foreground: 250 250 250;   /* Off-white */
+    --color-card: 41 37 37;            /* Dark gray with red hint */
+    --color-border: 68 62 62;          /* Muted red-gray */
+    --color-input: 87 81 81;           /* Lighter red-gray */
+
+    --color-text: 228 228 231;         /* zinc-200 */
+    --color-text-muted: 171 161 161;   /* Muted gray-red */
+
+    --color-accent: 239 68 68;         /* red-500 */
+    --color-accent-dark: 220 38 38;    /* red-600 */
+    --color-accent-foreground: 255 255 255; /* white */
+  }
+  /* Aggiungi altri temi qui... */
+}
+
+body {
+  @apply bg-background text-text;
+  font-family: 'Inter', sans-serif; /* Ho cambiato il font di base in Inter per una migliore leggibilità UI */
+  color: rgb(var(--color-text));
+  background-color: rgb(var(--color-background));
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-size: 16px; /* Imposta la dimensione del font di base */
+  line-height: 1.5; /* Imposta l'altezza della linea per una migliore leggibilità */
+  font-weight: 400; /* Imposta il peso del font di base */
+}

@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Cropper, { ReactCropperElement } from 'react-cropper';
 import 'cropperjs/dist/cropper.css';
-import imageCompression from 'browser-image-compression';
 import { PhotoIcon, UploadIcon, XMarkIcon } from '../../../components/ui/icons';
+import { compressImage } from '../../../services/storageService';
 
 interface ImageUploaderProps {
     isOpen: boolean;
@@ -45,7 +45,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ isOpen, onClose, o
             const file = e.target.files[0];
             setIsLoading(true);
             try {
-                const compressedFile = await imageCompression(file, {
+                const compressedFile = await compressImage(file, {
                     maxSizeMB: 1,
                     maxWidthOrHeight: 1024,
                     useWebWorker: true,

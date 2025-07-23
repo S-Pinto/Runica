@@ -50,7 +50,7 @@ export const CharacterList: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-amber-500"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-accent"></div>
       </div>
     );
   }
@@ -61,7 +61,7 @@ export const CharacterList: React.FC = () => {
       <div className="flex flex-col items-center">
         <button
             onClick={() => handleSelectCharacter('new')}
-            className="mb-10 flex items-center gap-2 px-6 py-3 bg-amber-600 text-white font-bold rounded-lg shadow-md hover:bg-amber-500 transition-all duration-300 transform hover:scale-105"
+            className="mb-10 flex items-center gap-2 px-6 py-3 bg-accent-dark text-white font-bold rounded-lg shadow-md hover:bg-accent transition-all duration-300 transform hover:scale-105"
         >
             <UserPlusIcon className="w-5 h-5" />
             Create New Character
@@ -88,7 +88,7 @@ export const CharacterList: React.FC = () => {
         ) : (
             <div className="text-center w-full max-w-2xl mt-8 py-16 px-6 bg-zinc-800/50 rounded-lg">
                 <h2 className="text-2xl font-semibold text-zinc-300 font-cinzel">Your adventure awaits!</h2>
-                <p className="text-zinc-400 mt-2">
+                <p className="text-text-muted mt-2">
                   {currentUser 
                     ? "You have no characters synced to this account." 
                     : "You have no local characters."

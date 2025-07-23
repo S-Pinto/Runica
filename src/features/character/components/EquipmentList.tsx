@@ -32,12 +32,12 @@ const EquipmentForm = ({
     onSave(formData);
   };
 
-  const inputClass = "w-full bg-zinc-800 p-2 rounded border border-zinc-600 focus:ring-amber-500 focus:border-amber-500 text-sm";
-  const labelClass = "block text-xs font-medium text-zinc-400 mb-1";
+  const inputClass = "w-full bg-input p-2 rounded border border-border focus:ring-ring focus:border-accent text-sm";
+  const labelClass = "block text-xs font-medium text-muted-foreground mb-1";
 
   return (
-    <form onSubmit={handleSubmit} className="bg-zinc-700/80 p-4 rounded-lg border border-amber-500/30 space-y-4 mb-4">
-      <h3 className="font-cinzel text-lg text-amber-400">{'id' in initialData ? 'Edit Item' : 'Add New Item'}</h3>
+    <form onSubmit={handleSubmit} className="bg-card/80 p-4 rounded-lg border border-accent/30 space-y-4 mb-4">
+      <h3 className="font-cinzel text-lg text-accent">{'id' in initialData ? 'Edit Item' : 'Add New Item'}</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2">
           <label htmlFor="name" className={labelClass}>Item Name</label>
@@ -69,8 +69,8 @@ const EquipmentForm = ({
         </div>
       </div>
       <div className="flex justify-end gap-2">
-        <button type="button" onClick={onCancel} className="bg-zinc-600 hover:bg-zinc-500 text-white font-bold py-2 px-4 rounded transition text-sm">Cancel</button>
-        <button type="submit" className="bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 px-4 rounded transition text-sm">Save Item</button>
+        <button type="button" onClick={onCancel} className="bg-secondary hover:bg-secondary/80 text-secondary-foreground font-bold py-2 px-4 rounded transition text-sm">Cancel</button>
+        <button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2 px-4 rounded transition text-sm">Save Item</button>
       </div>
     </form>
   );
@@ -92,31 +92,31 @@ const ItemDisplayList = ({
   onDelete: (id: string) => void;
 }) => (
   <div>
-    <h4 className="text-base font-semibold text-zinc-300 border-b border-zinc-700 pb-2 mb-3">{title}</h4>
+    <h4 className="text-base font-semibold text-foreground border-b border-border pb-2 mb-3">{title}</h4>
     <div className="space-y-2">
-      {items.length === 0 && <p className="text-center text-zinc-500 text-xs py-2">Empty</p>}
+      {items.length === 0 && <p className="text-center text-muted-foreground text-xs py-2">Empty</p>}
       {items.map(item => (
-        <div key={item.id} className="bg-zinc-700/50 rounded-lg text-sm">
+        <div key={item.id} className="bg-card/50 rounded-lg text-sm">
           <div className="p-3 flex items-center justify-between">
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <button onClick={() => onToggleExpand(item.id)} className="flex-shrink-0 text-zinc-400 hover:text-white">
+              <button onClick={() => onToggleExpand(item.id)} className="flex-shrink-0 text-muted-foreground hover:text-foreground">
                 <ChevronDownIcon className={`w-5 h-5 transition-transform ${expandedItem === item.id ? 'rotate-180' : ''}`} />
               </button>
-              <p className="font-semibold text-amber-300 truncate" title={item.name}>{item.name} <span className="text-xs text-zinc-400">(x{item.quantity})</span></p>
+              <p className="font-semibold text-accent truncate" title={item.name}>{item.name} <span className="text-xs text-muted-foreground">(x{item.quantity})</span></p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              <button onClick={() => onEdit(item)} className="text-zinc-400 hover:text-amber-400 p-1"><EditIcon className="w-4 h-4"/></button>
-              <button onClick={() => onDelete(item.id)} className="text-zinc-500 hover:text-red-400 p-1"><TrashIcon className="w-4 h-4"/></button>
+              <button onClick={() => onEdit(item)} className="text-muted-foreground hover:text-accent p-1"><EditIcon className="w-4 h-4"/></button>
+              <button onClick={() => onDelete(item.id)} className="text-muted-foreground hover:text-destructive p-1"><TrashIcon className="w-4 h-4"/></button>
             </div>
           </div>
           {expandedItem === item.id && (
-            <div className="p-3 border-t border-zinc-600/50 bg-zinc-900/30 space-y-2">
+            <div className="p-3 border-t border-border/50 bg-muted/30 space-y-2">
               {item.armorType && (
-                <p><strong className="text-zinc-400 capitalize">{item.armorType} Armor</strong>
-                   {item.armorClass ? <span className="text-zinc-300"> (AC: {item.armorClass})</span> : ''}
+                <p><strong className="text-muted-foreground capitalize">{item.armorType} Armor</strong>
+                   {item.armorClass ? <span className="text-foreground"> (AC: {item.armorClass})</span> : ''}
                 </p>
               )}
-              <p className="text-zinc-300 whitespace-pre-wrap">{item.description || 'No description.'}</p>
+              <p className="text-foreground whitespace-pre-wrap">{item.description || 'No description.'}</p>
             </div>
           )}
         </div>
@@ -170,10 +170,10 @@ export const EquipmentList = () => {
   }, [character.equipment]);
 
   return (
-    <div className="bg-zinc-900/50 p-4 rounded-lg">
+    <div className="bg-muted/50 p-4 rounded-lg">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-cinzel text-amber-400">Inventory</h3>
-        <button onClick={() => setEditingItem('new')} className="flex items-center gap-2 text-sm bg-amber-600 hover:bg-amber-500 px-3 py-2 rounded-md text-white transition">
+        <h3 className="text-lg font-cinzel text-accent">Inventory</h3>
+        <button onClick={() => setEditingItem('new')} className="flex items-center gap-2 text-sm bg-primary hover:bg-primary/90 px-3 py-2 rounded-md text-primary-foreground transition">
           <PlusCircleIcon className="w-5 h-5" /> Add Item
         </button>
       </div>

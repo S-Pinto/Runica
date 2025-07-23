@@ -1,26 +1,20 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { Header } from './components/layout/Header';
+import { AppHeader } from './components/layout/AppHeader';
+import { SettingsModal } from './components/SettingsModal';
 
-// App.tsx non ha più bisogno di conoscere l'utente o lo stato di caricamento,
-// perché la logica di protezione delle rotte è gestita in `src/routes/index.tsx`.
-// Diventa un semplice contenitore di layout.
-const App: React.FC = () => {
-  // Il loading spinner può essere gestito a livello di rotta con i "loader" di React Router
-  // o rimanere qui se vuoi un caricamento globale. Per ora lo togliamo per semplicità.
+function App() {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-zinc-900 text-zinc-200">
-      <Header />
+    <div className="bg-background min-h-screen text-text-main">
+      <AppHeader onSettingsClick={() => setIsSettingsOpen(true)} />
       <main>
         <Outlet />
       </main>
-      <footer className="text-center text-sm text-zinc-500 py-4">
-        <p>&copy; {new Date().getFullYear()} RUNICA. All rights reserved.</p>
-      </footer>
-    </div>  
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+    </div>
   );
-};
+}
 
 export default App;
