@@ -32,10 +32,24 @@ export const BackIcon = (props: IconProps) => (
     </svg>
 );
 
-export const SaveIcon = (props: IconProps) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 3.75V16.5a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 16.5V3.75m13.5 0H5.25m11.25 0v.008h.008v-.008h-.008zM12 18.75h.008v.008h-.008v-.008z" />
-    </svg>
+export const SaveIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={1.5}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    {/* Cornice e bordo floppy */}
+    <path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4z" />
+    {/* Barra superiore del floppy (slot memoria) */}
+    <path d="M17 3v5H7V3" />
+    {/* Rettangolo salvataggio (simula etichetta scrivibile) */}
+    <rect x="9" y="13" width="6" height="5" rx="1" />
+  </svg>
 );
 
 export const TrashIcon = (props: IconProps) => (

@@ -366,23 +366,40 @@ export const CharacterSheet: React.FC = () => {
                         <InputField label="Hit Dice" name="hitDice" type="text" value={character.hitDice.total} onChange={handleHitDiceChange} placeholder="e.g. 1d8" />
                     </div>
                     <div className="grid grid-cols-2 gap-4 md:col-span-1">
-                        <div className="col-span-2 bg-muted/50 p-3 rounded-lg">
-                            <h4 className="text-sm font-medium text-muted-foreground mb-2">Unarmored Defense</h4>
-                            <div className="flex items-center gap-2 mb-2">
-                                <InputField label="Base AC" name="unarmoredBase" type="number" value={character.unarmoredDefense?.base ?? 10} onChange={handleUnarmoredBaseChange} className="flex-1" />
-                                <span className="pt-6 text-xl text-muted-foreground">+</span>
-                                <div className="flex-1 pt-6 text-center text-foreground">Modifiers</div>
-                            </div>
-                            <div className="grid grid-cols-3 gap-x-2 gap-y-1">
-                                {ABILITIES.map(ability => (
-                                    <label key={ability} className="flex items-center gap-1.5 text-xs cursor-pointer">
-                                        <input type="checkbox"
-                                            checked={character.unarmoredDefense?.abilities.includes(ability) ?? false}
-                                            onChange={() => handleUnarmoredAbilityToggle(ability)}
-                                            className="w-4 h-4 rounded text-primary bg-input border-border focus:ring-ring" />
-                                        <span className="text-foreground uppercase">{ability.substring(0, 3)}</span>
-                                    </label>
-                                ))}
+                        <div className="col-span-2 bg-muted/50 p-3 rounded-lg space-y-2">
+                            <h4 className="text-sm font-medium text-muted-foreground">Unarmored Defense</h4>
+                            <div className="flex items-center gap-2">
+                                {/* Base AC Input */}
+                                <div className="flex flex-col items-center">
+                                    <input
+                                        id="unarmoredBase"
+                                        type="number"
+                                        name="unarmoredBase"
+                                        value={character.unarmoredDefense?.base ?? 10}
+                                        onChange={handleUnarmoredBaseChange}
+                                        className="w-24 bg-input border border-border rounded-md py-1 px-2 text-foreground text-center focus:outline-none focus:ring-ring focus:border-accent"
+                                        aria-label="Base Armor Class"
+                                    />
+                                    <label htmlFor="unarmoredBase" className="text-xs text-muted-foreground mt-1">Base AC</label>
+                                </div>
+                                <span className="text-xl text-muted-foreground"> + </span>
+                                {/* Ability Modifiers */}
+                                <div className="flex-1">
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {ABILITIES.map(ability => ( 
+                                            <div key={ability} className="flex flex-col items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    id={`unarmored-${ability}`}
+                                                    checked={character.unarmoredDefense?.abilities.includes(ability)}
+                                                    onChange={() => handleUnarmoredAbilityToggle(ability)}
+                                                    className="w-4 h-4 rounded-full text-primary bg-input border-border focus:ring-ring cursor-pointer"
+                                                />
+                                                <label htmlFor={`unarmored-${ability}`} className="text-xs text-muted-foreground mt-1">{ability}</label>
+                                                </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <StatBox label="Initiative" value={formatModifier(initiative)} />
