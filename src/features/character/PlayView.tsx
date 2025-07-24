@@ -352,11 +352,20 @@ export const PlayView: React.FC = () => {
     
     return (
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:pt-8">
-            <header className="flex justify-between items-center mb-6 border-b border-border pb-4">
-                <button onClick={() => navigate('/')} className="flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors">
-                    <BackIcon className="w-5 h-5" /> Back to List
+                        <header className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 border-b border-border pb-4">
+                {/* Back Button */}
+                <button 
+                    onClick={() => navigate('/')} 
+                    className="flex items-center gap-2 rounded-md px-3 py-2 font-semibold text-muted-foreground transition-all duration-200 hover:scale-105 hover:text-accent [text-shadow:0_1px_2px_rgba(0,0,0,0.3)]"
+                    aria-label="Back to character list"
+                >
+                    <BackIcon className="w-5 h-5" />
+                    <span className="hidden sm:inline">Back to List</span>
+                    <span className="sm:hidden">Back</span>
                 </button>
-                <div className="flex items-center gap-4 text-center">
+
+                {/* Character Info - Placed on top on mobile with 'order-first' */}
+                <div className="flex items-center gap-4 text-center order-first sm:order-none">
                     {character.imageUrl && (
                         <img 
                             src={character.imageUrl} 
@@ -371,10 +380,19 @@ export const PlayView: React.FC = () => {
                         </p>
                     </div>
                 </div>
-                <button onClick={() => navigate(`/character/${characterId}/edit`)} className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground font-bold rounded-lg shadow-md hover:bg-secondary/80 transition-colors">
-                    <EditIcon className="w-5 h-5" /> Edit Sheet
+
+                {/* Edit Button */}
+                <button 
+                    onClick={() => navigate(`/character/${characterId}/edit`)} 
+                    className="flex items-center gap-2 rounded-md px-3 py-2 font-bold text-primary transition-all duration-200 hover:scale-105 hover:text-accent [text-shadow:0_1px_2px_rgba(0,0,0,0.3)]"
+                    aria-label="Edit character sheet"
+                >
+                    <EditIcon className="w-5 h-5" />
+                    <span className="hidden sm:inline">Edit Sheet</span>
+                    <span className="sm:hidden">Edit</span>
                 </button>
             </header>
+
 
             <div role="tablist" aria-label="Character View Sections" className="flex space-x-1 mb-6 border-b border-border overflow-x-auto">
                 {PLAY_TABS.map(tab => (

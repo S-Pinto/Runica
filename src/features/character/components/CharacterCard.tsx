@@ -57,7 +57,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSelec
         </button>
         <button
           onClick={onDelete}
-          className="p-2 rounded-full bg-secondary hover:bg-destructive text-secondary-foreground hover:text-destructive-foreground transition-colors"
+          className="p-2 rounded-full bg-secondary hover:bg-accent text-secondary-foreground hover:text-destructive-foreground transition-colors"
           aria-label={`Delete ${character.name}`}
         >
           <TrashIcon className="w-4 h-4" />

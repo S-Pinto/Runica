@@ -279,3 +279,57 @@ export const migrateLocalDataToFirestore = async () => {
         saveLocalCharacters([]); // Also clear if everything is already up-to-date.
     }
 };
+
+/**
+ * Retrieves all characters, either from Firestore if the user is logged in,
+ * or from local storage if they are not.
+ */
+export const getAllCharacters = async (): Promise<ICharacter[]> => {
+  const coll = getCharactersCollection();
+  if (coll) {
+    // User is online, get from Firestore
+    const snapshot = await getDocs(coll);
+    return snapshot.docs.map(d => d.data() as ICharacter);
+  } else {
+    // User is offline, get from local storage
+    return getLocalCharacters();
+  }
+};
+
+export const importCharacters = async (characters: ICharacter[]): Promise<void> => {
+  const coll = getCharactersCollection();
+  if (coll) {
+    // Online: Overwrite all characters in Firestore using a batch
+    const { db } = getFirebase();
+    const batch = writeBatch(db);
+    
+    const existingSnapshot = await getDocs(coll);
+    existingSnapshot.forEach(doc => batch.delete(doc.ref));
+
+    // Ensure imported characters conform to the latest ICharacter structure
+    const sanitizedCharacters = characters.map(c => ({ ...createNewCharacter(), ...c }));
+
+    sanitizedCharacters.forEach(character => {
+      const docRef = doc(coll, character.id);
+      batch.set(docRef, character);
+    });
+
+    await batch.commit();
+  } else {
+    // Ensure imported characters conform to the latest ICharacter structure
+    saveLocalCharacters(characters.map(c => ({ ...createNewCharacter(), ...c })));
+  }
+};
+
+export const clearAllData = async (): Promise<void> => {
+  const coll = getCharactersCollection();
+  if (coll) {
+    const { db } = getFirebase();
+    const batch = writeBatch(db);
+    const snapshot = await getDocs(coll);
+    snapshot.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+  } else {
+    saveLocalCharacters([]);
+  }
+};

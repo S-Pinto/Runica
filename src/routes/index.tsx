@@ -9,6 +9,7 @@ import { CharacterList } from '../features/character/CharacterList';
 import { CharacterSheet } from '../features/character/CharacterSheet';
 import { PlayView } from '../features/character/PlayView';
 import { LoginPage } from '../features/auth/LoginPage';
+import { AccountPage } from '../features/auth/AccountPage';
 import { ErrorBoundary, NotFound } from '../components/ErrorBoundary'; // Importa i tuoi componenti
 
 const CharacterLayout = () => (
@@ -51,6 +52,10 @@ export const router = createBrowserRouter([
       {
         path: 'login',
         element: <LoginPage />,
+      },
+      {
+        path: 'account',
+        element: <AccountPage />,
       },
       // Aggiungi qui altre rotte, come una pagina 404
       {

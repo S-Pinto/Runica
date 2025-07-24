@@ -128,13 +128,9 @@ export const CharacterSheet: React.FC = () => {
             const charToSave: ICharacter = { ...character, id, proficiencyBonus, initiative, lastUpdated: Date.now() };
             const savedChar = await saveCharacter(charToSave);
 
-            // If it was a new character, navigate to the new edit page to prevent creating duplicates on subsequent saves.
-            if (isNewCharacter) {
-                navigate(`/character/${savedChar.id}/edit`, { replace: true });
-            } else {
-                // For existing characters, navigate to the play view.
-                navigate(`/character/${savedChar.id}`);
-            }
+            // Navigate to the character's play view.
+            // If it was a new character, replace the '/new' URL in history to prevent duplicates.
+            navigate(`/character/${savedChar.id}`, { replace: isNewCharacter });
         } catch (error) {
             console.error("Failed to save character:", error);
             alert("An error occurred while saving. Please try again.");
@@ -281,25 +277,41 @@ export const CharacterSheet: React.FC = () => {
     
     return (
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:pt-8">
-            <header className="flex justify-between items-center mb-4 border-b border-border pb-4">
-                <button onClick={handleBackClick} className="flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors">
+            {/* Header with responsive layout for controls */}
+            <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <button 
+                    onClick={handleBackClick} 
+                    className="flex items-center gap-2 rounded-md px-3 py-2 font-semibold text-muted-foreground transition-all duration-200 hover:scale-105 hover:text-accent [text-shadow:0_1px_2px_rgba(0,0,0,0.3)] self-start"
+                    aria-label={isNewCharacter ? 'Cancel Creation' : 'Back to Play View'}
+                >
                     <BackIcon className="w-5 h-5" />
-                    {isNewCharacter ? 'Cancel Creation' : 'Back to Play'}
+                    <span>{isNewCharacter ? 'Cancel Creation' : 'Back to Play'}</span>
                 </button>
-                <div className="flex items-center gap-2">
+                
+                <div className="flex items-center gap-2 self-end sm:self-center">
                     {!isNewCharacter && (
-                        <button onClick={handleDeleteClick} className="p-2 rounded-full bg-destructive/50 hover:bg-destructive text-destructive-foreground transition-colors" aria-label="Delete Character">
-                            <TrashIcon className="w-5 h-5" />
+                        <button
+                            onClick={handleDeleteClick}
+                            className="flex items-center gap-2 rounded-md px-3 py-2 font-semibold text-destructive transition-all duration-200 hover:scale-105 hover:text-accent [text-shadow:0_1px_2px_rgba(0,0,0,0.3)]"
+                            aria-label="Delete Character"
+                        >
+                            <TrashIcon className="w-4 h-4" />
+                            <span className="hidden sm:inline">Delete</span>
                         </button>
                     )}
-                    <button onClick={handleSaveClick} disabled={isSaving} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-bold rounded-lg shadow-md hover:bg-primary/90 transition-colors disabled:bg-muted disabled:text-muted-foreground">
+                    <button 
+                        onClick={handleSaveClick} 
+                        disabled={isSaving} 
+                        className="flex items-center gap-2 rounded-md px-3 py-2 font-bold text-primary transition-all duration-200 hover:scale-105 hover:text-accent [text-shadow:0_1px_2px_rgba(0,0,0,0.3)] disabled:text-muted-foreground/60 disabled:scale-100 disabled:cursor-not-allowed disabled:[text-shadow:none]"
+                    >
                         <SaveIcon className="w-5 h-5" />
-                        {isSaving ? 'Saving...' : 'Save Changes'}
+                        <span className="hidden sm:inline">{isSaving ? 'Saving...' : 'Save Changes'}</span>
+                        <span className="sm:hidden">{isSaving ? '...' : 'Save'}</span>
                     </button>
                 </div>
             </header>
 
-            <div className="bg-card border border-border shadow-2xl shadow-accent/10 rounded-lg p-4 sm:p-6">
+            <div className="bg-card border border-border shadow-lg shadow-accent/5 rounded-lg p-4 sm:p-6">
                 <div role="tablist" aria-label="Character Sheet Sections" className="flex space-x-1 mb-6 border-b border-border overflow-x-auto">
                     {TABS.map(tab => (
                         <TabButton

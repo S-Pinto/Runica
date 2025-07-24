@@ -4,3 +4,4 @@ package-lock.json
 .env.production
 .env.local.old
 .env.production.old
+.env.staging

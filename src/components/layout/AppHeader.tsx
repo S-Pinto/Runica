@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SettingsIcon, DownloadIcon, ShareIosIcon } from '../ui/icons';
+import { SettingsIcon, DownloadIcon, ShareIosIcon, LogoutIcon, UserCircleIcon } from '../ui/icons';
 import { useAuth } from '../../providers/AuthProvider';
 
 // Custom hook to manage PWA installation state
@@ -44,9 +44,35 @@ interface AppHeaderProps {
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({ onSettingsClick }) => {
-  const { currentUser } = useAuth();
+  const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const { canInstall, isIos, isStandalone, promptInstall } = usePWAInstall();
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    setIsUserMenuOpen(false);
+    await logout();
+    navigate('/');
+  };
+
+  const handleAccountClick = () => {
+    setIsUserMenuOpen(false);
+    navigate('/account');
+  };
 
   return (
     // Header con un design più pulito, sfondo semi-trasparente e un'ombra più definita.
@@ -84,14 +110,45 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onSettingsClick }) => {
         )}
 
         {currentUser ? (
-          // Avatar con un anello luminoso al passaggio del mouse
-          <img 
-            src={currentUser.photoURL || `https://api.dicebear.com/8.x/lorelei/svg?seed=${currentUser.uid}`} 
-            alt={currentUser.displayName || 'User Avatar'}
-            onClick={() => navigate('/login')}
-            className="w-12 h-12 rounded-full cursor-pointer ring-2 ring-transparent hover:ring-accent transition-all duration-300 hover:scale-105"
-            title="Account Settings"
-          />
+          <div className="relative" ref={userMenuRef}>
+            <img 
+              src={currentUser.photoURL || `https://api.dicebear.com/8.x/lorelei/svg?seed=${currentUser.uid}`} 
+              alt={currentUser.displayName || 'User Avatar'}
+              onClick={() => setIsUserMenuOpen(prev => !prev)}
+              className="w-12 h-12 rounded-full cursor-pointer ring-2 ring-transparent hover:ring-accent transition-all duration-300 hover:scale-105"
+              title="Account"
+            />
+            {isUserMenuOpen && (
+              <div className="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-zinc-800 shadow-lg ring-1 ring-white/10 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button">
+                <div className="py-1" role="none">
+                  <div className="px-4 py-3 border-b border-zinc-700">
+                    <p className="text-sm text-zinc-300" role="none">
+                      Signed in as
+                    </p>
+                    <p className="text-sm font-medium text-accent truncate" role="none">
+                      {currentUser.displayName || currentUser.email}
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleAccountClick}
+                    className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-zinc-200 hover:bg-zinc-700 transition-colors"
+                    role="menuitem"
+                  >
+                    <UserCircleIcon className="w-5 h-5" />
+                    Account Settings
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-zinc-700 transition-colors"
+                    role="menuitem"
+                  >
+                    <LogoutIcon className="w-5 h-5" />
+                    Logout
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         ) : (
           // Pulsante di Login con uno stile più moderno
           <button onClick={() => navigate('/login')} className="px-5 py-2 font-semibold text-accent bg-accent/10 rounded-lg border border-accent/30 hover:bg-accent/20 hover:border-accent/70 transition-all duration-300">Login</button>
