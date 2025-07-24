@@ -3,13 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ICharacter, CustomResource, Attack, Feature, EquipmentItem, Currency } from './characterTypes';
 import * as characterService from './characterService';
 import { useCharacter } from './CharacterProvider'; 
-import { BackIcon, EditIcon, ChevronDownIcon } from '../../components/ui/icons';
+import { BackIcon, EditIcon, HeartIcon, ShieldIcon, BoltIcon } from '../../components/ui/icons';
 import { AbilitiesDisplay } from './components/AbilitiesDisplay'; 
 import { PlayViewSpellList } from './components/PlayViewSpellList';
 import { getModifier, formatModifier } from './utils/characterUtils';
 import { StatBox } from './components/ui/StatBox';
+import { CompanionTab } from './components/CompanionTab';
 
-type PlayTab = 'main' | 'abilities' | 'combat' | 'spells' | 'inventory' | 'info';
+type PlayTab = 'main' | 'abilities' | 'combat' | 'spells' | 'inventory' | 'companions' | 'info';
 
 const TabButton = ({ label, isActive, onClick, id, controls }: { label: string, isActive: boolean, onClick: () => void, id: string, controls: string }) => (
     <button
@@ -306,6 +307,7 @@ const PLAY_TABS: { key: PlayTab; label: string }[] = [
     { key: 'spells', label: 'Spells' },
     { key: 'inventory', label: 'Inventory' },
     { key: 'info', label: 'Info' },
+    { key: 'companions', label: 'Companions' },
 ];
 
 // --- WRAPPER & MAIN RENDER ---
@@ -426,6 +428,9 @@ export const PlayView: React.FC = () => {
                 <div id="play-panel-info" role="tabpanel" aria-labelledby="play-tab-info" style={{ display: activeTab === 'info' ? 'block' : 'none' }}>
                     <InfoTabView />
                 </div>
+            </div>
+            <div hidden={activeTab !== 'companions'}>
+                <CompanionTab readOnly />
             </div>
         </div>
     );

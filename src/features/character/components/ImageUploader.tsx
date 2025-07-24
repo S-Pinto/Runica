@@ -7,12 +7,12 @@ import { compressImage } from '../../../services/storageService';
 interface ImageUploaderProps {
     isOpen: boolean;
     onClose: () => void;
-    onImageReady: (dataUrl: string) => void;
+    onImageReady: (dataUrl: string) => Promise<void>;
 }
 
 export const ImageUploader: React.FC<ImageUploaderProps> = ({ isOpen, onClose, onImageReady }) => {
     const [imageSrc, setImageSrc] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const cropperRef = useRef<ReactCropperElement>(null);
     const dialogRef = useRef<HTMLDialogElement>(null);
@@ -30,7 +30,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ isOpen, onClose, o
 
     const resetState = () => {
         setImageSrc(null);
-        setIsLoading(false);
+        setIsProcessing(false);
         setError(null);
     };
 
@@ -43,43 +43,50 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ isOpen, onClose, o
         setError(null);
         if (e.target.files && e.target.files.length > 0) {
             const file = e.target.files[0];
-            setIsLoading(true);
+            setIsProcessing(true);
             try {
                 const compressedFile = await compressImage(file, {
                     maxSizeMB: 1,
                     maxWidthOrHeight: 1024,
                     useWebWorker: true,
                 });
-                
+
                 const reader = new FileReader();
                 reader.onload = () => {
                     setImageSrc(reader.result as string);
-                    setIsLoading(false);
+                    setIsProcessing(false);
                 };
                 reader.readAsDataURL(compressedFile);
             } catch (error) {
-                setError(error instanceof Error ? error.message : 'Image processing failed');
-                setIsLoading(false);
+                setError(error instanceof Error ? error.message : 'Image processing failed.');
+                setIsProcessing(false);
             }
         }
     };
 
-    const handleCrop = () => {
+    const handleCrop = async () => {
         if (!cropperRef.current?.cropper) {
             setError('Cropper not available.');
             return;
         }
-        setIsLoading(true);
-        
+        setIsProcessing(true);
+        setError(null);
+
         // Get cropped image as a base64 data URL
         const dataUrl = cropperRef.current.cropper.getCroppedCanvas({
             width: 256, // Define a standard size for portraits
             height: 256,
             imageSmoothingQuality: 'high',
         }).toDataURL('image/jpeg', 0.9);
-
-        onImageReady(dataUrl);
-        handleClose();
+        
+        try {
+            await onImageReady(dataUrl);
+            handleClose(); // Close only on success
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Upload failed. Please try again.');
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     return (
@@ -99,7 +106,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ isOpen, onClose, o
                     </label>
                     <input id="image-upload-input" type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
                     <p className="text-xs text-zinc-400 mt-2">PNG, JPG, WEBP up to 1MB.</p>
-                    {isLoading && <p className="mt-2 text-zinc-400 animate-pulse">Processing...</p>}
+                    {isProcessing && <p className="mt-2 text-zinc-400 animate-pulse">Processing...</p>}
                 </div>
             ) : (
                 <div>
@@ -123,18 +130,18 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ isOpen, onClose, o
             <footer className="flex justify-end gap-2 p-4 bg-zinc-900/50 border-t border-zinc-700">
                 <button 
                     onClick={handleClose} 
-                    disabled={isLoading}
+                    disabled={isProcessing}
                     className="bg-zinc-600 hover:bg-zinc-500 text-white font-bold py-2 px-4 rounded transition-colors disabled:bg-zinc-500 disabled:cursor-not-allowed"
                 >
                     Cancel
                 </button>
                 <button 
                     onClick={handleCrop} 
-                    disabled={isLoading || !imageSrc}
+                    disabled={isProcessing || !imageSrc}
                     className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded transition-colors disabled:bg-zinc-600 disabled:cursor-not-allowed"
                 >
                     <UploadIcon className="w-5 h-5" />
-                    {isLoading ? 'Saving...' : 'Save Cropped Image'}
+                    {isProcessing ? 'Saving...' : 'Save Cropped Image'}
                 </button>
             </footer>
         </dialog>

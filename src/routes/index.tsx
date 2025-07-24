@@ -18,37 +18,33 @@ const CharacterLayout = () => (
   </CharacterProvider>
 );
 
-// Per maggiore chiarezza, raggruppiamo le rotte che necessitano del CharacterLayout.
-// Questa è una "pathless route" (rotta senza percorso) che applica il layout a tutte le sue rotte figlie.
-const characterRoutes = {
-  element: <CharacterLayout />,
-  children: [
-    {
-      index: true, // Pagina principale (es. /)
-      element: <CharacterList />,
-    },
-    {
-      path: 'character/new', // Rotta per creare un nuovo personaggio
-      element: <CharacterSheet />,
-    },
-    {
-      path: 'character/:characterId/edit', // Rotta per modificare un personaggio
-      element: <CharacterSheet />,
-    },
-    {
-      path: 'character/:characterId', // Rotta per la vista di gioco
-      element: <PlayView />,
-    },
-  ],
-};
-
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <App />, // App.tsx è il layout che contiene l'Outlet
     errorElement: <ErrorBoundary />, // Aggiungi qui l'error boundary
     children: [
-      characterRoutes,
+      {
+        element: <CharacterLayout />, // Questo layout avvolge tutte le rotte dei personaggi
+        children: [
+          {
+            index: true, // Pagina principale (es. /)
+            element: <CharacterList />,
+          },
+          {
+            path: 'character/new',
+            element: <CharacterSheet />,
+          },
+          {
+            path: 'character/:characterId/edit',
+            element: <CharacterSheet />,
+          },
+          {
+            path: 'character/:characterId',
+            element: <PlayView />,
+          },
+        ],
+      },
       {
         path: 'login',
         element: <LoginPage />,

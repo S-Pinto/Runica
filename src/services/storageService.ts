@@ -1,5 +1,5 @@
 import { getFirebase } from '../lib/getFirebase';
-import { ref, uploadBytes, getDownloadURL, uploadString, StringFormat } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL, uploadString, StringFormat } from 'firebase/storage';
 import imageCompression, { Options } from 'browser-image-compression';
 
 /**
@@ -83,3 +83,24 @@ export const uploadUserProfileImage = async (file: File, userId: string): Promis
     await uploadBytes(storageRef, compressedFile);
     return getDownloadURL(storageRef);
 };
+
+/**
+ * Uploads a companion's portrait image to Firebase Storage.
+ * @param dataUrl The base64 data URL of the image.
+ * @param userId The ID of the user who owns the companion.
+ * @param characterId The ID of the main character this companion belongs to.
+ * @param companionId The ID of the companion.
+ * @returns A promise that resolves with the public download URL of the image.
+ */
+export const uploadCompanionPortrait = async (dataUrl: string, userId: string, characterId: string, companionId: string): Promise<string> => {
+    if (!userId || !characterId || !companionId) {
+        throw new Error("User, character, or companion ID is missing for image upload.");
+    }
+    const { storage } = getFirebase();
+    const filePath = `users/${userId}/characters/${characterId}/companions/${companionId}/portrait.jpg`;
+    const storageRef = ref(storage, filePath);
+
+    const snapshot = await uploadString(storageRef, dataUrl, 'data_url');
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    return downloadURL;
+}

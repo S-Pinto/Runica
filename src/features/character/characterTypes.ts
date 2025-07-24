@@ -125,7 +125,28 @@ export interface ICharacter {
     [level: number]: { max: number; used: number };
   };
   customResources: CustomResource[];
+  companions: ICompanion[];
 
   // Syncing
   lastUpdated: number;
+}
+
+export interface ICompanion {
+  id: string;
+  name: string;
+  type: string; // e.g., 'Familiar', 'Animal Companion', 'Summon'
+  imageUrl?: string;
+  
+  hp: { max: number; current: number; temporary: 0 };
+  armorClass: number;
+  speed: string;
+  
+  abilityScores: AbilityScores;
+  skills: Skill[];
+  
+  attacks: Attack[];
+  spells: Spell[];
+  featuresAndTraits: Feature[];
+  equipment: EquipmentItem[];
+  notes: string;
 }

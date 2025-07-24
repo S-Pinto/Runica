@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ICharacter, AbilityScores, Currency, Skill } from './characterTypes';
 import { useCharacter } from './CharacterProvider';
 import * as characterService from './characterService';
+import * as storageService from '../../services/storageService';
 import * as geminiService from '../../services/geminiService';
 import { SparklesIcon, BackIcon, SaveIcon, TrashIcon, PhotoIcon } from '../../components/ui/icons';
 import { ImageUploader } from './components/ImageUploader';
@@ -11,12 +12,14 @@ import { FeatureList } from './components/FeatureList';
 import { EquipmentList } from './components/EquipmentList';
 import { AttackList } from './components/AttackList';
 import { CustomResourceEditor } from './components/CustomResourceEditor'; 
+import { useAuth } from '../../providers/AuthProvider';
 import { StatBox } from './components/ui/StatBox';
+import { CompanionTab } from './components/CompanionTab';
 import { getModifier, formatModifier } from './utils/characterUtils';
 
 
 // --- Type Aliases & Helpers ---
-type Tab = 'main' | 'stats' | 'combat' | 'bio' | 'spells' | 'inventory';
+type Tab = 'main' | 'stats' | 'combat' | 'bio' | 'spells' | 'inventory' | 'companions';
 const ABILITIES: (keyof AbilityScores)[] = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
 
 // --- Sub-components ---
@@ -73,12 +76,14 @@ const TABS: { key: Tab; label: string }[] = [
     { key: 'bio', label: 'Biography & Notes' },
     { key: 'inventory', label: 'Inventory' },
     { key: 'spells', label: 'Spells' },
+    { key: 'companions', label: 'Companions' },
 ];
 
 export const CharacterSheet: React.FC = () => {
     const { characterId } = useParams<{ characterId: string }>();
     const navigate = useNavigate();
     const { character, setCharacter, updateCharacter, deleteCharacter, saveCharacter } = useCharacter();
+    const { currentUser } = useAuth();
     const [isSaving, setIsSaving] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
     const [personalityPrompt, setPersonalityPrompt] = useState('');
@@ -158,6 +163,17 @@ export const CharacterSheet: React.FC = () => {
             navigate(`/character/${character.id}`);
         } else {
             navigate(-1); // Go back in history as a fallback
+        }
+    };
+
+    const handleCharacterImageUpload = async (dataUrl: string) => {
+        if (!currentUser || !character || isNewCharacter) return;
+        try {
+            const imageUrl = await storageService.uploadCharacterImageFromDataUrl(dataUrl, currentUser.uid, character.id);
+            updateCharacter({ imageUrl });
+        } catch (error) {
+            console.error("Failed to upload character portrait:", error);
+            alert("Error uploading image. Please try again.");
         }
     };
 
@@ -592,11 +608,15 @@ export const CharacterSheet: React.FC = () => {
                     <Spellbook />
                 </div>
             </div>
+
+            <div id="panel-companions" role="tabpanel" aria-labelledby="tab-companions" hidden={activeTab !== 'companions'} className="min-h-[60vh]">
+                <CompanionTab />
+            </div>
         </div>
         <ImageUploader
                 isOpen={isUploaderOpen}
                 onClose={() => setIsUploaderOpen(false)}
-                onImageReady={(dataUrl) => updateCharacter({ imageUrl: dataUrl })} />
+                onImageReady={handleCharacterImageUpload} />
         </div>
     );
 };

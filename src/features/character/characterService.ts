@@ -66,6 +66,7 @@ export const createNewCharacter = (): ICharacter => {
     },
     customResources: [],
     imageUrl: '',
+    companions: [],
   };
 };
 
@@ -157,7 +158,9 @@ export const onCharactersSnapshot = (callback: (characters: ICharacter[]) => voi
     const coll = getCharactersCollection();
     if (coll) {
         return onSnapshot(query(coll), (snapshot) => {
-            const characters = snapshot.docs.map(d => d.data() as ICharacter);
+            const characters = snapshot.docs.map(d => {
+                return { ...createNewCharacter(), ...d.data() } as ICharacter;
+            });
             callback(characters);
         });
     } else {
@@ -173,7 +176,11 @@ export const getCharacter = async (id: string): Promise<ICharacter | null> => {
     const docRef = getCharacterDocRef(id);
     if (docRef) {
         const docSnap = await getDoc(docRef);
-        return docSnap.exists() ? docSnap.data() as ICharacter : null;
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            return { ...createNewCharacter(), ...data } as ICharacter;
+        }
+        return null;
     } else {
         return getLocalCharacters().find(c => c.id === id) || null;
     }

@@ -235,3 +235,14 @@ body {
   line-height: 1.5; /* Imposta l'altezza della linea per una migliore leggibilità */
   font-weight: 400; /* Imposta il peso del font di base */
 }
+
+/* Aggiungi questo al tuo file CSS globale per nascondere le frecce degli input numerici */
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.no-spinner {
+  -moz-appearance: textfield;
+}
