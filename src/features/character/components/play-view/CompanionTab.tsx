@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useCharacter } from '../CharacterProvider';
-import { ICompanion } from '../characterTypes';
-import { PlusCircleIcon, SparklesIcon } from '../../../components/ui/icons';
-import { CompanionCard } from './CompanionCard';
-import { CompanionSheetModal } from './CompanionSheetModal';
+import { useCharacter } from '../../CharacterProvider';
+import { ICompanion } from '../../characterTypes';
+import { PlusCircleIcon, SparklesIcon } from '../../../../components/ui/icons';
+import { CompanionCard } from '../CompanionCard';
+import { CompanionSheetModal } from '../CompanionSheetModal';
 
 interface CompanionTabProps {
   readOnly?: boolean;

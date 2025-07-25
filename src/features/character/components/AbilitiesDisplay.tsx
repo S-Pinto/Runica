@@ -37,7 +37,7 @@ export const AbilitiesDisplay = () => {
                                 {/* Saving Throw */}
                                 <div className="flex items-center justify-between text-sm text-foreground">
                                     <div className="flex items-center gap-2">
-                                        <span className={`w-3 h-3 rounded-full border-2 transition-colors ${savingThrow.proficient ? 'bg-primary border-primary' : 'bg-transparent border-border'}`}></span>
+                                        <span className={`w-5 h-5 rounded-full border-2 transition-colors ${savingThrow.proficient ? 'bg-accent-foreground border-primary' : 'bg-transparent border-border'}`}></span>
                                         <span>Saving Throw</span>
                                     </div>
                                     <span className="font-mono font-bold text-base text-foreground">{formatModifier(savingThrowBonus)}</span>
@@ -50,13 +50,13 @@ export const AbilitiesDisplay = () => {
                                     if (skill.expertise) {
                                         proficiencyIndicatorClass = 'bg-accent border-accent ring-2 ring-offset-2 ring-offset-muted/60 ring-accent';
                                     } else if (skill.proficient) {
-                                        proficiencyIndicatorClass = 'bg-primary border-primary';
+                                        proficiencyIndicatorClass = 'bg-accent-foreground border-primary';
                                     }
 
                                     return (
                                         <div key={skill.name} className="flex items-center justify-between text-sm text-foreground">
                                             <div className="flex items-center gap-2">
-                                                <span className={`w-3 h-3 rounded-full border-2 transition-all ${proficiencyIndicatorClass}`}></span>
+                                                <span className={`w-5 h-5 rounded-full border-2 transition-all ${proficiencyIndicatorClass}`}></span>
                                                 <span>{skill.name}</span>
                                             </div>
                                             <span className="font-mono font-bold text-base text-foreground">{formatModifier(skillBonus)}</span>

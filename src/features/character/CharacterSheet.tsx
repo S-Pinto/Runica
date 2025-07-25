@@ -14,7 +14,8 @@ import { AttackList } from './components/AttackList';
 import { CustomResourceEditor } from './components/CustomResourceEditor'; 
 import { useAuth } from '../../providers/AuthProvider';
 import { StatBox } from './components/ui/StatBox';
-import { CompanionTab } from './components/CompanionTab';
+import { CompanionTab } from './components/play-view/CompanionTab';
+import { StatInput } from './components/StatInput';
 import { getModifier, formatModifier } from './utils/characterUtils';
 
 
@@ -378,8 +379,8 @@ export const CharacterSheet: React.FC = () => {
                                     <InputField label="Background" name="background" type="text" value={character.background} onChange={handleFieldChange} placeholder="e.g., Sage" />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <InputField label="Alignment" name="alignment" type="text" value={character.alignment} onChange={handleFieldChange} placeholder="e.g., Chaotic Good" />
-                                    <InputField label="Level" name="level" type="number" value={character.level} onChange={handleFieldChange} />
+                                    <InputField label="Alignment" name="alignment" type="text" value={character.alignment} onChange={handleFieldChange} placeholder="e.g., Chaotic Good" className="col-span-2 sm:col-span-1" />
+                                    <StatInput label="Level" value={character.level} onChange={(val) => updateCharacter({ level: Number(val) })} className="col-span-2 sm:col-span-1" />
                                 </div>
                                 <InputField label="Languages" name="languages" type="text" value={character.languages} onChange={handleFieldChange} placeholder="e.g., Common, Elvish" />
                             </div>
@@ -390,36 +391,24 @@ export const CharacterSheet: React.FC = () => {
                             <div className="p-4 border border-border rounded-lg space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-muted-foreground mb-1">Hit Points</label>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        <div>
-                                            <label htmlFor="hp-current" className="block text-xs font-medium text-muted-foreground text-center">Current</label>
-                                            <input id="hp-current" type="number" value={character.hp.current} onChange={(e) => handleHpChange('current', parseInt(e.target.value) || 0)} className="mt-1 w-full bg-input border border-border rounded-md py-2 px-3 text-foreground focus:outline-none focus:ring-ring focus:border-accent text-center" />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="hp-max" className="block text-xs font-medium text-muted-foreground text-center">Max</label>
-                                            <input id="hp-max" type="number" value={character.hp.max} onChange={(e) => handleHpChange('max', parseInt(e.target.value) || 0)} className="mt-1 w-full bg-input border border-border rounded-md py-2 px-3 text-foreground focus:outline-none focus:ring-ring focus:border-accent text-center" />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="hp-temporary" className="block text-xs font-medium text-muted-foreground text-center">Temporary</label>
-                                            <input id="hp-temporary" type="number" value={character.hp.temporary} onChange={(e) => handleHpChange('temporary', parseInt(e.target.value) || 0)} className="mt-1 w-full bg-input border border-border rounded-md py-2 px-3 text-foreground focus:outline-none focus:ring-ring focus:border-accent text-center" />
-                                        </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <StatInput label="Current" value={character.hp.current} onChange={(val) => handleHpChange('current', Number(val))} />
+                                        <StatInput label="Max" value={character.hp.max} onChange={(val) => handleHpChange('max', Number(val))} />
+                                        <StatInput label="Temporary" value={character.hp.temporary} onChange={(val) => handleHpChange('temporary', Number(val))} />
                                     </div>
                                 </div>
                                 <InputField label="Hit Dice" name="hitDice" type="text" value={character.hitDice.total} onChange={handleHitDiceChange} placeholder="e.g. 1d8" />
                             </div>
                             <div className="p-4 border border-border rounded-lg space-y-2">
                                 <h4 className="text-sm font-medium text-muted-foreground">Unarmored Defense</h4>
-                                <div className="flex items-center gap-2">
-                                    <div className="flex flex-col items-center">
-                                        <input id="unarmoredBase" type="number" name="unarmoredBase" value={character.unarmoredDefense?.base ?? 10} onChange={handleUnarmoredBaseChange} className="w-24 bg-input border border-border rounded-md py-1 px-2 text-foreground text-center focus:outline-none focus:ring-ring focus:border-accent" aria-label="Base Armor Class" />
-                                        <label htmlFor="unarmoredBase" className="text-xs text-muted-foreground mt-1">Base AC</label>
-                                    </div>
+                                <div className="flex items-end gap-2">
+                                    <StatInput label="Base AC" value={character.unarmoredDefense?.base ?? 10} onChange={(val) => updateCharacter({ unarmoredDefense: { base: Number(val), abilities: character.unarmoredDefense?.abilities || [] } })} className="w-32" />
                                     <span className="text-xl text-muted-foreground"> + </span>
                                     <div className="flex-1">
                                         <div className="grid grid-cols-3 gap-2">
                                             {ABILITIES.map(ability => (
                                                 <div key={ability} className="flex flex-col items-center">
-                                                    <input type="checkbox" id={`unarmored-${ability}`} checked={character.unarmoredDefense?.abilities.includes(ability)} onChange={() => handleUnarmoredAbilityToggle(ability)} className="w-4 h-4 rounded-full text-primary bg-input border-border focus:ring-ring cursor-pointer" />
+                                                    <input type="checkbox" id={`unarmored-${ability}`} checked={character.unarmoredDefense?.abilities.includes(ability)} onChange={() => handleUnarmoredAbilityToggle(ability)} className="w-6 h-6 rounded-full text-primary bg-input border-border focus:ring-ring cursor-pointer" />
                                                     <label htmlFor={`unarmored-${ability}`} className="text-xs text-muted-foreground mt-1 uppercase">{ability.substring(0, 3)}</label>
                                                 </div>
                                             ))}
@@ -433,7 +422,7 @@ export const CharacterSheet: React.FC = () => {
                         <div className="space-y-6">
                             <div className="p-4 border border-border rounded-lg grid grid-cols-2 gap-4">
                                 <StatBox label="Initiative" value={formatModifier(initiative)} />
-                                <InputField label="Speed" name="speed" type="number" value={character.speed} onChange={handleFieldChange} />
+                                <StatInput label="Speed" value={character.speed} onChange={(val) => updateCharacter({ speed: Number(val) })} />
                                 <StatBox label="Proficiency" value={formatModifier(proficiencyBonus)} />
                                 <div className="col-span-2">
                                     <label htmlFor="spellcastingAbility" className="block text-sm font-medium text-muted-foreground">Spellcasting Ability</label>
@@ -461,20 +450,11 @@ export const CharacterSheet: React.FC = () => {
 
                         return (
                             <div key={abilityKey} className="bg-card p-3 rounded-lg flex flex-col gap-3 border border-border">
-                                <div className="flex items-center gap-4">
-                                    <div className="flex flex-col items-center justify-center bg-muted p-2 rounded-lg w-20">
-                                        <span className="text-3xl font-bold font-mono text-foreground">{formatModifier(abilityModifier)}</span>
-                                        <span className="text-xs uppercase tracking-wider text-muted-foreground">{abilityKey.substring(0, 3)}</span>
-                                    </div>
+                                <div className="flex items-center gap-4 justify-between">
                                     <div className="flex-1">
                                         <h3 className="text-xl font-cinzel text-accent capitalize">{abilityKey}</h3>
-                                        <input
-                                            type="number"
-                                            value={abilityScore}
-                                            onChange={(e) => handleAbilityScoreChange(abilityKey, parseInt(e.target.value) || 0)}
-                                            className="w-full bg-input text-center text-lg rounded border border-border p-1 focus:ring-ring"
-                                            aria-label={`${abilityKey} score`} />
                                     </div>
+                                    <StatInput value={abilityScore} onChange={(val) => handleAbilityScoreChange(abilityKey, Number(val))} showModifier />
                                 </div>
                                 <div className="bg-muted/60 p-2 rounded-md space-y-2">
                                     {/* Saving Throw */}
@@ -485,7 +465,7 @@ export const CharacterSheet: React.FC = () => {
                                                 id={`saving-throw-${abilityKey}`}
                                                 checked={savingThrow.proficient}
                                                 onChange={() => handleSavingThrowProficiencyChange(abilityKey)}
-                                                className="w-4 h-4 rounded-full text-primary bg-input border-border focus:ring-ring" />
+                                                className="w-6 h-6 rounded-full text-primary bg-input border-border focus:ring-ring cursor-pointer" />
                                             <span className="text-foreground">Saving Throw</span>
                                         </div>
                                         <span className="font-mono font-bold text-lg text-foreground">{formatModifier(savingThrowBonus)}</span>
@@ -501,13 +481,13 @@ export const CharacterSheet: React.FC = () => {
                                                         id={`skill-prof-${skill.name}`}
                                                         checked={skill.proficient}
                                                         onChange={() => handleSkillProficiencyChange(skill.name)}
-                                                        className="w-4 h-4 rounded-full text-primary bg-input border-border focus:ring-ring cursor-pointer" />
+                                                        className="w-6 h-6 rounded-full text-primary bg-input border-border focus:ring-ring cursor-pointer" />
                                                     <input
                                                         type="checkbox"
                                                         id={`skill-exp-${skill.name}`}
                                                         checked={skill.expertise}
                                                         onChange={() => handleSkillExpertiseChange(skill.name)}
-                                                        className="w-4 h-4 rounded-sm text-accent bg-input border-border focus:ring-ring cursor-pointer"
+                                                        className="w-6 h-6 rounded-sm text-accent bg-input border-border focus:ring-ring cursor-pointer"
                                                         title="Expertise" />
                                                     <label htmlFor={`skill-prof-${skill.name}`} className="cursor-pointer text-foreground">{skill.name}</label>
                                                 </div>
@@ -565,16 +545,11 @@ export const CharacterSheet: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-1">
                         <h3 className="text-lg font-cinzel text-accent mb-4">Currency</h3>
-                        <div className="bg-muted/50 p-4 rounded-lg grid grid-cols-3 sm:grid-cols-5 gap-3 border border-border">
-                            {Object.entries(character.currency).map(([type, amount]) => (
-                                <div key={type}>
-                                    <label className="block text-center text-sm font-medium text-muted-foreground uppercase">{type}</label>
-                                    <input
-                                        type="number"
-                                        value={amount}
-                                        onChange={(e) => handleCurrencyChange(type as keyof Currency, parseInt(e.target.value, 10) || 0)}
-                                        className="mt-1 block w-full bg-input border border-border rounded-md py-1 px-2 text-foreground focus:outline-none focus:ring-ring focus:border-accent text-center" />
-                                </div>
+                        <div className="bg-muted/50 p-4 rounded-lg grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 border border-border">
+                            {(Object.keys(character.currency) as Array<keyof Currency>).map((type) => (
+                                <StatInput key={type} label={type.toUpperCase()} value={character.currency[type]} onChange={(val) => handleCurrencyChange(type, Number(val))}
+                                    inputClassName="text-2xl"
+                                />
                             ))}
                         </div>
                     </div>
@@ -588,16 +563,10 @@ export const CharacterSheet: React.FC = () => {
                 <div className="bg-muted/50 p-4 rounded-lg border border-border">
                     <h4 className="text-lg font-cinzel text-accent mb-3">Maximum Spell Slots</h4>
                     <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-3">
-                        {Array.from({ length: 9 }, (_, i) => i + 1).map(level => (
-                            <div key={level}>
-                                <label className="block text-center text-sm font-medium text-muted-foreground">Lvl {level}</label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    value={character.spellSlots[level]?.max ?? 0}
-                                    onChange={(e) => handleSpellSlotChange(level, parseInt(e.target.value, 10) || 0)}
-                                    className="mt-1 block w-full bg-input border border-border rounded-md py-1 px-2 text-foreground focus:outline-none focus:ring-ring focus:border-accent text-center" />
-                            </div>
+                        {Array.from({ length: 9 }, (_, i) => i + 1).map((level) => (
+                            <StatInput key={level} label={`Lvl ${level}`} value={character.spellSlots[level]?.max ?? 0}
+                                onChange={(val) => handleSpellSlotChange(level, Number(val))}
+                            />
                         ))}
                     </div>
                 </div>

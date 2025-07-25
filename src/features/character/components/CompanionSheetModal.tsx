@@ -4,6 +4,7 @@ import { XMarkIcon, SaveIcon, PhotoIcon, EditIcon } from '../../../components/ui
 import { useAuth } from '../../../providers/AuthProvider';
 import { useCharacter } from '../CharacterProvider';
 import { ImageUploader } from './ImageUploader';
+import { ImageModal } from '../../../components/ui/ImageModal';
 import { CompanionAttackEditor } from './CompanionAttackEditor';
 import { CompanionSpellEditor } from './CompanionSpellEditor';
 import { CompanionHpManager } from './CompanionHpManager';
@@ -67,6 +68,7 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [isUploaderOpen, setIsUploaderOpen] = useState(false);
   const { currentUser } = useAuth();
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const { character } = useCharacter(); // Get the main character to associate the companion
   const [activeTab, setActiveTab] = useState<'overview' | 'combat' | 'notes'>('overview');
   
@@ -179,7 +181,13 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
             <div className="flex flex-col items-center gap-4 text-center">
                 <div className="flex-shrink-0 group relative">
                     <label className="block text-sm font-medium text-muted-foreground mb-1">Portrait</label>
-                    <div onClick={() => !readOnly && setIsUploaderOpen(true)} className={`w-32 h-32 bg-muted rounded-lg overflow-hidden border border-border ${!readOnly && 'cursor-pointer'}`}>
+                    <div 
+                        onClick={() => {
+                            if (readOnly && data.imageUrl) setIsImageModalOpen(true);
+                            else if (!readOnly) setIsUploaderOpen(true);
+                        }} 
+                        className={`w-32 h-32 bg-muted rounded-lg overflow-hidden border border-border ${(!readOnly || data.imageUrl) && 'cursor-pointer hover:border-accent transition-colors'}`}
+                    >
                         {data.imageUrl ? (
                             <img src={data.imageUrl} alt={data.name} className="w-full h-full object-cover" />
                         ) : (
@@ -270,6 +278,13 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
         onClose={() => setIsUploaderOpen(false)}
         onImageReady={handleImageUpload}
       />
+      {isImageModalOpen && data.imageUrl && (
+        <ImageModal 
+            imageUrl={data.imageUrl} 
+            altText={`Portrait for ${data.name}`} 
+            onClose={() => setIsImageModalOpen(false)} 
+        />
+      )}
     </dialog>
   );
 };

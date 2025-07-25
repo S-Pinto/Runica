@@ -27,7 +27,7 @@ export const StatInput: React.FC<StatInputProps> = ({ label, value, onChange, pl
   const inputId = useId();
 
   // Pulsanti più grandi e rotondi per una migliore accessibilità su mobile
-  const buttonClasses = "p-2 bg-secondary hover:bg-accent text-secondary-foreground hover:text-accent-foreground rounded-full transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2";
+  const buttonClasses = "p-1.5 sm:p-2 bg-secondary hover:bg-accent text-secondary-foreground hover:text-accent-foreground rounded-full transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2";
 
   return (
     // Container principale: layout verticale, full-width e con spaziature migliorate
@@ -43,7 +43,7 @@ export const StatInput: React.FC<StatInputProps> = ({ label, value, onChange, pl
       )}
 
       {/* 3. Gruppo di input con stile moderno a "pillola" e reattivo */}
-      <div className="flex items-center justify-between w-full max-w-[180px] bg-background border border-input rounded-full p-1">
+      <div className="flex items-center justify-between w-full max-w-[160px] bg-background border border-input rounded-full p-1">
         <button type="button" onClick={handleDecrement} className={buttonClasses}>
           <MinusIcon className="w-5 h-5" />
         </button>
@@ -57,7 +57,7 @@ export const StatInput: React.FC<StatInputProps> = ({ label, value, onChange, pl
           }}
           placeholder={placeholder}
           // Rimuoviamo la larghezza fissa e usiamo flex-1 per renderlo flessibile
-          className={`no-spinner flex-1 min-w-0 bg-transparent border-0 text-center text-4xl font-bold text-foreground focus:ring-0 focus:outline-none placeholder:text-muted-foreground/50 placeholder:font-normal placeholder:text-base ${inputClassName}`}
+          className={`no-spinner flex-1 min-w-0 bg-transparent border-0 text-center text-3xl sm:text-4xl font-bold text-foreground focus:ring-0 focus:outline-none placeholder:text-muted-foreground/50 placeholder:font-normal placeholder:text-base ${inputClassName}`}
         />
         <button type="button" onClick={handleIncrement} className={buttonClasses}>
           <PlusIcon className="w-5 h-5" />

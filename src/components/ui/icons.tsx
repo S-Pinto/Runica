@@ -178,10 +178,10 @@ export const ArrowDownIcon = (props: IconProps) => (
 );  
 
 export const RefreshIcon = (props: IconProps) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.667 0l3.181-3.183m-4.991-2.691L7.929 7.929a8.25 8.25 0 00-11.667 0L2.985 11.955" />
-    </svg>
-);  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 4.5v5h5M19.5 19.5v-5h-5M19.5 9a7.5 7.5 0 00-13.5-4.5M4.5 15a7.5 7.5 0 0013.5 4.5" />
+  </svg>
+);
 
 export const FilterIcon = (props: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
