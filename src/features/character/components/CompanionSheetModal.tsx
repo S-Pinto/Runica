@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ICompanion } from '../characterTypes';
-import { XMarkIcon, SaveIcon, PhotoIcon, BoltIcon } from '../../../components/ui/icons';
+import { XMarkIcon, SaveIcon, PhotoIcon, EditIcon } from '../../../components/ui/icons';
 import { useAuth } from '../../../providers/AuthProvider';
 import { useCharacter } from '../CharacterProvider';
 import { ImageUploader } from './ImageUploader';
@@ -17,19 +17,20 @@ interface CompanionSheetModalProps {
   onSave: (companion: ICompanion, closeModal?: boolean) => void;
   onClose: () => void;
   readOnly?: boolean;
+  onSetReadOnly?: (isReadOnly: boolean) => void;
 }
 
-const Input = ({ label, ...props }: any) => (
+const Input = ({ label, className = '', ...props }: any) => (
   <div>
     <label className="block text-sm font-medium text-muted-foreground">{label}</label>
-    <input {...props} className={`mt-1 block w-full bg-input border border-border rounded-md shadow-sm py-2 px-3 text-foreground focus:outline-none focus:ring-ring focus:border-accent sm:text-sm ${props.type === 'number' ? 'no-spinner' : ''}`} />
+    <input {...props} className={`mt-1 block w-full bg-input border border-border rounded-md shadow-sm py-2 px-3 text-foreground focus:outline-none focus:ring-ring focus:border-accent sm:text-sm ${props.type === 'number' ? 'no-spinner' : ''} ${className}`} />
   </div>
 );
 
-const DisplayField = ({ label, value }: { label: string, value: React.ReactNode }) => (
+const DisplayField = ({ label, value, className = '' }: { label: string, value: React.ReactNode, className?: string }) => (
     <div>
         <label className="block text-sm font-medium text-muted-foreground">{label}</label>
-        <div className="mt-1 block w-full bg-input/50 border border-transparent rounded-md py-2 px-3 text-foreground/80 sm:text-sm min-h-[42px] flex items-center">
+        <div className={`mt-1 block w-full bg-input/50 border border-transparent rounded-md py-2 px-3 text-foreground/80 sm:text-sm min-h-[42px] flex items-center ${className}`}>
             {value || <span className="text-muted-foreground/50">N/A</span>}
         </div>
     </div>
@@ -61,7 +62,7 @@ const ModalTabButton = ({ label, isActive, onClick }: { label: string, isActive:
     </button>
 );
 
-export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ companion, onSave, onClose, readOnly = false }) => {
+export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ companion, onSave, onClose, readOnly = false, onSetReadOnly }) => {
   const [data, setData] = useState<ICompanion>(companion);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [isUploaderOpen, setIsUploaderOpen] = useState(false);
@@ -111,6 +112,12 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
     onSave(data);
   };
   
+  const handleEdit = () => {
+    if (onSetReadOnly) {
+      onSetReadOnly(false);
+    }
+  };
+
   const handleImageUpload = async (dataUrl: string) => {
     if (!currentUser || !character) {
         const message = "User or character not found. Cannot upload image.";
@@ -135,20 +142,32 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
   const initiative = dexModifier;
 
   return (
-    <dialog ref={dialogRef} onClose={onClose} className="bg-card text-foreground p-0 rounded-lg shadow-2xl w-full max-w-3xl border border-border backdrop-filter backdrop-blur-sm backdrop:bg-black/50">
-      <header className="flex items-center justify-between p-4 border-b border-zinc-700 sticky top-0 bg-zinc-800 z-10">
-        <h3 className="text-lg font-cinzel text-accent">{readOnly ? data.name : 'Edit Companion'}</h3>
-        <div className="flex items-center gap-2">
-          {!readOnly && (
-            <button onClick={handleSave} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-bold rounded-lg shadow-md hover:bg-primary/90 transition-colors">
-              <SaveIcon className="w-5 h-5" /> Save
+    // Modale a schermo intero su mobile, finestra su desktop.
+    // Aggiunto flex flex-col per una gestione flessibile dell'altezza.
+    <dialog ref={dialogRef} onClose={onClose} className="bg-card text-foreground p-0 sm:rounded-lg shadow-2xl w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-3xl border border-border backdrop-filter backdrop-blur-sm backdrop:bg-black/50 flex flex-col">
+      {/* Header con Flexbox per allineare il titolo a sinistra e i pulsanti a destra */}
+      <header className="flex items-center justify-between p-4 border-b border-border sticky top-0 bg-card z-10 flex-shrink-0">
+        <h3 className="text-xl font-cinzel font-bold text-accent truncate min-w-0 pr-4">{readOnly ? data.name : 'Edit Companion'}</h3>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {readOnly && onSetReadOnly && (
+            <button onClick={handleEdit} className="flex items-center gap-2 p-2 sm:px-4 sm:py-2 bg-secondary text-secondary-foreground font-bold rounded-lg shadow-md hover:bg-secondary/90 transition-colors">
+              <EditIcon className="w-5 h-5" />
+              <span className="hidden sm:inline">Edit</span>
             </button>
           )}
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-zinc-700 transition-colors"><XMarkIcon className="w-5 h-5" /></button>
+          {!readOnly && (
+            // Pulsante adattivo: icona su mobile, icona + testo su schermi più grandi
+            <button onClick={handleSave} className="flex items-center gap-2 p-2 sm:px-4 sm:py-2 bg-primary text-primary-foreground font-bold rounded-lg shadow-md hover:bg-primary/90 transition-colors">
+              <SaveIcon className="w-5 h-5" />
+              <span className="hidden sm:inline">Save</span>
+            </button>
+          )}
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-muted transition-colors"><XMarkIcon className="w-6 h-6" /></button>
         </div>
       </header>
       
-      <div className="p-4 sm:p-6 max-h-[70vh] overflow-y-auto">
+      {/* flex-1 e overflow-y-auto per far sì che il contenuto occupi lo spazio rimanente e sia scrollabile */}
+      <div className="p-4 sm:p-6 overflow-y-auto flex-1">
         <div className="flex items-center gap-2 mb-6 border-b border-border pb-4">
             <ModalTabButton label="Overview" isActive={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
             <ModalTabButton label="Combat" isActive={activeTab === 'combat'} onClick={() => setActiveTab('combat')} />
@@ -156,31 +175,32 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
         </div>
 
         <div hidden={activeTab !== 'overview'} className="space-y-6">
-            <div className="flex flex-col md:flex-row gap-6 items-start">
-                <div className="flex-shrink-0">
+            {/* Sezione superiore riorganizzata per centrare ritratto e nome */}
+            <div className="flex flex-col items-center gap-4 text-center">
+                <div className="flex-shrink-0 group relative">
                     <label className="block text-sm font-medium text-muted-foreground mb-1">Portrait</label>
-                    <div onClick={() => !readOnly && setIsUploaderOpen(true)} className={`w-24 h-24 bg-muted rounded-md overflow-hidden group relative ${!readOnly && 'cursor-pointer'}`}>
+                    <div onClick={() => !readOnly && setIsUploaderOpen(true)} className={`w-32 h-32 bg-muted rounded-lg overflow-hidden border border-border ${!readOnly && 'cursor-pointer'}`}>
                         {data.imageUrl ? (
                             <img src={data.imageUrl} alt={data.name} className="w-full h-full object-cover" />
                         ) : (
                             <PhotoIcon className="w-full h-full text-muted-foreground p-4" />
                         )}
                         {!readOnly && (
-                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
                                 <span className="text-white text-xs">Change</span>
                             </div>
                         )}
                     </div>
                 </div>
-                <div className="flex-grow w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="w-full max-w-md space-y-2">
                     {readOnly ? (
                         <>
-                            <DisplayField label="Name" value={data.name} />
-                            <DisplayField label="Type" value={data.type} />
+                            {/* Rimosso il DisplayField per il nome in modalità read-only per evitare duplicati con il titolo */}
+                            <DisplayField label="Type" value={data.type} className="justify-center" />
                         </>
                     ) : (
                         <>
-                            <Input label="Name" name="name" value={data.name} onChange={handleChange} />
+                            <Input label="Name" name="name" value={data.name} onChange={handleChange} className="text-2xl font-bold text-center" />
                             <Input label="Type" name="type" value={data.type} onChange={handleChange} placeholder="e.g., Familiar, Beast" />
                         </>
                     )}
@@ -198,7 +218,8 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
 
             <div>
                 <h4 className="text-md font-semibold text-zinc-400 mb-2">Ability Scores</h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                {/* Griglia reattiva per le statistiche per evitare sovrapposizioni su mobile */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-y-4 gap-x-2 sm:gap-4">
                     {readOnly ? (
                         Object.keys(data.abilityScores).map(key => (
                             <StatDisplay

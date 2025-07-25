@@ -57,26 +57,56 @@ export const CompanionTab: React.FC<CompanionTabProps> = ({ readOnly = false }) 
     }
   };
 
-  const handleSaveCompanion = (companionToSave: ICompanion, closeModalAfterSave = true) => {
+  const handleDuplicateCompanion = (companionToDuplicate: ICompanion) => {
+    // Deep copy the companion object. JSON stringify/parse is a simple way for plain data objects.
+    const newCompanion: ICompanion = JSON.parse(JSON.stringify(companionToDuplicate));
+
+    // Assign a new unique ID and a modified name
+    newCompanion.id = `comp_${Date.now()}`;
+    newCompanion.name = `${newCompanion.name} (Copy)`;
+
+    setCharacter(prev => {
+      if (!prev) return null;
+      // Add the new companion to the list
+      return { ...prev, companions: [...prev.companions, newCompanion] };
+    });
+  };
+
+  const handleSaveCompanion = (companionToSave: ICompanion, closeModalAfterSave?: boolean) => {
+    let isNewCompanion = false;
     setCharacter(prev => {
       if (!prev) return null;
       const existing = prev.companions.find(c => c.id === companionToSave.id);
       if (existing) {
         // Update existing
+        isNewCompanion = false;
         return {
           ...prev,
           companions: prev.companions.map(c => c.id === companionToSave.id ? companionToSave : c),
         };
       } else {
         // Add new
+        isNewCompanion = true;
         return {
           ...prev,
           companions: [...prev.companions, companionToSave],
         };
       }
     });
-    if (closeModalAfterSave) {
+
+    // Decide se chiudere il modale.
+    // Se il flag non viene passato (es. dal pulsante 'Save' principale),
+    // chiudi solo quando si crea un nuovo compagno.
+    // Altrimenti, rispetta il flag passato (es. per l'autosave dei PF).
+    const shouldClose = closeModalAfterSave === undefined ? isNewCompanion : closeModalAfterSave;
+ 
+    if (shouldClose) {
       handleCloseModal();
+    } else if (closeModalAfterSave === undefined && !isNewCompanion) {
+      // Se stiamo salvando un compagno esistente (non uno nuovo)
+      // e l'azione proviene dal pulsante di salvataggio principale (closeModalAfterSave non è specificato),
+      // torniamo alla modalità di sola lettura invece di chiudere.
+      setIsModalReadOnly(true);
     }
   };
 
@@ -105,6 +135,7 @@ export const CompanionTab: React.FC<CompanionTabProps> = ({ readOnly = false }) 
               key={companion.id} 
               companion={companion} 
               onEdit={() => !readOnly && handleEditCompanion(companion)}
+              onDuplicate={() => !readOnly && handleDuplicateCompanion(companion)}
               onDelete={() => handleDeleteCompanion(companion.id)}
               onView={() => handleViewCompanion(companion)}
               readOnly={readOnly}
@@ -132,6 +163,7 @@ export const CompanionTab: React.FC<CompanionTabProps> = ({ readOnly = false }) 
           onSave={handleSaveCompanion} 
           onClose={handleCloseModal} 
           readOnly={isModalReadOnly}
+          onSetReadOnly={setIsModalReadOnly}
         />
       )}
     </div>

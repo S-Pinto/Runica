@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ICompanion } from '../characterTypes';
-import { SparklesIcon, EditIcon, TrashIcon, EllipsisVerticalIcon, HeartIcon, ShieldCheckIcon, ArrowTrendingUpIcon, BoltIcon } from '../../../components/ui/icons';
+import { SparklesIcon, EditIcon, TrashIcon, EllipsisVerticalIcon, HeartIcon, ShieldCheckIcon, ArrowTrendingUpIcon, BoltIcon, DocumentDuplicateIcon } from '../../../components/ui/icons';
 import { getModifier, formatModifier }  from '../utils/characterUtils';
 
 const getSpeedInMeters = (speed: string | number): string | null => {
@@ -16,11 +16,12 @@ interface CompanionCardProps {
   companion: ICompanion;
   onEdit: () => void;
   onDelete: () => void;
+  onDuplicate: () => void;
   onView?: () => void;
   readOnly?: boolean;
 }
 
-export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, onEdit, onDelete, onView, readOnly = false }) => {
+export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, onEdit, onDelete, onDuplicate, onView, readOnly = false }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -109,7 +110,8 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, onEdit,
             <SparklesIcon className="w-full h-full text-muted-foreground/50 p-4" />
           )}
         </div>
-        <div className="flex-grow">
+        {/* Aggiunto min-w-0 per permettere al testo di essere troncato correttamente in un contenitore flex */}
+        <div className="flex-grow min-w-0">
           <h3 className="text-lg font-bold text-accent truncate">{companion.name}</h3>
           <p className="text-sm text-muted-foreground capitalize">{companion.type}</p>
         </div>
@@ -123,7 +125,10 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, onEdit,
                 <button onClick={() => { onEdit(); setIsMenuOpen(false); }} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm hover:bg-zinc-700">
                   <EditIcon className="w-4 h-4" /> Edit
                 </button>
-                <button onClick={() => { onDelete(); setIsMenuOpen(false); }} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/20">
+                <button onClick={() => { onDuplicate(); setIsMenuOpen(false); }} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm hover:bg-zinc-700">
+                  <DocumentDuplicateIcon className="w-4 h-4" /> Duplicate
+                </button>
+                <button onClick={() => { onDelete(); setIsMenuOpen(false); }} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-zinc-700">
                   <TrashIcon className="w-4 h-4" /> Delete
                 </button>
               </div>

@@ -1,0 +1,18 @@
+# TODO per la PWA Runica
+
+- [ ] Definire le funzionalità principali della PWA
+- [ ] Progettare la struttura delle pagine e la navigazione
+- [ ] Implementare la registrazione e login utente
+- [ ] Creare la home page con dashboard
+- [ ] Gestire la sincronizzazione offline/online
+- [ ] Implementare notifiche push
+- [ ] Ottimizzare per dispositivi mobili
+- [ ] Testare la PWA su diversi browser e dispositivi
+- [ ] Scrivere documentazione per l’uso e la manutenzione
+- [ ] Preparare il deploy e la pubblicazione
+
+# Hotfix e anomalie
+- [ ] modale companion
+- [ ] freccette valori characterSheet
+- [ ] tastini piu grandi ability stats mobile
+- [ ] 
