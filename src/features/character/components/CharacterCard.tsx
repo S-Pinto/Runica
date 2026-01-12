@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { ICharacter } from '../characterTypes';
 import { TrashIcon, EditIcon, PhotoIcon } from '../../../components/ui/icons';
 import { calculateArmorClass } from '../characterService';
@@ -8,22 +8,36 @@ interface CharacterCardProps {
   onSelect: () => void; // Per la vista di gioco
   onDelete: (e: React.MouseEvent) => void;
   onEdit: (e: React.MouseEvent) => void; // Per la modifica
+  activeCardId?: string | null; // Aggiunto per l'effetto su scroll
+  style?: React.CSSProperties; // Aggiunto per dnd-kit
+  // Aggiungiamo `...rest` per catturare gli attributi di dnd-kit
+  [key: string]: any;
 }
 
-export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSelect, onDelete, onEdit }) => {
-  return (
-    <div 
-      onClick={onSelect} 
-      className="bg-card rounded-lg shadow-lg overflow-hidden transition-all duration-300 md:hover:shadow-accent/20 group relative cursor-pointer" 
-      role="button" 
-      tabIndex={0}
-    >
+export const CharacterCard = forwardRef<HTMLDivElement, CharacterCardProps>(
+  ({ character, onSelect, onDelete, onEdit, activeCardId, style, ...rest }, ref) => {
+    const isActive = character.id === activeCardId;
+
+    return (
+      <div
+        ref={ref}
+        style={style}
+        {...rest} // Contiene `attributes` e `listeners` per il drag
+        onClick={onSelect}
+        // Aggiungiamo 'is-active' se la card è quella evidenziata dallo scroll
+        // Aggiungiamo 'character-card-observable' per essere trovata dall'IntersectionObserver
+        className={`bg-card rounded-lg shadow-lg overflow-hidden transition-all duration-300 md:hover:shadow-accent/20 group relative cursor-grab touch-none character-card-observable ${isActive ? 'is-active' : ''}`}
+        role="button"
+        tabIndex={0}
+        data-character-id={character.id} // Aggiungiamo l'ID per l'observer
+      >
       {/* 
         Contenitore immagine che si espande. 
         'max-h-32' crea la miniatura, 'group-hover:max-h-96' la espande.
         La transizione su 'max-height' crea l'effetto di animazione.
+        Aggiungiamo 'group-[.is-active]:max-h-96' per l'effetto su scroll mobile.
       */}
-      <div className="relative w-full max-h-32 md:group-hover:max-h-96 transition-all duration-500 ease-in-out overflow-hidden">
+      <div className="relative w-full max-h-32 md:group-hover:max-h-96 group-[.is-active]:max-h-96 transition-all duration-500 ease-in-out overflow-hidden">
         {character.imageUrl ? (
           <img src={character.imageUrl} alt={character.name} className="w-full h-auto" />
         ) : (
@@ -64,5 +78,8 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSelec
         </button>
       </div>
     </div>
-  );
-};
+    );
+  }
+);
+
+CharacterCard.displayName = 'CharacterCard';

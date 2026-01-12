@@ -45,7 +45,7 @@
   }
   /* Refined for a richer, more vibrant feel */
   .theme-sapphire {
-    --color-background: 24 36, 71;     /* blue-950 */
+    --color-background: 24 36 71;      /* blue-950 */
     --color-foreground: 224 242 254;   /* blue-50 */
     --color-card: 27 49 89;            /* blue-900 */
     --color-border: 35 63 112;         /* blue-800 */
@@ -245,4 +245,42 @@ body {
 
 .no-spinner {
   -moz-appearance: textfield;
+}
+
+@layer utilities {
+  /* Registra la custom property --angle per permettere l'animazione nei gradienti */
+  @property --angle {
+    syntax: "<angle>";
+    initial-value: 0deg;
+    inherits: false;
+  }
+
+  @keyframes rotate-border {
+    to {
+      --angle: 360deg;
+    }
+  }
+
+  .animated-border-card {
+    --angle: 0deg; /* Variabile per l'animazione */
+    --bg: rgb(var(--color-card));
+    --border: rgb(var(--color-border));
+    --glow: rgb(var(--color-accent));
+
+    --bg-color: linear-gradient(var(--bg), var(--bg));
+    /* Gradiente conico che ruota per un effetto circolare "spotlight" */
+    --border-color: conic-gradient(
+      from var(--angle),
+      var(--border),
+      var(--glow) 20%,
+      var(--glow) 30%,
+      var(--border) 50%
+    );
+
+    border: 1px solid transparent;
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    background-image: var(--bg-color), var(--border-color);
+    animation: rotate-border 4s linear infinite; /* Animazione di rotazione continua */
+  }
 }

@@ -13,7 +13,24 @@ export function ErrorBoundary() {
     );
   }
 
-  // Puoi gestire altri tipi di errore qui
+  // Gestione dell'errore di caricamento dei chunk (comune dopo un nuovo deploy)
+  React.useEffect(() => {
+    const errorMessage = error instanceof Error ? error.message : '';
+    if (errorMessage.includes('dynamically imported module') ||
+      errorMessage.includes('Importing a module script failed') ||
+      errorMessage.includes('Failed to fetch dynamically imported module')) {
+
+      const lastReload = sessionStorage.getItem('runica-last-reload');
+      const now = Date.now();
+
+      // Ricarica solo se l'ultimo ricaricamento è stato più di 5 secondi fa (evita loop infiniti)
+      if (!lastReload || (now - parseInt(lastReload)) > 5000) {
+        sessionStorage.setItem('runica-last-reload', now.toString());
+        window.location.reload();
+      }
+    }
+  }, [error]);
+
   const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
   return (

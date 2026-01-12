@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useCharacter } from '../../CharacterProvider';
 import { StatInput } from '../StatInput';
 import { HeartIcon, PlusIcon, MinusIcon } from '../../../../components/ui/icons';
 
 export const HPTracker = () => {
     const { character, updateCharacter } = useCharacter();
+    if (!character) return null;
     const { hp } = character;
     const [adjustment, setAdjustment] = useState<number | ''>('');
 
@@ -24,9 +25,9 @@ export const HPTracker = () => {
     const handleHeal = () => {
         const healing = Number(adjustment) || 0;
         if (healing <= 0) return;
-        
+
         const newCurrent = Math.min(hp.max, hp.current + healing);
-        
+
         updateCharacter({ hp: { ...hp, current: newCurrent } });
         setAdjustment('');
     };
@@ -54,12 +55,13 @@ export const HPTracker = () => {
             <div className="w-full bg-muted rounded-full h-2.5">
                 <div className={`${hpColor} h-2.5 rounded-full transition-all duration-500`} style={{ width: `${hpPercentage}%` }}></div>
             </div>
-            {/* Container per l'input e i bottoni, ora con flex-wrap per la responsività */}
-            <div className="flex flex-wrap justify-center gap-2 items-center">
-                {/* L'input ora ha una larghezza flessibile su schermi piccoli */}
-                <StatInput value={adjustment} onChange={(val) => setAdjustment(val === '' ? '' : Number(val))} placeholder="Value" inputClassName="w-24 text-3xl" showModifier={false} className="flex-grow sm:flex-grow-0 max-w-[200px]" />
-                {/* Container per i bottoni, ora flessibile per occupare lo spazio rimanente o andare a capo */}
-                <div className="flex-grow flex gap-2 justify-center">
+            {/* Layout reattivo: si adatta e va a capo se lo spazio non è sufficiente */}
+            <div className="flex flex-col sm:flex-row sm:flex-wrap justify-center items-center gap-4 sm:gap-2">
+                {/* StatInput ora occupa tutta la larghezza su mobile per massima visibilità */}
+                <div className="w-full sm:flex-none">
+                    <StatInput value={adjustment} onChange={(val) => setAdjustment(val === '' ? '' : Number(val))} placeholder="Value" inputClassName="text-3xl" showModifier={false} />
+                </div>
+                <div className="w-full sm:w-auto flex gap-2 justify-center">
                     <button onClick={handleDamage} className="flex-1 sm:flex-auto flex items-center justify-center gap-2 px-3 py-2 bg-red-600 text-white font-bold rounded-lg shadow-md hover:bg-red-700 transition-colors"><MinusIcon className="w-5 h-5" /> Damage</button>
                     <button onClick={handleHeal} className="flex-1 sm:flex-auto flex items-center justify-center gap-2 px-3 py-2 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 transition-colors"><PlusIcon className="w-5 h-5" /> Heal</button>
                     <button onClick={handleSetTempHp} className="flex-1 sm:flex-auto flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white font-bold rounded-lg shadow-md hover:bg-blue-700 transition-colors"><HeartIcon className="w-5 h-5" /> Temp</button>

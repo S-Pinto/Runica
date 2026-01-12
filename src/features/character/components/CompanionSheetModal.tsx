@@ -10,7 +10,7 @@ import { CompanionSpellEditor } from './CompanionSpellEditor';
 import { CompanionHpManager } from './CompanionHpManager';
 import { debounce } from 'lodash';
 import { StatInput } from './StatInput';
-import { getModifier, formatModifier }  from '../utils/characterUtils';
+import { getModifier, formatModifier } from '../utils/characterUtils';
 import * as storageService from '../../../services/storageService';
 
 interface CompanionSheetModalProps {
@@ -29,12 +29,12 @@ const Input = ({ label, className = '', ...props }: any) => (
 );
 
 const DisplayField = ({ label, value, className = '' }: { label: string, value: React.ReactNode, className?: string }) => (
-    <div>
-        <label className="block text-sm font-medium text-muted-foreground">{label}</label>
-        <div className={`mt-1 block w-full bg-input/50 border border-transparent rounded-md py-2 px-3 text-foreground/80 sm:text-sm min-h-[42px] flex items-center ${className}`}>
-            {value || <span className="text-muted-foreground/50">N/A</span>}
-        </div>
+  <div>
+    <label className="block text-sm font-medium text-muted-foreground">{label}</label>
+    <div className={`mt-1 block w-full bg-input/50 border border-transparent rounded-md py-2 px-3 text-foreground/80 sm:text-sm min-h-[42px] flex items-center ${className}`}>
+      {value || <span className="text-muted-foreground/50">N/A</span>}
     </div>
+  </div>
 );
 
 const StatDisplay = ({ label, value }: { label: string, value: number }) => {
@@ -51,16 +51,15 @@ const StatDisplay = ({ label, value }: { label: string, value: number }) => {
 };
 
 const ModalTabButton = ({ label, isActive, onClick }: { label: string, isActive: boolean, onClick: () => void }) => (
-    <button
-        onClick={onClick}
-        className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-            isActive
-                ? 'bg-accent/20 text-accent'
-                : 'text-muted-foreground hover:bg-muted/50'
-        }`}
-    >
-        {label}
-    </button>
+  <button
+    onClick={onClick}
+    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${isActive
+        ? 'bg-accent/20 text-accent'
+        : 'text-muted-foreground hover:bg-muted/50'
+      }`}
+  >
+    {label}
+  </button>
 );
 
 export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ companion, onSave, onClose, readOnly = false, onSetReadOnly }) => {
@@ -71,7 +70,7 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const { character } = useCharacter(); // Get the main character to associate the companion
   const [activeTab, setActiveTab] = useState<'overview' | 'combat' | 'notes'>('overview');
-  
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSave = useCallback(debounce((updatedCompanion: ICompanion) => {
     if (readOnly) onSave(updatedCompanion, false);
@@ -88,12 +87,12 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
 
   const handleHpFieldChange = (field: 'max', value: number) => {
     setData(prev => {
-        const newHp = { ...prev.hp, [field]: value };
-        // When max HP changes, also ensure current HP is not higher.
-        if (field === 'max') {
-            newHp.current = Math.min(prev.hp.current, value);
-        }
-        return { ...prev, hp: newHp };
+      const newHp = { ...prev.hp, [field]: value };
+      // When max HP changes, also ensure current HP is not higher.
+      if (field === 'max') {
+        newHp.current = Math.min(prev.hp.current, value);
+      }
+      return { ...prev, hp: newHp };
     });
   };
 
@@ -113,7 +112,7 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
   const handleSave = () => {
     onSave(data);
   };
-  
+
   const handleEdit = () => {
     if (onSetReadOnly) {
       onSetReadOnly(false);
@@ -122,31 +121,30 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
 
   const handleImageUpload = async (dataUrl: string) => {
     if (!currentUser || !character) {
-        const message = "User or character not found. Cannot upload image.";
-        throw new Error(message);
+      const message = "User or character not found. Cannot upload image.";
+      throw new Error(message);
     }
     try {
-        const imageUrl = await storageService.uploadCompanionPortrait(dataUrl, currentUser.uid, character.id, data.id);
+      const imageUrl = await storageService.uploadCompanionPortrait(dataUrl, currentUser.uid, character.id, data.id);
       const newCompanionData = { ...data, imageUrl };
       // Update local state to show the new image immediately
       setData(newCompanionData);
       // Save the change to the parent component without closing the modal
       onSave(newCompanionData, false);
-        // The uploader will close itself on success because the promise resolves
+      // The uploader will close itself on success because the promise resolves
     } catch (error) {
-        console.error("Failed to upload companion image:", error);
-        // Propagate the error so the uploader can display it
-        throw new Error("Error uploading image. Please try again.");
+      console.error("Failed to upload companion image:", error);
+      // Propagate the error so the uploader can display it
+      throw new Error("Error uploading image. Please try again.");
     }
   };
 
   const dexModifier = getModifier(data.abilityScores.dexterity);
-  const initiative = dexModifier;
 
   return (
     // Modale a schermo intero su mobile, finestra su desktop.
     // Aggiunto flex flex-col per una gestione flessibile dell'altezza.
-    <dialog ref={dialogRef} onClose={onClose} className="bg-card text-foreground p-0 sm:rounded-lg shadow-2xl w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-3xl border border-border backdrop-filter backdrop-blur-sm backdrop:bg-black/50 flex flex-col">
+    <dialog ref={dialogRef} onClose={onClose} className="bg-card text-foreground p-0 sm:rounded-lg shadow-2xl w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-3xl border border-border backdrop-filter backdrop-blur-sm backdrop:bg-black/80 flex flex-col focus:outline-none">
       {/* Header con Flexbox per allineare il titolo a sinistra e i pulsanti a destra */}
       <header className="flex items-center justify-between p-4 border-b border-border sticky top-0 bg-card z-10 flex-shrink-0">
         <h3 className="text-xl font-cinzel font-bold text-accent truncate min-w-0 pr-4">{readOnly ? data.name : 'Edit Companion'}</h3>
@@ -167,110 +165,110 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
           <button onClick={onClose} className="p-2 rounded-full hover:bg-muted transition-colors"><XMarkIcon className="w-6 h-6" /></button>
         </div>
       </header>
-      
+
       {/* flex-1 e overflow-y-auto per far sì che il contenuto occupi lo spazio rimanente e sia scrollabile */}
       <div className="p-4 sm:p-6 overflow-y-auto flex-1">
         <div className="flex items-center gap-2 mb-6 border-b border-border pb-4">
-            <ModalTabButton label="Overview" isActive={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
-            <ModalTabButton label="Combat" isActive={activeTab === 'combat'} onClick={() => setActiveTab('combat')} />
-            <ModalTabButton label="Notes" isActive={activeTab === 'notes'} onClick={() => setActiveTab('notes')} />
+          <ModalTabButton label="Overview" isActive={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
+          <ModalTabButton label="Combat" isActive={activeTab === 'combat'} onClick={() => setActiveTab('combat')} />
+          <ModalTabButton label="Notes" isActive={activeTab === 'notes'} onClick={() => setActiveTab('notes')} />
         </div>
 
         <div hidden={activeTab !== 'overview'} className="space-y-6">
-            {/* Sezione superiore riorganizzata per centrare ritratto e nome */}
-            <div className="flex flex-col items-center gap-4 text-center">
-                <div className="flex-shrink-0 group relative">
-                    <label className="block text-sm font-medium text-muted-foreground mb-1">Portrait</label>
-                    <div 
-                        onClick={() => {
-                            if (readOnly && data.imageUrl) setIsImageModalOpen(true);
-                            else if (!readOnly) setIsUploaderOpen(true);
-                        }} 
-                        className={`w-32 h-32 bg-muted rounded-lg overflow-hidden border border-border ${(!readOnly || data.imageUrl) && 'cursor-pointer hover:border-accent transition-colors'}`}
-                    >
-                        {data.imageUrl ? (
-                            <img src={data.imageUrl} alt={data.name} className="w-full h-full object-cover" />
-                        ) : (
-                            <PhotoIcon className="w-full h-full text-muted-foreground p-4" />
-                        )}
-                        {!readOnly && (
-                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
-                                <span className="text-white text-xs">Change</span>
-                            </div>
-                        )}
-                    </div>
-                </div>
-                <div className="w-full max-w-md space-y-2">
-                    {readOnly ? (
-                        <>
-                            {/* Rimosso il DisplayField per il nome in modalità read-only per evitare duplicati con il titolo */}
-                            <DisplayField label="Type" value={data.type} className="justify-center" />
-                        </>
-                    ) : (
-                        <>
-                            <Input label="Name" name="name" value={data.name} onChange={handleChange} className="text-2xl font-bold text-center" />
-                            <Input label="Type" name="type" value={data.type} onChange={handleChange} placeholder="e.g., Familiar, Beast" />
-                        </>
-                    )}
-                </div>
+          {/* Sezione superiore riorganizzata per centrare ritratto e nome */}
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="flex-shrink-0 group relative">
+              <label className="block text-sm font-medium text-muted-foreground mb-1">Portrait</label>
+              <div
+                onClick={() => {
+                  if (readOnly && data.imageUrl) setIsImageModalOpen(true);
+                  else if (!readOnly) setIsUploaderOpen(true);
+                }}
+                className={`w-32 h-32 bg-muted rounded-lg overflow-hidden border border-border ${(!readOnly || data.imageUrl) && 'cursor-pointer hover:border-accent transition-colors'}`}
+              >
+                {data.imageUrl ? (
+                  <img src={data.imageUrl} alt={data.name} className="w-full h-full object-cover" />
+                ) : (
+                  <PhotoIcon className="w-full h-full text-muted-foreground p-4" />
+                )}
+                {!readOnly && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                    <span className="text-white text-xs">Change</span>
+                  </div>
+                )}
+              </div>
             </div>
-            
-            <CompanionHpManager hp={data.hp} onHpChange={handleHpManagerChange} />
+            <div className="w-full max-w-md space-y-2">
+              {readOnly ? (
+                <>
+                  {/* Rimosso il DisplayField per il nome in modalità read-only per evitare duplicati con il titolo */}
+                  <DisplayField label="Type" value={data.type} className="justify-center" />
+                </>
+              ) : (
+                <>
+                  <Input label="Name" name="name" value={data.name} onChange={handleChange} className="text-2xl font-bold text-center" />
+                  <Input label="Type" name="type" value={data.type} onChange={handleChange} placeholder="e.g., Familiar, Beast" />
+                </>
+              )}
+            </div>
+          </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {readOnly ? <DisplayField label="Armor Class" value={data.armorClass} /> : <Input label="Armor Class" name="armorClass" type="number" value={data.armorClass} onChange={handleChange} />}
-                {readOnly ? <DisplayField label="Speed" value={data.speed} /> : <Input label="Speed" name="speed" value={data.speed} onChange={handleChange} />}
-                <DisplayField label="Initiative" value={formatModifier(dexModifier)} />
-                {readOnly ? <DisplayField label="Max HP" value={data.hp.max} /> : <Input label="Max HP" type="number" value={data.hp.max} onChange={(e: any) => handleHpFieldChange('max', parseInt(e.target.value) || 0)} />}
-            </div>
+          <CompanionHpManager hp={data.hp} onHpChange={handleHpManagerChange} />
 
-            <div>
-                <h4 className="text-md font-semibold text-zinc-400 mb-2">Ability Scores</h4>
-                {/* Griglia reattiva per le statistiche per evitare sovrapposizioni su mobile */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-y-4 gap-x-2 sm:gap-4">
-                    {readOnly ? (
-                        Object.keys(data.abilityScores).map(key => (
-                            <StatDisplay
-                                key={key}
-                                label={key.substring(0, 3).toUpperCase()}
-                                value={data.abilityScores[key as keyof typeof data.abilityScores]}
-                            />
-                        ))
-                    ) : (
-                      Object.keys(data.abilityScores).map(key => (
-                          <StatInput
-                              key={key}
-                              label={key.substring(0, 3).toUpperCase()}
-                              value={data.abilityScores[key as keyof typeof data.abilityScores]}
-                              onChange={(newValue) => handleAbilityScoreChange(key, Number(newValue))}
-                          />
-                      ))
-                    )}
-                </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {readOnly ? <DisplayField label="Armor Class" value={data.armorClass} /> : <Input label="Armor Class" name="armorClass" type="number" value={data.armorClass} onChange={handleChange} />}
+            {readOnly ? <DisplayField label="Speed" value={data.speed} /> : <Input label="Speed" name="speed" value={data.speed} onChange={handleChange} />}
+            <DisplayField label="Initiative" value={formatModifier(dexModifier)} />
+            {readOnly ? <DisplayField label="Max HP" value={data.hp.max} /> : <Input label="Max HP" type="number" value={data.hp.max} onChange={(e: any) => handleHpFieldChange('max', parseInt(e.target.value) || 0)} />}
+          </div>
+
+          <div>
+            <h4 className="text-md font-semibold text-zinc-400 mb-2">Ability Scores</h4>
+            {/* Griglia reattiva per le statistiche per evitare sovrapposizioni su mobile */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-y-4 gap-x-2 sm:gap-4">
+              {readOnly ? (
+                Object.keys(data.abilityScores).map(key => (
+                  <StatDisplay
+                    key={key}
+                    label={key.substring(0, 3).toUpperCase()}
+                    value={data.abilityScores[key as keyof typeof data.abilityScores]}
+                  />
+                ))
+              ) : (
+                Object.keys(data.abilityScores).map(key => (
+                  <StatInput
+                    key={key}
+                    label={key.substring(0, 3).toUpperCase()}
+                    value={data.abilityScores[key as keyof typeof data.abilityScores]}
+                    onChange={(newValue) => handleAbilityScoreChange(key, Number(newValue))}
+                  />
+                ))
+              )}
             </div>
+          </div>
         </div>
 
         <div hidden={activeTab !== 'combat'} className="space-y-6">
-            <CompanionAttackEditor companion={data} setCompanion={setData} readOnly={readOnly} />
-            <CompanionSpellEditor companion={data} setCompanion={setData} readOnly={readOnly} />
+          <CompanionAttackEditor companion={data} setCompanion={setData} readOnly={readOnly} />
+          <CompanionSpellEditor companion={data} setCompanion={setData} readOnly={readOnly} />
         </div>
 
         <div hidden={activeTab !== 'notes'}>
-            <div>
-                <label className="block text-sm font-medium text-muted-foreground">Notes, Features & Traits</label>
-                {readOnly ? (
-                    <div className="mt-1 p-3 bg-input/50 rounded-md min-h-[200px] text-foreground/80 whitespace-pre-wrap">{data.notes || <span className="text-muted-foreground/50">No notes.</span>}</div>
-                ) : (
-                    <textarea
-                        name="notes"
-                        value={data.notes}
-                        onChange={handleChange}
-                        rows={12}
-                        className="mt-1 block w-full bg-input border border-border rounded-md shadow-sm py-2 px-3 text-foreground focus:outline-none focus:ring-ring focus:border-accent sm:text-sm"
-                        placeholder="Special abilities, background, resistances, immunities, etc."
-                    />
-                )}
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground">Notes, Features & Traits</label>
+            {readOnly ? (
+              <div className="mt-1 p-3 bg-input/50 rounded-md min-h-[200px] text-foreground/80 whitespace-pre-wrap">{data.notes || <span className="text-muted-foreground/50">No notes.</span>}</div>
+            ) : (
+              <textarea
+                name="notes"
+                value={data.notes}
+                onChange={handleChange}
+                rows={12}
+                className="mt-1 block w-full bg-input border border-border rounded-md shadow-sm py-2 px-3 text-foreground focus:outline-none focus:ring-ring focus:border-accent sm:text-sm"
+                placeholder="Special abilities, background, resistances, immunities, etc."
+              />
+            )}
+          </div>
         </div>
       </div>
       <ImageUploader
@@ -279,10 +277,10 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
         onImageReady={handleImageUpload}
       />
       {isImageModalOpen && data.imageUrl && (
-        <ImageModal 
-            imageUrl={data.imageUrl} 
-            altText={`Portrait for ${data.name}`} 
-            onClose={() => setIsImageModalOpen(false)} 
+        <ImageModal
+          imageUrl={data.imageUrl}
+          altText={`Portrait for ${data.name}`}
+          onClose={() => setIsImageModalOpen(false)}
         />
       )}
     </dialog>

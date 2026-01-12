@@ -3,29 +3,30 @@ import { ICompanion, Spell } from '../characterTypes';
 import { PlusIcon, TrashIcon } from '../../../components/ui/icons';
 
 interface CompanionSpellEditorProps {
-  companion: ICompanion;
-  setCompanion: React.Dispatch<React.SetStateAction<ICompanion>>;
-  readOnly?: boolean;
+    companion: ICompanion;
+    setCompanion: React.Dispatch<React.SetStateAction<ICompanion>>;
+    readOnly?: boolean;
 }
 
 const createNewSpell = (): Spell => ({
-  id: `spell_${Date.now()}_${Math.random()}`,
-  name: '',
-  description: '',
-  level: 0,
-  school: '',
-  castingTime: '',
-  range: '',
-  components: '',
-  duration: '',
+    id: `spell_${Date.now()}_${Math.random()}`,
+    name: '',
+    description: '',
+    level: 0,
+    school: '',
+    castingTime: '',
+    range: '',
+    components: '',
+    duration: '',
+    ritual: false,
+    concentration: false,
 });
 
 const SortButton = ({ label, onClick, isActive }: { label: string, onClick: () => void, isActive: boolean }) => (
     <button
         onClick={onClick}
-        className={`px-2 py-1 text-xs rounded-md transition-colors ${
-            isActive ? 'bg-accent text-accent-foreground' : 'bg-muted/50 hover:bg-muted'
-        }`}
+        className={`px-2 py-1 text-xs rounded-md transition-colors ${isActive ? 'bg-accent text-accent-foreground' : 'bg-muted/50 hover:bg-muted'
+            }`}
     >
         {label}
     </button>
@@ -102,16 +103,16 @@ export const CompanionSpellEditor: React.FC<CompanionSpellEditorProps> = ({ comp
     };
 
     const addSpell = () => {
-    const newSpell = createNewSpell();
-    setCompanion(prev => ({ ...prev, spells: [...prev.spells, newSpell] }));
-    setNewlyAddedSpellId(newSpell.id);
+        const newSpell = createNewSpell();
+        setCompanion(prev => ({ ...prev, spells: [...prev.spells, newSpell] }));
+        setNewlyAddedSpellId(newSpell.id);
     };
 
     const deleteSpell = (spellId: string) => {
-    // Se stiamo cancellando l'incantesimo appena aggiunto, resettiamo anche lo stato
-    if (spellId === newlyAddedSpellId) {
-      setNewlyAddedSpellId(null);
-    }
+        // Se stiamo cancellando l'incantesimo appena aggiunto, resettiamo anche lo stato
+        if (spellId === newlyAddedSpellId) {
+            setNewlyAddedSpellId(null);
+        }
         setCompanion(prev => ({ ...prev, spells: prev.spells.filter(spell => spell.id !== spellId) }));
     };
 
@@ -136,7 +137,7 @@ export const CompanionSpellEditor: React.FC<CompanionSpellEditorProps> = ({ comp
                             .filter(spell => spell.id !== newlyAddedSpellId)
                             .map((spell) => (
                                 <SpellForm key={spell.id} spell={spell} onSpellChange={handleSpellChange} onDelete={deleteSpell} inputClass={inputClass} />
-                        ))}
+                            ))}
                         {/* Renderizza l'incantesimo appena aggiunto in fondo, separatamente */}
                         {newlyAddedSpellId && sortedSpells.find(s => s.id === newlyAddedSpellId) && (
                             <div onBlur={(e) => {

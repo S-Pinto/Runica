@@ -1,0 +1,99 @@
+﻿src/App.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/ErrorBoundary.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/features/character/CharacterList.tsx(19,1): error TS6133: 'CharacterCard' is declared but its value is never read.
+src/features/character/characterService.ts(9,27): error TS6133: 'abilityScores' is declared but its value is never read.
+src/features/character/CharacterSheet.tsx(3,47): error TS6133: 'Skill' is declared but its value is never read.
+src/features/character/CharacterSheet.tsx(247,11): error TS6133: 'handleUnarmoredBaseChange' is declared but its value is never read.
+src/features/character/components/AbilitiesDisplay.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/features/character/components/AbilitiesDisplay.tsx(2,10): error TS6133: 'ICharacter' is declared but its value is never read.
+src/features/character/components/CompanionSheetModal.tsx(144,9): error TS6133: 'initiative' is declared but its value is never read.
+src/features/character/components/CompanionSheetModal.tsx(218,46): error TS2322: Type '(newHp: ICompanion["hp"]) => void' is not assignable to type '(newHp: HpData) => void'.
+  Types of parameters 'newHp' and 'newHp' are incompatible.
+    Type 'HpData' is not assignable to type '{ max: number; current: number; temporary: 0; }'.
+      Types of property 'temporary' are incompatible.
+        Type 'number' is not assignable to type '0'.
+src/features/character/components/CompanionSpellEditor.tsx(11,38): error TS2739: Type '{ id: string; name: string; description: string; level: number; school: string; castingTime: string; range: string; components: string; duration: string; }' is missing the following properties from type 'Spell': ritual, concentration
+src/features/character/components/EquipmentList.tsx(58,108): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string | number | boolean'.
+  Type 'undefined' is not assignable to type 'string | number | boolean'.
+src/features/character/components/EquipmentList.tsx(68,147): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'string | number | boolean'.
+  Type 'undefined' is not assignable to type 'string | number | boolean'.
+src/features/character/components/EquipmentList.tsx(136,27): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/EquipmentList.tsx(139,31): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/EquipmentList.tsx(147,33): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/EquipmentList.tsx(159,6): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/EquipmentList.tsx(170,7): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/CombatTabView.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/features/character/components/play-view/CombatTabView.tsx(6,40): error TS6133: 'SwordIcon' is declared but its value is never read.
+src/features/character/components/play-view/CombatTabView.tsx(6,51): error TS6133: 'BoltIcon' is declared but its value is never read.
+src/features/character/components/play-view/DeathSavesTracker.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/features/character/components/play-view/DeathSavesTracker.tsx(9,13): error TS2339: Property 'deathSaves' does not exist on type 'ICharacter | null'.
+src/features/character/components/play-view/HitDiceTracker.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/features/character/components/play-view/HitDiceTracker.tsx(9,37): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/HitDiceTracker.tsx(12,13): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/HitDiceTracker.tsx(12,39): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/HitDiceTracker.tsx(12,58): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/HitDiceTracker.tsx(14,79): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/HitDiceTracker.tsx(16,39): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/HitDiceTracker.tsx(16,57): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/HitDiceTracker.tsx(20,22): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/HitDiceTracker.tsx(21,27): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/HitDiceTracker.tsx(21,52): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/HitDiceTracker.tsx(26,41): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/HitDiceTracker.tsx(33,91): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/HitDiceTracker.tsx(33,109): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/HitDiceTracker.tsx(33,136): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/HitDiceTracker.tsx(35,57): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/HitDiceTracker.tsx(35,83): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/HitDiceTracker.tsx(35,102): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/HitDiceTracker.tsx(35,338): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/HPTracker.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/features/character/components/play-view/HPTracker.tsx(8,13): error TS2339: Property 'hp' does not exist on type 'ICharacter | null'.
+src/features/character/components/play-view/InfoTabView.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/features/character/components/play-view/InfoTabView.tsx(15,64): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/InfoTabView.tsx(16,52): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/InfoTabView.tsx(17,51): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/InfoTabView.tsx(18,51): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/InfoTabView.tsx(21,61): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/InfoTabView.tsx(22,59): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/InventoryTabView.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/features/character/components/play-view/InventoryTabView.tsx(11,25): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/InventoryTabView.tsx(16,26): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/InventoryTabView.tsx(42,6): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/InventoryTabView.tsx(53,7): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/InventoryTabView.tsx(98,27): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/InventoryTabView.tsx(100,67): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/MainTabView.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/features/character/components/play-view/MainTabView.tsx(15,39): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/MainTabView.tsx(16,33): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/MainTabView.tsx(19,52): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/MainTabView.tsx(20,58): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/MainTabView.tsx(31,83): error TS2345: Argument of type 'ICharacter | null' is not assignable to parameter of type 'ICharacter'.
+  Type 'null' is not assignable to type 'ICharacter'.
+src/features/character/components/play-view/MainTabView.tsx(33,71): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/MainTabView.tsx(34,54): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/MainTabView.tsx(34,101): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/MainTabView.tsx(36,68): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/MainTabView.tsx(44,69): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/SpellsTabView.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/features/character/components/play-view/SpellsTabView.tsx(10,33): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/SpellsTabView.tsx(11,68): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/SpellsTabView.tsx(12,51): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/SpellsTabView.tsx(13,52): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/SpellsTabView.tsx(29,61): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/SpellsTabView.tsx(30,18): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/SpellsTabView.tsx(30,47): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/play-view/SpellsTabView.tsx(31,69): error TS18047: 'character' is possibly 'null'.
+src/features/character/components/PlayViewSpellList.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/features/character/components/ui/StatBox.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/features/character/PlayView.tsx(1,38): error TS6133: 'useMemo' is declared but its value is never read.
+src/features/character/PlayView.tsx(3,1): error TS6133: 'ICharacter' is declared but its value is never read.
+src/features/character/PlayView.tsx(68,38): error TS6133: 'updateCharacter' is declared but its value is never read.
+src/lib/firebaseConfig.ts(10,23): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+src/lib/firebaseConfig.ts(11,27): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+src/lib/firebaseConfig.ts(12,26): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+src/lib/firebaseConfig.ts(13,30): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+src/lib/firebaseConfig.ts(14,34): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+src/lib/firebaseConfig.ts(15,22): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+src/lib/firebaseConfig.ts(16,30): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+src/providers/ThemeProvider.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/routes/index.tsx(1,1): error TS6133: 'React' is declared but its value is never read.

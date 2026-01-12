@@ -5,6 +5,7 @@ import { ChevronDownIcon } from '../../../../components/ui/icons';
 
 const InventoryTabView = () => {
   const { character, updateCharacter } = useCharacter();
+  if (!character) return null;
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
   const handleToggleEquip = (itemId: string) => {
@@ -46,7 +47,7 @@ const InventoryTabView = () => {
         backpack.push(item);
       }
     });
-    return { 
+    return {
       equippableItems: equippable.sort((a, b) => a.name.localeCompare(b.name)),
       backpackItems: backpack.sort((a, b) => a.name.localeCompare(b.name)),
     };

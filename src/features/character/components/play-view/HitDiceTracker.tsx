@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useCharacter } from '../../CharacterProvider';
 import { getModifier, rollDiceExpression } from '../../utils/characterUtils';
 
 export const HitDiceTracker = () => {
     const { character, updateCharacter } = useCharacter();
+    if (!character) return null;
     const [hitDiceRoll, setHitDiceRoll] = useState<string | null>(null);
 
     const conModifier = getModifier(character.abilityScores.constitution);

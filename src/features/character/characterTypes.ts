@@ -14,17 +14,21 @@ export interface Skill {
   expertise: boolean;
 }
 
+// In un file come src/features/character/characterTypes.ts
 export interface Spell {
   id: string;
   name: string;
-  level: number; // 0 for cantrips
+  level: number;
   school: string;
   castingTime: string;
   range: string;
   components: string;
   duration: string;
   description: string;
+  ritual: boolean;       // Aggiunto
+  concentration: boolean; // Aggiunto
 }
+
 
 export interface Feature {
   id: string;
@@ -137,7 +141,7 @@ export interface ICompanion {
   type: string; // e.g., 'Familiar', 'Animal Companion', 'Summon'
   imageUrl?: string;
   
-  hp: { max: number; current: number; temporary: 0 };
+  hp: { max: number; current: number; temporary: number };
   armorClass: number;
   speed: string;
   

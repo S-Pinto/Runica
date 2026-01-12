@@ -1,6 +1,7 @@
 import React from 'react';
 import { ICharacter, AbilityScores } from '../characterTypes';
 import { useCharacter } from '../CharacterProvider';
+import { AnimatedBorderCard } from '../../../components/ui/AnimatedBorderCard';
 
 const getModifier = (score: number) => Math.floor((score - 10) / 2);
 const formatModifier = (mod: number) => (mod >= 0 ? `+${mod}` : String(mod));
@@ -25,7 +26,7 @@ export const AbilitiesDisplay = () => {
                     const relevantSkills = skills.filter(s => s.ability === abilityKey);
 
                     return (
-                        <div key={abilityKey} className="bg-muted/50 p-3 rounded-lg border border-border/50">
+                        <AnimatedBorderCard key={abilityKey} className="shadow-lg shadow-accent/5 p-4 sm:p-6 rounded-lg border border-border space-y-2 hover:shadow-xl transition-shadow duration-100">
                             <div className="flex justify-between items-center mb-2">
                                 <h4 className="text-lg font-cinzel text-accent capitalize">{abilityKey}</h4>
                                 <div className="flex items-baseline gap-2">
@@ -64,7 +65,7 @@ export const AbilitiesDisplay = () => {
                                     );
                                 })}
                             </div>
-                        </div>
+                        </AnimatedBorderCard>
                     );
                 })}
             </div>

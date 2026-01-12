@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ICharacter, AbilityScores, Currency, Skill } from './characterTypes';
+import { ICharacter, AbilityScores, Currency } from './characterTypes';
 import { useCharacter } from './CharacterProvider';
 import * as characterService from './characterService';
 import * as storageService from '../../services/storageService';
@@ -11,7 +11,7 @@ import { Spellbook } from './components/Spellbook';
 import { FeatureList } from './components/FeatureList';
 import { EquipmentList } from './components/EquipmentList';
 import { AttackList } from './components/AttackList';
-import { CustomResourceEditor } from './components/CustomResourceEditor'; 
+import { CustomResourceEditor } from './components/CustomResourceEditor';
 import { useAuth } from '../../providers/AuthProvider';
 import { StatBox } from './components/ui/StatBox';
 import { CompanionTab } from './components/play-view/CompanionTab';
@@ -31,28 +31,27 @@ const TabButton = ({ label, isActive, onClick, controls, id }: { label: string, 
         aria-selected={isActive}
         aria-controls={controls}
         onClick={onClick}
-        className={`px-3 py-2 text-sm font-medium rounded-t-lg transition-colors whitespace-nowrap ${
-            isActive
+        className={`px-3 py-2 text-sm font-medium rounded-t-lg transition-colors whitespace-nowrap ${isActive
                 ? 'bg-card text-accent border-b-2 border-accent'
                 : 'text-muted-foreground hover:bg-muted border-b-2 border-transparent'
-        }`}
+            }`}
     >
         {label}
     </button>
 );
 
-const InputField = ({label, name, type, value, onChange, placeholder, className}: {label: string; name: string; type: string; value: any; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; placeholder?: string; className?:string;}) => (
+const InputField = ({ label, name, type, value, onChange, placeholder, className }: { label: string; name: string; type: string; value: any; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; placeholder?: string; className?: string; }) => (
     <div className={className}>
-      <label htmlFor={name} className="block text-sm font-medium text-muted-foreground capitalize">{label}</label>
-      <input
-        type={type}
-        id={name}
-        name={name}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className="mt-1 block w-full bg-input border border-border rounded-md shadow-sm py-2 px-3 text-foreground focus:outline-none focus:ring-ring focus:border-accent sm:text-sm"
-      />
+        <label htmlFor={name} className="block text-sm font-medium text-muted-foreground capitalize">{label}</label>
+        <input
+            type={type}
+            id={name}
+            name={name}
+            value={value}
+            onChange={onChange}
+            placeholder={placeholder}
+            className="mt-1 block w-full bg-input border border-border rounded-md shadow-sm py-2 px-3 text-foreground focus:outline-none focus:ring-ring focus:border-accent sm:text-sm"
+        />
     </div>
 );
 
@@ -91,7 +90,7 @@ export const CharacterSheet: React.FC = () => {
     const [activeTab, setActiveTab] = useState<Tab>('main');
     const [isUploaderOpen, setIsUploaderOpen] = useState(false);
     const isNewCharacter = window.location.pathname.endsWith('/character/new');
-    
+
     useEffect(() => {
         let isMounted = true;
         const loadCharacter = async () => {
@@ -128,7 +127,7 @@ export const CharacterSheet: React.FC = () => {
         try {
             // If it's a new character, generate a permanent ID.
             const id = isNewCharacter ? `char_${Date.now()}` : character.id;
-            
+
             // The ImageUploader now handles its own uploads and updates the character state directly.
             // We just need to save the character object as it is.
             const charToSave: ICharacter = { ...character, id, proficiencyBonus, initiative, lastUpdated: Date.now() };
@@ -144,7 +143,7 @@ export const CharacterSheet: React.FC = () => {
             setIsSaving(false);
         }
     };
-    
+
     const handleDeleteClick = async () => {
         if (character && !isNewCharacter && window.confirm(`Are you sure you want to permanently delete ${character.name}?`)) {
             try {
@@ -181,7 +180,7 @@ export const CharacterSheet: React.FC = () => {
     const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         if (!character) return;
         const { name, value, type } = e.target;
-        
+
         let processedValue: string | number = value;
         if (type === 'number') {
             processedValue = parseInt(value) || 0;
@@ -192,9 +191,9 @@ export const CharacterSheet: React.FC = () => {
 
     const handleCurrencyChange = (currency: keyof Currency, value: number) => {
         if (!character) return;
-        setCharacter(prev => ({...prev!, currency: {...prev!.currency, [currency]: value }}));
+        setCharacter(prev => ({ ...prev!, currency: { ...prev!.currency, [currency]: value } }));
     };
-    
+
     const handleHpChange = (field: 'current' | 'max' | 'temporary', value: number) => {
         if (!character) return;
         setCharacter(prev => ({ ...prev!, hp: { ...prev!.hp, [field]: value } }));
@@ -210,12 +209,12 @@ export const CharacterSheet: React.FC = () => {
         if (!character) return;
         setCharacter(prev => ({ ...prev!, abilityScores: { ...prev!.abilityScores, [ability]: value } }));
     };
-    
+
     const handleSavingThrowProficiencyChange = (ability: keyof AbilityScores) => {
         if (!character) return;
         const newSavingThrows = { ...character.savingThrows };
         newSavingThrows[ability].proficient = !newSavingThrows[ability].proficient;
-        setCharacter(prev => ({...prev!, savingThrows: newSavingThrows}));
+        setCharacter(prev => ({ ...prev!, savingThrows: newSavingThrows }));
     };
 
     const handleSkillProficiencyChange = (skillName: string) => {
@@ -244,11 +243,7 @@ export const CharacterSheet: React.FC = () => {
         setCharacter(prev => ({ ...prev!, skills: newSkills }));
     };
 
-    const handleUnarmoredBaseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!character) return;
-        const newBase = parseInt(e.target.value, 10) || 0;
-        updateCharacter({ unarmoredDefense: { base: newBase, abilities: character.unarmoredDefense?.abilities || [] } });
-    };
+
 
     const handleUnarmoredAbilityToggle = (ability: keyof AbilityScores) => {
         if (!character) return;
@@ -263,15 +258,15 @@ export const CharacterSheet: React.FC = () => {
         if (!character) return;
         const newSlots = { ...character.spellSlots };
         newSlots[level] = { ...newSlots[level], max: value };
-        setCharacter(prev => ({...prev!, spellSlots: newSlots }));
+        setCharacter(prev => ({ ...prev!, spellSlots: newSlots }));
     }
-    
+
     const handleGeneratePersonality = async () => {
         if (!character) return;
         setIsGenerating(true);
         const personalityFields = await geminiService.generatePersonality(character, personalityPrompt);
-        setCharacter(prev => ({...prev!, ...personalityFields}));
-        setIsGenerating(false); 
+        setCharacter(prev => ({ ...prev!, ...personalityFields }));
+        setIsGenerating(false);
     };
 
     const initiative = useMemo(() => {
@@ -291,20 +286,20 @@ export const CharacterSheet: React.FC = () => {
     if (!character) {
         return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-accent"></div></div>;
     }
-    
+
     return (
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:pt-8">
             {/* Header with responsive layout for controls */}
             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                <button 
-                    onClick={handleBackClick} 
+                <button
+                    onClick={handleBackClick}
                     className="flex items-center gap-2 rounded-md px-3 py-2 font-semibold text-muted-foreground transition-all duration-200 hover:scale-105 hover:text-accent [text-shadow:0_1px_2px_rgba(0,0,0,0.3)] self-start"
                     aria-label={isNewCharacter ? 'Cancel Creation' : 'Back to Play View'}
                 >
                     <BackIcon className="w-5 h-5" />
                     <span>{isNewCharacter ? 'Cancel Creation' : 'Back to Play'}</span>
                 </button>
-                
+
                 <div className="flex items-center gap-2 self-end sm:self-center">
                     {!isNewCharacter && (
                         <button
@@ -316,9 +311,9 @@ export const CharacterSheet: React.FC = () => {
                             <span className="hidden sm:inline">Delete</span>
                         </button>
                     )}
-                    <button 
-                        onClick={handleSaveClick} 
-                        disabled={isSaving} 
+                    <button
+                        onClick={handleSaveClick}
+                        disabled={isSaving}
                         className="flex items-center gap-2 rounded-md px-3 py-2 font-bold text-primary transition-all duration-200 hover:scale-105 hover:text-accent [text-shadow:0_1px_2px_rgba(0,0,0,0.3)] disabled:text-muted-foreground/60 disabled:scale-100 disabled:cursor-not-allowed disabled:[text-shadow:none]"
                     >
                         <SaveIcon className="w-5 h-5" />
@@ -391,7 +386,8 @@ export const CharacterSheet: React.FC = () => {
                             <div className="p-4 border border-border rounded-lg space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-muted-foreground mb-1">Hit Points</label>
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    {/* Stack on mobile and large screens (where parent column is narrow), side-by-side on medium screens */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
                                         <StatInput label="Current" value={character.hp.current} onChange={(val) => handleHpChange('current', Number(val))} />
                                         <StatInput label="Max" value={character.hp.max} onChange={(val) => handleHpChange('max', Number(val))} />
                                         <StatInput label="Temporary" value={character.hp.temporary} onChange={(val) => handleHpChange('temporary', Number(val))} />
@@ -401,10 +397,14 @@ export const CharacterSheet: React.FC = () => {
                             </div>
                             <div className="p-4 border border-border rounded-lg space-y-2">
                                 <h4 className="text-sm font-medium text-muted-foreground">Unarmored Defense</h4>
-                                <div className="flex items-end gap-2">
-                                    <StatInput label="Base AC" value={character.unarmoredDefense?.base ?? 10} onChange={(val) => updateCharacter({ unarmoredDefense: { base: Number(val), abilities: character.unarmoredDefense?.abilities || [] } })} className="w-32" />
-                                    <span className="text-xl text-muted-foreground"> + </span>
-                                    <div className="flex-1">
+                                {/* Layout reattivo: verticale su mobile, orizzontale da sm in su */}
+                                <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-2">
+                                    {/* Wrapper per StatInput per controllarne la larghezza su desktop e risolvere il layout flex */}
+                                    <div className="w-full sm:max-w-[160px]">
+                                        <StatInput label="Base AC" value={character.unarmoredDefense?.base ?? 10} onChange={(val) => updateCharacter({ unarmoredDefense: { base: Number(val), abilities: character.unarmoredDefense?.abilities || [] } })} />
+                                    </div>
+                                    <span className="hidden sm:inline text-xl text-muted-foreground self-center"> + </span>
+                                    <div className="flex-1 w-full">
                                         <div className="grid grid-cols-3 gap-2">
                                             {ABILITIES.map(ability => (
                                                 <div key={ability} className="flex flex-col items-center">
@@ -437,152 +437,152 @@ export const CharacterSheet: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            
 
-            <div id="panel-stats" role="tabpanel" aria-labelledby="tab-stats" hidden={activeTab !== 'stats'}>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {ABILITIES.map(abilityKey => {
-                        const abilityScore = character.abilityScores[abilityKey];
-                        const abilityModifier = getModifier(abilityScore);
-                        const savingThrow = character.savingThrows[abilityKey];
-                        const savingThrowBonus = abilityModifier + (savingThrow.proficient ? proficiencyBonus : 0);
-                        const relevantSkills = character.skills.filter(s => s.ability === abilityKey);
 
-                        return (
-                            <div key={abilityKey} className="bg-card p-3 rounded-lg flex flex-col gap-3 border border-border">
-                                <div className="flex items-center gap-4 justify-between">
-                                    <div className="flex-1">
-                                        <h3 className="text-xl font-cinzel text-accent capitalize">{abilityKey}</h3>
-                                    </div>
-                                    <StatInput value={abilityScore} onChange={(val) => handleAbilityScoreChange(abilityKey, Number(val))} showModifier />
-                                </div>
-                                <div className="bg-muted/60 p-2 rounded-md space-y-2">
-                                    {/* Saving Throw */}
-                                    <label htmlFor={`saving-throw-${abilityKey}`} className="flex items-center justify-between cursor-pointer text-sm">
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="checkbox"
-                                                id={`saving-throw-${abilityKey}`}
-                                                checked={savingThrow.proficient}
-                                                onChange={() => handleSavingThrowProficiencyChange(abilityKey)}
-                                                className="w-6 h-6 rounded-full text-primary bg-input border-border focus:ring-ring cursor-pointer" />
-                                            <span className="text-foreground">Saving Throw</span>
+                <div id="panel-stats" role="tabpanel" aria-labelledby="tab-stats" hidden={activeTab !== 'stats'}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {ABILITIES.map(abilityKey => {
+                            const abilityScore = character.abilityScores[abilityKey];
+                            const abilityModifier = getModifier(abilityScore);
+                            const savingThrow = character.savingThrows[abilityKey];
+                            const savingThrowBonus = abilityModifier + (savingThrow.proficient ? proficiencyBonus : 0);
+                            const relevantSkills = character.skills.filter(s => s.ability === abilityKey);
+
+                            return (
+                                <div key={abilityKey} className="bg-card p-3 rounded-lg flex flex-col gap-3 border border-border">
+                                    <div className="flex items-center gap-4 justify-between">
+                                        <div className="flex-1">
+                                            <h3 className="text-xl font-cinzel text-accent capitalize">{abilityKey}</h3>
                                         </div>
-                                        <span className="font-mono font-bold text-lg text-foreground">{formatModifier(savingThrowBonus)}</span>
-                                    </label>
-                                    {/* Skills */}
-                                    {relevantSkills.map(skill => {
-                                        const skillBonus = abilityModifier + (skill.proficient ? proficiencyBonus : 0) + (skill.expertise ? proficiencyBonus : 0);
-                                        return (
-                                            <div key={skill.name} className="flex items-center justify-between text-sm">
-                                                <div className="flex items-center gap-2">
-                                                    <input
-                                                        type="checkbox"
-                                                        id={`skill-prof-${skill.name}`}
-                                                        checked={skill.proficient}
-                                                        onChange={() => handleSkillProficiencyChange(skill.name)}
-                                                        className="w-6 h-6 rounded-full text-primary bg-input border-border focus:ring-ring cursor-pointer" />
-                                                    <input
-                                                        type="checkbox"
-                                                        id={`skill-exp-${skill.name}`}
-                                                        checked={skill.expertise}
-                                                        onChange={() => handleSkillExpertiseChange(skill.name)}
-                                                        className="w-6 h-6 rounded-sm text-accent bg-input border-border focus:ring-ring cursor-pointer"
-                                                        title="Expertise" />
-                                                    <label htmlFor={`skill-prof-${skill.name}`} className="cursor-pointer text-foreground">{skill.name}</label>
-                                                </div>
-                                                <span className="font-mono font-bold text-lg text-foreground">{formatModifier(skillBonus)}</span>
+                                        <div className="max-w-[160px]">
+                                            <StatInput value={abilityScore} onChange={(val) => handleAbilityScoreChange(abilityKey, Number(val))} showModifier />
+                                        </div>
+                                    </div>
+                                    <div className="bg-muted/60 p-2 rounded-md space-y-2">
+                                        {/* Saving Throw */}
+                                        <label htmlFor={`saving-throw-${abilityKey}`} className="flex items-center justify-between cursor-pointer text-sm">
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="checkbox"
+                                                    id={`saving-throw-${abilityKey}`}
+                                                    checked={savingThrow.proficient}
+                                                    onChange={() => handleSavingThrowProficiencyChange(abilityKey)}
+                                                    className="w-6 h-6 rounded-full text-primary bg-input border-border focus:ring-ring cursor-pointer" />
+                                                <span className="text-foreground">Saving Throw</span>
                                             </div>
-                                        );
-                                    })}
+                                            <span className="font-mono font-bold text-lg text-foreground">{formatModifier(savingThrowBonus)}</span>
+                                        </label>
+                                        {/* Skills */}
+                                        {relevantSkills.map(skill => {
+                                            const skillBonus = abilityModifier + (skill.proficient ? proficiencyBonus : 0) + (skill.expertise ? proficiencyBonus : 0);
+                                            return (
+                                                <div key={skill.name} className="flex items-center justify-between text-sm">
+                                                    <div className="flex items-center gap-2">
+                                                        <input
+                                                            type="checkbox"
+                                                            id={`skill-prof-${skill.name}`}
+                                                            checked={skill.proficient}
+                                                            onChange={() => handleSkillProficiencyChange(skill.name)}
+                                                            className="w-6 h-6 rounded-full text-primary bg-input border-border focus:ring-ring cursor-pointer" />
+                                                        <input
+                                                            type="checkbox"
+                                                            id={`skill-exp-${skill.name}`}
+                                                            checked={skill.expertise}
+                                                            onChange={() => handleSkillExpertiseChange(skill.name)}
+                                                            className="w-6 h-6 rounded-sm text-accent bg-input border-border focus:ring-ring cursor-pointer"
+                                                            title="Expertise" />
+                                                        <label htmlFor={`skill-prof-${skill.name}`} className="cursor-pointer text-foreground">{skill.name}</label>
+                                                    </div>
+                                                    <span className="font-mono font-bold text-lg text-foreground">{formatModifier(skillBonus)}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-
-            <div id="panel-combat" role="tabpanel" aria-labelledby="tab-combat" hidden={activeTab !== 'combat'} className="min-h-[60vh]">
-                <div className="flex flex-col lg:flex-row gap-6 h-full">
-                    <div className="flex-1 lg:w-1/2 flex flex-col p-4 border border-border rounded-lg">
-                        <AttackList />
-                    </div>
-                    <div className="flex-1 lg:w-1/2 flex flex-col p-4 border border-border rounded-lg">
-                        <FeatureList />
+                            );
+                        })}
                     </div>
                 </div>
-            </div>
 
-            <div id="panel-bio" role="tabpanel" aria-labelledby="tab-bio" hidden={activeTab !== 'bio'} className="min-h-[60vh]">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="flex flex-col gap-6">
-                        <TextAreaInput label="Personality Traits" name="personalityTraits" value={character.personalityTraits} onChange={handleFieldChange} />
-                        <TextAreaInput label="Ideals" name="ideals" value={character.ideals} onChange={handleFieldChange} />
-                        <TextAreaInput label="Bonds" name="bonds" value={character.bonds} onChange={handleFieldChange} />
-                        <TextAreaInput label="Flaws" name="flaws" value={character.flaws} onChange={handleFieldChange} />
-                    </div>
-                    <div className="flex flex-col gap-6">
-                        <div className="bg-card p-4 rounded-lg border border-border flex flex-col">
-                            <h3 className="text-lg font-semibold text-accent mb-2">AI Personality Generator</h3>
-                            <input
-                                type="text"
-                                placeholder="Optional: Add a keyword (e.g., 'tragic', 'grew up an orphan')"
-                                value={personalityPrompt}
-                                onChange={(e) => setPersonalityPrompt(e.target.value)}
-                                className="w-full bg-input border border-border rounded-md p-2 text-sm mb-2 focus:ring-ring focus:border-accent" />
-                            <button onClick={handleGeneratePersonality} disabled={isGenerating} className="flex w-full justify-center items-center gap-2 text-sm bg-primary hover:bg-primary/90 px-3 py-2 rounded-md text-primary-foreground transition disabled:bg-muted disabled:text-muted-foreground">
-                                <SparklesIcon className="w-4 h-4" />
-                                {isGenerating ? 'Generating...' : 'Generate with AI'}
-                            </button>
+                <div id="panel-combat" role="tabpanel" aria-labelledby="tab-combat" hidden={activeTab !== 'combat'} className="min-h-[60vh]">
+                    <div className="flex flex-col lg:flex-row gap-6 h-full">
+                        <div className="flex-1 lg:w-1/2 flex flex-col p-4 border border-border rounded-lg">
+                            <AttackList />
                         </div>
-                        <TextAreaInput label="Notes" name="notes" value={character.notes} onChange={handleFieldChange} placeholder="Campaign notes, important NPCs, etc." />
-                        <TextAreaInput label="DM Notes" name="dmNotes" value={character.dmNotes} onChange={handleFieldChange} placeholder="Notes from your DM, or secrets your character knows." />
+                        <div className="flex-1 lg:w-1/2 flex flex-col p-4 border border-border rounded-lg">
+                            <FeatureList />
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div id="panel-inventory" role="tabpanel" aria-labelledby="tab-inventory" hidden={activeTab !== 'inventory'} className="min-h-[60vh]">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-1">
-                        <h3 className="text-lg font-cinzel text-accent mb-4">Currency</h3>
-                        <div className="bg-muted/50 p-4 rounded-lg grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 border border-border">
-                            {(Object.keys(character.currency) as Array<keyof Currency>).map((type) => (
-                                <StatInput key={type} label={type.toUpperCase()} value={character.currency[type]} onChange={(val) => handleCurrencyChange(type, Number(val))}
-                                    inputClassName="text-2xl"
-                                />
+                <div id="panel-bio" role="tabpanel" aria-labelledby="tab-bio" hidden={activeTab !== 'bio'} className="min-h-[60vh]">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="flex flex-col gap-6">
+                            <TextAreaInput label="Personality Traits" name="personalityTraits" value={character.personalityTraits} onChange={handleFieldChange} />
+                            <TextAreaInput label="Ideals" name="ideals" value={character.ideals} onChange={handleFieldChange} />
+                            <TextAreaInput label="Bonds" name="bonds" value={character.bonds} onChange={handleFieldChange} />
+                            <TextAreaInput label="Flaws" name="flaws" value={character.flaws} onChange={handleFieldChange} />
+                        </div>
+                        <div className="flex flex-col gap-6">
+                            <div className="bg-card p-4 rounded-lg border border-border flex flex-col">
+                                <h3 className="text-lg font-semibold text-accent mb-2">AI Personality Generator</h3>
+                                <input
+                                    type="text"
+                                    placeholder="Optional: Add a keyword (e.g., 'tragic', 'grew up an orphan')"
+                                    value={personalityPrompt}
+                                    onChange={(e) => setPersonalityPrompt(e.target.value)}
+                                    className="w-full bg-input border border-border rounded-md p-2 text-sm mb-2 focus:ring-ring focus:border-accent" />
+                                <button onClick={handleGeneratePersonality} disabled={isGenerating} className="flex w-full justify-center items-center gap-2 text-sm bg-primary hover:bg-primary/90 px-3 py-2 rounded-md text-primary-foreground transition disabled:bg-muted disabled:text-muted-foreground">
+                                    <SparklesIcon className="w-4 h-4" />
+                                    {isGenerating ? 'Generating...' : 'Generate with AI'}
+                                </button>
+                            </div>
+                            <TextAreaInput label="Notes" name="notes" value={character.notes} onChange={handleFieldChange} placeholder="Campaign notes, important NPCs, etc." />
+                            <TextAreaInput label="DM Notes" name="dmNotes" value={character.dmNotes} onChange={handleFieldChange} placeholder="Notes from your DM, or secrets your character knows." />
+                        </div>
+                    </div>
+                </div>
+
+                <div id="panel-inventory" role="tabpanel" aria-labelledby="tab-inventory" hidden={activeTab !== 'inventory'} className="min-h-[60vh]">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-1">
+                            <h3 className="text-lg font-cinzel text-accent mb-4">Currency</h3>
+                            {/* Use a responsive grid that wraps automatically */}
+                            <div className="bg-muted/50 p-4 rounded-lg grid gap-4 border border-border grid-cols-[repeat(auto-fill,minmax(140px,1fr))]">
+                                {(Object.keys(character.currency) as Array<keyof Currency>).map((type) => (
+                                    <StatInput key={type} label={type.toUpperCase()} value={character.currency[type]} onChange={(val) => handleCurrencyChange(type, Number(val))} inputClassName="text-2xl" />
+                                ))}
+                            </div>
+                        </div>
+                        <div className="lg:col-span-2 p-4 border border-border rounded-lg">
+                            <EquipmentList />
+                        </div>
+                    </div>
+                </div>
+
+                <div id="panel-spells" role="tabpanel" aria-labelledby="tab-spells" hidden={activeTab !== 'spells'} className="min-h-[60vh] space-y-6">
+                    <div className="bg-muted/50 p-4 rounded-lg border border-border">
+                        <h4 className="text-lg font-cinzel text-accent mb-3">Maximum Spell Slots</h4>
+                        {/* Use a responsive grid that wraps automatically */}
+                        <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(140px,1fr))]">
+                            {Array.from({ length: 9 }, (_, i) => i + 1).map((level) => (
+                                <StatInput key={level} label={`Lvl ${level}`} value={character.spellSlots[level]?.max ?? 0} onChange={(val) => handleSpellSlotChange(level, Number(val))} />
                             ))}
                         </div>
                     </div>
-                    <div className="lg:col-span-2 p-4 border border-border rounded-lg">
-                        <EquipmentList />
+                    <div className="p-4 border border-border rounded-lg">
+                        <CustomResourceEditor character={character} onUpdateCharacter={updateCharacter} />
+                    </div>
+                    <div className="p-4 border border-border rounded-lg">
+                        <Spellbook />
                     </div>
                 </div>
-            </div>
 
-            <div id="panel-spells" role="tabpanel" aria-labelledby="tab-spells" hidden={activeTab !== 'spells'} className="min-h-[60vh] space-y-6">
-                <div className="bg-muted/50 p-4 rounded-lg border border-border">
-                    <h4 className="text-lg font-cinzel text-accent mb-3">Maximum Spell Slots</h4>
-                    <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-3">
-                        {Array.from({ length: 9 }, (_, i) => i + 1).map((level) => (
-                            <StatInput key={level} label={`Lvl ${level}`} value={character.spellSlots[level]?.max ?? 0}
-                                onChange={(val) => handleSpellSlotChange(level, Number(val))}
-                            />
-                        ))}
-                    </div>
-                </div>
-                <div className="p-4 border border-border rounded-lg">
-                    <CustomResourceEditor character={character} onUpdateCharacter={updateCharacter} />
-                </div>
-                <div className="p-4 border border-border rounded-lg">
-                    <Spellbook />
+                <div id="panel-companions" role="tabpanel" aria-labelledby="tab-companions" hidden={activeTab !== 'companions'} className="min-h-[60vh]">
+                    <CompanionTab />
                 </div>
             </div>
-
-            <div id="panel-companions" role="tabpanel" aria-labelledby="tab-companions" hidden={activeTab !== 'companions'} className="min-h-[60vh]">
-                <CompanionTab />
-            </div>
-        </div>
-        <ImageUploader
+            <ImageUploader
                 isOpen={isUploaderOpen}
                 onClose={() => setIsUploaderOpen(false)}
                 onImageReady={handleCharacterImageUpload} />

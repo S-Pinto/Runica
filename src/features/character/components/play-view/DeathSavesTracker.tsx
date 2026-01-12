@@ -1,9 +1,12 @@
 import React from 'react';
 import { useCharacter } from '../../CharacterProvider';
 import { RefreshIcon } from '../../../../components/ui/icons';
+import { AnimatedBorderCard } from '../../../../components/ui/AnimatedBorderCard';
+
 
 export const DeathSavesTracker = () => {
     const { character, updateCharacter } = useCharacter();
+    if (!character) return null;
     const { deathSaves: saves } = character;
 
     const handleSetSaves = (type: 'successes' | 'failures', count: number) => {
@@ -26,7 +29,7 @@ export const DeathSavesTracker = () => {
     const isComplete = isStabilized || isDead;
 
     return (
-        <div className="bg-card p-4 rounded-lg border border-border flex flex-col space-y-4">
+        <AnimatedBorderCard className="shadow-lg shadow-accent/5 p-4 sm:p-6">
             <div className="flex justify-between items-center">
                 <h3 className="text-lg font-cinzel text-accent">Death Saves</h3>
                 {hasSaves && (
@@ -44,8 +47,8 @@ export const DeathSavesTracker = () => {
                         <div className="flex items-center gap-2">
                             {[...Array(3)].map((_, i) => (
                                 <div key={i} role="button" tabIndex={isComplete ? -1 : 0} aria-label={`Set successes to ${i + 1}`}
-                                     onClick={() => !isComplete && handleSetSaves('successes', i + 1)} onKeyDown={(e) => !isComplete && e.key === 'Enter' && handleSetSaves('successes', i + 1)}
-                                     className={`w-8 h-8 rounded-full transition-colors ${isComplete ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${i < saves.successes ? 'bg-green-500' : 'bg-background border border-border hover:bg-muted'}`} />
+                                    onClick={() => !isComplete && handleSetSaves('successes', i + 1)} onKeyDown={(e) => !isComplete && e.key === 'Enter' && handleSetSaves('successes', i + 1)}
+                                    className={`w-8 h-8 rounded-full transition-colors ${isComplete ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${i < saves.successes ? 'bg-green-500' : 'bg-background border border-border hover:bg-muted'}`} />
                             ))}
                         </div>
                         <button onClick={() => handleCrit('successes')} disabled={isComplete || saves.successes >= 2} className="text-xs bg-background border border-border hover:bg-accent hover:text-accent-foreground rounded-md px-2 py-1 disabled:opacity-50 disabled:cursor-not-allowed">+2 Crit</button>
@@ -59,17 +62,17 @@ export const DeathSavesTracker = () => {
                         <div className="flex items-center gap-2">
                             {[...Array(3)].map((_, i) => (
                                 <div key={i} role="button" tabIndex={isComplete ? -1 : 0} aria-label={`Set failures to ${i + 1}`}
-                                     onClick={() => !isComplete && handleSetSaves('failures', i + 1)} onKeyDown={(e) => !isComplete && e.key === 'Enter' && handleSetSaves('failures', i + 1)}
-                                     className={`w-8 h-8 rounded-full transition-colors ${isComplete ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${i < saves.failures ? 'bg-red-600' : 'bg-background border border-border hover:bg-muted'}`} />
+                                    onClick={() => !isComplete && handleSetSaves('failures', i + 1)} onKeyDown={(e) => !isComplete && e.key === 'Enter' && handleSetSaves('failures', i + 1)}
+                                    className={`w-8 h-8 rounded-full transition-colors ${isComplete ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${i < saves.failures ? 'bg-red-600' : 'bg-background border border-border hover:bg-muted'}`} />
                             ))}
                         </div>
-                        <button onClick={() => handleCrit('failures')} disabled={isComplete || saves.failures >= 2} className="text-xs bg-background border border-border hover:bg-destructive hover:text-destructive-foreground rounded-md px-2 py-1 disabled:opacity-50 disabled:cursor-not-allowed">+2 Crit</button>
+                        <button onClick={() => handleCrit('failures')} disabled={isComplete || saves.failures >= 2} className="text-xs bg-background border border-border hover:bg-accent hover:text-accent-foreground rounded-md px-2 py-1 disabled:opacity-50 disabled:cursor-not-allowed">+2 Crit</button>
                     </div>
                 </div>
             </div>
 
             {isStabilized && <p className="text-center text-lg font-bold text-green-400 uppercase tracking-wider">Stabilized</p>}
             {isDead && <p className="text-center text-2xl font-bold text-destructive uppercase tracking-widest animate-pulse">Dead</p>}
-        </div>
+        </AnimatedBorderCard>
     );
 };

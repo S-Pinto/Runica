@@ -22,7 +22,7 @@ const EquipmentForm = ({
 }) => {
   const [formData, setFormData] = useState(initialData);
 
-  const handleChange = (field: keyof EquipmentItem, value: string | number | boolean) => {
+  const handleChange = (field: keyof EquipmentItem, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -105,15 +105,15 @@ const ItemDisplayList = ({
               <p className="font-semibold text-accent truncate" title={item.name}>{item.name} <span className="text-xs text-muted-foreground">(x{item.quantity})</span></p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              <button onClick={() => onEdit(item)} className="text-muted-foreground hover:text-accent p-1"><EditIcon className="w-4 h-4"/></button>
-              <button onClick={() => onDelete(item.id)} className="text-muted-foreground hover:text-destructive p-1"><TrashIcon className="w-4 h-4"/></button>
+              <button onClick={() => onEdit(item)} className="text-muted-foreground hover:text-accent p-1"><EditIcon className="w-4 h-4" /></button>
+              <button onClick={() => onDelete(item.id)} className="text-muted-foreground hover:text-destructive p-1"><TrashIcon className="w-4 h-4" /></button>
             </div>
           </div>
           {expandedItem === item.id && (
             <div className="p-3 border-t border-border/50 bg-muted/30 space-y-2">
               {item.armorType && (
                 <p><strong className="text-muted-foreground capitalize">{item.armorType} Armor</strong>
-                   {item.armorClass ? <span className="text-foreground"> (AC: {item.armorClass})</span> : ''}
+                  {item.armorClass ? <span className="text-foreground"> (AC: {item.armorClass})</span> : ''}
                 </p>
               )}
               <p className="text-foreground whitespace-pre-wrap">{item.description || 'No description.'}</p>
@@ -129,6 +129,8 @@ export const EquipmentList = () => {
   const { character, updateCharacter } = useCharacter();
   const [editingItem, setEditingItem] = useState<EquipmentItem | 'new' | null>(null);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+
+  if (!character) return null;
 
   const handleSave = (itemData: Omit<EquipmentItem, 'id'> | EquipmentItem) => {
     let updatedEquipment: EquipmentItem[];
@@ -163,7 +165,7 @@ export const EquipmentList = () => {
         backpack.push(item);
       }
     });
-    return { 
+    return {
       equippableItems: equippable.sort((a, b) => a.name.localeCompare(b.name)),
       backpackItems: backpack.sort((a, b) => a.name.localeCompare(b.name)),
     };
@@ -187,7 +189,7 @@ export const EquipmentList = () => {
       )}
 
       <div className="space-y-6">
-        <ItemDisplayList 
+        <ItemDisplayList
           title="Equippable Gear"
           items={equippableItems}
           expandedItem={expandedItem}
@@ -195,7 +197,7 @@ export const EquipmentList = () => {
           onEdit={setEditingItem}
           onDelete={handleDelete}
         />
-        <ItemDisplayList 
+        <ItemDisplayList
           title="Backpack"
           items={backpackItems}
           expandedItem={expandedItem}

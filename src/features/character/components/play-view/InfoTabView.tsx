@@ -3,6 +3,7 @@ import { useCharacter } from '../../CharacterProvider';
 
 const InfoTabView = () => {
     const { character } = useCharacter();
+    if (!character) return null;
     const InfoBlock = ({ title, content }: { title: string; content: string }) => (
         <div className="bg-card p-4 rounded-lg border border-border flex-grow">
             <h3 className="text-lg font-cinzel text-accent mb-2">{title}</h3>
@@ -17,7 +18,7 @@ const InfoTabView = () => {
                 <InfoBlock title="Bonds" content={character.bonds} />
                 <InfoBlock title="Flaws" content={character.flaws} />
             </div>
-             <div className="space-y-6 flex flex-col">
+            <div className="space-y-6 flex flex-col">
                 <InfoBlock title="Character Notes" content={character.notes} />
                 <InfoBlock title="Campaign Info" content={character.dmNotes} />
             </div>

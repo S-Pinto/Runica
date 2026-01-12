@@ -1,31 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Spell } from '../characterTypes';
 import { useCharacter } from '../CharacterProvider';
-
-const SpellCard = ({ spell, onToggleExpand, isExpanded }: { spell: Spell; onToggleExpand: () => void; isExpanded: boolean; }) => (
-    <div className="bg-card/50 rounded-lg">
-        <div className="flex justify-between items-center cursor-pointer p-3" onClick={onToggleExpand}>
-            <div className="flex-1 min-w-0">
-                 <h4 className="font-bold text-accent truncate" title={spell.name}>{spell.name}</h4>
-                 <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                    <span className="truncate" title={spell.castingTime}>{spell.castingTime}</span>
-                    <span className="opacity-50">|</span>
-                    <span className="truncate" title={spell.range}>{spell.range}</span>
-                </div>
-            </div>
-            <div className="flex items-center gap-2 pl-2 flex-shrink-0">
-                <span className="text-xs text-muted-foreground capitalize">{spell.school}</span>
-            </div>
-        </div>
-        {isExpanded && (
-            <div className="mt-2 pt-3 border-t border-border/50 space-y-2 text-sm p-3 bg-muted/30">
-                <p><strong className="text-muted-foreground">Components:</strong> {spell.components}</p>
-                <p><strong className="text-muted-foreground">Duration:</strong> {spell.duration}</p>
-                <p className="text-foreground mt-2 whitespace-pre-wrap">{spell.description}</p>
-            </div>
-        )}
-    </div>
-);
+import { SearchIcon, XCircleIcon } from '../../../components/ui/icons';
+import { SpellCard } from './SpellCard';
 
 
 export const PlayViewSpellList = () => {
@@ -58,14 +35,25 @@ export const PlayViewSpellList = () => {
       <div className="flex justify-between items-center mb-2">
         <h3 className="text-lg font-cinzel text-accent">Spellbook</h3>
       </div>
-      <div className="mb-4">
+      <div className="mb-4 relative">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <SearchIcon className="h-5 w-5 text-muted-foreground" />
+        </div>
         <input 
             type="text" 
             placeholder="Search spells..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-input p-2 rounded-md border border-border text-sm focus:ring-ring focus:border-accent"
+            className="w-full bg-input p-2 pl-10 pr-10 rounded-md border border-border text-sm focus:ring-ring focus:border-accent"
         />
+        {searchTerm && (
+            <button 
+                onClick={() => setSearchTerm('')} 
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+            >
+                <XCircleIcon className="h-5 w-5 text-muted-foreground hover:text-destructive" />
+            </button>
+        )}
       </div>
       
       <div className="space-y-6 overflow-y-auto pr-2 -mr-2 flex-grow">
@@ -81,7 +69,7 @@ export const PlayViewSpellList = () => {
             sortedLevels.map(level => (
                 <div key={level}>
                     <h4 className="text-xl font-serif text-foreground border-b border-border pb-1 mb-3">{level === 0 ? 'Cantrips' : `Level ${level}`}</h4>
-                    <div className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                         {spellsByLevel[level].map(spell => (
                             <SpellCard 
                               key={spell.id}

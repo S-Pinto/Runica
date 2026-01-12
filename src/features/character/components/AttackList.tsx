@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Attack } from '../characterTypes';
 import { useCharacter } from '../CharacterProvider';
-import { TrashIcon, EditIcon, PlusCircleIcon } from '../../../components/ui/icons';
+import { TrashIcon, EditIcon, PlusCircleIcon, CheckIcon, XMarkIcon } from '../../../components/ui/icons';
+import { AttackRow } from './AttackRow';
 
 const DEFAULT_ATTACK: Omit<Attack, 'id'> = {
   name: '',
@@ -49,6 +50,7 @@ const AttackForm = ({
 export const AttackList = () => {
   const { character, updateCharacter } = useCharacter();
   const [editingAttack, setEditingAttack] = useState<Attack | 'new' | null>(null);
+  const [deletingAttackId, setDeletingAttackId] = useState<string | null>(null);
 
   if (!character) return null;
 
@@ -65,10 +67,9 @@ export const AttackList = () => {
   };
 
   const handleDeleteAttack = (attackId: string) => {
-    if (window.confirm('Are you sure you want to delete this attack?')) {
-      const updatedAttacks = character.attacks.filter(f => f.id !== attackId);
-      updateCharacter({ attacks: updatedAttacks });
-    }
+    const updatedAttacks = character.attacks.filter(f => f.id !== attackId);
+    updateCharacter({ attacks: updatedAttacks });
+    setDeletingAttackId(null);
   };
 
   const sortedAttacks = useMemo(() => {
@@ -79,38 +80,56 @@ export const AttackList = () => {
     <div className="bg-card/80 p-4 rounded-lg border border-border flex flex-col h-full">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-cinzel text-accent">Attacks & Cantrips</h3>
-        <button onClick={() => setEditingAttack('new')} className="flex items-center gap-2 text-sm bg-primary hover:bg-primary/90 px-3 py-2 rounded-md text-primary-foreground transition">
+        <button 
+          onClick={() => setEditingAttack('new')} 
+          disabled={editingAttack !== null}
+          className="flex items-center gap-2 text-sm bg-primary hover:bg-primary/90 px-3 py-2 rounded-md text-primary-foreground transition disabled:bg-muted disabled:cursor-not-allowed"
+        >
           <PlusCircleIcon className="w-5 h-5" /> Add Attack
         </button>
       </div>
 
-      {editingAttack && (
-        <AttackForm
-          initialData={editingAttack === 'new' ? DEFAULT_ATTACK : editingAttack}
-          onSave={handleSaveAttack}
-          onCancel={() => setEditingAttack(null)}
-        />
-      )}
-
-      <div className="space-y-2 overflow-y-auto pr-2 -mr-2 flex-grow">
-        {sortedAttacks.length === 0 && !editingAttack && (
+      <div className="space-y-3 overflow-y-auto pr-2 -mr-2 flex-grow">
+        {sortedAttacks.length === 0 && editingAttack !== 'new' && (
           <div className="flex items-center justify-center h-full">
             <p className="text-center text-muted-foreground text-sm py-4">No attacks have been defined.</p>
           </div>
         )}
-        {sortedAttacks.map(attack => (
-          <div key={attack.id} className="bg-card/50 rounded-lg text-sm">
-            <div className="grid grid-cols-6 items-center p-3">
-              <span className="font-semibold text-accent col-span-3">{attack.name}</span>
-              <span className="font-mono text-foreground col-span-1 text-center">{attack.bonus}</span>
-              <span className="font-mono text-foreground col-span-1 text-center">{attack.damage}</span>
-              <div className="flex items-center gap-2 justify-end col-span-1">
-                <button onClick={() => setEditingAttack(attack)} className="text-muted-foreground hover:text-accent p-1"><EditIcon className="w-4 h-4"/></button>
-                <button onClick={() => handleDeleteAttack(attack.id)} className="text-muted-foreground hover:text-destructive p-1"><TrashIcon className="w-4 h-4"/></button>
-              </div>
-            </div>
+        {sortedAttacks.map(attack =>
+          editingAttack && typeof editingAttack === 'object' && editingAttack.id === attack.id ? (
+            <AttackForm
+              key={attack.id}
+              initialData={editingAttack}
+              onSave={handleSaveAttack}
+              onCancel={() => setEditingAttack(null)}
+            />
+          ) : (
+            <AttackRow key={attack.id} attack={attack} actions={
+              deletingAttackId === attack.id ? (
+                <>
+                  <span className="text-xs text-destructive-foreground">Sure?</span>
+                  <button onClick={() => handleDeleteAttack(attack.id)} className="text-destructive hover:text-destructive-foreground p-1"><CheckIcon className="w-4 h-4"/></button>
+                  <button onClick={() => setDeletingAttackId(null)} className="text-muted-foreground hover:text-accent p-1"><XMarkIcon className="w-4 h-4"/></button>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => { setEditingAttack(attack); setDeletingAttackId(null); }} disabled={editingAttack !== null} className="text-muted-foreground hover:text-accent p-1 disabled:text-muted/50 disabled:cursor-not-allowed"><EditIcon className="w-4 h-4"/></button>
+                  <button onClick={() => { setDeletingAttackId(attack.id); setEditingAttack(null); }} disabled={editingAttack !== null} className="text-muted-foreground hover:text-destructive p-1 disabled:text-muted/50 disabled:cursor-not-allowed"><TrashIcon className="w-4 h-4"/></button>
+                </>
+              )
+            }/>
+          )
+        )}
+
+        {editingAttack === 'new' && (
+          <div className="mt-4">
+            <AttackForm
+              initialData={DEFAULT_ATTACK}
+              onSave={handleSaveAttack}
+              onCancel={() => setEditingAttack(null)}
+            />
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
