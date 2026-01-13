@@ -4,6 +4,8 @@ import {
   DndContext,
   closestCenter,
   KeyboardSensor,
+  DragOverlay,
+  TouchSensor,
   PointerSensor,
   useSensor,
   useSensors,
@@ -16,11 +18,11 @@ import {
   rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { useAuth } from '../../providers/AuthProvider';
-import { CharacterCard } from './components/CharacterCard';
 import { UserPlusIcon } from '../../components/ui/icons';
 import { useCharacter } from './CharacterProvider';
 import { ICharacter } from './characterTypes'; // Assicurati che il percorso all'interfaccia ICharacter sia corretto
 import { SortableCharacterCard } from './components/SortableCharacterCard';
+import { CharacterCard } from './components/CharacterCard';
 import { useIsTouchDevice } from '../../hooks/useIsTouchDevice';
 
 export const CharacterList: React.FC = () => {
@@ -28,6 +30,7 @@ export const CharacterList: React.FC = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [orderedCharacters, setOrderedCharacters] = useState<ICharacter[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
   const isTouchDevice = useIsTouchDevice();
   const intersectingIds = useRef(new Map<string, number>());
@@ -52,7 +55,9 @@ export const CharacterList: React.FC = () => {
       };
 
       const observer = new IntersectionObserver((entries) => {
-        // Aggiorna la nostra mappa degli elementi che intersecano la viewport
+        // Se stiamo trascinando, non aggiorniamo l'ID attivo per evitare flickering o salti di layout
+        if (activeId) return;
+
         entries.forEach(entry => {
           const id = (entry.target as HTMLElement).dataset.characterId;
           if (!id) return;
@@ -73,9 +78,9 @@ export const CharacterList: React.FC = () => {
 
         // Ordina per posizione (il valore nella mappa) per trovare l'elemento più in alto
         visibleElements.sort(([, topA], [, topB]) => topA - topB);
-        
+
         const topMostId = visibleElements[0][0];
-        
+
         // Aggiorna lo stato solo se l'ID attivo è cambiato, per evitare re-render superflui
         setActiveCardId(currentActiveId => (currentActiveId !== topMostId ? topMostId : currentActiveId));
       }, options);
@@ -90,24 +95,24 @@ export const CharacterList: React.FC = () => {
     }
   }, [orderedCharacters, isTouchDevice]); // Riavvia l'observer se la lista o il tipo di dispositivo cambia
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      // Su dispositivi touch, attiva il drag dopo una pressione di 250ms.
-      // Su desktop, attiva il drag dopo aver mosso il mouse di 10px.
-      // Questo previene che lo scroll venga confuso con il drag su mobile.
-      activationConstraint: isTouchDevice
-        ? {
-            delay: 250,
-            tolerance: 5,
-          }
-        : {
-            distance: 10,
-          },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+  const pointerSensor = useSensor(PointerSensor, {
+    activationConstraint: {
+      distance: 10,
+    },
+  });
+
+  const touchSensor = useSensor(TouchSensor, {
+    activationConstraint: {
+      delay: 1000,
+      tolerance: 15,
+    },
+  });
+
+  const keyboardSensor = useSensor(KeyboardSensor, {
+    coordinateGetter: sortableKeyboardCoordinates,
+  });
+
+  const sensors = useSensors(isTouchDevice ? touchSensor : pointerSensor, keyboardSensor);
 
   const handleSelectCharacter = (id: string) => {
     if (id === 'new') {
@@ -117,8 +122,13 @@ export const CharacterList: React.FC = () => {
     }
   };
 
+  const handleDragStart = (event: any) => {
+    setActiveId(event.active.id);
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveId(null);
 
     if (over && active.id !== over.id) {
       setOrderedCharacters((items) => {
@@ -131,6 +141,8 @@ export const CharacterList: React.FC = () => {
       });
     }
   };
+
+  const activeCharacter = activeId ? orderedCharacters.find(c => c.id === activeId) : null;
 
   const handleEditCharacter = (id: string) => {
     // Naviga alla pagina di modifica del personaggio
@@ -156,53 +168,67 @@ export const CharacterList: React.FC = () => {
       <h2 className="text-3xl font-cinzel text-center text-foreground mb-8">Your Characters</h2>
       <div className="flex flex-col items-center">
         <button
-            onClick={() => handleSelectCharacter('new')}
-            className="mb-10 flex items-center gap-2 px-6 py-3 bg-accent-dark text-white font-bold rounded-lg shadow-md hover:bg-accent transition-all duration-300 transform hover:scale-105"
+          onClick={() => handleSelectCharacter('new')}
+          className="mb-10 flex items-center gap-2 px-6 py-3 bg-accent-dark text-white font-bold rounded-lg shadow-md hover:bg-accent transition-all duration-300 transform hover:scale-105"
         >
-            <UserPlusIcon className="w-5 h-5" />
-            Create New Character
+          <UserPlusIcon className="w-5 h-5" />
+          Create New Character
         </button>
 
         {orderedCharacters.length > 0 ? (
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
             <SortableContext items={orderedCharacters.map(c => c.id)} strategy={rectSortingStrategy}>
-            <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {orderedCharacters.map(char => (
-                <SortableCharacterCard
-                  key={char.id}
-                  id={char.id}
-                  character={char}
-                  activeCardId={activeCardId}
-                  onSelect={() => handleSelectCharacter(char.id)}
-                  onDelete={(e) => {
+              <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {orderedCharacters.map(char => (
+                  <SortableCharacterCard
+                    key={char.id}
+                    id={char.id}
+                    character={char}
+                    activeCardId={activeCardId}
+                    onSelect={() => handleSelectCharacter(char.id)}
+                    onDelete={(e) => {
                       e.stopPropagation();
                       handleDeleteCharacter(char.id, char.name);
-                  }}
-                  onEdit={(e) => {
+                    }}
+                    onEdit={(e) => {
                       e.stopPropagation();
                       handleEditCharacter(char.id);
-                  }}
-                />
-              ))}
-            </div>
+                    }}
+                  />
+                ))}
+              </div>
             </SortableContext>
+
+            <DragOverlay adjustScale={true}>
+              {activeCharacter ? (
+                <div className="w-full max-w-sm sm:max-w-xs pointer-events-none touch-none shadow-2xl ring-2 ring-accent rounded-lg overflow-hidden scale-105">
+                  <CharacterCard
+                    character={activeCharacter}
+                    onSelect={() => { }}
+                    onDelete={() => { }}
+                    onEdit={() => { }}
+                  />
+                </div>
+              ) : null}
+            </DragOverlay>
           </DndContext>
         ) : (
-            <div className="text-center w-full max-w-2xl mt-8 py-16 px-6 bg-card/50 rounded-lg border border-border">
-                <h2 className="text-2xl font-semibold text-foreground font-cinzel">Your adventure awaits!</h2>
-                <p className="text-text-muted mt-2">
-                  {currentUser 
-                    ? "You have no characters synced to this account." 
-                    : "You have no local characters."
-                  }
-                  <br/>
-                  Click the button above to forge your first hero.
-                </p>
-            </div>
+          <div className="text-center w-full max-w-2xl mt-8 py-16 px-6 bg-card/50 rounded-lg border border-border">
+            <h2 className="text-2xl font-semibold text-foreground font-cinzel">Your adventure awaits!</h2>
+            <p className="text-text-muted mt-2">
+              {currentUser
+                ? "You have no characters synced to this account."
+                : "You have no local characters."
+              }
+              <br />
+              Click the button above to forge your first hero.
+            </p>
+          </div>
         )}
       </div>
     </div>

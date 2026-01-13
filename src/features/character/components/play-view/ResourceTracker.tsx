@@ -1,4 +1,4 @@
-import React from 'react';
+import { FC } from 'react';
 import { ICharacter, CustomResource } from '../../characterTypes';
 
 interface ResourceTrackerProps {
@@ -8,14 +8,14 @@ interface ResourceTrackerProps {
     isCustom?: boolean;
 }
 
-export const ResourceTracker: React.FC<ResourceTrackerProps> = ({ title, slots, onSlotChange, isCustom = false }) => {
+export const ResourceTracker: FC<ResourceTrackerProps> = ({ title, slots, onSlotChange, isCustom = false }) => {
     const toggleSlot = (key: string | number, index: number) => {
         if (isCustom) {
             const customSlots = slots as CustomResource[];
             const resourceIndex = customSlots.findIndex(r => r.id === key);
             if (resourceIndex === -1) return;
             const resource = customSlots[resourceIndex];
-            const newUsed = index < resource.used ? index : index + 1; // click to toggle
+            const newUsed = index < resource.used ? index : index + 1;
             const newResources = [...customSlots];
             newResources[resourceIndex] = { ...resource, used: newUsed };
             onSlotChange(newResources);
@@ -28,7 +28,7 @@ export const ResourceTracker: React.FC<ResourceTrackerProps> = ({ title, slots, 
     };
 
     const entries: CustomResource[] | [string, { max: number; used: number; }][] = isCustom
-        ? (slots as CustomResource[])
+        ? [...(slots as CustomResource[])].sort((a, b) => a.name.localeCompare(b.name))
         : Object.entries(slots as ICharacter['spellSlots']);
 
     const hasSlots = isCustom
@@ -36,10 +36,17 @@ export const ResourceTracker: React.FC<ResourceTrackerProps> = ({ title, slots, 
         : (entries as [string, { max: number; used: number; }][]).some(([, data]) => data.max > 0);
 
     return (
-        <div className="bg-card p-4 rounded-lg border border-border">
-            <h3 className="text-lg font-cinzel text-accent mb-3">{title}</h3>
-            {!hasSlots && <p className="text-muted-foreground text-sm text-center">No resources available.</p>}
-            <div className="space-y-3">
+        <div className="bg-card/30 backdrop-blur-sm p-6 rounded-2xl border border-border/50 shadow-lg shadow-accent/5">
+            <h3 className="text-xl font-cinzel text-accent mb-6 flex justify-between items-center">
+                <span>{title}</span>
+                {isCustom && <span className="text-[10px] font-sans font-bold uppercase tracking-widest text-muted-foreground/50">Custom</span>}
+            </h3>
+            {!hasSlots && (
+                <div className="bg-muted/10 rounded-xl border border-dashed border-border/50 py-8 px-4 text-center">
+                    <p className="text-muted-foreground text-sm italic">Nothing to track here yet.</p>
+                </div>
+            )}
+            <div className="space-y-5">
                 {entries.map((entry) => {
                     let key: string | number;
                     let data: { max: number; used: number; name?: string };
@@ -50,20 +57,32 @@ export const ResourceTracker: React.FC<ResourceTrackerProps> = ({ title, slots, 
                         key = (entry as [string, { max: number; used: number }])[0];
                         data = (entry as [string, { max: number; used: number }])[1];
                     }
-                    const level = isCustom ? (data as CustomResource).name : `Lvl ${key}`;
+                    const levelLabel = isCustom ? (data as CustomResource).name : `Level ${key}`;
                     if (data.max === 0) return null;
 
                     return (
-                        <div key={key} className="flex items-center">
-                            <span className="font-bold text-muted-foreground w-24 truncate" title={level}>{level}:</span>
-                            <div className="flex flex-wrap gap-2">
+                        <div key={key} className="flex flex-col gap-3 group">
+                            <div className="flex justify-between items-end">
+                                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground group-hover:text-accent/70 transition-colors" title={levelLabel}>
+                                    {levelLabel}
+                                </span>
+                                <span className="text-[10px] font-mono text-muted-foreground/60">{data.used} / {data.max}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2.5">
                                 {Array.from({ length: data.max }).map((_, i) => (
                                     <button
                                         key={i}
                                         onClick={() => toggleSlot(key, i)}
-                                        className={`w-5 h-5 rounded-md border-2 transition-colors ${i < data.used ? 'bg-primary border-primary/80' : 'bg-muted border-border hover:border-accent'}`}
-                                        aria-label={`Slot ${i + 1} for ${level}. ${i < data.used ? 'Used' : 'Available'}`}
-                                    />
+                                        className={`w-6 h-6 rounded-lg border-2 transition-all duration-300 relative overflow-hidden ${i < data.used
+                                            ? 'bg-accent border-accent shadow-[0_0_12px_rgba(var(--color-accent),0.4)] scale-105'
+                                            : 'bg-background/20 border-border/60 hover:border-accent/40 hover:bg-accent/5'
+                                            }`}
+                                        aria-label={`Slot ${i + 1} for ${levelLabel}. ${i < data.used ? 'Used' : 'Available'}`}
+                                    >
+                                        {i < data.used && (
+                                            <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent" />
+                                        )}
+                                    </button>
                                 ))}
                             </div>
                         </div>

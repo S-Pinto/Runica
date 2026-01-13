@@ -22,6 +22,14 @@ module.exports = {
         accent: 'rgb(var(--color-accent) / <alpha-value>)',
         'accent-dark': 'rgb(var(--color-accent-dark) / <alpha-value>)',
         'accent-foreground': 'rgb(var(--color-accent-foreground) / <alpha-value>)',
+        primary: {
+          DEFAULT: 'rgb(var(--color-accent) / <alpha-value>)',
+          foreground: 'rgb(var(--color-accent-foreground) / <alpha-value>)',
+        },
+        secondary: {
+          DEFAULT: 'rgb(var(--color-card) / <alpha-value>)',
+          foreground: 'rgb(var(--color-text) / <alpha-value>)',
+        },
       },
     },
   },

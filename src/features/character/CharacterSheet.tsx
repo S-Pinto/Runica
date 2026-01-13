@@ -31,12 +31,17 @@ const TabButton = ({ label, isActive, onClick, controls, id }: { label: string, 
         aria-selected={isActive}
         aria-controls={controls}
         onClick={onClick}
-        className={`px-3 py-2 text-sm font-medium rounded-t-lg transition-colors whitespace-nowrap ${isActive
-                ? 'bg-card text-accent border-b-2 border-accent'
-                : 'text-muted-foreground hover:bg-muted border-b-2 border-transparent'
+        className={`px-4 py-2 text-xs sm:text-sm font-semibold transition-all duration-300 whitespace-nowrap relative group ${isActive
+            ? 'text-accent'
+            : 'text-muted-foreground hover:text-foreground'
             }`}
     >
         {label}
+        {isActive ? (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent shadow-[0_0_8px_rgba(var(--color-accent),0.6)] rounded-full" />
+        ) : (
+            <div className="absolute bottom-0 left-1/2 right-1/2 h-0.5 bg-accent/30 rounded-full transition-all duration-300 group-hover:left-0 group-hover:right-0" />
+        )}
     </button>
 );
 
@@ -261,6 +266,21 @@ export const CharacterSheet: React.FC = () => {
         setCharacter(prev => ({ ...prev!, spellSlots: newSlots }));
     }
 
+    const handleDefensesChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        if (!character) return;
+        const { name, value } = e.target;
+        setCharacter(prev => ({
+            ...prev!,
+            defenses: { ...prev!.defenses, [name]: value }
+        }));
+    };
+
+    const handleConditionsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!character) return;
+        const conditionsList = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+        setCharacter(prev => ({ ...prev!, conditions: conditionsList }));
+    };
+
     const handleGeneratePersonality = async () => {
         if (!character) return;
         setIsGenerating(true);
@@ -395,6 +415,7 @@ export const CharacterSheet: React.FC = () => {
                                 </div>
                                 <InputField label="Hit Dice" name="hitDice" type="text" value={character.hitDice.total} onChange={handleHitDiceChange} placeholder="e.g. 1d8" />
                             </div>
+
                             <div className="p-4 border border-border rounded-lg space-y-2">
                                 <h4 className="text-sm font-medium text-muted-foreground">Unarmored Defense</h4>
                                 {/* Layout reattivo: verticale su mobile, orizzontale da sm in su */}
@@ -414,6 +435,39 @@ export const CharacterSheet: React.FC = () => {
                                             ))}
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+
+                            <div className="p-4 border border-border rounded-lg space-y-4">
+                                <h3 className="text-sm font-medium text-muted-foreground border-b border-border pb-2">Defenses & Conditions</h3>
+
+                                <TextAreaInput
+                                    label="Resistances"
+                                    name="resistances"
+                                    value={character.defenses?.resistances || ''}
+                                    onChange={handleDefensesChange}
+                                    placeholder="e.g. Fire, Poison (Half damage)"
+                                />
+                                <div className="text-xs text-muted-foreground -mt-3 italic">Damage is halved against these types.</div>
+
+                                <TextAreaInput
+                                    label="Immunities"
+                                    name="immunities"
+                                    value={character.defenses?.immunities || ''}
+                                    onChange={handleDefensesChange}
+                                    placeholder="e.g. Cold, Charmed (No damage/effect)"
+                                />
+                                <div className="text-xs text-muted-foreground -mt-3 italic">No damage or effect from these types.</div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-muted-foreground capitalize mb-2">Conditions (Comma separated)</label>
+                                    <input
+                                        type="text"
+                                        value={character.conditions?.join(', ') || ''}
+                                        onChange={handleConditionsChange}
+                                        placeholder="e.g. Poisoned, Blinded"
+                                        className="w-full bg-input border border-border rounded-md shadow-sm py-2 px-3 text-foreground focus:outline-none focus:ring-ring focus:border-accent sm:text-sm"
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -586,6 +640,6 @@ export const CharacterSheet: React.FC = () => {
                 isOpen={isUploaderOpen}
                 onClose={() => setIsUploaderOpen(false)}
                 onImageReady={handleCharacterImageUpload} />
-        </div>
+        </div >
     );
 };

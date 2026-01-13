@@ -35,7 +35,6 @@ export const HPTracker = () => {
     const handleSetTempHp = () => {
         const amount = Number(adjustment);
         if (!isNaN(amount) && amount >= 0) {
-            // I PF temporanei nuovi sostituiscono i vecchi, non si sommano.
             updateCharacter({ hp: { ...hp, temporary: amount } });
             setAdjustment('');
         }
@@ -45,26 +44,65 @@ export const HPTracker = () => {
     const hpColor = hpPercentage > 50 ? 'bg-green-500' : hpPercentage > 25 ? 'bg-yellow-500' : 'bg-red-500';
 
     return (
-        <div className="bg-card p-4 rounded-lg border border-border space-y-3">
-            <h3 className="text-lg font-cinzel text-accent mb-3 text-center">Hit Points</h3>
-            <div className="text-center mb-4">
-                <span className="text-5xl font-bold text-destructive">{hp.current}</span>
-                {hp.temporary > 0 && <span className="text-3xl font-bold text-accent" title="Temporary HP"> +{hp.temporary}</span>}
-                <span className="text-2xl text-muted-foreground"> / {hp.max}</span>
-            </div>
-            <div className="w-full bg-muted rounded-full h-2.5">
-                <div className={`${hpColor} h-2.5 rounded-full transition-all duration-500`} style={{ width: `${hpPercentage}%` }}></div>
-            </div>
-            {/* Layout reattivo: si adatta e va a capo se lo spazio non è sufficiente */}
-            <div className="flex flex-col sm:flex-row sm:flex-wrap justify-center items-center gap-4 sm:gap-2">
-                {/* StatInput ora occupa tutta la larghezza su mobile per massima visibilità */}
-                <div className="w-full sm:flex-none">
-                    <StatInput value={adjustment} onChange={(val) => setAdjustment(val === '' ? '' : Number(val))} placeholder="Value" inputClassName="text-3xl" showModifier={false} />
+        <div className="bg-card/30 backdrop-blur-sm p-6 rounded-2xl border border-border/50 shadow-lg shadow-accent/5 space-y-6">
+            <h3 className="text-xl font-cinzel text-accent flex items-center justify-center gap-2">
+                <HeartIcon className="w-5 h-5 text-destructive" />
+                Hit Points
+            </h3>
+
+            <div className="flex flex-col items-center gap-2">
+                <div className="flex items-baseline gap-2">
+                    <span className="text-6xl font-black text-foreground drop-shadow-md">{hp.current}</span>
+                    <span className="text-2xl text-muted-foreground/60 font-semibold italic">/ {hp.max}</span>
                 </div>
-                <div className="w-full sm:w-auto flex gap-2 justify-center">
-                    <button onClick={handleDamage} className="flex-1 sm:flex-auto flex items-center justify-center gap-2 px-3 py-2 bg-red-600 text-white font-bold rounded-lg shadow-md hover:bg-red-700 transition-colors"><MinusIcon className="w-5 h-5" /> Damage</button>
-                    <button onClick={handleHeal} className="flex-1 sm:flex-auto flex items-center justify-center gap-2 px-3 py-2 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 transition-colors"><PlusIcon className="w-5 h-5" /> Heal</button>
-                    <button onClick={handleSetTempHp} className="flex-1 sm:flex-auto flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white font-bold rounded-lg shadow-md hover:bg-blue-700 transition-colors"><HeartIcon className="w-5 h-5" /> Temp</button>
+                {hp.temporary > 0 && (
+                    <div className="bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full text-sm font-bold border border-blue-500/30 flex items-center gap-1.5 animate-in zoom-in duration-300">
+                        <PlusIcon className="w-3.5 h-3.5" />
+                        {hp.temporary} Temporary
+                    </div>
+                )}
+            </div>
+
+            <div className="relative w-full bg-background/40 rounded-full h-4 overflow-hidden border border-border/20 shadow-inner">
+                <div
+                    className={`${hpColor} h-full rounded-full transition-all duration-700 ease-out shadow-[0_0_15px_rgba(var(--color-hp),0.5)]`}
+                    style={{ width: `${hpPercentage}%` }}
+                >
+                    <div className="w-full h-full bg-gradient-to-b from-white/20 to-transparent" />
+                </div>
+            </div>
+
+            <div className="space-y-4">
+                <StatInput
+                    value={adjustment}
+                    onChange={(val) => setAdjustment(val === '' ? '' : Number(val))}
+                    placeholder="Enter amount..."
+                    inputClassName="text-3xl font-mono text-center bg-background/20"
+                    showModifier={false}
+                />
+
+                <div className="grid grid-cols-3 gap-3">
+                    <button
+                        onClick={handleDamage}
+                        className="flex flex-col items-center gap-1 p-3 bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white rounded-xl border border-red-600/30 transition-all active:scale-95 group"
+                    >
+                        <MinusIcon className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Damage</span>
+                    </button>
+                    <button
+                        onClick={handleHeal}
+                        className="flex flex-col items-center gap-1 p-3 bg-green-600/20 hover:bg-green-600 text-green-500 hover:text-white rounded-xl border border-green-600/30 transition-all active:scale-95 group"
+                    >
+                        <PlusIcon className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Heal</span>
+                    </button>
+                    <button
+                        onClick={handleSetTempHp}
+                        className="flex flex-col items-center gap-1 p-3 bg-blue-600/20 hover:bg-blue-600 text-blue-500 hover:text-white rounded-xl border border-blue-600/30 transition-all active:scale-95 group"
+                    >
+                        <HeartIcon className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Temp</span>
+                    </button>
                 </div>
             </div>
         </div>

@@ -1,4 +1,3 @@
-import React from 'react';
 import { createBrowserRouter, Outlet } from 'react-router-dom';
 
 import App from '../App'; // Il nostro layout principale

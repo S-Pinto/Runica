@@ -37,28 +37,28 @@ export interface Feature {
 }
 
 export interface Attack {
-    id: string;
-    name: string;
-    bonus: string;
-    damage: string;
+  id: string;
+  name: string;
+  bonus: string;
+  damage: string;
 }
 
 export interface EquipmentItem {
-    id: string;
-    name: string;
-    quantity: number;
-    description: string;
-    armorClass?: number; // Base AC for armor, or bonus for shields
-    armorType?: 'light' | 'medium' | 'heavy' | 'shield';
-    equipped?: boolean;
+  id: string;
+  name: string;
+  quantity: number;
+  description: string;
+  armorClass?: number; // Base AC for armor, or bonus for shields
+  armorType?: 'light' | 'medium' | 'heavy' | 'shield';
+  equipped?: boolean;
 }
 
 export interface Currency {
-    cp: number;
-    sp: number;
-    ep: number;
-    gp: number;
-    pp: number;
+  cp: number;
+  sp: number;
+  ep: number;
+  gp: number;
+  pp: number;
 }
 
 export interface CustomResource {
@@ -108,12 +108,21 @@ export interface ICharacter {
     successes: number;
     failures: number;
   };
-  
+
   // New structured fields
   personalityTraits: string;
   ideals: string;
   bonds: string;
   flaws: string;
+
+  // Defenses & Conditions
+  defenses: {
+    resistances: string;
+    immunities: string;
+    vulnerabilities: string;
+  };
+  conditions: string[];
+
   languages: string;
   attacks: Attack[];
   currency: Currency;
@@ -140,14 +149,14 @@ export interface ICompanion {
   name: string;
   type: string; // e.g., 'Familiar', 'Animal Companion', 'Summon'
   imageUrl?: string;
-  
+
   hp: { max: number; current: number; temporary: number };
   armorClass: number;
   speed: string;
-  
+
   abilityScores: AbilityScores;
   skills: Skill[];
-  
+
   attacks: Attack[];
   spells: Spell[];
   featuresAndTraits: Feature[];

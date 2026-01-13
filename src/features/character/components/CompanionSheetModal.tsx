@@ -40,12 +40,12 @@ const DisplayField = ({ label, value, className = '' }: { label: string, value: 
 const StatDisplay = ({ label, value }: { label: string, value: number }) => {
   const modifier = formatModifier(getModifier(value));
   return (
-    <div className="flex flex-col items-center gap-1">
-      <div className="text-lg font-bold text-accent h-7 flex items-center">{modifier}</div>
-      <div className="w-full bg-input/50 border border-transparent rounded-md py-2 px-3 text-foreground/80 text-2xl min-h-[52px] flex items-center justify-center font-bold">
+    <div className="flex flex-col items-center gap-1 bg-background/40 p-2 rounded-xl border border-border/50 shadow-inner">
+      <div className="text-xl font-bold text-accent h-7 flex items-center drop-shadow-[0_0_8px_rgba(var(--color-accent),0.3)]">{modifier}</div>
+      <div className="text-3xl font-bold text-foreground font-mono">
         {value}
       </div>
-      <label className="block text-sm font-medium text-muted-foreground mt-1">{label}</label>
+      <label className="block text-[10px] font-bold uppercase tracking-tighter text-muted-foreground mt-1">{label}</label>
     </div>
   );
 };
@@ -54,8 +54,8 @@ const ModalTabButton = ({ label, isActive, onClick }: { label: string, isActive:
   <button
     onClick={onClick}
     className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${isActive
-        ? 'bg-accent/20 text-accent'
-        : 'text-muted-foreground hover:bg-muted/50'
+      ? 'bg-accent/20 text-accent'
+      : 'text-muted-foreground hover:bg-muted/50'
       }`}
   >
     {label}

@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect, ReactNode, useMemo } from 'react';
+import { createContext, useState, useContext, useEffect, ReactNode, useMemo } from 'react';
 
 const THEME_IDS = [
   'theme-amber',

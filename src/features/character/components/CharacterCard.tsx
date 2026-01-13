@@ -10,7 +10,7 @@ interface CharacterCardProps {
   onEdit: (e: React.MouseEvent) => void; // Per la modifica
   activeCardId?: string | null; // Aggiunto per l'effetto su scroll
   style?: React.CSSProperties; // Aggiunto per dnd-kit
-  // Aggiungiamo `...rest` per catturare gli attributi di dnd-kit
+  // Aggiungiamo `...rest` per catturare gli attributi e i listeners di dnd-kit
   [key: string]: any;
 }
 
@@ -24,60 +24,60 @@ export const CharacterCard = forwardRef<HTMLDivElement, CharacterCardProps>(
         style={style}
         {...rest} // Contiene `attributes` e `listeners` per il drag
         onClick={onSelect}
-        // Aggiungiamo 'is-active' se la card è quella evidenziata dallo scroll
-        // Aggiungiamo 'character-card-observable' per essere trovata dall'IntersectionObserver
-        className={`bg-card rounded-lg shadow-lg overflow-hidden transition-all duration-300 md:hover:shadow-accent/20 group relative cursor-grab touch-none character-card-observable ${isActive ? 'is-active' : ''}`}
+        // touch-pan-y è fondamentale: permette lo scroll verticale nativo 
+        // mentre il delay del sensore gestisce l'attivazione del drag.
+        className={`bg-card rounded-lg shadow-lg overflow-hidden transition-all duration-300 md:hover:shadow-accent/20 group relative cursor-grab touch-pan-y character-card-observable ${isActive ? 'is-active' : ''}`}
         role="button"
         tabIndex={0}
         data-character-id={character.id} // Aggiungiamo l'ID per l'observer
       >
-      {/* 
+        {/* 
         Contenitore immagine che si espande. 
         'max-h-32' crea la miniatura, 'group-hover:max-h-96' la espande.
         La transizione su 'max-height' crea l'effetto di animazione.
         Aggiungiamo 'group-[.is-active]:max-h-96' per l'effetto su scroll mobile.
       */}
-      <div className="relative w-full max-h-32 md:group-hover:max-h-96 group-[.is-active]:max-h-96 transition-all duration-500 ease-in-out overflow-hidden">
-        {character.imageUrl ? (
-          <img src={character.imageUrl} alt={character.name} className="w-full h-auto" />
-        ) : (
-          <div className="w-full h-32 flex items-center justify-center text-muted-foreground bg-muted/50">
-            <PhotoIcon className="w-16 h-16" />
-          </div>
-        )}
-      </div>
+        <div className="relative w-full max-h-32 md:group-hover:max-h-96 group-[.is-active]:max-h-96 transition-all duration-500 ease-in-out overflow-hidden">
+          {character.imageUrl ? (
+            <img src={character.imageUrl} alt={character.name} className="w-full h-auto" />
+          ) : (
+            <div className="w-full h-32 flex items-center justify-center text-muted-foreground bg-muted/50">
+              <PhotoIcon className="w-16 h-16" />
+            </div>
+          )}
+        </div>
 
-      <div className="p-5">
-        <h3 className="text-xl font-bold font-cinzel text-accent truncate">{character.name || 'Unnamed Adventurer'}</h3>
-        <p className="text-muted-foreground capitalize text-sm">{character.race || 'Race'} {character.class || 'Class'} &bull; Level {character.level}</p>
-        <div className="mt-4 flex items-center gap-4 text-sm text-foreground border-t border-border pt-4">
-          <div className="flex items-center gap-1.5" title="Hit Points">
-            <span className="font-bold text-destructive">HP</span>
-            <span>{character.hp.current}/{character.hp.max}</span>
-          </div>
-          <div className="flex items-center gap-1.5" title="Armor Class">
-            <span className="font-bold text-accent">AC</span>
-            <span>{calculateArmorClass(character)}</span>
+        <div className="p-5">
+          <h3 className="text-xl font-bold font-cinzel text-accent truncate">{character.name || 'Unnamed Adventurer'}</h3>
+          <p className="text-muted-foreground capitalize text-sm">{character.race || 'Race'} {character.class || 'Class'} &bull; Level {character.level}</p>
+          <div className="mt-4 flex items-center gap-4 text-sm text-foreground border-t border-border pt-4">
+            <div className="flex items-center gap-1.5" title="Hit Points">
+              <span className="font-bold text-destructive">HP</span>
+              <span>{character.hp.current}/{character.hp.max}</span>
+            </div>
+            <div className="flex items-center gap-1.5" title="Armor Class">
+              <span className="font-bold text-accent">AC</span>
+              <span>{calculateArmorClass(character)}</span>
+            </div>
           </div>
         </div>
+        <div className="absolute top-3 right-3 flex items-center space-x-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
+          <button
+            onClick={onEdit}
+            className="p-2 rounded-full bg-secondary hover:bg-accent text-secondary-foreground hover:text-accent-foreground transition-colors"
+            aria-label={`Edit ${character.name}`}
+          >
+            <EditIcon className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onDelete}
+            className="p-2 rounded-full bg-secondary hover:bg-accent text-secondary-foreground hover:text-destructive-foreground transition-colors"
+            aria-label={`Delete ${character.name}`}
+          >
+            <TrashIcon className="w-4 h-4" />
+          </button>
+        </div>
       </div>
-      <div className="absolute top-3 right-3 flex items-center space-x-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
-        <button
-          onClick={onEdit}
-          className="p-2 rounded-full bg-secondary hover:bg-accent text-secondary-foreground hover:text-accent-foreground transition-colors"
-          aria-label={`Edit ${character.name}`}
-        >
-          <EditIcon className="w-4 h-4" />
-        </button>
-        <button
-          onClick={onDelete}
-          className="p-2 rounded-full bg-secondary hover:bg-accent text-secondary-foreground hover:text-destructive-foreground transition-colors"
-          aria-label={`Delete ${character.name}`}
-        >
-          <TrashIcon className="w-4 h-4" />
-        </button>
-      </div>
-    </div>
     );
   }
 );
