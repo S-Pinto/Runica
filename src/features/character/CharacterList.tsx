@@ -26,7 +26,7 @@ import { CharacterCard } from './components/CharacterCard';
 import { useIsTouchDevice } from '../../hooks/useIsTouchDevice';
 
 export const CharacterList: React.FC = () => {
-  const { characters, loading, deleteCharacter } = useCharacter();
+  const { characters, loading, deleteCharacter, saveCharacterOrder } = useCharacter();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [orderedCharacters, setOrderedCharacters] = useState<ICharacter[]>([]);
@@ -136,8 +136,14 @@ export const CharacterList: React.FC = () => {
         const newIndex = items.findIndex((item) => item.id === over.id);
         const newOrder = arrayMove(items, oldIndex, newIndex);
 
-        // TODO: Salva il nuovo ordine `newOrder` nel tuo database (es. Firestore)
-        return newOrder;
+        // Update the order property for all items to match their new index
+        // This ensures the local state is consistent with what we send to the backend
+        const updatedOrder = newOrder.map((char, index) => ({ ...char, order: index }));
+
+        // Save to backend
+        saveCharacterOrder(updatedOrder);
+
+        return updatedOrder;
       });
     }
   };

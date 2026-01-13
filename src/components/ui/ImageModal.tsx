@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { XMarkIcon } from './icons';
 
 interface ImageModalProps {
@@ -8,23 +8,43 @@ interface ImageModalProps {
 }
 
 export const ImageModal: React.FC<ImageModalProps> = ({ imageUrl, altText, onClose }) => {
-    // Funzione per chiudere la modale quando si clicca sul backdrop
+    // Close on Escape key
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
+
     const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
         if (e.target === e.currentTarget) {
             onClose();
         }
     };
 
+    if (!imageUrl) return null;
+
     return (
         <div
-            className="fixed inset-0 bg-black/80 z-50 flex justify-center items-center p-4 animate-fade-in"
+            className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] flex justify-center items-center p-4 animate-in fade-in duration-200"
             onClick={handleBackdropClick}
             aria-modal="true"
             role="dialog"
         >
-            <div className="relative max-w-4xl max-h-[90vh] bg-card p-2 rounded-lg shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                <img src={imageUrl} alt={altText} className="w-full h-full max-h-[inherit] object-contain" />
-                <button onClick={onClose} className="absolute top-2 right-2 bg-card/50 text-foreground rounded-full p-2 hover:bg-destructive hover:text-white transition-colors" aria-label="Close image view">
+            <div className="relative max-w-[95vw] max-h-[95vh] w-auto h-auto flex justify-center items-center" onClick={(e) => e.stopPropagation()}>
+                <img
+                    src={imageUrl}
+                    alt={altText}
+                    className="max-w-full max-h-[95vh] object-contain rounded-lg shadow-2xl ring-1 ring-white/10"
+                />
+                <button
+                    onClick={onClose}
+                    className="absolute -top-12 right-0 md:-right-12 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 rounded-full p-2.5 transition-all backdrop-blur-md border border-white/10"
+                    aria-label="Close image view"
+                >
                     <XMarkIcon className="w-6 h-6" />
                 </button>
             </div>

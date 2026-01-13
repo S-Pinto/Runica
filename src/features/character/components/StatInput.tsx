@@ -31,21 +31,21 @@ export const StatInput: React.FC<StatInputProps> = ({ label, value, onChange, pl
 
   return (
     // Container principale: layout verticale, full-width e con spaziature migliorate
-    <div className={`flex flex-col items-center gap-1 w-full min-w-[120px] ${className}`}>
+    <div className={`flex flex-col items-center gap-2 w-full min-w-[100px] ${className}`}>
       {/* 1. Label in alto per un layout mobile e accessibilità migliori */}
-      {label && <label htmlFor={inputId} className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">{label}</label>}
+      {label && <label htmlFor={inputId} className="block text-xs font-bold uppercase tracking-wider text-muted-foreground/90">{label}</label>}
 
-      {/* 2. Modificatore più evidente */}
+      {/* 2. Modificatore più evidente, se presente */}
       {showModifier && (
-        <div className="text-2xl font-bold text-accent h-7 flex items-center">
+        <div className="absolute top-0 right-0 -mt-2 -mr-2 bg-accent text-accent-foreground text-xs font-bold px-1.5 py-0.5 rounded shadow-sm z-10">
           {modifier}
         </div>
       )}
 
-      {/* 3. Gruppo di input con stile moderno a "pillola" e reattivo */}
-      <div className="flex items-center justify-between w-full bg-background border border-input rounded-full p-1 shadow-inner group focus-within:border-accent transition-colors">
+      {/* 3. Gruppo di input con stile moderno a "vetro" */}
+      <div className="relative flex items-center justify-between w-full bg-background/40 backdrop-blur-sm border border-border/60 rounded-xl p-1 shadow-sm group focus-within:border-accent/50 focus-within:ring-2 focus-within:ring-accent/20 transition-all duration-200 hover:bg-background/60">
         <button type="button" onClick={handleDecrement} className={buttonClasses} aria-label="Decrement">
-          <ChevronDownIcon className="w-6 h-6 sm:w-5 sm:h-5" />
+          <ChevronDownIcon className="w-4 h-4" />
         </button>
         <input
           id={inputId}
@@ -56,11 +56,10 @@ export const StatInput: React.FC<StatInputProps> = ({ label, value, onChange, pl
             onChange(rawValue === '' ? '' : parseInt(rawValue, 10));
           }}
           placeholder={placeholder}
-          // Rimuoviamo la larghezza fissa e usiamo flex-1 per renderlo flessibile
-          className={`no-spinner flex-1 min-w-0 bg-transparent border-0 text-center text-2xl sm:text-3xl font-bold text-foreground focus:ring-0 focus:outline-none placeholder:text-muted-foreground/50 placeholder:font-normal placeholder:text-base ${inputClassName}`}
+          className={`no-spinner flex-1 min-w-0 bg-transparent border-0 text-center text-xl sm:text-2xl font-bold text-foreground focus:ring-0 focus:outline-none placeholder:text-muted-foreground/30 ${inputClassName}`}
         />
         <button type="button" onClick={handleIncrement} className={buttonClasses} aria-label="Increment">
-          <ChevronUpIcon className="w-6 h-6 sm:w-5 sm:h-5" />
+          <ChevronUpIcon className="w-4 h-4" />
         </button>
       </div>
     </div>

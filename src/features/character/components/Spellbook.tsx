@@ -33,7 +33,7 @@ const SpellForm = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleCheckboxChange = (field: 'ritual' | 'concentration') => {
+  const handleCheckboxChange = (field: 'ritual' | 'concentration' | 'prepared') => {
     setFormData(prev => ({ ...prev, [field]: !prev[field] }));
   };
 
@@ -66,7 +66,8 @@ const SpellForm = ({
           <input type="number" placeholder="0" value={formData.level} onChange={e => handleChange('level', parseInt(e.target.value))} min="0" max="9" className={inputClass} />
         </div>
 
-        <div className="sm:col-span-9 flex items-center justify-start gap-6 pt-6">
+
+        <div className="sm:col-span-12 flex items-center justify-start gap-6 pt-2">
           <label className="flex items-center gap-2 cursor-pointer text-sm select-none group">
             <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${formData.ritual ? 'bg-purple-500 border-purple-500 text-white' : 'bg-input border-border'}`}>
               {formData.ritual && <SparklesIcon className="w-3.5 h-3.5" />}
@@ -81,12 +82,38 @@ const SpellForm = ({
             <input type="checkbox" checked={formData.concentration} onChange={() => handleCheckboxChange('concentration')} className="hidden" />
             <span className="group-hover:text-accent transition-colors">Concentration</span>
           </label>
+          <label className="flex items-center gap-2 cursor-pointer text-sm select-none group">
+            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${formData.prepared ? 'bg-blue-500 border-blue-500 text-white' : 'bg-input border-border'}`}>
+              {formData.prepared && <div className="w-2.5 h-2.5 rounded-sm bg-current" />}
+            </div>
+            <input type="checkbox" checked={formData.prepared || false} onChange={() => handleCheckboxChange('prepared')} className="hidden" />
+            <span className="group-hover:text-blue-400 transition-colors">Prepared</span>
+          </label>
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1 block">Casting Time</label>
-          <input type="text" placeholder="e.g. 1 Action" value={formData.castingTime} onChange={e => handleChange('castingTime', e.target.value)} className={inputClass} />
+          <div className="relative">
+            <input
+              type="text"
+              list="casting-time-options"
+              placeholder="Select or type..."
+              value={formData.castingTime}
+              onChange={e => handleChange('castingTime', e.target.value)}
+              className={inputClass}
+            />
+            <datalist id="casting-time-options">
+              <option value="1 Action" />
+              <option value="1 Bonus Action" />
+              <option value="1 Reaction" />
+              <option value="1 Minute" />
+              <option value="10 Minutes" />
+              <option value="1 Hour" />
+              <option value="8 Hours" />
+              <option value="24 Hours" />
+            </datalist>
+          </div>
         </div>
         <div>
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1 block">Range</label>
@@ -109,7 +136,7 @@ const SpellForm = ({
         <button type="button" onClick={onCancel} className="bg-muted hover:bg-muted/80 text-foreground font-bold py-2 px-4 rounded transition text-sm">Cancel</button>
         <button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2 px-4 rounded transition text-sm shadow-sm">Save Spell</button>
       </div>
-    </form>
+    </form >
   )
 };
 
@@ -146,6 +173,11 @@ export const Spellbook = () => {
     const updatedSpells = character.spells.filter(s => s.id !== spellId);
     updateCharacter({ spells: updatedSpells });
     setDeletingSpellId(null);
+  };
+
+  const handleTogglePrepared = (spellId: string) => {
+    const updatedSpells = character.spells.map(s => s.id === spellId ? { ...s, prepared: !s.prepared } : s);
+    updateCharacter({ spells: updatedSpells });
   };
 
 
@@ -283,7 +315,9 @@ export const Spellbook = () => {
                       isDeleting={deletingSpellId === spell.id}
                       onConfirmDelete={() => handleDeleteSpell(spell.id)}
                       onCancelDelete={() => setDeletingSpellId(null)}
+
                       isEditingActive={editingSpell !== null}
+                      onTogglePrepared={() => handleTogglePrepared(spell.id)}
                     />
                   )
                 )}

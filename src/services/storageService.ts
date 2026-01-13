@@ -63,7 +63,7 @@ export const uploadCharacterImageFromDataUrl = async (dataUrl: string, userId: s
     // Upload the data URL string directly
     await uploadString(storageRef, dataUrl, StringFormat.DATA_URL);
     return getDownloadURL(storageRef);
-  };
+};
 
 /**
  * Uploads a user's profile image to Firebase Storage.
@@ -104,3 +104,23 @@ export const uploadCompanionPortrait = async (dataUrl: string, userId: string, c
     const downloadURL = await getDownloadURL(snapshot.ref);
     return downloadURL;
 }
+
+/**
+ * Uploads an item's image to Firebase Storage.
+ * @param dataUrl The base64 data URL of the image.
+ * @param userId The ID of the user.
+ * @param characterId The ID of the character.
+ * @param itemId The ID of the item.
+ * @returns A promise that resolves with the public download URL.
+ */
+export const uploadItemImage = async (dataUrl: string, userId: string, characterId: string, itemId: string): Promise<string> => {
+    if (!userId || !characterId || !itemId) {
+        throw new Error("User, character, or item ID is missing for image upload.");
+    }
+    const { storage } = getFirebase();
+    const filePath = `users/${userId}/characters/${characterId}/items/${itemId}/image.jpg`;
+    const storageRef = ref(storage, filePath);
+
+    const snapshot = await uploadString(storageRef, dataUrl, 'data_url');
+    return await getDownloadURL(snapshot.ref);
+};

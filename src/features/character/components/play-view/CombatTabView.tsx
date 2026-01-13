@@ -8,33 +8,119 @@ import { WEAPON_MASTERIES, WEAPON_PROPERTIES } from '../../../../data/weaponProp
 
 interface RollResult {
     value: string;
+    breakdown?: string;
     isCrit: boolean;
     isFail: boolean;
 }
 
-const AttacksAndCantrips = ({ items }: { items: Attack[] }) => {
+const ABILITY_MAP: Record<string, string> = {
+    str: 'strength',
+    dex: 'dexterity',
+    con: 'constitution',
+    int: 'intelligence',
+    wis: 'wisdom',
+    cha: 'charisma'
+};
+
+const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items: Attack[], abilityScores: any, proficiencyBonus: number }) => {
     const [results, setResults] = useState<Record<string, { atk: RollResult[], dmg: RollResult[] }>>({});
     const [expandedAttackId, setExpandedAttackId] = useState<string | null>(null);
 
     const handleAttackRoll = (e: React.MouseEvent, attack: Attack) => {
         e.stopPropagation();
-        const modifier = parseInt(attack.bonus) || 0;
+
         const d20Roll = Math.floor(Math.random() * 20) + 1;
-        const total = d20Roll + modifier;
+        let total = d20Roll;
+        let breakdownParts = [`d20(${d20Roll})`];
+
+        // 1. Ability Modifier
+        if (attack.attackAbility && abilityScores) {
+            const abilityKey = ABILITY_MAP[attack.attackAbility.toLowerCase()] || attack.attackAbility;
+            const score = abilityScores[abilityKey] || 10;
+            const modifier = Math.floor((score - 10) / 2);
+            if (modifier !== 0) {
+                total += modifier;
+                const sign = modifier >= 0 ? '+' : '';
+                breakdownParts.push(`${sign}${modifier}(${attack.attackAbility.toUpperCase()})`);
+            }
+        }
+
+        // 2. Proficiency
+        if (attack.isProficient) {
+            total += proficiencyBonus;
+            breakdownParts.push(`+${proficiencyBonus}(PB)`);
+        }
+
+        // 3. Custom/Magic Bonus
+        const cleanBonus = attack.bonus?.toString().replace(/\s/g, '') || '0';
+        let magicBonus = parseInt(cleanBonus, 10);
+        if (isNaN(magicBonus)) {
+            const match = attack.bonus?.match(/[+-]?\d+/);
+            magicBonus = match ? parseInt(match[0], 10) : 0;
+        }
+
+        if (magicBonus !== 0) {
+            total += magicBonus;
+            const sign = magicBonus >= 0 ? '+' : '';
+            breakdownParts.push(`${sign}${magicBonus}(Misc)`);
+        }
+
+        const breakdown = breakdownParts.join(' + ').replace(/\+ \+/g, '+ ').replace(/\+ -/g, '- '); // Clean up signs
+
         const newRoll: RollResult = {
             value: total.toString(),
+            breakdown,
             isCrit: d20Roll === 20,
             isFail: d20Roll === 1,
         };
         setResults(prev => ({ ...prev, [attack.id]: { ...prev[attack.id], atk: [...(prev[attack.id]?.atk || []), newRoll] } }));
     };
 
-    const handleDamageRoll = (e: React.MouseEvent, damage: string, attackId: string) => {
+    const handleDamageRoll = (e: React.MouseEvent, attack: Attack) => {
         e.stopPropagation();
-        const result = rollDiceExpression(damage);
-        const newRoll: RollResult = { value: result.toString(), isCrit: false, isFail: false };
-        setResults(prev => ({ ...prev, [attackId]: { ...prev[attackId], dmg: [...(prev[attackId]?.dmg || []), newRoll] } }));
+
+        // Roll Main Damage
+        const mainResult = rollDiceExpression(attack.damage);
+        let totalDamage = mainResult.total;
+        let details = [`${mainResult.total} ${attack.damageType || ''}`.trim()];
+        let breakdownParts = [`${mainResult.pretty} ${attack.damageType ? `(${attack.damageType})` : ''}`];
+
+        // Add Modifier from Ability
+        if (attack.damageAbility && abilityScores) {
+            const abilityKey = ABILITY_MAP[attack.damageAbility.toLowerCase()] || attack.damageAbility;
+            const score = abilityScores[abilityKey] || 10;
+            const modifier = Math.floor((score - 10) / 2);
+            if (modifier !== 0) {
+                totalDamage += modifier;
+                const sign = modifier >= 0 ? '+' : '-';
+                breakdownParts.push(`${sign}${Math.abs(modifier)} (${attack.damageAbility.toUpperCase()})`);
+            }
+        }
+
+        // Roll Additional Damages
+        if (attack.additionalDamage) {
+            attack.additionalDamage.forEach(extra => {
+                const extraResult = rollDiceExpression(extra.formula);
+                totalDamage += extraResult.total;
+                details.push(`${extraResult.total} ${extra.type}`);
+                breakdownParts.push(`${extraResult.pretty} (${extra.type})`);
+            });
+        }
+
+        const valueString = details.length > 1
+            ? `${totalDamage} (${details.join(' + ')})`
+            : `${totalDamage} ${attack.damageType || ''}`.trim();
+
+        const newRoll: RollResult = {
+            value: valueString,
+            breakdown: breakdownParts.join(' + '),
+            isCrit: false,
+            isFail: false
+        };
+        setResults(prev => ({ ...prev, [attack.id]: { ...prev[attack.id], dmg: [...(prev[attack.id]?.dmg || []), newRoll] } }));
     };
+
+
 
     const clearResults = (attackId: string) => {
         setResults(prev => {
@@ -77,7 +163,7 @@ const AttacksAndCantrips = ({ items }: { items: Attack[] }) => {
                                             Hit
                                         </button>
                                         <button
-                                            onClick={(e) => handleDamageRoll(e, item.damage, item.id)}
+                                            onClick={(e) => handleDamageRoll(e, item)}
                                             className="h-9 px-3 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-lg font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all flex items-center gap-1.5"
                                             title="Roll Damage"
                                         >
@@ -153,7 +239,7 @@ const AttacksAndCantrips = ({ items }: { items: Attack[] }) => {
                                             {results[item.id].atk?.map((roll, i) => (
                                                 <div
                                                     key={`atk-${i}`}
-                                                    className={`flex items-center justify-between p-2 rounded-lg border text-xs font-mono shadow-sm animate-in slide-in-from-left-2 fade-in duration-300
+                                                    className={`flex flex-col p-2 rounded-lg border text-xs font-mono shadow-sm animate-in slide-in-from-left-2 fade-in duration-300
                                                         ${roll.isCrit
                                                             ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-500'
                                                             : roll.isFail
@@ -161,18 +247,32 @@ const AttacksAndCantrips = ({ items }: { items: Attack[] }) => {
                                                                 : 'bg-background/40 border-border/30 text-foreground'
                                                         }`}
                                                 >
-                                                    <span className="font-bold tracking-wider opacity-70">HIT:</span>
-                                                    <span className="font-bold text-sm">
-                                                        {roll.isCrit && 'CRIT! '}
-                                                        {roll.isFail && 'FAIL! '}
-                                                        {roll.value}
-                                                    </span>
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="font-bold tracking-wider opacity-70">HIT:</span>
+                                                        <span className="font-bold text-sm">
+                                                            {roll.isCrit && 'CRIT! '}
+                                                            {roll.isFail && 'FAIL! '}
+                                                            {roll.value}
+                                                        </span>
+                                                    </div>
+                                                    {roll.breakdown && (
+                                                        <div className="text-[10px] text-right opacity-60 mt-0.5 font-sans">
+                                                            {roll.breakdown}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             ))}
                                             {results[item.id].dmg?.map((roll, i) => (
-                                                <div key={`dmg-${i}`} className="flex items-center justify-between p-2 rounded-lg border border-border/30 bg-background/40 text-xs font-mono shadow-sm animate-in slide-in-from-top-1 fade-in duration-200">
-                                                    <span className="font-bold tracking-wider text-destructive/80">DMG:</span>
-                                                    <span className="font-bold text-sm text-destructive">{roll.value}</span>
+                                                <div key={`dmg-${i}`} className="flex flex-col p-2 rounded-lg border border-border/30 bg-background/40 text-xs font-mono shadow-sm animate-in slide-in-from-top-1 fade-in duration-200">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="font-bold tracking-wider text-destructive/80">DMG:</span>
+                                                        <span className="font-bold text-sm text-destructive">{roll.value}</span>
+                                                    </div>
+                                                    {roll.breakdown && (
+                                                        <div className="text-[10px] text-right opacity-60 mt-0.5 text-destructive/80 font-sans">
+                                                            {roll.breakdown}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             ))}
                                         </div>
@@ -317,9 +417,12 @@ const CombatTabView = () => {
     const attacks = useMemo(() => [...(character.attacks || [])].sort((a, b) => a.name.localeCompare(b.name)), [character.attacks]);
     const features = useMemo(() => [...(character.featuresAndTraits || [])].sort((a, b) => a.name.localeCompare(b.name)), [character.featuresAndTraits]);
 
+    // Calculate Proficiency Bonus (Level 1-4 = +2, 5-8 = +3, etc.)
+    const proficiencyBonus = Math.ceil((character.level || 1) / 4) + 1;
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <AttacksAndCantrips items={attacks} />
+            <AttacksAndCantrips items={attacks} abilityScores={character.abilityScores} proficiencyBonus={proficiencyBonus} />
             <FeaturesList items={features} />
         </div>
     )

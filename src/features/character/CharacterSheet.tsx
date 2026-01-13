@@ -6,6 +6,7 @@ import * as characterService from './characterService';
 import * as storageService from '../../services/storageService';
 import * as geminiService from '../../services/geminiService';
 import { SparklesIcon, BackIcon, SaveIcon, TrashIcon, PhotoIcon } from '../../components/ui/icons';
+import { StyledInput, StyledTextArea, StyledSection } from './components/ui/StyledInputs';
 import { ImageUploader } from './components/ImageUploader';
 import { Spellbook } from './components/Spellbook';
 import { CategorizedFeatureList } from './components/CategorizedFeatureList';
@@ -43,34 +44,6 @@ const TabButton = ({ label, isActive, onClick, controls, id }: { label: string, 
             <div className="absolute bottom-0 left-1/2 right-1/2 h-0.5 bg-accent/30 rounded-full transition-all duration-300 group-hover:left-0 group-hover:right-0" />
         )}
     </button>
-);
-
-const InputField = ({ label, name, type, value, onChange, placeholder, className }: { label: string; name: string; type: string; value: any; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; placeholder?: string; className?: string; }) => (
-    <div className={className}>
-        <label htmlFor={name} className="block text-sm font-medium text-muted-foreground capitalize">{label}</label>
-        <input
-            type={type}
-            id={name}
-            name={name}
-            value={value}
-            onChange={onChange}
-            placeholder={placeholder}
-            className="mt-1 block w-full bg-input border border-border rounded-md shadow-sm py-2 px-3 text-foreground focus:outline-none focus:ring-ring focus:border-accent sm:text-sm"
-        />
-    </div>
-);
-
-const TextAreaInput = ({ label, name, value, onChange, placeholder }: { label: string; name: string; value: string; onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void; placeholder?: string; }) => (
-    <div className="bg-card p-4 rounded-lg border border-border flex flex-col">
-        <h3 className="text-lg font-semibold text-accent mb-2">{label}</h3>
-        <textarea
-            name={name}
-            value={value}
-            onChange={onChange}
-            className="w-full bg-input border border-border rounded-md p-3 text-foreground focus:ring-ring focus:border-accent resize-y flex-grow min-h-[100px]"
-            placeholder={placeholder || `Your character's ${label.toLowerCase()}...`}
-        />
-    </div>
 );
 
 // --- Main Component ---
@@ -357,144 +330,101 @@ export const CharacterSheet: React.FC = () => {
                 </div>
 
                 <div id="panel-main" role="tabpanel" aria-labelledby="tab-main" hidden={activeTab !== 'main'}>
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Colonna 1: Info Personaggio */}
-                        <div className="space-y-6">
-                            <div className="p-4 border border-border rounded-lg space-y-4">
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-muted-foreground">Character Portrait</label>
-                                    <div className="flex items-center gap-4">
-                                        <span className="inline-block h-24 w-24 rounded-lg overflow-hidden bg-muted">
-                                            {character.imageUrl ? (
-                                                <img src={character.imageUrl} alt="Character portrait" className="h-full w-full object-cover" />
-                                            ) : (
-                                                <PhotoIcon className="h-full w-full text-muted-foreground p-4" />
-                                            )}
-                                        </span>
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsUploaderOpen(true)}
-                                            disabled={isNewCharacter}
-                                            className="cursor-pointer rounded-md bg-secondary px-3 py-2 text-sm font-semibold text-secondary-foreground shadow-sm hover:bg-secondary/80 transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
-                                        >
-                                            Change
-                                        </button>
-                                    </div>
-                                    {isNewCharacter && (
-                                        <p className="text-xs text-muted-foreground">Save the character to enable the image uploader.</p>
-                                    )}
-                                </div>
-                                <InputField label="Character Name" name="name" type="text" value={character.name} onChange={handleFieldChange} placeholder="e.g., Eldrin" />
-                                <div className="grid grid-cols-2 gap-4">
-                                    <InputField label="Class" name="class" type="text" value={character.class} onChange={handleFieldChange} placeholder="e.g., Wizard" />
-                                    <InputField label="Subclass" name="subclass" type="text" value={character.subclass} onChange={handleFieldChange} placeholder="e.g., School of Evocation" />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <InputField label="Race" name="race" type="text" value={character.race} onChange={handleFieldChange} placeholder="e.g., High-Elf" />
-                                    <InputField label="Background" name="background" type="text" value={character.background} onChange={handleFieldChange} placeholder="e.g., Sage" />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <InputField label="Alignment" name="alignment" type="text" value={character.alignment} onChange={handleFieldChange} placeholder="e.g., Chaotic Good" className="col-span-2 sm:col-span-1" />
-                                    <StatInput label="Level" value={character.level} onChange={(val) => updateCharacter({ level: Number(val) })} className="col-span-2 sm:col-span-1" />
-                                </div>
-                                <InputField label="Languages" name="languages" type="text" value={character.languages} onChange={handleFieldChange} placeholder="e.g., Common, Elvish" />
-                            </div>
-                        </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                         {/* Colonna 2: Statistiche Vitali e Difesa */}
                         <div className="space-y-6">
-                            <div className="p-4 border border-border rounded-lg space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-muted-foreground mb-1">Hit Points</label>
-                                    {/* Stack on mobile and large screens (where parent column is narrow), side-by-side on medium screens */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
-                                        <StatInput label="Current" value={character.hp.current} onChange={(val) => handleHpChange('current', Number(val))} />
-                                        <StatInput label="Max" value={character.hp.max} onChange={(val) => handleHpChange('max', Number(val))} />
-                                        <StatInput label="Temporary" value={character.hp.temporary} onChange={(val) => handleHpChange('temporary', Number(val))} />
-                                    </div>
-                                </div>
-                                <InputField label="Hit Dice" name="hitDice" type="text" value={character.hitDice.total} onChange={handleHitDiceChange} placeholder="e.g. 1d8" />
-                            </div>
-
-                            <div className="p-4 border border-border rounded-lg space-y-2">
-                                <h4 className="text-sm font-medium text-muted-foreground">Unarmored Defense</h4>
-                                {/* Layout reattivo: verticale su mobile, orizzontale da sm in su */}
-                                <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-2">
-                                    {/* Wrapper per StatInput per controllarne la larghezza su desktop e risolvere il layout flex */}
-                                    <div className="w-full sm:max-w-[160px]">
-                                        <StatInput label="Base AC" value={character.unarmoredDefense?.base ?? 10} onChange={(val) => updateCharacter({ unarmoredDefense: { base: Number(val), abilities: character.unarmoredDefense?.abilities || [] } })} />
-                                    </div>
-                                    <span className="hidden sm:inline text-xl text-muted-foreground self-center"> + </span>
-                                    <div className="flex-1 w-full">
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {ABILITIES.map(ability => (
-                                                <div key={ability} className="flex flex-col items-center">
-                                                    <input type="checkbox" id={`unarmored-${ability}`} checked={character.unarmoredDefense?.abilities.includes(ability)} onChange={() => handleUnarmoredAbilityToggle(ability)} className="w-6 h-6 rounded-full text-primary bg-input border-border focus:ring-ring cursor-pointer" />
-                                                    <label htmlFor={`unarmored-${ability}`} className="text-xs text-muted-foreground mt-1 uppercase">{ability.substring(0, 3)}</label>
-                                                </div>
-                                            ))}
+                            <StyledSection title="Vitals & Defense">
+                                <div className="space-y-6">
+                                    {/* HP Section */}
+                                    <div className="bg-background/30 rounded-xl p-4 border border-border/40">
+                                        <label className="block text-xs font-bold text-accent uppercase tracking-widest mb-3 text-center">Hit Points</label>
+                                        {/* Changed from grid-cols-3 to flex-col to allow buttons and values to be seen clearly */}
+                                        <div className="grid grid-cols-1 gap-3">
+                                            <StatInput label="Current HP" value={character.hp.current} onChange={(val) => handleHpChange('current', Number(val))} inputClassName="text-green-500" />
+                                            <StatInput label="Max HP" value={character.hp.max} onChange={(val) => handleHpChange('max', Number(val))} />
+                                            <StatInput label="Temp HP" value={character.hp.temporary} onChange={(val) => handleHpChange('temporary', Number(val))} inputClassName="text-blue-400" />
+                                        </div>
+                                        <div className="mt-4 pt-4 border-t border-border/30">
+                                            <StyledInput label="Hit Dice" subLabel="Total Available" name="hitDice" value={character.hitDice.total} onChange={handleHitDiceChange} placeholder="e.g. 1d8" className="w-1/2 mx-auto text-center" />
                                         </div>
                                     </div>
+
+                                    {/* AC Section */}
+                                    <div className="bg-background/30 rounded-xl p-4 border border-border/40">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <label className="text-xs font-bold text-accent uppercase tracking-widest">Unarmored Defense</label>
+                                        </div>
+                                        <div className="flex flex-col sm:flex-row items-center gap-4">
+                                            <div className="w-32 flex-shrink-0">
+                                                <StatInput label="Base AC" value={character.unarmoredDefense?.base ?? 10} onChange={(val) => updateCharacter({ unarmoredDefense: { base: Number(val), abilities: character.unarmoredDefense?.abilities || [] } })} />
+                                            </div>
+                                            <div className="text-muted-foreground font-cinzel text-xl">+</div>
+                                            <div className="flex-grow flex flex-wrap justify-center sm:justify-start gap-2">
+                                                {ABILITIES.map(ability => (
+                                                    <label key={ability} className={`
+                                                        cursor-pointer px-3 py-1.5 rounded-lg border text-xs font-bold uppercase transition-all
+                                                        ${character.unarmoredDefense?.abilities.includes(ability)
+                                                            ? 'bg-accent text-accent-foreground border-accent shadow-[0_0_10px_rgba(var(--color-accent),0.4)]'
+                                                            : 'bg-background/50 text-muted-foreground border-border hover:border-accent/50'}
+                                                    `}>
+                                                        <input type="checkbox" className="hidden" checked={character.unarmoredDefense?.abilities.includes(ability)} onChange={() => handleUnarmoredAbilityToggle(ability)} />
+                                                        {ability.substring(0, 3)}
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Defenses */}
+                                    <div className="space-y-4 pt-2">
+                                        <div className="grid grid-cols-1 gap-4">
+                                            <div>
+                                                <StyledTextArea label="Resistances" subLabel="Half Damage" name="resistances" value={character.defenses?.resistances || ''} onChange={handleDefensesChange} placeholder="Fire, Poison..." rows={2} className="min-h-[80px]" />
+                                            </div>
+                                            <div>
+                                                <StyledTextArea label="Immunities" subLabel="No Damage" name="immunities" value={character.defenses?.immunities || ''} onChange={handleDefensesChange} placeholder="Cold, Charm..." rows={2} className="min-h-[80px]" />
+                                            </div>
+                                        </div>
+                                        <StyledInput label="Conditions" name="conditions" value={character.conditions?.join(', ') || ''} onChange={handleConditionsChange} placeholder="Blinded, Poisoned..." />
+                                    </div>
                                 </div>
-                            </div>
-
-                            <div className="p-4 border border-border rounded-lg space-y-4">
-                                <h3 className="text-sm font-medium text-muted-foreground border-b border-border pb-2">Defenses & Conditions</h3>
-
-                                <TextAreaInput
-                                    label="Resistances"
-                                    name="resistances"
-                                    value={character.defenses?.resistances || ''}
-                                    onChange={handleDefensesChange}
-                                    placeholder="e.g. Fire, Poison (Half damage)"
-                                />
-                                <div className="text-xs text-muted-foreground -mt-3 italic">Damage is halved against these types.</div>
-
-                                <TextAreaInput
-                                    label="Immunities"
-                                    name="immunities"
-                                    value={character.defenses?.immunities || ''}
-                                    onChange={handleDefensesChange}
-                                    placeholder="e.g. Cold, Charmed (No damage/effect)"
-                                />
-                                <div className="text-xs text-muted-foreground -mt-3 italic">No damage or effect from these types.</div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-muted-foreground capitalize mb-2">Conditions (Comma separated)</label>
-                                    <input
-                                        type="text"
-                                        value={character.conditions?.join(', ') || ''}
-                                        onChange={handleConditionsChange}
-                                        placeholder="e.g. Poisoned, Blinded"
-                                        className="w-full bg-input border border-border rounded-md shadow-sm py-2 px-3 text-foreground focus:outline-none focus:ring-ring focus:border-accent sm:text-sm"
-                                    />
-                                </div>
-                            </div>
+                            </StyledSection>
                         </div>
 
                         {/* Colonna 3: Statistiche di Combattimento */}
                         <div className="space-y-6">
-                            <div className="p-4 border border-border rounded-lg grid grid-cols-2 gap-4">
-                                <StatBox label="Initiative" value={formatModifier(initiative)} />
-                                <StatInput label="Speed" value={character.speed} onChange={(val) => updateCharacter({ speed: Number(val) })} />
-                                <StatBox label="Proficiency" value={formatModifier(proficiencyBonus)} />
-                                <div className="col-span-2">
-                                    <label htmlFor="spellcastingAbility" className="block text-sm font-medium text-muted-foreground">Spellcasting Ability</label>
-                                    <select id="spellcastingAbility" name="spellcastingAbility" value={character.spellcastingAbility} onChange={handleFieldChange} className="mt-1 block w-full bg-input border border-border rounded-md shadow-sm py-2 px-3 text-foreground focus:outline-none focus:ring-ring focus:border-accent sm:text-sm">
-                                        <option value="">None</option>
-                                        {ABILITIES.map(ability => (<option key={ability} value={ability} className="capitalize">{ability}</option>))}
-                                    </select>
+                            <StyledSection title="Combat Stats">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <StatBox label="Initiative" value={formatModifier(initiative)} />
+                                    <StatInput label="Speed" value={character.speed} onChange={(val) => updateCharacter({ speed: Number(val) })} />
+                                    <StatBox label="Proficiency" value={formatModifier(proficiencyBonus)} />
+                                    <div className="col-span-2">
+                                        <StyledSection title="" className="!p-3 !bg-background/20 !border-border/30">
+                                            <label htmlFor="spellcastingAbility" className="block text-xs font-bold text-accent uppercase tracking-widest pl-1 mb-2">Spellcasting Ability</label>
+                                            <select
+                                                id="spellcastingAbility"
+                                                name="spellcastingAbility"
+                                                value={character.spellcastingAbility}
+                                                onChange={handleFieldChange}
+                                                className="block w-full bg-background/50 border border-border/50 rounded-xl shadow-sm py-2.5 px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent sm:text-sm transition-all"
+                                            >
+                                                <option value="">None</option>
+                                                {ABILITIES.map(ability => (<option key={ability} value={ability} className="capitalize">{ability}</option>))}
+                                            </select>
+                                        </StyledSection>
+                                    </div>
+                                    <StatBox label="Spell Save DC" value={String(spellSaveDC)} />
+                                    <StatBox label="Spell Attack" value={String(spellAttackBonus)} />
                                 </div>
-                                <StatBox label="Spell Save DC" value={String(spellSaveDC)} />
-                                <StatBox label="Spell Attack" value={String(spellAttackBonus)} />
-                            </div>
+                            </StyledSection>
                         </div>
                     </div>
                 </div>
 
 
                 <div id="panel-stats" role="tabpanel" aria-labelledby="tab-stats" hidden={activeTab !== 'stats'}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {ABILITIES.map(abilityKey => {
                             const abilityScore = character.abilityScores[abilityKey];
                             const abilityModifier = getModifier(abilityScore);
@@ -503,56 +433,99 @@ export const CharacterSheet: React.FC = () => {
                             const relevantSkills = character.skills.filter(s => s.ability === abilityKey);
 
                             return (
-                                <div key={abilityKey} className="bg-card p-3 rounded-lg flex flex-col gap-3 border border-border">
-                                    <div className="flex items-center gap-4 justify-between">
-                                        <div className="flex-1">
-                                            <h3 className="text-xl font-cinzel text-accent capitalize">{abilityKey}</h3>
+                                <StyledSection
+                                    key={abilityKey}
+                                    className="!p-0 overflow-hidden flex flex-col h-full border-accent/20 hover:border-accent/40 transition-colors duration-300"
+                                >
+                                    {/* Header Card */}
+                                    <div className="bg-accent/10 p-4 border-b border-accent/20 flex items-center justify-between relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                                            {/* Icona opzionale o pattern qui */}
+                                            <span className="text-6xl font-cinzel font-bold">{abilityKey.charAt(0).toUpperCase()}</span>
                                         </div>
-                                        <div className="max-w-[160px]">
-                                            <StatInput value={abilityScore} onChange={(val) => handleAbilityScoreChange(abilityKey, Number(val))} showModifier />
+
+                                        <div className="z-10">
+                                            <h3 className="text-xl font-cinzel font-bold text-accent capitalize">{abilityKey}</h3>
+                                            <div className="text-xs text-muted-foreground font-bold tracking-widest uppercase">Ability Score</div>
+                                        </div>
+
+                                        <div className="z-10 flex flex-col items-center bg-background/50 backdrop-blur-md rounded-xl border border-accent/30 p-2 shadow-sm min-w-[70px]">
+                                            <span className="text-2xl font-bold text-foreground">{formatModifier(abilityModifier)}</span>
+                                            <div className="w-8 h-[1px] bg-accent/50 my-1"></div>
+                                            <input
+                                                type="number"
+                                                value={abilityScore}
+                                                onChange={(e) => handleAbilityScoreChange(abilityKey, Number(e.target.value))}
+                                                className="w-12 text-center bg-transparent text-sm font-bold text-muted-foreground focus:outline-none focus:text-accent no-spinner"
+                                            />
                                         </div>
                                     </div>
-                                    <div className="bg-muted/60 p-2 rounded-md space-y-2">
+
+                                    {/* Content */}
+                                    <div className="p-4 space-y-4 flex-grow bg-card/20">
                                         {/* Saving Throw */}
-                                        <label htmlFor={`saving-throw-${abilityKey}`} className="flex items-center justify-between cursor-pointer text-sm">
-                                            <div className="flex items-center gap-2">
-                                                <input
-                                                    type="checkbox"
-                                                    id={`saving-throw-${abilityKey}`}
-                                                    checked={savingThrow.proficient}
-                                                    onChange={() => handleSavingThrowProficiencyChange(abilityKey)}
-                                                    className="w-6 h-6 rounded-full text-primary bg-input border-border focus:ring-ring cursor-pointer" />
-                                                <span className="text-foreground">Saving Throw</span>
-                                            </div>
-                                            <span className="font-mono font-bold text-lg text-foreground">{formatModifier(savingThrowBonus)}</span>
-                                        </label>
-                                        {/* Skills */}
-                                        {relevantSkills.map(skill => {
-                                            const skillBonus = abilityModifier + (skill.proficient ? proficiencyBonus : 0) + (skill.expertise ? proficiencyBonus : 0);
-                                            return (
-                                                <div key={skill.name} className="flex items-center justify-between text-sm">
-                                                    <div className="flex items-center gap-2">
-                                                        <input
-                                                            type="checkbox"
-                                                            id={`skill-prof-${skill.name}`}
-                                                            checked={skill.proficient}
-                                                            onChange={() => handleSkillProficiencyChange(skill.name)}
-                                                            className="w-6 h-6 rounded-full text-primary bg-input border-border focus:ring-ring cursor-pointer" />
-                                                        <input
-                                                            type="checkbox"
-                                                            id={`skill-exp-${skill.name}`}
-                                                            checked={skill.expertise}
-                                                            onChange={() => handleSkillExpertiseChange(skill.name)}
-                                                            className="w-6 h-6 rounded-sm text-accent bg-input border-border focus:ring-ring cursor-pointer"
-                                                            title="Expertise" />
-                                                        <label htmlFor={`skill-prof-${skill.name}`} className="cursor-pointer text-foreground">{skill.name}</label>
-                                                    </div>
-                                                    <span className="font-mono font-bold text-lg text-foreground">{formatModifier(skillBonus)}</span>
+                                        <div className={`
+                                            flex items-center justify-between p-3 rounded-xl border transition-all duration-200
+                                            ${savingThrow.proficient
+                                                ? 'bg-accent/10 border-accent/30 shadow-sm'
+                                                : 'bg-background/30 border-border/40 hover:bg-background/50'}
+                                        `}>
+                                            <label htmlFor={`saving-throw-${abilityKey}`} className="flex items-center gap-3 cursor-pointer select-none">
+                                                <div className={`
+                                                    w-5 h-5 rounded-md flex items-center justify-center border transition-colors
+                                                    ${savingThrow.proficient ? 'bg-accent border-accent text-accent-foreground' : 'border-muted-foreground/50 text-transparent'}
+                                                `}>
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`saving-throw-${abilityKey}`}
+                                                        className="hidden"
+                                                        checked={savingThrow.proficient}
+                                                        onChange={() => handleSavingThrowProficiencyChange(abilityKey)}
+                                                    />
+                                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                                                 </div>
-                                            );
-                                        })}
+                                                <span className={`text-sm font-bold uppercase tracking-wider ${savingThrow.proficient ? 'text-accent' : 'text-muted-foreground'}`}>Saving Throw</span>
+                                            </label>
+                                            <span className="font-mono font-bold text-lg">{formatModifier(savingThrowBonus)}</span>
+                                        </div>
+
+                                        {/* Skills Divider */}
+                                        {relevantSkills.length > 0 && <div className="h-px bg-border/40 w-full my-2"></div>}
+
+                                        {/* Skills List */}
+                                        <div className="space-y-2">
+                                            {relevantSkills.map(skill => {
+                                                const skillBonus = abilityModifier + (skill.proficient ? proficiencyBonus : 0) + (skill.expertise ? proficiencyBonus : 0);
+                                                return (
+                                                    <div key={skill.name} className="group flex items-center justify-between p-2 rounded-lg hover:bg-muted/10 transition-colors">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="flex gap-1">
+                                                                {/* Proficient Checkbox */}
+                                                                <label
+                                                                    className={`w-4 h-4 rounded-full border flex items-center justify-center cursor-pointer transition-all ${skill.proficient ? 'bg-primary border-primary' : 'border-muted-foreground/40 hover:border-primary/50'}`}
+                                                                    title="Proficiency"
+                                                                >
+                                                                    <input type="checkbox" className="hidden" checked={skill.proficient} onChange={() => handleSkillProficiencyChange(skill.name)} />
+                                                                    {skill.proficient && <div className="w-1.5 h-1.5 rounded-full bg-primary-foreground" />}
+                                                                </label>
+                                                                {/* Expertise Checkbox */}
+                                                                <label
+                                                                    className={`w-4 h-4 rounded-full border flex items-center justify-center cursor-pointer transition-all ${skill.expertise ? 'bg-accent border-accent' : 'border-muted-foreground/40 hover:border-accent/50'}`}
+                                                                    title="Expertise (Double Proficiency)"
+                                                                >
+                                                                    <input type="checkbox" className="hidden" checked={skill.expertise} onChange={() => handleSkillExpertiseChange(skill.name)} />
+                                                                    {skill.expertise && <div className="w-1.5 h-1.5 rounded-full bg-accent-foreground" />}
+                                                                </label>
+                                                            </div>
+                                                            <span className={`text-sm transition-colors ${skill.proficient ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>{skill.name}</span>
+                                                        </div>
+                                                        <span className={`font-mono font-bold text-sm ${skill.proficient ? 'text-accent' : 'text-muted-foreground/70'}`}>{formatModifier(skillBonus)}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
-                                </div>
+                                </StyledSection>
                             );
                         })}
                     </div>
@@ -571,28 +544,99 @@ export const CharacterSheet: React.FC = () => {
 
                 <div id="panel-bio" role="tabpanel" aria-labelledby="tab-bio" hidden={activeTab !== 'bio'} className="min-h-[60vh]">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div className="flex flex-col gap-6">
-                            <TextAreaInput label="Personality Traits" name="personalityTraits" value={character.personalityTraits} onChange={handleFieldChange} />
-                            <TextAreaInput label="Ideals" name="ideals" value={character.ideals} onChange={handleFieldChange} />
-                            <TextAreaInput label="Bonds" name="bonds" value={character.bonds} onChange={handleFieldChange} />
-                            <TextAreaInput label="Flaws" name="flaws" value={character.flaws} onChange={handleFieldChange} />
+                        <div className="col-span-1 lg:col-span-2">
+                            <StyledSection title="Identity" className="h-full">
+                                <div className="space-y-6">
+                                    <div className="flex flex-col items-center sm:flex-row gap-6">
+                                        <div className="relative group">
+                                            <div className="h-32 w-32 rounded-2xl overflow-hidden bg-muted border-2 border-border/50 shadow-inner group-hover:border-accent/50 transition-colors">
+                                                {character.imageUrl ? (
+                                                    <img src={character.imageUrl} alt="Character portrait" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                                ) : (
+                                                    <PhotoIcon className="h-full w-full text-muted-foreground/30 p-6" />
+                                                )}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsUploaderOpen(true)}
+                                                disabled={isNewCharacter}
+                                                className="absolute bottom-2 right-2 p-1.5 rounded-lg bg-background/80 backdrop-blur-sm border border-border shadow-sm text-xs font-semibold text-foreground hover:text-accent transition-colors disabled:opacity-0"
+                                            >
+                                                <PhotoIcon className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                        <div className="flex-1 w-full space-y-4">
+                                            {/* Row 1: Names */}
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <StyledInput label="Character Name" className="text-lg font-bold" name="name" type="text" value={character.name} onChange={handleFieldChange} placeholder="e.g., Eldrin" />
+                                                <StyledInput label="Player Name" name="playerName" type="text" value={character.playerName} onChange={handleFieldChange} placeholder="Your Name" />
+                                            </div>
+
+                                            {/* Row 2: Origin */}
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <StyledInput label="Race" name="race" value={character.race} onChange={handleFieldChange} placeholder="Human" />
+                                                <StyledInput label="Background" name="background" value={character.background} onChange={handleFieldChange} placeholder="Sage" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2 border-t border-border/30">
+                                        <div className="col-span-1 sm:col-span-2">
+                                            <StyledInput label="Class & Subclass" name="class" value={character.class} onChange={handleFieldChange} placeholder="Wizard (Evocation)" />
+                                        </div>
+                                        <div className="col-span-1">
+                                            <StatInput label="Level" value={character.level} onChange={(val) => updateCharacter({ level: Number(val) })} className="w-full" showModifier={false} inputClassName="text-2xl" />
+                                        </div>
+                                        <div className="col-span-1">
+                                            <StyledInput label="XP" name="experiencePoints" type="number" value={character.experiencePoints} onChange={handleFieldChange} placeholder="0" />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <StyledInput label="Alignment" name="alignment" value={character.alignment} onChange={handleFieldChange} />
+                                        <StyledInput label="Languages" name="languages" value={character.languages} onChange={handleFieldChange} />
+                                    </div>
+                                </div>
+                            </StyledSection>
                         </div>
-                        <div className="flex flex-col gap-6">
-                            <div className="bg-card p-4 rounded-lg border border-border flex flex-col">
-                                <h3 className="text-lg font-semibold text-accent mb-2">AI Personality Generator</h3>
-                                <input
-                                    type="text"
-                                    placeholder="Optional: Add a keyword (e.g., 'tragic', 'grew up an orphan')"
-                                    value={personalityPrompt}
-                                    onChange={(e) => setPersonalityPrompt(e.target.value)}
-                                    className="w-full bg-input border border-border rounded-md p-2 text-sm mb-2 focus:ring-ring focus:border-accent" />
-                                <button onClick={handleGeneratePersonality} disabled={isGenerating} className="flex w-full justify-center items-center gap-2 text-sm bg-primary hover:bg-primary/90 px-3 py-2 rounded-md text-primary-foreground transition disabled:bg-muted disabled:text-muted-foreground">
-                                    <SparklesIcon className="w-4 h-4" />
-                                    {isGenerating ? 'Generating...' : 'Generate with AI'}
-                                </button>
-                            </div>
-                            <TextAreaInput label="Notes" name="notes" value={character.notes} onChange={handleFieldChange} placeholder="Campaign notes, important NPCs, etc." />
-                            <TextAreaInput label="DM Notes" name="dmNotes" value={character.dmNotes} onChange={handleFieldChange} placeholder="Notes from your DM, or secrets your character knows." />
+                        <div className="space-y-6">
+                            <StyledSection title="Personality">
+                                <div className="space-y-4">
+                                    <StyledTextArea label="Personality Traits" name="personalityTraits" value={character.personalityTraits} onChange={handleFieldChange} />
+                                    <StyledTextArea label="Ideals" name="ideals" value={character.ideals} onChange={handleFieldChange} />
+                                    <StyledTextArea label="Bonds" name="bonds" value={character.bonds} onChange={handleFieldChange} />
+                                    <StyledTextArea label="Flaws" name="flaws" value={character.flaws} onChange={handleFieldChange} />
+                                </div>
+                            </StyledSection>
+                        </div>
+                        <div className="space-y-6">
+                            <StyledSection title="AI Generator" className="border-accent/30 bg-accent/5">
+                                <h3 className="text-sm font-bold text-accent uppercase tracking-widest mb-3">Generate Personality</h3>
+                                <div className="space-y-3">
+                                    <StyledInput
+                                        label="Theme / Prompt"
+                                        name="aiPrompt"
+                                        placeholder="e.g. 'Tragic orphan rogue', 'Noble paladin'"
+                                        value={personalityPrompt}
+                                        onChange={(e) => setPersonalityPrompt(e.target.value)}
+                                    />
+                                    <button
+                                        onClick={handleGeneratePersonality}
+                                        disabled={isGenerating}
+                                        className="flex w-full justify-center items-center gap-2 text-sm font-bold uppercase tracking-wider bg-accent/90 hover:bg-accent text-accent-foreground px-4 py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50"
+                                    >
+                                        <SparklesIcon className="w-4 h-4" />
+                                        {isGenerating ? 'Weaving Fate...' : 'Generate with AI'}
+                                    </button>
+                                </div>
+                            </StyledSection>
+
+                            <StyledSection title="Campaign Notes">
+                                <div className="space-y-4">
+                                    <StyledTextArea label="General Notes" name="notes" value={character.notes} onChange={handleFieldChange} placeholder="Campaign events, logs..." className="min-h-[200px]" />
+                                    <StyledTextArea label="DM Notes" subLabel="Secrets" name="dmNotes" value={character.dmNotes} onChange={handleFieldChange} placeholder="Private notes..." />
+                                </div>
+                            </StyledSection>
                         </div>
                     </div>
                 </div>
@@ -600,34 +644,41 @@ export const CharacterSheet: React.FC = () => {
                 <div id="panel-inventory" role="tabpanel" aria-labelledby="tab-inventory" hidden={activeTab !== 'inventory'} className="min-h-[60vh]">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-1">
-                            <h3 className="text-lg font-cinzel text-accent mb-4">Currency</h3>
-                            {/* Use a responsive grid that wraps automatically */}
-                            <div className="bg-muted/50 p-4 rounded-lg grid gap-4 border border-border grid-cols-[repeat(auto-fill,minmax(140px,1fr))]">
-                                {(Object.keys(character.currency) as Array<keyof Currency>).map((type) => (
-                                    <StatInput key={type} label={type.toUpperCase()} value={character.currency[type]} onChange={(val) => handleCurrencyChange(type, Number(val))} inputClassName="text-2xl" />
-                                ))}
-                            </div>
+                            <StyledSection title="Currency" className="sticky top-6">
+                                <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(120px,1fr))]">
+                                    {(Object.keys(character.currency) as Array<keyof Currency>).map((type) => (
+                                        <StatInput key={type} label={type.toUpperCase()} value={character.currency[type]} onChange={(val) => handleCurrencyChange(type, Number(val))} inputClassName="text-2xl" />
+                                    ))}
+                                </div>
+                            </StyledSection>
                         </div>
-                        <div className="lg:col-span-2 p-4 border border-border rounded-lg">
-                            <EquipmentList />
+                        <div className="lg:col-span-2">
+                            <StyledSection title="Equipment" className="min-h-[500px]">
+                                <EquipmentList />
+                            </StyledSection>
                         </div>
                     </div>
                 </div>
 
                 <div id="panel-spells" role="tabpanel" aria-labelledby="tab-spells" hidden={activeTab !== 'spells'} className="min-h-[60vh] space-y-6">
-                    <div className="bg-muted/50 p-4 rounded-lg border border-border">
-                        <h4 className="text-lg font-cinzel text-accent mb-3">Maximum Spell Slots</h4>
-                        {/* Use a responsive grid that wraps automatically */}
-                        <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(140px,1fr))]">
-                            {Array.from({ length: 9 }, (_, i) => i + 1).map((level) => (
-                                <StatInput key={level} label={`Lvl ${level}`} value={character.spellSlots[level]?.max ?? 0} onChange={(val) => handleSpellSlotChange(level, Number(val))} />
-                            ))}
+                    <StyledSection title="Spell Slots & Resources">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="bg-background/20 rounded-xl p-4 border border-border/40">
+                                <label className="block text-xs font-bold text-accent uppercase tracking-widest mb-4">Maximum Spell Slots</label>
+                                <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(100px,1fr))]">
+                                    {Array.from({ length: 9 }, (_, i) => i + 1).map((level) => (
+                                        <StatInput key={level} label={`Lvl ${level}`} value={character.spellSlots[level]?.max ?? 0} onChange={(val) => handleSpellSlotChange(level, Number(val))} />
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="bg-background/20 rounded-xl p-4 border border-border/40">
+                                <label className="block text-xs font-bold text-accent uppercase tracking-widest mb-4">Custom Resources</label>
+                                <CustomResourceEditor character={character} onUpdateCharacter={updateCharacter} />
+                            </div>
                         </div>
-                    </div>
-                    <div className="p-4 border border-border rounded-lg">
-                        <CustomResourceEditor character={character} onUpdateCharacter={updateCharacter} />
-                    </div>
-                    <div className="p-4 border border-border rounded-lg">
+                    </StyledSection>
+
+                    <div className="pt-2">
                         <Spellbook />
                     </div>
                 </div>

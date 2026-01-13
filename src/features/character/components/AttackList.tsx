@@ -14,6 +14,11 @@ const DEFAULT_ATTACK: Omit<Attack, 'id'> = {
 import { WEAPON_MASTERIES, WEAPON_PROPERTIES } from '../../../data/weaponProperties';
 import { calculateSpellSaveDC, calculateSpellAttackBonus } from '../characterService';
 
+const DAMAGE_TYPES = [
+  'Acid', 'Bludgeoning', 'Cold', 'Fire', 'Force', 'Lightning', 'Necrotic',
+  'Piercing', 'Poison', 'Psychic', 'Radiant', 'Slashing', 'Thunder'
+];
+
 const AttackForm = ({
   initialData,
   character,
@@ -162,15 +167,120 @@ const AttackForm = ({
           </>
         ) : (
           <>
-            <div className="md:col-span-6 space-y-1 animate-in fade-in">
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Hit Bonus</label>
-              <input type="text" placeholder="+5" value={formData.bonus} onChange={e => handleChange('bonus', e.target.value)} required
-                className="w-full bg-background/50 p-2.5 rounded-lg border border-border/50 focus:ring-2 focus:ring-accent/50 focus:border-accent text-center font-mono font-bold" />
+            <div className="md:col-span-12 space-y-1 animate-in fade-in">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Hit Roll Calculation</label>
+              <div className="grid grid-cols-12 gap-2">
+                <div className="col-span-4">
+                  <select
+                    value={formData.attackAbility || ''}
+                    onChange={e => handleChange('attackAbility', e.target.value)}
+                    className="w-full bg-background/50 p-2.5 rounded-lg border border-border/50 focus:ring-2 focus:ring-accent/50 focus:border-accent text-xs font-mono text-center uppercase"
+                    title="Attack Ability"
+                  >
+                    <option value="">None (Flat)</option>
+                    {['str', 'dex', 'con', 'int', 'wis', 'cha'].map(a => <option key={a} value={a}>{a.toUpperCase()}</option>)}
+                  </select>
+                </div>
+                <div className="col-span-3 flex items-center justify-center bg-background/50 rounded-lg border border-border/50">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold uppercase select-none">
+                    <input
+                      type="checkbox"
+                      checked={formData.isProficient || false}
+                      onChange={e => handleChange('isProficient', e.target.checked)}
+                      className="accent-accent w-4 h-4"
+                    />
+                    Proficient
+                  </label>
+                </div>
+                <div className="col-span-5">
+                  <input type="text" placeholder="Magic/Misc (+1)" value={formData.bonus} onChange={e => handleChange('bonus', e.target.value)} required
+                    className="w-full bg-background/50 p-2.5 rounded-lg border border-border/50 focus:ring-2 focus:ring-accent/50 focus:border-accent text-center font-mono font-bold" />
+                </div>
+              </div>
             </div>
-            <div className="md:col-span-6 space-y-1 animate-in fade-in">
+            <div className="md:col-span-12 space-y-1 animate-in fade-in">
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Damage</label>
-              <input type="text" placeholder="1d8+3" value={formData.damage} onChange={e => handleChange('damage', e.target.value)} required
-                className="w-full bg-background/50 p-2.5 rounded-lg border border-border/50 focus:ring-2 focus:ring-accent/50 focus:border-accent text-center font-mono font-bold" />
+              <div className="grid grid-cols-12 gap-2">
+                <div className="col-span-5">
+                  <input type="text" placeholder="1d8" value={formData.damage} onChange={e => handleChange('damage', e.target.value)} required
+                    className="w-full bg-background/50 p-2.5 rounded-lg border border-border/50 focus:ring-2 focus:ring-accent/50 focus:border-accent text-center font-mono font-bold" />
+                </div>
+                <div className="col-span-3">
+                  <select
+                    value={formData.damageAbility || ''}
+                    onChange={e => handleChange('damageAbility', e.target.value)}
+                    className="w-full bg-background/50 p-2.5 rounded-lg border border-border/50 focus:ring-2 focus:ring-accent/50 focus:border-accent text-xs font-mono text-center uppercase"
+                    title="Add Ability Modifier to Damage"
+                  >
+                    <option value="">+0</option>
+                    {['str', 'dex', 'con', 'int', 'wis', 'cha'].map(a => <option key={a} value={a}>+{a.toUpperCase()}</option>)}
+                  </select>
+                </div>
+                <div className="col-span-4">
+                  <select
+                    value={formData.damageType || ''}
+                    onChange={e => handleChange('damageType', e.target.value)}
+                    className="w-full bg-background/50 p-2.5 rounded-lg border border-border/50 focus:ring-2 focus:ring-accent/50 focus:border-accent text-sm"
+                  >
+                    <option value="">-- Type --</option>
+                    {DAMAGE_TYPES.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Additional Damage Section */}
+              <div className="space-y-2 mt-2">
+                {formData.additionalDamage?.map((extra, idx) => (
+                  <div key={idx} className="flex gap-2 animate-in fade-in slide-in-from-top-1">
+                    <input
+                      type="text"
+                      placeholder="Extra Dmg (e.g. 1d6)"
+                      value={extra.formula}
+                      onChange={e => {
+                        const newExtras = [...(formData.additionalDamage || [])];
+                        newExtras[idx] = { ...newExtras[idx], formula: e.target.value };
+                        handleChange('additionalDamage', newExtras);
+                      }}
+                      className="w-full bg-background/50 p-2.5 rounded-lg border border-border/50 focus:ring-2 focus:ring-accent/50 focus:border-accent text-center font-mono font-bold text-sm"
+                    />
+                    <select
+                      value={extra.type}
+                      onChange={e => {
+                        const newExtras = [...(formData.additionalDamage || [])];
+                        newExtras[idx] = { ...newExtras[idx], type: e.target.value };
+                        handleChange('additionalDamage', newExtras);
+                      }}
+                      className="w-full bg-background/50 p-2.5 rounded-lg border border-border/50 focus:ring-2 focus:ring-accent/50 focus:border-accent text-sm"
+                    >
+                      <option value="">-- Type --</option>
+                      {DAMAGE_TYPES.map(type => (
+                        <option key={type} value={type}>{type}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newExtras = [...(formData.additionalDamage || [])].filter((_, i) => i !== idx);
+                        handleChange('additionalDamage', newExtras);
+                      }}
+                      className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleChange('additionalDamage', [...(formData.additionalDamage || []), { formula: '', type: '' }]);
+                  }}
+                  className="text-xs flex items-center gap-1 text-accent hover:text-accent/80 font-bold uppercase tracking-wider"
+                >
+                  <PlusCircleIcon className="w-3.5 h-3.5" /> Add Mixed Damage
+                </button>
+              </div>
             </div>
 
             {/* Weapon Mastery Dropdown */}

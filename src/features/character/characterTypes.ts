@@ -25,8 +25,9 @@ export interface Spell {
   components: string;
   duration: string;
   description: string;
-  ritual: boolean;       // Aggiunto
-  concentration: boolean; // Aggiunto
+  ritual: boolean;
+  concentration: boolean;
+  prepared?: boolean;
 }
 
 
@@ -75,11 +76,16 @@ export interface Feature {
 export interface Attack {
   id: string;
   name: string;
-  bonus: string;
+  bonus: string; // Now represents "Magic/Custom Bonus"
   damage: string;
   mastery?: string;
   properties?: string[];
   saveAbility?: string; // 'str', 'dex', 'con', etc. or null if attack roll
+  damageType?: string; // 'fire', 'slashing', etc.
+  additionalDamage?: { formula: string; type: string }[];
+  damageAbility?: string; // 'str', 'dex', etc. to add to damage
+  attackAbility?: string; // 'str', 'dex', etc. for hit roll
+  isProficient?: boolean; // add proficiency bonus to hit?
 }
 
 export interface EquipmentItem {
@@ -90,6 +96,7 @@ export interface EquipmentItem {
   armorClass?: number; // Base AC for armor, or bonus for shields
   armorType?: 'light' | 'medium' | 'heavy' | 'shield';
   equipped?: boolean;
+  imageUrl?: string;
 }
 
 export interface Currency {
@@ -153,6 +160,7 @@ export interface ICharacter {
   ideals: string;
   bonds: string;
   flaws: string;
+  biography?: string; // New field for character backstory
 
   // Defenses & Conditions
   defenses: {
@@ -181,6 +189,7 @@ export interface ICharacter {
 
   // Syncing
   lastUpdated: number;
+  order?: number; // For custom sorting
 }
 
 export interface ICompanion {

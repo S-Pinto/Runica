@@ -7,14 +7,14 @@ import { AbilitiesDisplay } from './components/AbilitiesDisplay';
 import { ImageModal } from '../../components/ui/ImageModal';
 import { CompanionTab } from './components/play-view/CompanionTab';
 
-type PlayTab = 'main' | 'abilities' | 'combat' | 'spells' | 'inventory' | 'companions' | 'info';
+type PlayTab = 'main' | 'stats' | 'combat' | 'bio' | 'inventory' | 'spells' | 'companions';
 
 // --- Lazy Loading dei Componenti delle Tab ---
 const MainTabView = lazy(() => import('./components/play-view/MainTabView'));
 const CombatTabView = lazy(() => import('./components/play-view/CombatTabView'));
 const SpellsTabView = lazy(() => import('./components/play-view/SpellsTabView'));
 const InventoryTabView = lazy(() => import('./components/play-view/InventoryTabView'));
-const InfoTabView = lazy(() => import('./components/play-view/InfoTabView'));
+const BioTabView = lazy(() => import('./components/play-view/InfoTabView'));
 
 const TabLoadingSpinner = () => <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-accent"></div></div>;
 
@@ -26,8 +26,8 @@ const TabButton = ({ label, isActive, onClick, id, controls }: { label: string, 
         aria-controls={controls}
         onClick={onClick}
         className={`px-6 py-2.5 text-sm sm:text-base font-semibold transition-all duration-300 whitespace-nowrap relative group ${isActive
-                ? 'text-accent'
-                : 'text-muted-foreground hover:text-foreground'
+            ? 'text-accent'
+            : 'text-muted-foreground hover:text-foreground'
             }`}
     >
         {label}
@@ -41,21 +41,21 @@ const TabButton = ({ label, isActive, onClick, id, controls }: { label: string, 
 
 const PLAY_TABS: { key: PlayTab; label: string }[] = [
     { key: 'main', label: 'Main' },
-    { key: 'abilities', label: 'Abilities' },
-    { key: 'combat', label: 'Combat' },
-    { key: 'spells', label: 'Spells' },
+    { key: 'stats', label: 'Stats & Skills' },
+    { key: 'combat', label: 'Combat & Features' },
+    { key: 'bio', label: 'Biography & Notes' },
     { key: 'inventory', label: 'Inventory' },
-    { key: 'info', label: 'Info' },
+    { key: 'spells', label: 'Spells' },
     { key: 'companions', label: 'Companions' },
 ];
 
 const tabComponents: Record<PlayTab, React.ComponentType<any>> = {
     main: MainTabView,
-    abilities: AbilitiesDisplay,
+    stats: AbilitiesDisplay,
     combat: CombatTabView,
-    spells: SpellsTabView,
+    bio: BioTabView,
     inventory: InventoryTabView,
-    info: InfoTabView,
+    spells: SpellsTabView,
     companions: CompanionTab,
 };
 

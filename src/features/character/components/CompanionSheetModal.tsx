@@ -10,8 +10,11 @@ import { CompanionSpellEditor } from './CompanionSpellEditor';
 import { CompanionHpManager } from './CompanionHpManager';
 import { debounce } from 'lodash';
 import { StatInput } from './StatInput';
+import { StyledInput, StyledTextArea } from './ui/StyledInputs';
 import { getModifier, formatModifier } from '../utils/characterUtils';
 import * as storageService from '../../../services/storageService';
+import { CompanionSkillSelector } from './CompanionSkillSelector';
+import { CompanionFeatureEditor } from './CompanionFeatureEditor';
 
 interface CompanionSheetModalProps {
   companion: ICompanion;
@@ -20,13 +23,6 @@ interface CompanionSheetModalProps {
   readOnly?: boolean;
   onSetReadOnly?: (isReadOnly: boolean) => void;
 }
-
-const Input = ({ label, className = '', ...props }: any) => (
-  <div>
-    <label className="block text-sm font-medium text-muted-foreground">{label}</label>
-    <input {...props} className={`mt-1 block w-full bg-input border border-border rounded-md shadow-sm py-2 px-3 text-foreground focus:outline-none focus:ring-ring focus:border-accent sm:text-sm ${props.type === 'number' ? 'no-spinner' : ''} ${className}`} />
-  </div>
-);
 
 const DisplayField = ({ label, value, className = '' }: { label: string, value: React.ReactNode, className?: string }) => (
   <div>
@@ -139,6 +135,10 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
     }
   };
 
+  const handleSkillChange = (newSkills: any[]) => {
+    setData(prev => ({ ...prev, skills: newSkills }));
+  };
+
   const dexModifier = getModifier(data.abilityScores.dexterity);
 
   return (
@@ -171,7 +171,7 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
         <div className="flex items-center gap-2 mb-6 border-b border-border pb-4">
           <ModalTabButton label="Overview" isActive={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
           <ModalTabButton label="Combat" isActive={activeTab === 'combat'} onClick={() => setActiveTab('combat')} />
-          <ModalTabButton label="Notes" isActive={activeTab === 'notes'} onClick={() => setActiveTab('notes')} />
+          <ModalTabButton label="Traits & Notes" isActive={activeTab === 'notes'} onClick={() => setActiveTab('notes')} />
         </div>
 
         <div hidden={activeTab !== 'overview'} className="space-y-6">
@@ -206,8 +206,8 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
                 </>
               ) : (
                 <>
-                  <Input label="Name" name="name" value={data.name} onChange={handleChange} className="text-2xl font-bold text-center" />
-                  <Input label="Type" name="type" value={data.type} onChange={handleChange} placeholder="e.g., Familiar, Beast" />
+                  <StyledInput label="Name" name="name" value={data.name} onChange={handleChange} className="text-2xl font-bold text-center" />
+                  <StyledInput label="Type" name="type" value={data.type} onChange={handleChange} placeholder="e.g., Familiar, Beast" />
                 </>
               )}
             </div>
@@ -216,10 +216,10 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
           <CompanionHpManager hp={data.hp} onHpChange={handleHpManagerChange} />
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {readOnly ? <DisplayField label="Armor Class" value={data.armorClass} /> : <Input label="Armor Class" name="armorClass" type="number" value={data.armorClass} onChange={handleChange} />}
-            {readOnly ? <DisplayField label="Speed" value={data.speed} /> : <Input label="Speed" name="speed" value={data.speed} onChange={handleChange} />}
+            {readOnly ? <DisplayField label="Armor Class" value={data.armorClass} /> : <StyledInput label="Armor Class" name="armorClass" type="number" value={data.armorClass} onChange={handleChange} />}
+            {readOnly ? <DisplayField label="Speed" value={data.speed} /> : <StyledInput label="Speed" name="speed" value={data.speed} onChange={handleChange} />}
             <DisplayField label="Initiative" value={formatModifier(dexModifier)} />
-            {readOnly ? <DisplayField label="Max HP" value={data.hp.max} /> : <Input label="Max HP" type="number" value={data.hp.max} onChange={(e: any) => handleHpFieldChange('max', parseInt(e.target.value) || 0)} />}
+            {readOnly ? <DisplayField label="Max HP" value={data.hp.max} /> : <StyledInput label="Max HP" type="number" value={data.hp.max} onChange={(e: any) => handleHpFieldChange('max', parseInt(e.target.value) || 0)} />}
           </div>
 
           <div>
@@ -246,6 +246,11 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
               )}
             </div>
           </div>
+
+          <div>
+            <h4 className="text-md font-semibold text-zinc-400 mb-2">Skills</h4>
+            <CompanionSkillSelector companion={data} onChange={handleSkillChange} readOnly={readOnly} />
+          </div>
         </div>
 
         <div hidden={activeTab !== 'combat'} className="space-y-6">
@@ -253,18 +258,19 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
           <CompanionSpellEditor companion={data} setCompanion={setData} readOnly={readOnly} />
         </div>
 
-        <div hidden={activeTab !== 'notes'}>
+        <div hidden={activeTab !== 'notes'} className="space-y-6">
+          <CompanionFeatureEditor companion={data} setCompanion={setData} readOnly={readOnly} />
           <div>
-            <label className="block text-sm font-medium text-muted-foreground">Notes, Features & Traits</label>
+            <label className="block text-sm font-medium text-muted-foreground">Additional Notes</label>
             {readOnly ? (
               <div className="mt-1 p-3 bg-input/50 rounded-md min-h-[200px] text-foreground/80 whitespace-pre-wrap">{data.notes || <span className="text-muted-foreground/50">No notes.</span>}</div>
             ) : (
-              <textarea
+              <StyledTextArea
+                label="Notes (Background, specifics...)"
                 name="notes"
                 value={data.notes}
                 onChange={handleChange}
                 rows={12}
-                className="mt-1 block w-full bg-input border border-border rounded-md shadow-sm py-2 px-3 text-foreground focus:outline-none focus:ring-ring focus:border-accent sm:text-sm"
                 placeholder="Special abilities, background, resistances, immunities, etc."
               />
             )}

@@ -37,6 +37,7 @@ export const createNewCharacter = (): ICharacter => {
     return {
         id: `new_${Date.now()}`,
         lastUpdated: Date.now(),
+        order: 0,
         name: '', class: '', subclass: '', level: 1, race: '',
         alignment: '', background: '', playerName: '', experiencePoints: 0,
         abilityScores, inspiration: 0,
@@ -230,6 +231,31 @@ export const deleteCharacter = async (id: string): Promise<void> => {
     } else {
         const characters = getLocalCharacters();
         saveLocalCharacters(characters.filter(c => c.id !== id));
+    }
+};
+
+export const saveCharacterOrder = async (characters: ICharacter[]): Promise<void> => {
+    const coll = getCharactersCollection();
+    if (coll) {
+        const { db } = getFirebase();
+        const batch = writeBatch(db);
+
+        characters.forEach((char, index) => {
+            const docRef = doc(coll, char.id);
+            // Only update the order field to minimize data transfer
+            // We use 'merge: true' implicit in setDoc if we were using it, but update is cleaner.
+            // However, batch.update fails if doc doesn't exist.
+            // Since we know these chars exist (they are from the list), update is safe.
+            // But to be extra safe and simple, let's just update the order field.
+            batch.update(docRef, { order: index });
+        });
+
+        await batch.commit();
+    } else {
+        // Local storage
+        // Update order in the array
+        const updatedCharacters = characters.map((c, index) => ({ ...c, order: index }));
+        saveLocalCharacters(updatedCharacters);
     }
 };
 

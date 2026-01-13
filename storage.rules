@@ -28,10 +28,17 @@ service firebase.storage {
     }
 
     // Regole per i ritratti dei compagni
-    match /users/{userId}/characters/{characterId}/companions/{companionId} {
+    match /users/{userId}/characters/{characterId}/companions/{companionId}/portrait.jpg {
         // Chiunque può leggere i ritratti.
         allow read;
         // Solo il proprietario del personaggio può scrivere i ritratti per i compagni.
+        allow write: if request.auth != null && request.auth.uid == userId
+                     && request.resource.size < 1 * 1024 * 1024; // 1MB
+    }
+
+    // Regole per le immagini degli oggetti
+    match /users/{userId}/characters/{characterId}/items/{itemId}/image.jpg {
+        allow read;
         allow write: if request.auth != null && request.auth.uid == userId
                      && request.resource.size < 1 * 1024 * 1024; // 1MB
     }

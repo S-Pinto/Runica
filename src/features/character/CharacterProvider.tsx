@@ -12,6 +12,7 @@ interface ICharacterContext {
   loading: boolean;
   deleteCharacter: (id: string) => Promise<void>;
   saveCharacter: (character: ICharacter) => Promise<ICharacter>;
+  saveCharacterOrder: (characters: ICharacter[]) => Promise<void>;
 }
 
 const CharacterContext = createContext<ICharacterContext | undefined>(undefined);
@@ -30,6 +31,20 @@ export const CharacterProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const { currentUser } = useAuth();
 
+  // Helper for sorting
+  const sortCharacters = (chars: ICharacter[]) => {
+    return chars.sort((a, b) => {
+      const orderA = a.order ?? Number.MAX_SAFE_INTEGER;
+      const orderB = b.order ?? Number.MAX_SAFE_INTEGER;
+
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+
+      return a.name.localeCompare(b.name);
+    });
+  };
+
   const updateCharacter = useCallback((updatedFields: Partial<ICharacter>) => {
     setCharacter(prev => (prev ? { ...prev, ...updatedFields } : null));
   }, []);
@@ -41,7 +56,7 @@ export const CharacterProvider = ({ children }: { children: ReactNode }) => {
         ...characterService.createNewCharacter(),
         ...char,
       }));
-      setCharacters(migratedChars.sort((a, b) => a.name.localeCompare(b.name)));
+      setCharacters(sortCharacters(migratedChars));
       setLoading(false);
     });
 
@@ -50,8 +65,13 @@ export const CharacterProvider = ({ children }: { children: ReactNode }) => {
 
   const deleteCharacter = useCallback(async (id: string) => {
     await characterService.deleteCharacter(id);
-    // Manually update state for immediate feedback, the listener will sync later.
     setCharacters(prev => prev.filter(char => char.id !== id));
+  }, []);
+
+  const saveCharacterOrder = useCallback(async (orderedCharacters: ICharacter[]) => {
+    // Optimistic update
+    setCharacters(orderedCharacters);
+    await characterService.saveCharacterOrder(orderedCharacters);
   }, []);
 
   const saveCharacter = useCallback(async (characterToSave: ICharacter): Promise<ICharacter> => {
@@ -59,23 +79,22 @@ export const CharacterProvider = ({ children }: { children: ReactNode }) => {
     // con i dati che stiamo per salvare. Questo fornisce un feedback istantaneo.
     setCharacters(prev => {
       const existingIndex = prev.findIndex(c => c.id === characterToSave.id);
+      let newList;
       if (existingIndex > -1) {
-        const newList = [...prev];
+        newList = [...prev];
         newList[existingIndex] = characterToSave;
-        return newList.sort((a, b) => a.name.localeCompare(b.name));
       } else {
-        return [...prev, characterToSave].sort((a, b) => a.name.localeCompare(b.name));
+        newList = [...prev, characterToSave];
       }
+      return sortCharacters(newList);
     });
-    
-    // Ora, esegui l'operazione di salvataggio effettiva. Il listener in tempo reale
-    // si sincronizzerà con questo stato, ma l'interfaccia è già stata aggiornata.
+
     return await characterService.saveCharacter(characterToSave);
   }, []);
 
-  const value = { 
+  const value = {
     character, setCharacter, updateCharacter,
-    characters, loading, deleteCharacter, saveCharacter
+    characters, loading, deleteCharacter, saveCharacter, saveCharacterOrder
   };
 
   return (

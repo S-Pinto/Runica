@@ -33,13 +33,43 @@ export const AttackRow: React.FC<AttackRowProps> = ({ attack, actions, children,
                   DC {attack.bonus} <span className="text-foreground font-bold uppercase">{attack.saveAbility}</span>
                 </span>
               ) : (
-                <span className="bg-background/40 px-2 py-0.5 rounded border border-border/30 shadow-sm" title="Attack Bonus">
-                  HIT: <span className="text-foreground font-bold">{attack.bonus.startsWith('+') || attack.bonus.startsWith('-') ? attack.bonus : `+${attack.bonus}`}</span>
+                <span className="bg-background/40 px-2 py-0.5 rounded border border-border/30 shadow-sm flex items-center gap-1.5" title="Attack Bonus">
+                  <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Hit:</span>
+                  {(attack.attackAbility || attack.isProficient) ? (
+                    <div className="flex items-center gap-1 text-xs">
+                      {attack.attackAbility && <span className="text-muted-foreground font-bold uppercase">+{attack.attackAbility}</span>}
+                      {attack.isProficient && <span className="text-muted-foreground font-bold uppercase">+PB</span>}
+                      {attack.bonus && attack.bonus !== '+0' && attack.bonus !== '0' && (
+                        <span className="text-foreground font-bold">{attack.bonus.startsWith('+') || attack.bonus.startsWith('-') ? attack.bonus : `+${attack.bonus}`}</span>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-foreground font-bold">{attack.bonus.startsWith('+') || attack.bonus.startsWith('-') ? attack.bonus : `+${attack.bonus}`}</span>
+                  )}
                 </span>
               )}
-              <span className="bg-background/40 px-2 py-0.5 rounded border border-border/30 shadow-sm truncate max-w-[150px]" title="Damage">
-                DMG: <span className="text-foreground font-bold">{attack.damage}</span>
-              </span>
+              <div className="flex flex-col gap-1">
+                <span className="bg-background/40 px-2 py-0.5 rounded border border-border/30 shadow-sm truncate max-w-[250px] flex items-center gap-2" title="Damage">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Dmg:</span>
+                  <span className="text-foreground font-bold">
+                    {attack.damage}
+                    {attack.damageAbility && <span className="text-muted-foreground text-[10px] ml-1 align-top">+{attack.damageAbility.toUpperCase()}</span>}
+                  </span>
+                  {attack.damageType && <span className="text-[10px] text-muted-foreground uppercase opacity-80 bg-muted/20 px-1 rounded">{attack.damageType}</span>}
+                </span>
+
+                {attack.additionalDamage && attack.additionalDamage.length > 0 && (
+                  <div className="flex flex-wrap gap-1 ml-1">
+                    {attack.additionalDamage.map((extra, idx) => (
+                      <span key={idx} className="bg-background/30 px-1.5 py-0.5 rounded border border-border/20 flex items-center gap-1" title="Extra Damage">
+                        <span className="text-xs text-muted-foreground">+</span>
+                        <span className="text-xs text-foreground font-bold">{extra.formula}</span>
+                        <span className="text-[9px] text-muted-foreground uppercase opacity-80">{extra.type}</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Properties & Mastery Row */}

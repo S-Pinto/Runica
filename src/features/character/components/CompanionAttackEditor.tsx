@@ -2,6 +2,11 @@ import React from 'react';
 import { ICompanion, Attack } from '../characterTypes';
 import { PlusIcon, TrashIcon } from '../../../components/ui/icons';
 
+const DAMAGE_TYPES = [
+  'Acid', 'Bludgeoning', 'Cold', 'Fire', 'Force', 'Lightning', 'Necrotic',
+  'Piercing', 'Poison', 'Psychic', 'Radiant', 'Slashing', 'Thunder'
+];
+
 interface CompanionAttackEditorProps {
   companion: ICompanion;
   setCompanion: React.Dispatch<React.SetStateAction<ICompanion>>;
@@ -13,22 +18,22 @@ const createNewAttack = (): Attack => ({ id: `atk_${Date.now()}_${Math.random()}
 export const CompanionAttackEditor: React.FC<CompanionAttackEditorProps> = ({ companion, setCompanion, readOnly = false }) => {
   if (readOnly) {
     return (
-        <div className="space-y-2">
-            <h4 className="text-md font-semibold text-zinc-400 mb-2">Attacks</h4>
-            <div className="space-y-3 p-3 bg-muted/30 rounded-md border border-border">
-                {companion.attacks.length === 0 ? (
-                    <p className="text-muted-foreground text-sm text-center italic">No attacks defined.</p>
-                ) : (
-                    companion.attacks.map((attack, index) => (
-                        <div key={index} className="grid grid-cols-[1fr_auto_auto] gap-2 items-center text-sm">
-                            <p className="font-semibold">{attack.name}</p>
-                            <p className="w-20 text-center font-mono">{attack.bonus}</p>
-                            <p className="w-24 text-center font-mono">{attack.damage}</p>
-                        </div>
-                    ))
-                )}
-            </div>
+      <div className="space-y-2">
+        <h4 className="text-md font-semibold text-zinc-400 mb-2">Attacks</h4>
+        <div className="space-y-3 p-3 bg-muted/30 rounded-md border border-border">
+          {companion.attacks.length === 0 ? (
+            <p className="text-muted-foreground text-sm text-center italic">No attacks defined.</p>
+          ) : (
+            companion.attacks.map((attack, index) => (
+              <div key={index} className="grid grid-cols-[1fr_auto_auto] gap-2 items-center text-sm">
+                <p className="font-semibold">{attack.name}</p>
+                <p className="w-20 text-center font-mono">{attack.bonus}</p>
+                <p className="w-24 text-center font-mono">{attack.damage}</p>
+              </div>
+            ))
+          )}
         </div>
+      </div>
     );
   }
 
@@ -51,7 +56,10 @@ export const CompanionAttackEditor: React.FC<CompanionAttackEditorProps> = ({ co
       <h4 className="text-md font-semibold text-zinc-400 mb-2">Attacks</h4>
       <div className="space-y-3 p-3 bg-muted/30 rounded-md border border-border">
         {companion.attacks.map((attack, index) => (
-          <div key={index} className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-center">
+
+
+          // ... inside map ...
+          <div key={index} className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-2 items-center">
             <input
               type="text"
               placeholder="Attack Name"
@@ -64,15 +72,25 @@ export const CompanionAttackEditor: React.FC<CompanionAttackEditorProps> = ({ co
               placeholder="Bonus"
               value={attack.bonus}
               onChange={(e) => handleAttackChange(index, 'bonus', e.target.value)}
-              className="w-20 bg-input border border-border rounded-md py-1 px-2 text-sm text-center"
+              className="w-16 bg-input border border-border rounded-md py-1 px-2 text-sm text-center"
             />
             <input
               type="text"
               placeholder="Damage"
               value={attack.damage}
               onChange={(e) => handleAttackChange(index, 'damage', e.target.value)}
-              className="w-24 bg-input border border-border rounded-md py-1 px-2 text-sm text-center"
+              className="w-20 bg-input border border-border rounded-md py-1 px-2 text-sm text-center"
             />
+            <select
+              value={attack.damageType || ''}
+              onChange={(e) => handleAttackChange(index, 'damageType', e.target.value)}
+              className="w-24 bg-input border border-border rounded-md py-1 px-2 text-sm"
+            >
+              <option value="">Type</option>
+              {DAMAGE_TYPES.map(type => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
             <button onClick={() => deleteAttack(index)} className="p-1 text-muted-foreground hover:text-destructive">
               <TrashIcon className="w-4 h-4" />
             </button>
