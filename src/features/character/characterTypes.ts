@@ -30,10 +30,46 @@ export interface Spell {
 }
 
 
+export type FeatureCategory = 'class' | 'racial' | 'feat-origin' | 'feat-general' | 'feat-combat' | 'feat-epic';
+
+export const CATEGORY_CONFIG = {
+  'class': {
+    label: 'Class Features',
+    color: 'accent',
+    description: 'Abilities from your class levels'
+  },
+  'racial': {
+    label: 'Racial Traits',
+    color: 'green-500',
+    description: 'Traits from your race/species'
+  },
+  'feat-origin': {
+    label: 'Origin Feats',
+    color: 'amber-500',
+    description: 'Feats from character creation'
+  },
+  'feat-general': {
+    label: 'General Feats',
+    color: 'amber-500',
+    description: 'Feats from ASI choices'
+  },
+  'feat-combat': {
+    label: 'Combat Feats',
+    color: 'amber-500',
+    description: 'Fighting-focused feats'
+  },
+  'feat-epic': {
+    label: 'Epic Feats',
+    color: 'purple-500',
+    description: 'High-level (20+) feats'
+  },
+} as const;
+
 export interface Feature {
   id: string;
   name: string;
   description: string;
+  category: FeatureCategory;
 }
 
 export interface Attack {
@@ -41,6 +77,9 @@ export interface Attack {
   name: string;
   bonus: string;
   damage: string;
+  mastery?: string;
+  properties?: string[];
+  saveAbility?: string; // 'str', 'dex', 'con', etc. or null if attack roll
 }
 
 export interface EquipmentItem {

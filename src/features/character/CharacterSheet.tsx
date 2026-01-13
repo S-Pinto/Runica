@@ -8,7 +8,7 @@ import * as geminiService from '../../services/geminiService';
 import { SparklesIcon, BackIcon, SaveIcon, TrashIcon, PhotoIcon } from '../../components/ui/icons';
 import { ImageUploader } from './components/ImageUploader';
 import { Spellbook } from './components/Spellbook';
-import { FeatureList } from './components/FeatureList';
+import { CategorizedFeatureList } from './components/CategorizedFeatureList';
 import { EquipmentList } from './components/EquipmentList';
 import { AttackList } from './components/AttackList';
 import { CustomResourceEditor } from './components/CustomResourceEditor';
@@ -564,7 +564,7 @@ export const CharacterSheet: React.FC = () => {
                             <AttackList />
                         </div>
                         <div className="flex-1 lg:w-1/2 flex flex-col p-4 border border-border rounded-lg">
-                            <FeatureList />
+                            <CategorizedFeatureList />
                         </div>
                     </div>
                 </div>

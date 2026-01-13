@@ -51,7 +51,7 @@ export const SpellCard: React.FC<SpellCardProps> = ({
               <span className="bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold w-6 h-6 flex items-center justify-center rounded-lg shadow-sm" title="Concentration">C</span>
             )}
             {spell.ritual && (
-              <span className="bg-secondary/10 text-secondary border border-secondary/20 text-[10px] font-bold w-6 h-6 flex items-center justify-center rounded-lg shadow-sm" title="Ritual">R</span>
+              <span className="bg-purple-500/10 text-purple-500 border border-purple-500/20 text-[10px] font-bold w-6 h-6 flex items-center justify-center rounded-lg shadow-sm" title="Ritual">R</span>
             )}
           </div>
         </div>

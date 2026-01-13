@@ -120,6 +120,22 @@ export const calculateArmorClass = (character: ICharacter): number => {
     return calculatedAC;
 };
 
+export const calculateSpellSaveDC = (character: ICharacter): number => {
+    if (!character || !character.spellcastingAbility) {
+        return 8 + getProficiencyBonus(character?.level || 1);
+    }
+    const abilityMod = getModifier(character.abilityScores[character.spellcastingAbility]);
+    return 8 + getProficiencyBonus(character.level) + abilityMod;
+};
+
+export const calculateSpellAttackBonus = (character: ICharacter): number => {
+    if (!character || !character.spellcastingAbility) {
+        return getProficiencyBonus(character?.level || 1);
+    }
+    const abilityMod = getModifier(character.abilityScores[character.spellcastingAbility]);
+    return getProficiencyBonus(character.level) + abilityMod;
+};
+
 const LOCAL_STORAGE_KEY = 'runica-characters';
 const getLocalCharacters = (): ICharacter[] => {
     try {

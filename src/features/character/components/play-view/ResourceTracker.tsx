@@ -1,5 +1,6 @@
 import { FC } from 'react';
 import { ICharacter, CustomResource } from '../../characterTypes';
+import { SharedSpellSlotsTracker } from './../SharedSpellSlotsTracker';
 
 interface ResourceTrackerProps {
     title: string;
@@ -25,6 +26,13 @@ export const ResourceTracker: FC<ResourceTrackerProps> = ({ title, slots, onSlot
             const newUsed = index < levelData.used ? index : index + 1;
             onSlotChange({ ...spellSlots, [key]: { ...levelData, used: newUsed } });
         }
+    };
+
+    // Wrapper for SharedSpellSlotsTracker to match signature
+    const handleSharedChange = (level: number, used: number) => {
+        const spellSlots = slots as ICharacter['spellSlots'];
+        const currentSlots = spellSlots[level] || { max: 0, used: 0 };
+        onSlotChange({ ...spellSlots, [level]: { ...currentSlots, used } });
     };
 
     const entries: CustomResource[] | [string, { max: number; used: number; }][] = isCustom
@@ -57,9 +65,24 @@ export const ResourceTracker: FC<ResourceTrackerProps> = ({ title, slots, onSlot
                         key = (entry as [string, { max: number; used: number }])[0];
                         data = (entry as [string, { max: number; used: number }])[1];
                     }
-                    const levelLabel = isCustom ? (data as CustomResource).name : `Level ${key}`;
+
                     if (data.max === 0) return null;
 
+                    if (!isCustom) {
+                        // Use Shared Component for Spells
+                        return (
+                            <SharedSpellSlotsTracker
+                                key={key}
+                                level={Number(key)}
+                                slots={{ max: data.max, used: data.used }}
+                                onChange={handleSharedChange}
+                                compact={false} // Use detailed view
+                            />
+                        );
+                    }
+
+                    // Custom Resource Layout (kept separate as SharedSpellSlotsTracker is specific to Levels)
+                    const levelLabel = (data as CustomResource).name;
                     return (
                         <div key={key} className="flex flex-col gap-3 group">
                             <div className="flex justify-between items-end">

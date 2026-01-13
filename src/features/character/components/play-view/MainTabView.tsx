@@ -79,60 +79,9 @@ const MainTabView = () => {
                 {/* Left Column: Combat Vitals (HP) - Takes more width on large screens */}
                 <div className="lg:col-span-5 space-y-6">
                     <HPTracker />
-                    {/* Languages moved here on Desktop to utilize vertical space if HP is short,
-                        or it can go below. Let's try putting it here for better balance. */}
-                    <div className="bg-card/30 backdrop-blur-sm p-6 rounded-2xl border border-border/50 shadow-lg shadow-accent/5 hidden lg:block">
-                        <h3 className="text-lg font-cinzel text-accent mb-3 flex items-center gap-2">
-                            Languages
-                        </h3>
-                        <p className="text-foreground/90 whitespace-pre-wrap leading-relaxed text-sm">{character.languages || 'None'}</p>
-                    </div>
-                </div>
 
-                {/* Right Column: Survival Resources */}
-                <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <DeathSavesTracker />
-                    <HitDiceTracker />
-
-                    {/* Languages on Tablet/Mobile: Full width below trackers */}
-                    <div className="col-span-1 sm:col-span-2 bg-card/30 backdrop-blur-sm p-6 rounded-2xl border border-border/50 shadow-lg shadow-accent/5 lg:hidden">
-                        <h3 className="text-lg font-cinzel text-accent mb-3">Languages</h3>
-                        <p className="text-foreground/90 whitespace-pre-wrap leading-relaxed text-sm">{character.languages || 'None'}</p>
-                    </div>
-                </div>
-
-                {/* Status & Defenses Row - Full width below split columns */}
-                <div className="lg:col-span-12 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Defenses */}
-                    <div className="bg-card/30 backdrop-blur-sm p-6 rounded-2xl border border-border/50 shadow-lg shadow-accent/5 flex flex-col h-full">
-                        <h3 className="text-lg font-cinzel text-accent mb-4 flex items-center gap-2">
-                            <ShieldCheckIcon className="w-5 h-5" />
-                            Defenses
-                        </h3>
-                        <div className="space-y-4 flex-grow">
-                            <div>
-                                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 mb-1.5 flex justify-between">
-                                    Resistances
-                                    <span className="text-[10px] normal-case bg-background/40 px-2 py-0.5 rounded text-muted-foreground">Half Damage</span>
-                                </h4>
-                                <div className="bg-background/40 p-3 rounded-xl border border-border/20 min-h-[3rem]">
-                                    <p className="text-foreground text-sm whitespace-pre-wrap leading-relaxed">{character.defenses?.resistances || <span className="text-muted-foreground/40 italic">None</span>}</p>
-                                </div>
-                            </div>
-                            <div>
-                                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 mb-1.5 flex justify-between">
-                                    Immunities
-                                    <span className="text-[10px] normal-case bg-background/40 px-2 py-0.5 rounded text-muted-foreground">No Damage</span>
-                                </h4>
-                                <div className="bg-background/40 p-3 rounded-xl border border-border/20 min-h-[3rem]">
-                                    <p className="text-foreground text-sm whitespace-pre-wrap leading-relaxed">{character.defenses?.immunities || <span className="text-muted-foreground/40 italic">None</span>}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Conditions */}
-                    <div className="bg-card/30 backdrop-blur-sm p-6 rounded-2xl border border-border/50 shadow-lg shadow-accent/5 flex flex-col h-full relative overflow-hidden transition-all duration-300">
+                    {/* Conditions - Priority High, below HP */}
+                    <div className={`bg-card/30 backdrop-blur-sm p-4 sm:p-6 rounded-2xl border border-border/50 shadow-lg shadow-accent/5 transition-all duration-300 ${isEditingConditions ? 'ring-2 ring-accent/20' : ''}`}>
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-cinzel text-accent flex items-center gap-2">
                                 <ExclamationTriangleIcon className="w-5 h-5 text-yellow-500/80" />
@@ -147,12 +96,15 @@ const MainTabView = () => {
                             </button>
                         </div>
 
-                        <div className="bg-background/40 p-4 rounded-xl border border-border/20 flex-grow min-h-[8rem] relative">
-                            {/* Active View */}
+                        <div className={`
+                            bg-background/40 rounded-xl border border-border/20 relative overflow-hidden transition-all duration-500 ease-in-out
+                            ${isEditingConditions ? 'min-h-[320px] max-h-[60vh] overflow-y-auto p-4' : 'min-h-[3.5rem] p-0'}
+                        `}>
+                            {/* Active View - Compact when empty/not editing */}
                             {!isEditingConditions && (
-                                <>
+                                <div className={`p-4 transition-all duration-300 ${character.conditions?.length ? 'min-h-[6rem]' : 'flex items-center justify-center min-h-[3.5rem]'}`}>
                                     {character.conditions && character.conditions.length > 0 ? (
-                                        <ul className="space-y-2 animate-in fade-in duration-300">
+                                        <ul className="space-y-2 animate-in fade-in duration-300 w-full">
                                             {character.conditions.map((condName, idx) => {
                                                 const condition = CONDITIONS[condName] || { name: condName, description: 'No description available.', bullets: [] };
                                                 const isExpanded = expandedCondition === condName;
@@ -197,27 +149,27 @@ const MainTabView = () => {
                                             })}
                                         </ul>
                                     ) : (
-                                        <div className="h-full flex flex-col items-center justify-center text-muted-foreground/40 italic text-sm animate-in fade-in zoom-in-95 duration-300">
+                                        <div className="w-full h-full flex items-center justify-center text-muted-foreground/40 italic text-sm animate-in fade-in zoom-in-95 duration-300">
                                             <span>No active conditions</span>
                                         </div>
                                     )}
-                                </>
+                                </div>
                             )}
 
-                            {/* Editing View */}
+                            {/* Editing View - Expanded */}
                             {isEditingConditions && (
-                                <div className="absolute inset-0 bg-card p-4 overflow-y-auto animate-in slide-in-from-bottom-2 duration-200 z-10 flex flex-col gap-2">
-                                    <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-2">Toggle Conditions</p>
-                                    <div className="space-y-2">
+                                <div className="flex flex-col gap-2 animate-in slide-in-from-bottom-2 duration-300">
+
+                                    <div className="grid grid-cols-1 gap-2">
                                         {Object.values(CONDITIONS).map(condition => {
                                             const isActive = character.conditions?.includes(condition.name);
                                             const isExpanded = expandedCondition === condition.name;
 
                                             return (
-                                                <div key={condition.name} className={`rounded-lg border transition-all ${isActive ? 'bg-destructive/5 border-destructive/30' : 'bg-background/50 border-border/30 hover:border-accent/40'}`}>
-                                                    <div className="flex items-center justify-between p-2 cursor-pointer" onClick={() => setExpandedCondition(isExpanded ? null : condition.name)}>
-                                                        <span className={`text-sm font-semibold ${isActive ? 'text-destructive' : 'text-foreground'}`}>{condition.name}</span>
-                                                        <div className="flex items-center gap-2">
+                                                <div key={condition.name} className={`rounded-lg border transition-all duration-200 ${isActive ? 'bg-destructive/5 border-destructive/30' : 'bg-background/50 border-border/30 hover:border-accent/40'}`}>
+                                                    <div className="flex items-center justify-between p-2.5 cursor-pointer" onClick={() => setExpandedCondition(isExpanded ? null : condition.name)}>
+                                                        <span className={`text-sm font-semibold transition-colors ${isActive ? 'text-destructive' : 'text-foreground'}`}>{condition.name}</span>
+                                                        <div className="flex items-center gap-3">
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
@@ -228,8 +180,8 @@ const MainTabView = () => {
                                                                     updateCharacter({ conditions: newConditions });
                                                                 }}
                                                                 className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all shadow-sm ${isActive
-                                                                        ? 'bg-destructive text-white hover:bg-destructive/90 hover:scale-105 active:scale-95 ring-2 ring-destructive/20'
-                                                                        : 'bg-accent/10 text-accent hover:bg-accent hover:text-white hover:scale-105 active:scale-95'
+                                                                    ? 'bg-destructive text-white hover:bg-destructive/90 hover:scale-105 active:scale-95 ring-2 ring-destructive/20'
+                                                                    : 'bg-accent/10 text-accent hover:bg-accent hover:text-white hover:scale-105 active:scale-95'
                                                                     }`}
                                                             >
                                                                 {isActive ? <XMarkIcon className="w-5 h-5 font-bold stroke-[3]" /> : <PlusIcon className="w-5 h-5 font-bold stroke-[3]" />}
@@ -237,8 +189,7 @@ const MainTabView = () => {
                                                         </div>
                                                     </div>
 
-                                                    {/* Always show description in edit mode if expanded, or simplified? Let's hide unless clicked to keep list clean, but user asked for explanations. */}
-                                                    <div className={`grid transition-all duration-300 ${isExpanded ? 'grid-rows-[1fr] opacity-100 pb-2 px-2' : 'grid-rows-[0fr] opacity-0 pb-0 px-2'}`}>
+                                                    <div className={`grid transition-all duration-300 ${isExpanded ? 'grid-rows-[1fr] opacity-100 pb-3 px-3' : 'grid-rows-[0fr] opacity-0 pb-0 px-3'}`}>
                                                         <div className="overflow-hidden space-y-1.5 pt-1 border-t border-border/10">
                                                             <p className="text-[11px] leading-relaxed text-muted-foreground">{condition.description}</p>
                                                             {condition.bullets.length > 0 && (
@@ -256,7 +207,57 @@ const MainTabView = () => {
                             )}
                         </div>
                     </div>
+                    {/* Languages moved here on Desktop to utilize vertical space if HP is short,
+                        or it can go below. Let's try putting it here for better balance. */}
+                    <div className="bg-card/30 backdrop-blur-sm p-6 rounded-2xl border border-border/50 shadow-lg shadow-accent/5 hidden lg:block">
+                        <h3 className="text-lg font-cinzel text-accent mb-3 flex items-center gap-2">
+                            Languages
+                        </h3>
+                        <p className="text-foreground/90 whitespace-pre-wrap leading-relaxed text-sm">{character.languages || 'None'}</p>
+                    </div>
                 </div>
+
+                {/* Right Column: Survival Resources */}
+                <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <DeathSavesTracker />
+                    <HitDiceTracker />
+
+                    {/* Defenses */}
+                    <div className="bg-card/30 backdrop-blur-sm p-6 rounded-2xl border border-border/50 shadow-lg shadow-accent/5 flex flex-col h-full sm:col-span-2 xl:col-span-1">
+                        <h3 className="text-lg font-cinzel text-accent mb-4 flex items-center gap-2">
+                            <ShieldCheckIcon className="w-5 h-5" />
+                            Defenses
+                        </h3>
+                        <div className="space-y-4 flex-grow">
+                            <div>
+                                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 mb-1.5 flex justify-between">
+                                    Resistances
+                                    <span className="text-[10px] normal-case bg-background/40 px-2 py-0.5 rounded text-muted-foreground">Half Damage</span>
+                                </h4>
+                                <div className="bg-background/40 p-3 rounded-xl border border-border/20 min-h-[3rem]">
+                                    <p className="text-foreground text-sm whitespace-pre-wrap leading-relaxed">{character.defenses?.resistances || <span className="text-muted-foreground/40 italic">None</span>}</p>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 mb-1.5 flex justify-between">
+                                    Immunities
+                                    <span className="text-[10px] normal-case bg-background/40 px-2 py-0.5 rounded text-muted-foreground">No Damage</span>
+                                </h4>
+                                <div className="bg-background/40 p-3 rounded-xl border border-border/20 min-h-[3rem]">
+                                    <p className="text-foreground text-sm whitespace-pre-wrap leading-relaxed">{character.defenses?.immunities || <span className="text-muted-foreground/40 italic">None</span>}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Languages on Tablet/Mobile: Full width below trackers */}
+                    <div className="col-span-1 sm:col-span-2 bg-card/30 backdrop-blur-sm p-6 rounded-2xl border border-border/50 shadow-lg shadow-accent/5 lg:hidden">
+                        <h3 className="text-lg font-cinzel text-accent mb-3">Languages</h3>
+                        <p className="text-foreground/90 whitespace-pre-wrap leading-relaxed text-sm">{character.languages || 'None'}</p>
+                    </div>
+                </div>
+
+
             </div>
         </div>
     );
