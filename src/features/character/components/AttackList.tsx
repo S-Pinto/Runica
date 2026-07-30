@@ -368,12 +368,36 @@ export const AttackList = () => {
     setDeletingAttackId(null);
   };
 
-  const allActions = useMemo(() => characterService.getAllActions(character), [character]);
+  const sortedAttacks = useMemo(() => {
+    const custom = character.attacks || [];
+    const equippedWeapons: Attack[] = (character.equipment || [])
+      .filter(item => item.equipped && (item.itemType === 'weapon' || Boolean(item.damage)))
+      .map(item => ({
+        id: item.id,
+        name: item.name,
+        bonus: item.attackBonus || '+0',
+        damage: item.damage || '1d6',
+        damageType: item.damageType || 'Slashing',
+        mastery: item.mastery || '',
+        properties: item.properties || [],
+        attackAbility: item.attackAbility || 'str',
+        damageAbility: item.damageAbility || 'str',
+        isProficient: item.isProficient ?? true,
+      }));
+
+    const all = [...custom];
+    equippedWeapons.forEach(wAtk => {
+      if (!all.some(a => a.id === wAtk.id || a.name.toLowerCase() === wAtk.name.toLowerCase())) {
+        all.push(wAtk);
+      }
+    });
+    return all.sort((a, b) => a.name.localeCompare(b.name));
+  }, [character.attacks, character.equipment]);
 
   return (
     <div className="bg-card/80 p-4 rounded-lg border border-border flex flex-col h-full">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-cinzel text-accent">Combat Dashboard</h3>
+        <h3 className="text-lg font-cinzel text-accent">Attacks & Cantrips</h3>
         <button
           onClick={() => setEditingAttack('new')}
           disabled={editingAttack !== null}
@@ -384,12 +408,12 @@ export const AttackList = () => {
       </div>
 
       <div className="space-y-3 overflow-y-auto pr-2 -mr-2 flex-grow">
-        {allActions.length === 0 && editingAttack !== 'new' && (
+        {sortedAttacks.length === 0 && editingAttack !== 'new' && (
           <div className="flex items-center justify-center h-full">
-            <p className="text-center text-muted-foreground text-sm py-4">No actions available. Equip weapons or add features!</p>
+            <p className="text-center text-muted-foreground text-sm py-4">No attacks defined yet.</p>
           </div>
         )}
-        {allActions.map(attack =>
+        {sortedAttacks.map(attack =>
           editingAttack && typeof editingAttack === 'object' && editingAttack.id === attack.id ? (
             <AttackForm
               key={attack.id}
@@ -399,8 +423,12 @@ export const AttackList = () => {
               onCancel={() => setEditingAttack(null)}
             />
           ) : (
-            <AttackRow key={attack.id} attack={attack} actions={
-              attack.sourceType === 'custom' ? (
+            <AttackRow
+              key={attack.id}
+              attack={attack}
+              abilityScores={character.abilityScores}
+              proficiencyBonus={character.proficiencyBonus}
+              actions={
                 deletingAttackId === attack.id ? (
                   <>
                     <span className="text-xs text-destructive-foreground">Sure?</span>
@@ -413,10 +441,8 @@ export const AttackList = () => {
                     <button onClick={() => { setDeletingAttackId(attack.id); setEditingAttack(null); }} disabled={editingAttack !== null} className="text-muted-foreground hover:text-destructive p-1 disabled:text-muted/50 disabled:cursor-not-allowed"><TrashIcon className="w-4 h-4" /></button>
                   </>
                 )
-              ) : (
-                <span className="text-[10px] text-muted-foreground uppercase opacity-50 font-bold border border-border/20 px-1.5 py-0.5 rounded bg-muted/20">Linked</span>
-              )
-            } />
+              }
+            />
           )
         )}
 

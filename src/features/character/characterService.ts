@@ -129,6 +129,13 @@ export const calculateArmorClass = (character: ICharacter): number => {
         calculatedAC += equippedShield.armorClass || 2; // Default to +2 if ac is not specified on the shield item
     }
 
+    // Add bonusAC from any equipped magical item (e.g. Ring of Protection, Magic Amulet, Helmet, etc.)
+    (character.equipment || []).forEach(item => {
+        if (item.equipped && item.bonusAC && typeof item.bonusAC === 'number') {
+            calculatedAC += item.bonusAC;
+        }
+    });
+
     return calculatedAC;
 };
 
@@ -204,7 +211,7 @@ export const getAllActions = (character: ICharacter): (Attack & { sourceName?: s
             sourceId: item.id,
             sourceName: item.name,
             uses: item.uses,
-            recovery: item.recovery
+            recovery: item.recovery === 'longRest' ? 'long' : item.recovery === 'shortRest' ? 'short' : item.recovery
         });
     });
 
@@ -353,8 +360,28 @@ export const getCharacter = async (id: string): Promise<ICharacter | null> => {
     }
 };
 
+const cleanUndefinedValues = <T>(obj: T): T => {
+    if (obj === null || obj === undefined) {
+        return obj;
+    }
+    if (Array.isArray(obj)) {
+        return obj.map(item => cleanUndefinedValues(item)) as unknown as T;
+    }
+    if (typeof obj === 'object') {
+        const cleaned: any = {};
+        for (const [key, value] of Object.entries(obj)) {
+            if (value !== undefined) {
+                cleaned[key] = cleanUndefinedValues(value);
+            }
+        }
+        return cleaned as T;
+    }
+    return obj;
+};
+
 export const saveCharacter = async (character: ICharacter): Promise<ICharacter> => {
-    const charToSave = { ...character, lastUpdated: Date.now() };
+    const rawChar = { ...character, lastUpdated: Date.now() };
+    const charToSave = cleanUndefinedValues(rawChar);
     const docRef = getCharacterDocRef(charToSave.id);
     if (docRef) {
         await setDoc(docRef, charToSave);
@@ -531,4 +558,16 @@ export const clearAllData = async (): Promise<void> => {
     } else {
         saveLocalCharacters([]);
     }
+};
+
+export const duplicateCharacter = async (character: ICharacter): Promise<ICharacter> => {
+    const newId = `char_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const cloned: ICharacter = {
+        ...JSON.parse(JSON.stringify(character)),
+        id: newId,
+        name: `${character.name || 'Adventurer'} (Copia)`,
+        lastUpdated: Date.now(),
+    };
+    await saveCharacter(cloned);
+    return cloned;
 };

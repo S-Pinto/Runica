@@ -1,15 +1,15 @@
 import { useState, useEffect, useRef, Suspense, lazy, FC, useCallback, createElement } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import * as characterService from './characterService';
 import { useCharacter } from './CharacterProvider';
-import { BackIcon, EditIcon, ChevronLeftIcon, ChevronRightIcon, PrinterIcon } from '../../components/ui/icons';
+import { BackIcon, EditIcon, ChevronLeftIcon, ChevronRightIcon, SparklesIcon, MoonIcon, PrinterIcon } from '../../components/ui/icons';
 import { AbilitiesDisplay } from './components/AbilitiesDisplay';
 import { ImageModal } from '../../components/ui/ImageModal';
 import { CompanionTab } from './components/play-view/CompanionTab';
+import { DiceRoller } from './components/play-view/DiceRoller';
 
 type PlayTab = 'main' | 'stats' | 'combat' | 'bio' | 'inventory' | 'spells' | 'companions';
 
-// --- Lazy Loading dei Componenti delle Tab ---
 const MainTabView = lazy(() => import('./components/play-view/MainTabView'));
 const CombatTabView = lazy(() => import('./components/play-view/CombatTabView'));
 const SpellsTabView = lazy(() => import('./components/play-view/SpellsTabView'));
@@ -62,24 +62,34 @@ const tabComponents: Record<PlayTab, React.ComponentType<any>> = {
 export const PlayView: FC = () => {
     const { characterId } = useParams<{ characterId: string }>();
     const navigate = useNavigate();
-    const location = useLocation();
-    const { character, setCharacter } = useCharacter();
-    const [activeTab, setActiveTab] = useState<PlayTab>('main');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const { character, setCharacter, updateCharacter } = useCharacter();
+    const [error, setError] = useState<string | null>(null);
+    
+    const initialTab = (searchParams.get('tab') as PlayTab) || 'main';
+    const [activeTab, setActiveTab] = useState<PlayTab>(initialTab);
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const [showLeftArrow, setShowLeftArrow] = useState(false);
     const [showRightArrow, setShowRightArrow] = useState(false);
+    const [isDiceModalOpen, setIsDiceModalOpen] = useState(false);
+    const [diceMode, setDiceMode] = useState<'dock' | 'modal'>('dock');
     const isInitialMount = useRef(true);
 
-    const [error, setError] = useState<string | null>(null);
+    const handleTabChange = (tab: PlayTab) => {
+        setActiveTab(tab);
+        setSearchParams({ tab }, { replace: true });
+    };
 
-    // Sync active tab from URL query param
     useEffect(() => {
-        const params = new URLSearchParams(location.search);
-        const tabParam = params.get('tab');
-        if (tabParam && PLAY_TABS.some(t => t.key === tabParam)) {
-            setActiveTab(tabParam as PlayTab);
-        }
-    }, [location.search]);
+        const storedMode = (localStorage.getItem('runica_dice_mode') as 'dock' | 'modal') || 'dock';
+        setDiceMode(storedMode);
+
+        const handleStorageChange = () => {
+            setDiceMode((localStorage.getItem('runica_dice_mode') as 'dock' | 'modal') || 'dock');
+        };
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, []);
 
     useEffect(() => {
         if (!characterId) return;
@@ -140,6 +150,36 @@ export const PlayView: FC = () => {
         };
     }, [character, checkScroll]);
 
+    const handleLongRest = () => {
+        if (!character) return;
+        if (window.confirm('Eseguire un Riposo Lungo? Questo ripristinerà tutti i Punti Vita, gli Slot Incantesimo e le Cariche degli Oggetti Magici.')) {
+            const resetSlots = { ...character.spellSlots };
+            Object.keys(resetSlots).forEach(level => {
+                resetSlots[Number(level)] = { ...resetSlots[Number(level)], used: 0 };
+            });
+
+            const resetEquipment = (character.equipment || []).map(item => {
+                if (item.charges && (item.charges.resetType === 'longRest' || item.charges.resetType === 'shortRest')) {
+                    return {
+                        ...item,
+                        charges: {
+                            ...item.charges,
+                            current: item.charges.max,
+                        },
+                    };
+                }
+                return item;
+            });
+
+            updateCharacter({
+                hp: { ...character.hp, current: character.hp.max, temporary: 0 },
+                spellSlots: resetSlots,
+                equipment: resetEquipment,
+                deathSaves: { successes: 0, failures: 0 },
+            });
+        }
+    };
+
     if (error) {
         return (
             <div className="flex flex-col justify-center items-center h-screen gap-4">
@@ -160,59 +200,80 @@ export const PlayView: FC = () => {
     }
 
     return (
-        <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:pt-8">
-            <header className="grid grid-cols-2 sm:flex sm:justify-between items-center gap-y-4 gap-x-2 mb-6 border-b border-border pb-4">
-                <div className="col-span-2 flex items-center gap-4 text-center justify-center sm:order-2">
-                    {character.imageUrl && (
-                        <img
-                            src={character.imageUrl}
-                            alt={character.name}
-                            className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-border shadow-md cursor-pointer hover:scale-105 transition-transform duration-200"
-                            onClick={() => setIsImageModalOpen(true)}
-                        />
-                    )}
-                    <div>
-                        <h1 className="text-2xl sm:text-3xl font-cinzel text-accent">{character.name}</h1>
-                        <p className="text-muted-foreground capitalize text-sm">
-                            {character.race} {character.class} {character.subclass && `(${character.subclass})`} &bull; Level {character.level} &bull; {character.alignment}
-                        </p>
+        <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:pt-6 space-y-6 pb-24">
+            {/* Top Interactive Session Header */}
+            <header className="bg-card/40 backdrop-blur-md p-4 sm:p-6 rounded-2xl border border-border/60 shadow-xl space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => navigate('/')}
+                            className="p-2 rounded-xl bg-secondary/60 hover:bg-accent hover:text-accent-foreground transition-all"
+                            title="Torna alla Lista"
+                        >
+                            <BackIcon className="w-5 h-5" />
+                        </button>
+                        {character.imageUrl && (
+                            <img
+                                src={character.imageUrl}
+                                alt={character.name}
+                                className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-accent shadow-md cursor-pointer hover:scale-105 transition-transform"
+                                onClick={() => setIsImageModalOpen(true)}
+                            />
+                        )}
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-2xl sm:text-3xl font-cinzel font-bold text-accent">{character.name}</h1>
+                                {character.campaignName && (
+                                    <span className="text-[10px] bg-accent/20 text-accent font-bold px-2 py-0.5 rounded-full border border-accent/30">
+                                        {character.campaignName}
+                                    </span>
+                                )}
+                            </div>
+                            <p className="text-muted-foreground capitalize text-xs sm:text-sm mt-1">
+                                {character.race} &bull; {character.class} {character.subclass && `(${character.subclass})`} &bull; Livello {character.level || 1}
+                            </p>
+                        </div>
                     </div>
-                </div>
 
-                <button
-                    onClick={() => navigate('/')}
-                    className="justify-self-start flex items-center gap-2 rounded-md px-3 py-2 font-semibold text-muted-foreground transition-all duration-200 hover:scale-105 hover:text-accent [text-shadow:0_1px_2px_rgba(0,0,0,0.3)] sm:order-1"
-                >
-                    <BackIcon className="w-5 h-5" />
-                    <span className="hidden sm:inline">Back to List</span>
-                    <span className="sm:hidden">Back</span>
-                </button>
-
-                <div className="justify-self-end flex items-center gap-2 sm:order-3">
-                    <button
-                        onClick={() => window.open(`/character/${characterId}/print`, '_blank')}
-                        className="flex items-center gap-2 rounded-md px-3 py-2 font-semibold text-muted-foreground transition-all duration-200 hover:scale-105 hover:text-accent [text-shadow:0_1px_2px_rgba(0,0,0,0.3)]"
-                        aria-label="Print Character"
-                    >
-                        <PrinterIcon className="w-5 h-5" />
-                        <span className="hidden sm:inline">Print</span>
-                    </button>
-                    <button
-                        onClick={() => navigate(`/character/${characterId}/edit?tab=${activeTab}`)}
-                        className="flex items-center gap-2 rounded-md px-3 py-2 font-bold text-primary transition-all duration-200 hover:scale-105 hover:text-accent [text-shadow:0_1px_2px_rgba(0,0,0,0.3)]"
-                    >
-                        <EditIcon className="w-5 h-5" />
-                        <span className="hidden sm:inline">Edit Sheet</span>
-                        <span className="sm:hidden">Edit</span>
-                    </button>
+                    <div className="flex items-center gap-2 self-end sm:self-center">
+                        {diceMode === 'modal' && (
+                            <button
+                                onClick={() => setIsDiceModalOpen(true)}
+                                className="flex items-center gap-1.5 px-3 py-2 bg-accent/20 border border-accent/40 text-accent font-bold text-xs rounded-xl hover:bg-accent/30 transition-all"
+                            >
+                                <SparklesIcon className="w-4 h-4" /> Dadiere
+                            </button>
+                        )}
+                        <button
+                            onClick={handleLongRest}
+                            className="flex items-center gap-1.5 px-3 py-2 bg-indigo-950/60 border border-indigo-500/40 text-indigo-300 font-bold text-xs rounded-xl hover:bg-indigo-900/60 transition-all"
+                            title="Riposo Lungo (Reset HP e Slot)"
+                        >
+                            <MoonIcon className="w-4 h-4" /> Riposo Lungo
+                        </button>
+                        <button
+                            onClick={() => window.open(`/character/${characterId}/print`, '_blank')}
+                            className="flex items-center gap-1.5 px-3 py-2 bg-secondary/60 hover:bg-secondary border border-border/50 text-foreground font-bold text-xs rounded-xl transition-all"
+                            title="Stampa Scheda"
+                        >
+                            <PrinterIcon className="w-4 h-4" /> Stampa
+                        </button>
+                        <button
+                            onClick={() => navigate(`/character/${characterId}/edit?tab=${activeTab}`)}
+                            className="flex items-center gap-1.5 px-3.5 py-2 bg-accent text-accent-foreground font-bold text-xs rounded-xl shadow-md hover:bg-accent-light transition-all"
+                        >
+                            <EditIcon className="w-4 h-4" /> Modifica
+                        </button>
+                    </div>
                 </div>
             </header>
 
+            {/* Navigation Tabs Bar */}
             <div className="relative">
                 <div
                     ref={tabContainerRef}
                     role="tablist"
-                    className="flex space-x-1 mb-6 border-b border-border overflow-x-auto no-scrollbar"
+                    className="flex space-x-1 border-b border-border overflow-x-auto no-scrollbar"
                 >
                     {PLAY_TABS.map(tab => (
                         <TabButton
@@ -221,7 +282,7 @@ export const PlayView: FC = () => {
                             controls={`play-panel-${tab.key}`}
                             label={tab.label}
                             isActive={activeTab === tab.key}
-                            onClick={() => setActiveTab(tab.key)}
+                            onClick={() => handleTabChange(tab.key)}
                         />
                     ))}
                 </div>
@@ -237,17 +298,30 @@ export const PlayView: FC = () => {
                 )}
             </div>
 
-            <main id={`play-panel-${activeTab}`} role="tabpanel" className="py-6 sm:py-8">
+            {/* Active Tab View Panel */}
+            <main id={`play-panel-${activeTab}`} role="tabpanel" className="py-2">
                 <Suspense fallback={<TabLoadingSpinner />}>
                     {createElement(tabComponents[activeTab], { readOnly: true })}
                 </Suspense>
             </main>
 
+            {/* Dice Roller Integration */}
+            {diceMode === 'dock' && <DiceRoller mode="dock" />}
+            {diceMode === 'modal' && (
+                <DiceRoller
+                    mode="modal"
+                    isOpen={isDiceModalOpen}
+                    onClose={() => setIsDiceModalOpen(false)}
+                />
+            )}
+
+            {/* Image Modal */}
             {isImageModalOpen && character.imageUrl && (
                 <ImageModal
                     imageUrl={character.imageUrl}
                     altText={`Profile image for ${character.name}`}
-                    onClose={() => setIsImageModalOpen(false)} />
+                    onClose={() => setIsImageModalOpen(false)}
+                />
             )}
         </div>
     );

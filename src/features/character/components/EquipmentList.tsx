@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useCharacter } from '../CharacterProvider';
-import { EquipmentItem } from '../characterTypes';
+import { EquipmentItem, Currency } from '../characterTypes';
 import { PlusCircleIcon, TrashIcon, EditIcon, ChevronDownIcon, PhotoIcon } from '../../../components/ui/icons';
 import { WEAPON_MASTERIES, WEAPON_PROPERTIES } from '../../../data/weaponProperties';
 import { ImageUploader } from './ImageUploader';
@@ -24,7 +24,10 @@ const EquipmentForm = ({
   onSave: (data: Omit<EquipmentItem, 'id'> | EquipmentItem) => void;
   onCancel: () => void;
 }) => {
-  const [formData, setFormData] = useState<EquipmentItem>(initialData as EquipmentItem);
+  const [formData, setFormData] = useState<Omit<EquipmentItem, 'id'> & { id?: string }>({
+    ...initialData,
+    itemType: initialData.itemType || (initialData.armorType === 'shield' ? 'shield' : (initialData.armorType ? 'armor' : (initialData.damage ? 'weapon' : 'gear'))),
+  });
   const [isImageUploaderOpen, setIsImageUploaderOpen] = useState(false);
   const { currentUser } = useAuth();
   const { character } = useCharacter();
@@ -36,13 +39,25 @@ const EquipmentForm = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) return;
-    onSave(formData);
+
+    const dataToSave = { ...formData };
+    if (dataToSave.itemType === 'weapon') {
+      delete dataToSave.armorType;
+      delete dataToSave.armorClass;
+    } else if (dataToSave.itemType === 'armor' || dataToSave.itemType === 'shield') {
+      if (dataToSave.itemType === 'shield') {
+        dataToSave.armorType = 'shield';
+      }
+      delete dataToSave.damage;
+      delete dataToSave.damageType;
+    }
+
+    onSave(dataToSave);
   };
 
   const handleImageUpload = async (dataUrl: string) => {
     if (!currentUser || !character) return;
-    const itemId = formData.id || `temp_${Date.now()}`;
-
+    const itemId = 'id' in initialData ? initialData.id : `temp_${Date.now()}`;
     try {
       const downloadUrl = await uploadItemImage(dataUrl, currentUser.uid, character.id, itemId);
       handleChange('imageUrl', downloadUrl);
@@ -89,7 +104,7 @@ const EquipmentForm = ({
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
           <div className="md:col-span-8">
             <label htmlFor="name" className={labelClass}>Item Name</label>
-            <input id="name" type="text" placeholder="e.g. Vorpal Blade" value={formData.name} onChange={e => handleChange('name', e.target.value)} required className={inputClass} />
+            <input id="name" type="text" placeholder="e.g., Longsword, Plate Armor, Potion of Healing" value={formData.name} onChange={e => handleChange('name', e.target.value)} required className={inputClass} />
           </div>
           <div className="md:col-span-4">
             <label htmlFor="quantity" className={labelClass}>Quantity</label>
@@ -98,42 +113,143 @@ const EquipmentForm = ({
         </div>
 
         <div>
-          <label htmlFor="description" className={labelClass}>Lore & Description</label>
-          <textarea id="description" value={formData.description} onChange={e => handleChange('description', e.target.value)} className={inputClass} rows={2} placeholder="The history and properties of this item..."></textarea>
+          <label htmlFor="itemType" className={labelClass}>Categoria Oggetto</label>
+          <select
+            id="itemType"
+            value={formData.itemType || 'gear'}
+            onChange={e => handleChange('itemType', e.target.value as any)}
+            className={inputClass}
+          >
+            <option value="weapon">⚔️ Arma</option>
+            <option value="armor">🛡️ Armatura Body</option>
+            <option value="shield">🛡️ Scudo</option>
+            <option value="wondrous">✨ Oggetto Prodigioso / Magico</option>
+            <option value="ring">💍 Anello Magico</option>
+            <option value="amulet">📿 Amuleto / Ciondolo</option>
+            <option value="helmet">🪖 Elmo / Copricapo</option>
+            <option value="potion">🧪 Pozione / Consumabile</option>
+            <option value="scroll">📜 Pergamena</option>
+            <option value="gear">🎒 Oggetto da Avventura / Zaino</option>
+          </select>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="armorType" className={labelClass}>Item Category</label>
-            <select id="armorType" value={formData.armorType || ''} onChange={e => {
-              const val = e.target.value as any;
-              handleChange('armorType', val || undefined);
-            }} className={inputClass}>
-              <option value="">General Adventuring Gear</option>
-              <option value="weapon">Tactical Weapon</option>
-              <option value="magic">Enchanted Artifact</option>
-              <optgroup label="Protection">
-                <option value="light">Light Armor</option>
-                <option value="medium">Medium Armor</option>
-                <option value="heavy">Heavy Armor</option>
-                <option value="shield">Shield</option>
-              </optgroup>
-            </select>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <label htmlFor="armorClass" className={labelClass}>
-                {formData.armorType === 'weapon' ? 'Magic Bonus' : (formData.armorType === 'magic' && formData.saveAbility) ? 'Save DC' : 'Armor Class'}
-              </label>
-              <input id="armorClass" type="number" placeholder="0" value={formData.armorClass || ''} onChange={e => handleChange('armorClass', parseInt(e.target.value) || undefined)} className={`${inputClass} text-center font-mono font-bold`} />
+        {/* Weapon Fields */}
+        {formData.itemType === 'weapon' && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-background/40 rounded-lg border border-accent/20">
+            <div>
+              <label htmlFor="damage" className={labelClass}>Formula Danno</label>
+              <input id="damage" type="text" placeholder="es. 1d8 o 2d6" value={formData.damage || ''} onChange={e => handleChange('damage', e.target.value)} className={inputClass} />
             </div>
-            <div className="pt-6">
-              <label className="flex items-center gap-2 cursor-pointer bg-background/50 px-3 py-2.5 rounded-lg border border-border/50 hover:bg-accent/5 transition-all group">
-                <input type="checkbox" checked={formData.equipped || false} onChange={e => handleChange('equipped', e.target.checked)} className="rounded border-border text-accent focus:ring-accent w-4 h-4 transition-all" />
-                <span className={`text-[10px] font-bold uppercase tracking-widest ${formData.equipped ? 'text-accent' : 'text-muted-foreground'} transition-colors`}>Equipped</span>
-              </label>
+            <div>
+              <label htmlFor="damageType" className={labelClass}>Tipo Danno</label>
+              <input id="damageType" type="text" placeholder="es. Tagliente, Perforante" value={formData.damageType || ''} onChange={e => handleChange('damageType', e.target.value)} className={inputClass} />
+            </div>
+            <div>
+              <label htmlFor="attackBonus" className={labelClass}>Bonus Magico / Hit</label>
+              <input id="attackBonus" type="text" placeholder="es. +1" value={formData.attackBonus || ''} onChange={e => handleChange('attackBonus', e.target.value)} className={inputClass} />
             </div>
           </div>
+        )}
+
+        {/* Armor / Shield / Magic AC Fields */}
+        {(formData.itemType === 'armor' || formData.itemType === 'shield' || formData.itemType === 'wondrous' || formData.itemType === 'ring' || formData.itemType === 'amulet' || formData.itemType === 'helmet') && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 bg-background/40 rounded-lg border border-accent/20">
+            {formData.itemType === 'armor' && (
+              <div>
+                <label htmlFor="armorType" className={labelClass}>Tipo Armatura</label>
+                <select id="armorType" value={formData.armorType || 'light'} onChange={e => handleChange('armorType', e.target.value || undefined)} className={inputClass}>
+                  <option value="light">Armatura Leggera</option>
+                  <option value="medium">Armatura Media</option>
+                  <option value="heavy">Armatura Pesante</option>
+                </select>
+              </div>
+            )}
+            {(formData.itemType === 'armor' || formData.itemType === 'shield') && (
+              <div>
+                <label htmlFor="armorClass" className={labelClass}>Classe Armatura (CA Base / Scudo)</label>
+                <input id="armorClass" type="number" placeholder={formData.itemType === 'shield' ? "es. 2" : "es. 14"} value={formData.armorClass || ''} onChange={e => handleChange('armorClass', parseInt(e.target.value) || undefined)} className={inputClass} />
+              </div>
+            )}
+            <div>
+              <label htmlFor="bonusAC" className={labelClass}>Bonus CA Magico (es. +1 da Anello/Mantello)</label>
+              <input id="bonusAC" type="number" placeholder="es. 1" value={formData.bonusAC || ''} onChange={e => handleChange('bonusAC', parseInt(e.target.value) || undefined)} className={inputClass} />
+            </div>
+          </div>
+        )}
+
+        {/* Sintonizzazione (Attunement) & Cariche Attive */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 bg-purple-500/10 rounded-lg border border-purple-500/30">
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-purple-300">
+              <input
+                type="checkbox"
+                checked={formData.requiresAttunement || false}
+                onChange={e => handleChange('requiresAttunement', e.target.checked)}
+                className="rounded border-purple-500/50 bg-background/60 text-purple-500 focus:ring-purple-500"
+              />
+              <span>🔮 Richiede Sintonizzazione</span>
+            </label>
+            {formData.requiresAttunement && (
+              <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-purple-200 pl-4">
+                <input
+                  type="checkbox"
+                  checked={formData.isAttuned || false}
+                  onChange={e => handleChange('isAttuned', e.target.checked)}
+                  className="rounded border-purple-500/50 bg-background/60 text-purple-500"
+                />
+                <span>Sintonizzato Attualmente</span>
+              </label>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label htmlFor="maxCharges" className={labelClass}>Cariche Max / Usi</label>
+                <input
+                  id="maxCharges"
+                  type="number"
+                  min="0"
+                  placeholder="es. 1"
+                  value={formData.charges?.max || ''}
+                  onChange={e => {
+                    const max = parseInt(e.target.value) || 0;
+                    if (max > 0) {
+                      handleChange('charges', {
+                        current: formData.charges?.current ?? max,
+                        max,
+                        resetType: formData.charges?.resetType || 'longRest',
+                      });
+                    } else {
+                      handleChange('charges', undefined);
+                    }
+                  }}
+                  className={inputClass}
+                />
+              </div>
+              {formData.charges && formData.charges.max > 0 && (
+                <div className="flex-1">
+                  <label htmlFor="resetType" className={labelClass}>Reset al</label>
+                  <select
+                    id="resetType"
+                    value={formData.charges.resetType}
+                    onChange={e => handleChange('charges', { ...formData.charges!, resetType: e.target.value as any })}
+                    className={inputClass}
+                  >
+                    <option value="longRest">Riposo Lungo</option>
+                    <option value="shortRest">Riposo Breve</option>
+                    <option value="dawn">Alba</option>
+                    <option value="none">Nessun Reset</option>
+                  </select>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="description" className={labelClass}>Descrizione / Note</label>
+          <textarea id="description" value={formData.description} onChange={e => handleChange('description', e.target.value)} className={inputClass} rows={2}></textarea>
         </div>
 
         {/* Tactical Weapon Details (Mirroring AttackForm) */}
@@ -333,24 +449,24 @@ const ItemDisplayList = ({
   items,
   expandedItem,
   onToggleExpand,
+  onToggleEquip,
   onEdit,
   onDelete,
-  onToggleEquip,
 }: {
   title: string;
   items: EquipmentItem[];
   expandedItem: string | null;
   onToggleExpand: (id: string) => void;
+  onToggleEquip: (id: string) => void;
   onEdit: (item: EquipmentItem) => void;
   onDelete: (id: string) => void;
-  onToggleEquip: (id: string) => void;
 }) => (
   <div>
     <h4 className="text-base font-semibold text-foreground border-b border-border/50 pb-2 mb-3 flex items-center justify-between">
       {title}
       <span className="text-xs bg-muted/40 px-2 py-0.5 rounded text-muted-foreground">{items.length}</span>
     </h4>
-    <div className="space-y-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
       {items.length === 0 && <p className="text-center text-muted-foreground text-xs py-4 border border-dashed border-border/30 rounded-lg">No items in {title.toLowerCase()}.</p>}
       {items.map(item => (
         <div key={item.id} className="bg-card/40 backdrop-blur-sm rounded-lg text-sm border border-border/30 hover:border-accent/30 transition-all">
@@ -374,19 +490,24 @@ const ItemDisplayList = ({
               <div className="flex flex-col min-w-0">
                 <p className="font-semibold text-accent truncate" title={item.name}>
                   {item.name}
-                  {item.equipped && <span className="ml-2 text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded uppercase tracking-wider">Equipped</span>}
+                  {item.equipped && <span className="ml-2 text-[10px] bg-primary/20 text-primary font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">Equipped</span>}
                 </p>
-                <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                <p className="text-xs text-muted-foreground">
+                  Qty: {item.quantity} {item.damage && `• Dmg: ${item.damage}`} {item.armorClass ? `• AC: ${item.armorClass}` : ''}
+                </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-1 flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 onClick={() => onToggleEquip(item.id)}
-                className={`p-1.5 rounded transition-all border ${item.equipped ? 'bg-primary/20 text-primary border-primary/30 shadow-[0_0_10px_-4px_rgba(var(--color-primary),0.5)]' : 'bg-muted/10 text-muted-foreground border-border/30 hover:border-accent/50 hover:text-accent'}`}
-                title={item.equipped ? 'Unequip' : 'Equip'}
+                className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md transition-all shadow-sm ${
+                  item.equipped
+                    ? 'bg-primary text-primary-foreground shadow-primary/20'
+                    : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/50'
+                }`}
               >
-                <PlusCircleIcon className={`w-4 h-4 transition-transform ${item.equipped ? 'rotate-45' : ''}`} />
+                {item.equipped ? 'Equipped' : 'Equip'}
               </button>
               <button onClick={() => onEdit(item)} className="text-muted-foreground hover:text-accent p-1.5 hover:bg-accent/10 rounded transition-colors"><EditIcon className="w-4 h-4" /></button>
               <button onClick={() => onDelete(item.id)} className="text-muted-foreground hover:text-destructive p-1.5 hover:bg-destructive/10 rounded transition-colors"><TrashIcon className="w-4 h-4" /></button>
@@ -394,54 +515,27 @@ const ItemDisplayList = ({
           </div>
           {expandedItem === item.id && (
             <div className="p-3 border-t border-border/30 bg-muted/10 space-y-2">
-              {item.armorType && (
-                <div className="flex flex-wrap gap-2 text-[11px]">
-                  <div className="bg-background/50 px-2 py-0.5 rounded border border-border/50 flex items-center">
-                    <span className="text-muted-foreground uppercase mr-1 opacity-70">Type:</span>
-                    <span className="font-bold text-accent">{item.armorType}</span>
+              <div className="flex flex-wrap gap-2 text-xs">
+                {item.armorType && (
+                  <div className="bg-background/50 px-2 py-1 rounded border border-border/50">
+                    <span className="text-muted-foreground capitalize mr-1">Armor:</span>
+                    <span className="font-medium">{item.armorType}</span>
                   </div>
-                  {item.armorType === 'weapon' ? (
-                    <>
-                      {item.damage && (
-                        <div className="bg-background/50 px-2 py-0.5 rounded border border-border/50 flex items-center">
-                          <span className="text-muted-foreground uppercase mr-1 opacity-70">Dmg:</span>
-                          <span className="font-bold">{item.damage} {item.damageType}</span>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      {item.armorClass && (
-                        <div className="bg-background/50 px-2 py-0.5 rounded border border-border/50 flex items-center">
-                          <span className="text-muted-foreground uppercase mr-1 opacity-70">AC:</span>
-                          <span className="font-bold">{item.armorClass}</span>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
-              {item.uses && item.uses.max > 0 && (
-                <div className="flex items-center gap-2 bg-primary/5 px-2 py-1 rounded border border-primary/20 w-fit">
-                  <span className="text-[10px] uppercase font-bold text-primary/70">Uses:</span>
-                  <span className="text-xs font-mono font-bold">{item.uses.current} / {item.uses.max}</span>
-                  {item.recovery !== 'none' && <span className="text-[10px] text-muted-foreground italic">({item.recovery})</span>}
-                </div>
-              )}
-              {item.grantsSpellName && (
-                <div className="text-[11px] text-purple-400 font-medium bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20 w-fit flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse"></span>
-                  Grants: {item.grantsSpellName}
-                </div>
-              )}
-              {item.properties && item.properties.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {item.properties.map(p => (
-                    <span key={p} className="text-[9px] bg-muted/30 text-muted-foreground px-1.5 rounded border border-border/30 uppercase">{p}</span>
-                  ))}
-                </div>
-              )}
-              {item.description && <p className="text-foreground/80 whitespace-pre-wrap text-[13px] leading-relaxed pl-1 pt-1">{item.description}</p>}
+                )}
+                {item.armorClass && (
+                  <div className="bg-background/50 px-2 py-1 rounded border border-border/50">
+                    <span className="text-muted-foreground capitalize mr-1">AC:</span>
+                    <span className="font-medium">{item.armorClass}</span>
+                  </div>
+                )}
+                {item.damage && (
+                  <div className="bg-background/50 px-2 py-1 rounded border border-border/50">
+                    <span className="text-muted-foreground capitalize mr-1">Damage:</span>
+                    <span className="font-medium">{item.damage} {item.damageType}</span>
+                  </div>
+                )}
+              </div>
+              {item.description && <p className="text-foreground/80 whitespace-pre-wrap text-[13px] leading-relaxed pl-1">{item.description}</p>}
             </div>
           )}
         </div>
@@ -492,36 +586,34 @@ export const EquipmentList = () => {
   };
 
   const handleToggleEquip = (itemId: string) => {
-    const item = character.equipment.find(e => e.id === itemId);
-    if (!item) return;
+    const clickedItem = character.equipment.find(item => item.id === itemId);
+    if (!clickedItem) return;
 
-    const isEquipping = !item.equipped;
-    const isArmor = ['light', 'medium', 'heavy'].includes(item.armorType || '');
-    const isShield = item.armorType === 'shield';
+    const isEquipping = !clickedItem.equipped;
+    const isClickedBodyArmor = clickedItem.itemType === 'armor' || ['light', 'medium', 'heavy'].includes(clickedItem.armorType || '');
+    const isClickedShield = clickedItem.itemType === 'shield' || clickedItem.armorType === 'shield';
 
-    const updatedEquipment = character.equipment.map(e => {
-      if (e.id === itemId) {
-        return { ...e, equipped: isEquipping };
+    const newEquipment = character.equipment.map(item => {
+      if (item.id === itemId) {
+        return { ...item, equipped: isEquipping };
       }
-      // If equipping armor, unequip other armors
-      if (isEquipping && isArmor && ['light', 'medium', 'heavy'].includes(e.armorType || '')) {
-        return { ...e, equipped: false };
+      if (isEquipping) {
+        const isItemBodyArmor = item.itemType === 'armor' || ['light', 'medium', 'heavy'].includes(item.armorType || '');
+        const isItemShield = item.itemType === 'shield' || item.armorType === 'shield';
+
+        if (isClickedBodyArmor && isItemBodyArmor) return { ...item, equipped: false };
+        if (isClickedShield && isItemShield) return { ...item, equipped: false };
       }
-      // If equipping shield, unequip other shields
-      if (isEquipping && isShield && e.armorType === 'shield') {
-        return { ...e, equipped: false };
-      }
-      return e;
+      return item;
     });
-
-    updateCharacter({ equipment: updatedEquipment });
+    updateCharacter({ equipment: newEquipment });
   };
 
   const { equippableItems, backpackItems } = useMemo(() => {
     const equippable: EquipmentItem[] = [];
     const backpack: EquipmentItem[] = [];
     (character.equipment || []).forEach(item => {
-      if (item.armorType) {
+      if (item.equipped || item.itemType === 'weapon' || item.itemType === 'armor' || item.itemType === 'shield' || item.armorType || item.damage) {
         equippable.push(item);
       } else {
         backpack.push(item);
@@ -533,46 +625,118 @@ export const EquipmentList = () => {
     };
   }, [character.equipment]);
 
+  const handleCurrencyChange = (type: keyof Currency, val: number) => {
+    updateCharacter({
+      currency: {
+        ...character.currency,
+        [type]: Math.max(0, val),
+      },
+    });
+  };
+
+  const totalGp = useMemo(() => {
+    const c = character.currency || { pp: 0, gp: 0, ep: 0, sp: 0, cp: 0 };
+    const total = (c.pp || 0) * 10 + (c.gp || 0) + (c.ep || 0) * 0.5 + (c.sp || 0) * 0.1 + (c.cp || 0) * 0.01;
+    return total.toLocaleString('it-IT', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }, [character.currency]);
+
   return (
-    <div className="bg-card/20 p-6 rounded-xl border border-border/50 h-full flex flex-col">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-cinzel text-accent">Inventory</h3>
-        <button
-          onClick={() => setEditingItem('new')}
-          className="flex items-center gap-2 text-sm bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 px-3 py-2 rounded-lg transition-all shadow-sm hover:shadow-md"
-        >
-          <PlusCircleIcon className="w-5 h-5" />
-          <span className="font-bold">Add Item</span>
-        </button>
+    <div className="space-y-6">
+      {/* Top Currency Banner */}
+      <div className="bg-card/40 backdrop-blur-md p-6 rounded-2xl border border-border/50 shadow-md space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/40 pb-3">
+          <h3 className="text-xl font-cinzel text-accent flex items-center gap-2">
+            <span>🪙</span> Monete & Portamonete
+          </h3>
+          <div className="bg-accent/10 text-accent px-3.5 py-1 rounded-xl border border-accent/20 text-xs font-bold font-mono">
+            Valore Totale Stimato: <span className="text-white text-sm font-black">{totalGp} GP</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {[
+            { key: 'pp', label: 'PP (Platino)', color: 'border-cyan-500/30 bg-cyan-500/5 text-cyan-300' },
+            { key: 'gp', label: 'GP (Oro)', color: 'border-yellow-500/30 bg-yellow-500/5 text-yellow-400' },
+            { key: 'ep', label: 'EP (Elettro)', color: 'border-indigo-500/30 bg-indigo-500/5 text-indigo-300' },
+            { key: 'sp', label: 'SP (Argento)', color: 'border-slate-400/30 bg-slate-400/5 text-slate-200' },
+            { key: 'cp', label: 'CP (Rame)', color: 'border-orange-600/30 bg-orange-600/5 text-orange-400' },
+          ].map((coin) => {
+            const val = character.currency[coin.key as keyof Currency] || 0;
+            return (
+              <div key={coin.key} className={`p-3 rounded-xl border ${coin.color} flex flex-col items-center justify-between gap-2 shadow-sm`}>
+                <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">{coin.label}</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleCurrencyChange(coin.key as keyof Currency, val - 1)}
+                    className="w-7 h-7 rounded-lg bg-background/50 hover:bg-background border border-border/50 text-foreground font-bold flex items-center justify-center transition-colors text-sm"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    value={val}
+                    onChange={(e) => handleCurrencyChange(coin.key as keyof Currency, parseInt(e.target.value) || 0)}
+                    className="w-14 bg-background/60 text-center font-mono font-bold text-base rounded border border-border/40 py-0.5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleCurrencyChange(coin.key as keyof Currency, val + 1)}
+                    className="w-7 h-7 rounded-lg bg-background/50 hover:bg-background border border-border/50 text-foreground font-bold flex items-center justify-center transition-colors text-sm"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {editingItem && (
-        <EquipmentForm
-          initialData={editingItem === 'new' ? DEFAULT_ITEM : editingItem}
-          onSave={handleSave}
-          onCancel={() => setEditingItem(null)}
-        />
-      )}
+      {/* Main Inventory Gear List */}
+      <div className="bg-card/20 backdrop-blur-md p-6 rounded-2xl border border-border/50 space-y-6">
+        <div className="flex justify-between items-center border-b border-border/40 pb-4">
+          <div>
+            <h3 className="text-xl font-cinzel text-accent">Zaino ed Equipaggiamento</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Gestisci tutti i tuoi oggetti, armi, armature e consumabili</p>
+          </div>
+          <button
+            onClick={() => setEditingItem('new')}
+            className="flex items-center gap-2 text-sm bg-accent hover:bg-accent/90 text-accent-foreground font-bold px-4 py-2.5 rounded-xl transition-all shadow-md hover:shadow-lg"
+          >
+            <PlusCircleIcon className="w-5 h-5" />
+            <span>Aggiungi Oggetto</span>
+          </button>
+        </div>
 
-      <div className="space-y-8 overflow-y-auto px-1 -mx-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
-        <ItemDisplayList
-          title="Equippable Gear"
-          items={equippableItems}
-          expandedItem={expandedItem}
-          onToggleExpand={handleToggleExpand}
-          onEdit={setEditingItem}
-          onDelete={handleDelete}
-          onToggleEquip={handleToggleEquip}
-        />
-        <ItemDisplayList
-          title="Backpack"
-          items={backpackItems}
-          expandedItem={expandedItem}
-          onToggleExpand={handleToggleExpand}
-          onEdit={setEditingItem}
-          onDelete={handleDelete}
-          onToggleEquip={handleToggleEquip}
-        />
+        {editingItem && (
+          <EquipmentForm
+            initialData={editingItem === 'new' ? DEFAULT_ITEM : editingItem}
+            onSave={handleSave}
+            onCancel={() => setEditingItem(null)}
+          />
+        )}
+
+        <div className="space-y-8">
+          <ItemDisplayList
+            title="🛡️ Armi, Armature & Oggetti Equipaggiati"
+            items={equippableItems}
+            expandedItem={expandedItem}
+            onToggleExpand={handleToggleExpand}
+            onToggleEquip={handleToggleEquip}
+            onEdit={setEditingItem}
+            onDelete={handleDelete}
+          />
+          <ItemDisplayList
+            title="🎒 Zaino & Oggetti da Avventura"
+            items={backpackItems}
+            expandedItem={expandedItem}
+            onToggleExpand={handleToggleExpand}
+            onToggleEquip={handleToggleEquip}
+            onEdit={setEditingItem}
+            onDelete={handleDelete}
+          />
+        </div>
       </div>
     </div>
   );

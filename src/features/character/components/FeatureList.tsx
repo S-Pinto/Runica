@@ -6,6 +6,7 @@ import { TrashIcon, EditIcon, PlusCircleIcon } from '../../../components/ui/icon
 const DEFAULT_FEATURE: Omit<Feature, 'id'> = {
   name: '',
   description: '',
+  category: 'class',
 };
 
 const FeatureForm = ({

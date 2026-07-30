@@ -103,28 +103,53 @@ export interface Attack {
   notes?: string;
 }
 
+export type ItemCategory = 
+  | 'weapon'
+  | 'armor'
+  | 'shield'
+  | 'wondrous'
+  | 'ring'
+  | 'amulet'
+  | 'helmet'
+  | 'potion'
+  | 'scroll'
+  | 'gear';
+
+export type ChargeResetType = 'longRest' | 'shortRest' | 'dawn' | 'none';
+
 export interface EquipmentItem {
   id: string;
   name: string;
   quantity: number;
   description: string;
-  armorClass?: number; // Base AC for armor, or bonus for shields. For weapons/magic items it can be magic bonus.
+  itemType?: ItemCategory;
+  armorClass?: number; // Base AC for armor, or bonus for shields
   armorType?: 'light' | 'medium' | 'heavy' | 'shield' | 'weapon' | 'magic';
-  equipped?: boolean;
-  imageUrl?: string;
-  // New: for weapons and action-granting items
-  damage?: string;
-  damageType?: string;
-  attackAbility?: string;
-  damageAbility?: string;
-  isProficient?: boolean;
-  mastery?: string;
+  damage?: string; // e.g. "1d8", "2d6"
+  damageType?: string; // e.g. "Slashing", "Piercing"
+  attackBonus?: string; // e.g. "+1"
+  mastery?: string; // e.g. "Flex", "Vex", "Sap"
   properties?: string[];
   additionalDamage?: { formula: string; type: string }[];
+  attackAbility?: string; // "str", "dex"
+  damageAbility?: string;
+  isProficient?: boolean;
+  equipped?: boolean;
+  imageUrl?: string;
   grantsSpellName?: string;
-  saveAbility?: string; // For magic items/spells
-  uses?: { max: number; current: number };
-  recovery?: 'short' | 'long' | 'none';
+  saveAbility?: string;
+
+  // --- Proprietà Magiche, Sintonizzazione & Cariche Attive ---
+  requiresAttunement?: boolean;
+  isAttuned?: boolean;
+  charges?: {
+    current: number;
+    max: number;
+    resetType: ChargeResetType;
+  };
+  uses?: { current: number; max: number };
+  recovery?: 'short' | 'long' | 'shortRest' | 'longRest' | 'none';
+  bonusAC?: number;
 }
 
 export interface Currency {
@@ -215,9 +240,21 @@ export interface ICharacter {
   customResources: CustomResource[];
   companions: ICompanion[];
 
-  // Syncing
+  // Syncing & Organization
   lastUpdated: number;
   order?: number; // For custom sorting
+  campaignId?: string;
+  campaignName?: string;
+}
+
+export interface ICampaign {
+  id: string;
+  name: string;
+  description?: string;
+  code: string;
+  createdBy: string;
+  createdAt: number;
+  characterIds: string[];
 }
 
 export interface ICompanion {

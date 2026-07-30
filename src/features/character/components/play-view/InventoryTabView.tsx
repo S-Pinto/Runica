@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useCharacter } from '../../CharacterProvider';
 import { EquipmentItem, Currency } from '../../characterTypes';
 import { ChevronDownIcon } from '../../../../components/ui/icons';
@@ -16,35 +16,99 @@ const InventoryTabView = () => {
     if (!clickedItem) return;
 
     const isEquipping = !clickedItem.equipped;
+    const isClickedBodyArmor = clickedItem.itemType === 'armor' || ['light', 'medium', 'heavy'].includes(clickedItem.armorType || '');
+    const isClickedShield = clickedItem.itemType === 'shield' || clickedItem.armorType === 'shield';
 
     const newEquipment = character.equipment.map(item => {
       if (item.id === itemId) {
         return { ...item, equipped: isEquipping };
       }
       if (isEquipping) {
-        const isClickedItemArmor = clickedItem.armorType && clickedItem.armorType !== 'shield';
-        const isCurrentItemArmor = item.equipped && item.armorType && item.armorType !== 'shield';
-        if (isClickedItemArmor && isCurrentItemArmor) {
-          return { ...item, equipped: false };
-        }
-        if (clickedItem.armorType === 'shield' && item.equipped && item.armorType === 'shield') {
-          return { ...item, equipped: false };
-        }
+        const isItemBodyArmor = item.itemType === 'armor' || ['light', 'medium', 'heavy'].includes(item.armorType || '');
+        const isItemShield = item.itemType === 'shield' || item.armorType === 'shield';
+
+        if (isClickedBodyArmor && isItemBodyArmor) return { ...item, equipped: false };
+        if (isClickedShield && isItemShield) return { ...item, equipped: false };
       }
       return item;
     });
     updateCharacter({ equipment: newEquipment });
   };
 
+  const handleCurrencyChange = (type: keyof Currency, val: number) => {
+    updateCharacter({
+      currency: {
+        ...character.currency,
+        [type]: Math.max(0, val),
+      },
+    });
+  };
+
+  const handleToggleAttune = (itemId: string) => {
+    const item = character.equipment.find(i => i.id === itemId);
+    if (!item) return;
+
+    const currentAttuned = (character.equipment || []).filter(i => i.isAttuned).length;
+    if (!item.isAttuned && currentAttuned >= 3) {
+      alert("Hai già sintonizzato il massimo di 3 Oggetti Magici (Regola D&D 5e/2024)!");
+      return;
+    }
+
+    const newEquipment = character.equipment.map(i => i.id === itemId ? { ...i, isAttuned: !i.isAttuned } : i);
+    updateCharacter({ equipment: newEquipment });
+  };
+
+  const handleUseCharge = (itemId: string) => {
+    const newEquipment = character.equipment.map(item => {
+      if (item.id === itemId && item.charges && item.charges.current > 0) {
+        return {
+          ...item,
+          charges: {
+            ...item.charges,
+            current: item.charges.current - 1,
+          },
+        };
+      }
+      return item;
+    });
+    updateCharacter({ equipment: newEquipment });
+  };
+
+  const handleResetCharge = (itemId: string) => {
+    const newEquipment = character.equipment.map(item => {
+      if (item.id === itemId && item.charges) {
+        return {
+          ...item,
+          charges: {
+            ...item.charges,
+            current: item.charges.max,
+          },
+        };
+      }
+      return item;
+    });
+    updateCharacter({ equipment: newEquipment });
+  };
+
+  const attunedCount = useMemo(() => {
+    return (character.equipment || []).filter(item => item.isAttuned).length;
+  }, [character.equipment]);
+
   const handleToggleExpand = (itemId: string) => {
     setExpandedItem(prev => (prev === itemId ? null : itemId));
   };
+
+  const totalGp = useMemo(() => {
+    const c = character.currency || { pp: 0, gp: 0, ep: 0, sp: 0, cp: 0 };
+    const total = (c.pp || 0) * 10 + (c.gp || 0) + (c.ep || 0) * 0.5 + (c.sp || 0) * 0.1 + (c.cp || 0) * 0.01;
+    return total.toLocaleString('it-IT', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }, [character.currency]);
 
   const { equippableItems, backpackItems } = useMemo(() => {
     const equippable: EquipmentItem[] = [];
     const backpack: EquipmentItem[] = [];
     (character.equipment || []).forEach(item => {
-      if (item.armorType) {
+      if (item.equipped || item.itemType === 'weapon' || item.itemType === 'armor' || item.itemType === 'shield' || item.armorType || item.damage) {
         equippable.push(item);
       } else {
         backpack.push(item);
@@ -56,24 +120,46 @@ const InventoryTabView = () => {
     };
   }, [character.equipment]);
 
+  const getItemIcon = (item: EquipmentItem) => {
+    if (item.itemType === 'weapon' || item.damage) return '⚔️';
+    if (item.itemType === 'armor' || item.armorType) return '🛡️';
+    if (item.itemType === 'shield') return '🛡️';
+    if (item.itemType === 'ring') return '💍';
+    if (item.itemType === 'amulet') return '📿';
+    if (item.itemType === 'helmet') return '🪖';
+    if (item.itemType === 'wondrous') return '✨';
+    if (item.itemType === 'potion') return '🧪';
+    if (item.itemType === 'scroll') return '📜';
+    return '🎒';
+  };
+
   const ItemList = ({ title, items }: { title: string; items: EquipmentItem[] }) => (
-    <div className="bg-card/20 backdrop-blur-md p-6 rounded-2xl border border-border/40">
-      <h3 className="text-xl font-cinzel text-accent mb-6 flex items-center justify-between">
-        {title}
-        <span className="text-sm font-sans bg-muted/40 px-2 py-1 rounded text-muted-foreground">{items.length}</span>
-      </h3>
-      {items.length === 0 ? <p className="text-muted-foreground text-sm text-center py-8 border border-dashed border-border/30 rounded-xl">No items in {title.toLowerCase()}.</p> : (
-        <div className="space-y-3">
+    <div className="bg-card/20 backdrop-blur-md p-6 rounded-2xl border border-border/40 space-y-4">
+      <div className="flex items-center justify-between border-b border-border/40 pb-3">
+        <h3 className="text-xl font-cinzel text-accent flex items-center gap-2">
+          {title}
+        </h3>
+        <span className="text-xs font-mono font-bold bg-accent/10 text-accent px-2.5 py-1 rounded-lg border border-accent/20">
+          {items.length} oggetti
+        </span>
+      </div>
+
+      {items.length === 0 ? (
+        <p className="text-muted-foreground text-sm text-center py-8 border border-dashed border-border/30 rounded-xl">
+          Nessun oggetto in questa sezione.
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {items.map(item => (
-            <div key={item.id} className="bg-card/40 backdrop-blur-sm rounded-xl text-sm border border-border/30 overflow-hidden transition-all hover:border-accent/30 hover:shadow-sm">
-              <div className="p-3 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-4 flex-1 min-w-0">
+            <div key={item.id} className="bg-card/50 backdrop-blur-sm rounded-xl text-sm border border-border/40 overflow-hidden transition-all hover:border-accent/40 shadow-sm flex flex-col justify-between">
+              <div className="p-3.5 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
                   <button onClick={() => handleToggleExpand(item.id)} className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors p-1">
                     <ChevronDownIcon className={`w-5 h-5 transition-transform duration-300 ${expandedItem === item.id ? 'rotate-180' : ''}`} />
                   </button>
 
                   <div
-                    className="w-12 h-12 rounded-lg bg-muted/30 border border-border flex items-center justify-center flex-shrink-0 overflow-hidden relative group cursor-pointer"
+                    className="w-12 h-12 rounded-xl bg-muted/40 border border-border/50 flex items-center justify-center flex-shrink-0 overflow-hidden relative group cursor-pointer shadow-sm text-xl"
                     onClick={(e) => {
                       e.stopPropagation();
                       if (item.imageUrl) {
@@ -84,48 +170,112 @@ const InventoryTabView = () => {
                     {item.imageUrl ? (
                       <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
                     ) : (
-                      <div className="w-full h-full bg-accent/5 flex items-center justify-center text-accent/20">
-                        <span className="text-xs font-bold uppercase">{item.name.substring(0, 2)}</span>
-                      </div>
+                      <span>{getItemIcon(item)}</span>
                     )}
                   </div>
 
                   <div className="flex flex-col min-w-0">
-                    <p className="font-bold text-foreground truncate text-base" title={item.name}>
-                      {item.name}
-                    </p>
-                    <span className="text-xs text-muted-foreground">Qty: {item.quantity}</span>
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-foreground truncate text-base" title={item.name}>
+                        {item.name}
+                      </p>
+                      {item.isAttuned && (
+                        <span className="text-[10px] bg-purple-500/20 text-purple-300 font-bold px-1.5 py-0.5 rounded border border-purple-500/30">
+                          🔮 Sintonizzato
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-xs text-muted-foreground">
+                      <span className="bg-background/50 px-1.5 py-0.5 rounded border border-border/30 font-mono">Qtà: {item.quantity}</span>
+                      {item.damage && <span className="text-accent font-bold bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">Dmg: {item.damage}</span>}
+                      {item.armorClass && <span className="text-amber-300 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">CA: {item.armorClass}</span>}
+                      {item.bonusAC && <span className="text-cyan-300 font-bold bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">+ {item.bonusAC} CA</span>}
+                    </div>
                   </div>
                 </div>
-                {item.armorType && (
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {item.requiresAttunement && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleToggleAttune(item.id); }}
+                      className={`px-2.5 py-1.5 text-xs font-bold rounded-xl transition-all border ${
+                        item.isAttuned
+                          ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                          : 'bg-background/40 text-muted-foreground border-border/40 hover:text-purple-300'
+                      }`}
+                      title="Sintonizzazione Magica (Max 3)"
+                    >
+                      🔮
+                    </button>
+                  )}
+
                   <button
                     onClick={(e) => { e.stopPropagation(); handleToggleEquip(item.id); }}
-                    className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all shadow-sm ${item.equipped ? 'bg-primary text-primary-foreground shadow-primary/20' : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/50'}`}
+                    className={`px-3.5 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex-shrink-0 ${
+                      item.equipped
+                        ? 'bg-accent text-accent-foreground shadow-accent/20 font-black'
+                        : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/50'
+                    }`}
                   >
                     {item.equipped ? 'Equipped' : 'Equip'}
                   </button>
-                )}
+                </div>
               </div>
+
+              {/* Charge Tracker Bar for Active Magic Items */}
+              {item.charges && item.charges.max > 0 && (
+                <div className="px-3.5 py-2 bg-purple-500/10 border-t border-purple-500/20 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-purple-300 flex items-center gap-1">
+                      ⚡ Cariche:
+                    </span>
+                    <span className="text-sm font-black font-mono text-white">
+                      {item.charges.current} / {item.charges.max}
+                    </span>
+                    <span className="text-[10px] uppercase font-semibold text-purple-300/70">
+                      ({item.charges.resetType === 'longRest' ? 'Riposo Lungo' : item.charges.resetType})
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleUseCharge(item.id); }}
+                      disabled={item.charges.current <= 0}
+                      className="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs rounded-lg transition-all shadow-sm flex items-center gap-1"
+                    >
+                      ⚡ Usa
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleResetCharge(item.id); }}
+                      className="p-1 bg-background/50 hover:bg-background border border-purple-500/30 text-purple-300 rounded-lg transition-colors text-xs"
+                      title="Ricarica Manuale"
+                    >
+                      🔄
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {expandedItem === item.id && (
-                <div className="px-4 pb-4 pt-2 border-t border-border/30 bg-muted/5 space-y-3 animate-in slide-in-from-top-2 duration-200">
-                  {item.armorType && (
-                    <div className="flex gap-3 text-xs">
-                      <div className="bg-background/60 px-3 py-1.5 rounded-md border border-border/40">
-                        <span className="text-muted-foreground capitalize mr-2">Type:</span>
-                        <span className="font-semibold text-foreground">{item.armorType} Armor</span>
+                <div className="px-4 pb-4 pt-2 border-t border-border/30 bg-muted/10 space-y-2 animate-in slide-in-from-top-2 duration-200">
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    {item.armorType && (
+                      <div className="bg-background/60 px-2.5 py-1 rounded-md border border-border/40">
+                        <span className="text-muted-foreground capitalize mr-1">Armatura:</span>
+                        <span className="font-semibold text-foreground">{item.armorType}</span>
                       </div>
-                      {item.armorClass && (
-                        <div className="bg-background/60 px-3 py-1.5 rounded-md border border-border/40">
-                          <span className="text-muted-foreground capitalize mr-2">AC:</span>
-                          <span className="font-semibold text-foreground">{item.armorClass}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                    )}
+                    {item.damageType && (
+                      <div className="bg-background/60 px-2.5 py-1 rounded-md border border-border/40">
+                        <span className="text-muted-foreground capitalize mr-1">Tipo Danno:</span>
+                        <span className="font-semibold text-foreground">{item.damageType}</span>
+                      </div>
+                    )}
+                  </div>
                   {item.description ? (
-                    <p className="text-foreground/80 whitespace-pre-wrap text-[13px] leading-relaxed bg-background/30 p-3 rounded-lg border border-border/20">{item.description}</p>
+                    <p className="text-foreground/90 whitespace-pre-wrap text-[13px] leading-relaxed bg-background/40 p-3 rounded-lg border border-border/30">{item.description}</p>
                   ) : (
-                    <p className="text-muted-foreground italic text-xs pl-1">No description available.</p>
+                    <p className="text-muted-foreground italic text-xs pl-1">Nessuna descrizione disponibile.</p>
                   )}
                 </div>
               )}
@@ -137,52 +287,74 @@ const InventoryTabView = () => {
   );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="space-y-6">
       <ImageModal
         imageUrl={selectedImage?.url || ''}
         altText={selectedImage?.alt || ''}
         onClose={() => setSelectedImage(null)}
       />
-      <div className="lg:col-span-1 space-y-8">
-        <div className="bg-card/30 backdrop-blur-md p-6 rounded-2xl border border-border/50 shadow-lg relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-10">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" className="w-24 h-24 text-accent" fill="currentColor">
-              <path transform="translate(-312, -425)" d="M 320.857 468.479 c -4.328 -1.088 -6.981 -2.637 -7.673 -4.478 H 313 v -7 a 3.265 3.265 0 0 1 1 -2.257 V 450.1 a 4.711 4.711 0 0 1 -1.816 -2.1 H 312 v -7 c 0 -1.619 1.345 -3.033 4 -4.2 V 432 c 0 -4.6 11.068 -7 22 -7 s 22 2.4 22 7 v 7 h -0.181 c -0.448 1.205 -1.727 2.278 -3.819 3.2 v 2.7 a 3.9 3.9 0 0 1 2 3.1 v 7 h -0.185 a 3.856 3.856 0 0 1 -0.895 1.337 A 2.92 2.92 0 0 1 357 457 v 7 h -0.184 c -0.692 1.841 -3.346 3.39 -7.673 4.478 a 66.515 66.515 0 0 1 -28.286 0 Z M 334.88 468 h 0.239 c 2.036 0 4.011 -0.087 5.881 -0.243 V 465 h 1 v 2.665 A 41.213 41.213 0 0 0 350.59 466 H 350 v -3 h 1 v 2.861 a 16.562 16.562 0 0 0 1.762 -0.729 A 13.1 13.1 0 0 0 355 463.919 V 460.1 a 22.359 22.359 0 0 1 -8.331 2.911 a 69.635 69.635 0 0 1 -23.337 0 A 22.358 22.358 0 0 1 315 460.1 v 3.815 a 13.378 13.378 0 0 0 2.231 1.21 a 24.543 24.543 0 0 0 5.769 1.8 V 464 h 1 v 3.119 a 60.16 60.16 0 0 0 8 0.822 V 465 h 1 v 2.974 Q 333.93 468 334.88 468 Z M 315 457 c 0 2.088 7.609 5 20 5 a 56.889 56.889 0 0 0 13.557 -1.427 c 2.923 -0.724 5.041 -1.652 5.962 -2.613 C 350.6 459.864 343.678 461 336 461 a 64.428 64.428 0 0 1 -12.541 -1.156 c -3.944 -0.813 -6.809 -1.993 -8.284 -3.412 A 1.111 1.111 0 0 0 315 457 Z m 20.88 2 h 0.239 c 2.036 0 4.011 -0.087 5.881 -0.243 V 456 h 1 v 2.665 a 43.03 43.03 0 0 0 8 -1.478 V 455 h 1 v 1.86 a 16.579 16.579 0 0 0 1.762 -0.728 A 13.209 13.209 0 0 0 356 454.919 V 451.1 a 22.346 22.346 0 0 1 -8.331 2.912 a 69.64 69.64 0 0 1 -23.338 0 a 24.04 24.04 0 0 1 -7.914 -2.638 c -0.125 -0.051 -0.257 -0.108 -0.418 -0.177 v 3.718 a 13.162 13.162 0 0 0 2.231 1.21 a 24.543 24.543 0 0 0 5.769 1.8 V 455 h 1 v 3 h -0.642 a 58.75 58.75 0 0 0 8.643 0.941 V 456 h 1 v 2.974 Q 334.93 459 335.88 459 Z m -2 -7 h 0.239 q 0.949 0 1.88 -0.026 V 449 h 1 v 2.941 a 58.734 58.734 0 0 0 8.646 -0.941 H 345 v -3 h 1 v 2.93 a 24.484 24.484 0 0 0 5.777 -1.806 A 13.171 13.171 0 0 0 354 447.918 V 444.1 a 22.352 22.352 0 0 1 -8.331 2.912 a 69.635 69.635 0 0 1 -23.337 0 A 22.36 22.36 0 0 1 314 444.1 v 3.814 a 13.127 13.127 0 0 0 2.218 1.205 a 16.543 16.543 0 0 0 1.781 0.737 V 447 h 1 v 3.186 a 43.042 43.042 0 0 0 8 1.478 V 449 h 1 v 2.756 C 329.869 451.913 331.844 452 333.88 452 Z m 20.572 -2.237 c 1.012 -0.6 1.547 -1.207 1.547 -1.762 h -0.184 A 4.3 4.3 0 0 1 354.452 449.762 Z M 314 441 c 0 2.088 7.609 5 20 5 a 51.442 51.442 0 0 0 15.336 -1.925 A 66.045 66.045 0 0 1 338 445 a 60.165 60.165 0 0 1 -14.234 -1.544 c -4.278 -1.088 -6.9 -2.628 -7.583 -4.457 H 316 v -0.012 C 314.709 439.658 314 440.369 314 441 Z m 23.881 2 h 0.239 c 2.035 0 4.01 -0.087 5.88 -0.243 V 440 h 1 v 2.665 A 41.228 41.228 0 0 0 353.588 441 H 353 v -3 h 1 v 2.859 a 16.568 16.568 0 0 0 1.775 -0.734 A 13.092 13.092 0 0 0 358 438.918 V 435.1 c -3.675 2.569 -11.875 3.9 -20 3.9 s -16.325 -1.328 -20 -3.9 v 3.815 a 13.107 13.107 0 0 0 2.226 1.207 a 24.5 24.5 0 0 0 5.774 1.8 V 439 h 1 v 3.119 a 60.154 60.154 0 0 0 8 0.821 V 440 h 1 v 2.974 Q 336.93 443 337.881 443 Z M 318 432 c 0 2.088 7.609 5 20 5 s 20 -2.912 20 -5 s -7.609 -5 -20 -5 S 318 429.912 318 432 Z" />
-            </svg>
-          </div>
-          <h3 className="text-lg font-cinzel text-accent mb-4 flex items-center gap-2 relative z-10">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-yellow-500">
-              <path d="M21 6.375c0 2.692-4.03 4.875-9 4.875S3 9.067 3 6.375 7.03 1.5 12 1.5s9 2.183 9 4.875Z" />
-              <path d="M12 12.75c2.685 0 5.19-.586 7.078-1.609a.75.75 0 0 1 .922.996c-.347.854-.863 1.638-1.517 2.308-2.184 2.238-6.07 2.238-7.966 0-.654-.67-1.17-1.454-1.517-2.308a.75.75 0 0 1 .922-.996C5.56 11.414 8.065 12 10.75 12h1.5Z" />
-              <path d="M20.906 14.5a.75.75 0 0 1 .844.843c-.476 2.388-4.634 3.907-9.75 3.907-5.116 0-9.274-1.519-9.75-3.907a.75.75 0 1 1 1.468-.306c.307 1.545 3.518 2.713 8.282 2.713 4.763 0 7.974-1.168 8.281-2.713a.75.75 0 0 1 .625-.537Z" />
-            </svg>
-            Currency
+
+      {/* Top Currency & Attunement Banner */}
+      <div className="bg-card/40 backdrop-blur-md p-6 rounded-2xl border border-border/50 shadow-md space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/40 pb-3">
+          <h3 className="text-xl font-cinzel text-accent flex items-center gap-2">
+            <span>🪙</span> Monete & Portamonete
           </h3>
-          <div className="grid grid-cols-2 gap-3 relative z-10">
-            {['ep', 'pp', 'gp', 'sp', 'cp'].map((key) => {
-              const c = key as keyof Currency;
-              // Check if the currency key exists in the character data to avoid errors if the schema changes
-              if (character.currency[c] === undefined) return null;
-
-              let colorClass = "text-foreground";
-              if (c === 'gp') colorClass = "text-yellow-400";
-              if (c === 'pp') colorClass = "text-cyan-300";
-              if (c === 'sp') colorClass = "text-slate-200";
-              if (c === 'cp') colorClass = "text-orange-600";
-              if (c === 'ep') colorClass = "text-indigo-300";
-
-              return (
-                <div key={c} className="bg-background/40 p-3 rounded-xl border border-border/40 flex flex-col items-center justify-center hover:bg-background/60 transition-colors">
-                  <p className={`text-2xl font-mono font-bold ${colorClass}`}>{character.currency[c]}</p>
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">{c}</p>
-                </div>
-              );
-            })}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="bg-purple-500/10 text-purple-300 px-3.5 py-1 rounded-xl border border-purple-500/30 text-xs font-bold">
+              🔮 Sintonizzazione: <span className="text-white text-sm font-black">{attunedCount} / 3</span>
+            </div>
+            <div className="bg-accent/10 text-accent px-3.5 py-1 rounded-xl border border-accent/20 text-xs font-bold font-mono">
+              Valore Totale Stimato: <span className="text-white text-sm font-black">{totalGp} GP</span>
+            </div>
           </div>
         </div>
-        <ItemList title="Equippable Gear" items={equippableItems} />
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {[
+            { key: 'pp', label: 'PP (Platino)', color: 'border-cyan-500/30 bg-cyan-500/5 text-cyan-300' },
+            { key: 'gp', label: 'GP (Oro)', color: 'border-yellow-500/30 bg-yellow-500/5 text-yellow-400' },
+            { key: 'ep', label: 'EP (Elettro)', color: 'border-indigo-500/30 bg-indigo-500/5 text-indigo-300' },
+            { key: 'sp', label: 'SP (Argento)', color: 'border-slate-400/30 bg-slate-400/5 text-slate-200' },
+            { key: 'cp', label: 'CP (Rame)', color: 'border-orange-600/30 bg-orange-600/5 text-orange-400' },
+          ].map((coin) => {
+            const val = character.currency[coin.key as keyof Currency] || 0;
+            return (
+              <div key={coin.key} className={`p-3 rounded-xl border ${coin.color} flex flex-col items-center justify-between gap-2 shadow-sm`}>
+                <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">{coin.label}</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleCurrencyChange(coin.key as keyof Currency, val - 1)}
+                    className="w-7 h-7 rounded-lg bg-background/50 hover:bg-background border border-border/50 text-foreground font-bold flex items-center justify-center transition-colors text-sm"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    value={val}
+                    onChange={(e) => handleCurrencyChange(coin.key as keyof Currency, parseInt(e.target.value) || 0)}
+                    className="w-14 bg-background/60 text-center font-mono font-bold text-base rounded border border-border/40 py-0.5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleCurrencyChange(coin.key as keyof Currency, val + 1)}
+                    className="w-7 h-7 rounded-lg bg-background/50 hover:bg-background border border-border/50 text-foreground font-bold flex items-center justify-center transition-colors text-sm"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
-      <div className="lg:col-span-2"><ItemList title="Backpack" items={backpackItems} /></div>
+
+      {/* Main Full-Width Inventory Lists */}
+      <div className="space-y-6">
+        <ItemList title="🛡️ Armi, Armature & Oggetti Equipaggiati" items={equippableItems} />
+        <ItemList title="🎒 Zaino & Oggetti da Avventura" items={backpackItems} />
+      </div>
     </div>
   );
 };

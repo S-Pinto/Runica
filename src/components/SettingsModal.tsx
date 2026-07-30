@@ -35,6 +35,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const { theme, setTheme } = useTheme();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [diceMode, setDiceMode] = React.useState<'dock' | 'modal'>(
+    () => (localStorage.getItem('runica_dice_mode') as 'dock' | 'modal') || 'dock'
+  );
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -138,6 +141,46 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 {theme === t.id && <CheckIcon className="w-5 h-5 text-accent" />}
               </button>
             ))}
+          </div>
+        </SettingsSection>
+
+        <SettingsSection title="Gameplay & Gameplay Tools">
+          <div className="space-y-2">
+            <label className="block text-xs font-bold uppercase text-zinc-400">Modalità Dice Roller (Dadiere)</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setDiceMode('dock');
+                  localStorage.setItem('runica_dice_mode', 'dock');
+                  window.dispatchEvent(new Event('storage'));
+                }}
+                className={`p-3 rounded-lg border flex flex-col items-center gap-1 text-xs font-semibold transition-all ${
+                  diceMode === 'dock'
+                    ? 'border-accent bg-accent/20 text-amber-400'
+                    : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600'
+                }`}
+              >
+                <span>Dock Fluttuante</span>
+                <span className="text-[10px] text-zinc-500 font-normal">Sempre in basso</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDiceMode('modal');
+                  localStorage.setItem('runica_dice_mode', 'modal');
+                  window.dispatchEvent(new Event('storage'));
+                }}
+                className={`p-3 rounded-lg border flex flex-col items-center gap-1 text-xs font-semibold transition-all ${
+                  diceMode === 'modal'
+                    ? 'border-accent bg-accent/20 text-amber-400'
+                    : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600'
+                }`}
+              >
+                <span>Modale Popover</span>
+                <span className="text-[10px] text-zinc-500 font-normal">Su richiesta</span>
+              </button>
+            </div>
           </div>
         </SettingsSection>
 

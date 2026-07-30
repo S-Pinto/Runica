@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ICharacter, AbilityScores, Currency } from './characterTypes';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { ICharacter, AbilityScores } from './characterTypes';
 import { useCharacter } from './CharacterProvider';
 import * as characterService from './characterService';
 import * as storageService from '../../services/storageService';
 import * as geminiService from '../../services/geminiService';
-import { SparklesIcon, BackIcon, SaveIcon, TrashIcon, PhotoIcon, PrinterIcon } from '../../components/ui/icons';
+import { SparklesIcon, BackIcon, SaveIcon, TrashIcon, PhotoIcon, UserGroupIcon, PrinterIcon } from '../../components/ui/icons';
 import { StyledInput, StyledTextArea, StyledSection } from './components/ui/StyledInputs';
 import { ImageUploader } from './components/ImageUploader';
 import { Spellbook } from './components/Spellbook';
@@ -18,35 +18,36 @@ import { StatBox } from './components/ui/StatBox';
 import { CompanionTab } from './components/play-view/CompanionTab';
 import { StatInput } from './components/StatInput';
 import { getModifier, formatModifier } from './utils/characterUtils';
+import * as campaignService from '../../services/campaignService';
+import { CampaignManagerModal } from './components/CampaignManagerModal';
 
-
-// --- Type Aliases & Helpers ---
 type Tab = 'main' | 'stats' | 'combat' | 'bio' | 'spells' | 'inventory' | 'companions';
 const ABILITIES: (keyof AbilityScores)[] = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
 
-// --- Sub-components ---
-const TabButton = ({ label, isActive, onClick, controls, id }: { label: string, isActive: boolean, onClick: () => void, controls: string, id: string }) => (
+interface TabButtonProps {
+    id: string;
+    label: string;
+    isActive: boolean;
+    onClick: () => void;
+    controls: string;
+}
+
+const TabButton: React.FC<TabButtonProps> = ({ id, label, isActive, onClick, controls }) => (
     <button
         id={id}
         role="tab"
         aria-selected={isActive}
         aria-controls={controls}
         onClick={onClick}
-        className={`px-4 py-2 text-xs sm:text-sm font-semibold transition-all duration-300 whitespace-nowrap relative group ${isActive
-            ? 'text-accent'
-            : 'text-muted-foreground hover:text-foreground'
+        className={`px-4 py-2 text-sm sm:text-base font-semibold border-b-2 transition-all duration-200 whitespace-nowrap ${isActive
+            ? 'border-accent text-accent'
+            : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
             }`}
     >
         {label}
-        {isActive ? (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent shadow-[0_0_8px_rgba(var(--color-accent),0.6)] rounded-full" />
-        ) : (
-            <div className="absolute bottom-0 left-1/2 right-1/2 h-0.5 bg-accent/30 rounded-full transition-all duration-300 group-hover:left-0 group-hover:right-0" />
-        )}
     </button>
 );
 
-// --- Main Component ---
 const TABS: { key: Tab; label: string }[] = [
     { key: 'main', label: 'Main' },
     { key: 'stats', label: 'Stats & Skills' },
@@ -60,25 +61,24 @@ const TABS: { key: Tab; label: string }[] = [
 export const CharacterSheet: React.FC = () => {
     const { characterId } = useParams<{ characterId: string }>();
     const navigate = useNavigate();
-    const location = useLocation();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { character, setCharacter, updateCharacter, deleteCharacter, saveCharacter } = useCharacter();
     const { currentUser } = useAuth();
     const [isSaving, setIsSaving] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
     const [personalityPrompt, setPersonalityPrompt] = useState('');
-    const [activeTab, setActiveTab] = useState<Tab>('main');
-    const [isUploaderOpen, setIsUploaderOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isCampaignModalOpen, setIsCampaignModalOpen] = useState(false);
+    
+    const initialTab = (searchParams.get('tab') as Tab) || 'main';
+    const [activeTab, setActiveTab] = useState<Tab>(initialTab);
+    const [isUploaderOpen, setIsUploaderOpen] = useState(false);
     const isNewCharacter = window.location.pathname.endsWith('/character/new');
 
-    // Sync active tab from URL query param
-    useEffect(() => {
-        const params = new URLSearchParams(location.search);
-        const tabParam = params.get('tab');
-        if (tabParam && TABS.some(t => t.key === tabParam)) {
-            setActiveTab(tabParam as Tab);
-        }
-    }, [location.search]);
+    const handleTabChange = (tab: Tab) => {
+        setActiveTab(tab);
+        setSearchParams({ tab }, { replace: true });
+    };
 
     useEffect(() => {
         let isMounted = true;
@@ -120,15 +120,18 @@ export const CharacterSheet: React.FC = () => {
         return Math.ceil(character.level / 4) + 1;
     }, [character?.level]);
 
+
+
     const handleSaveClick = async () => {
         if (!character) return;
         setIsSaving(true);
 
         try {
-            const charToSave: ICharacter = { ...character, proficiencyBonus, initiative, lastUpdated: Date.now() };
+            const id = isNewCharacter ? `char_${Date.now()}` : character.id;
+            const charToSave: ICharacter = { ...character, id, proficiencyBonus, initiative: character.initiative || 0, lastUpdated: Date.now() };
             const savedChar = await saveCharacter(charToSave);
-            const tabQuery = activeTab && activeTab !== 'main' ? `?tab=${activeTab}` : '';
-            navigate(`/character/${savedChar.id}${tabQuery}`, { replace: isNewCharacter });
+
+            navigate(`/character/${savedChar.id}?tab=${activeTab}`, { replace: isNewCharacter });
         } catch (error) {
             console.error("Failed to save character:", error);
             alert("An error occurred while saving. Please try again.");
@@ -158,8 +161,7 @@ export const CharacterSheet: React.FC = () => {
         if (isNewCharacter) {
             navigate('/');
         } else if (character) {
-            const tabQuery = activeTab && activeTab !== 'main' ? `?tab=${activeTab}` : '';
-            navigate(`/character/${character.id}${tabQuery}`);
+            navigate(`/character/${character.id}?tab=${activeTab}`);
         } else {
             navigate(-1);
         }
@@ -186,10 +188,7 @@ export const CharacterSheet: React.FC = () => {
         updateCharacter({ [name]: processedValue });
     };
 
-    const handleCurrencyChange = (currency: keyof Currency, value: number) => {
-        if (!character) return;
-        setCharacter(prev => ({ ...prev!, currency: { ...prev!.currency, [currency]: value } }));
-    };
+
 
     const handleHpChange = (field: 'current' | 'max' | 'temporary', value: number) => {
         if (!character) return;
@@ -363,12 +362,111 @@ export const CharacterSheet: React.FC = () => {
                             id={`tab-${tab.key}`}
                             label={tab.label}
                             isActive={activeTab === tab.key}
-                            onClick={() => setActiveTab(tab.key)}
+                            onClick={() => handleTabChange(tab.key)}
                             controls={`panel-${tab.key}`} />
                     ))}
                 </div>
 
-                <div id="panel-main" role="tabpanel" aria-labelledby="tab-main" hidden={activeTab !== 'main'}>
+                <div id="panel-main" role="tabpanel" aria-labelledby="tab-main" hidden={activeTab !== 'main'} className="space-y-6">
+                    {/* Identity Overview Hero Block */}
+                    <StyledSection title="Identità & Info Eroe">
+                        <div className="flex flex-col sm:flex-row gap-6 items-start">
+                            {/* Portrait */}
+                            <div className="relative group self-center sm:self-start">
+                                <div className="h-32 w-32 rounded-2xl overflow-hidden bg-muted border-2 border-accent/40 shadow-inner group-hover:border-accent transition-colors">
+                                    {character.imageUrl ? (
+                                        <img src={character.imageUrl} alt="Character portrait" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                    ) : (
+                                        <PhotoIcon className="h-full w-full text-muted-foreground/30 p-6" />
+                                    )}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsUploaderOpen(true)}
+                                    disabled={isNewCharacter}
+                                    className="absolute bottom-2 right-2 p-1.5 rounded-lg bg-background/80 backdrop-blur-sm border border-border shadow-sm text-xs font-semibold text-foreground hover:text-accent transition-colors disabled:opacity-0"
+                                    title="Carica o Modifica Immagine"
+                                >
+                                    <PhotoIcon className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {/* Main Character Identity Fields */}
+                            <div className="flex-1 w-full space-y-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <StyledInput label="Nome Personaggio" className="text-lg font-bold" name="name" type="text" value={character.name} onChange={handleFieldChange} placeholder="Es. Eldrin" />
+                                    <StyledInput label="Nome Giocatore" name="playerName" type="text" value={character.playerName || ''} onChange={handleFieldChange} placeholder="Il tuo nome" />
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <StyledInput label="Razza" name="race" value={character.race} onChange={handleFieldChange} placeholder="Umano" />
+                                    <StyledInput label="Background" name="background" value={character.background} onChange={handleFieldChange} placeholder="Sapiente" />
+                                    <StyledInput label="Allineamento" name="alignment" value={character.alignment} onChange={handleFieldChange} placeholder="Legale Buono" />
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-2 border-t border-border/30 items-end">
+                                    <div className="col-span-1 sm:col-span-2">
+                                        <StyledInput label="Classe & Sottoclasse" name="class" value={character.class} onChange={handleFieldChange} placeholder="Mago (Evocazione)" />
+                                    </div>
+                                    <div className="col-span-1">
+                                        <StatInput
+                                            label="Livello (1-20)"
+                                            value={character.level || 1}
+                                            onChange={(val) => {
+                                                const lvl = Math.max(1, Math.min(20, Number(val) || 1));
+                                                const newProf = Math.ceil(lvl / 4) + 1;
+                                                setCharacter(prev => prev ? { ...prev, level: lvl, proficiencyBonus: newProf } : null);
+                                            }}
+                                            showModifier={false}
+                                            className="w-full"
+                                        />
+                                    </div>
+                                    <div className="col-span-1">
+                                        <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground/90 mb-1.5">
+                                            Campagna
+                                        </label>
+                                        <div className="flex gap-1.5">
+                                            <select
+                                                value={character.campaignId || ''}
+                                                onChange={(e) => {
+                                                    const selectedId = e.target.value;
+                                                    if (selectedId === 'NEW') {
+                                                        setIsCampaignModalOpen(true);
+                                                        return;
+                                                    }
+                                                    const campaigns = campaignService.getCampaigns();
+                                                    const selectedCamp = campaigns.find(c => c.id === selectedId);
+                                                    setCharacter(prev => prev ? {
+                                                        ...prev,
+                                                        campaignId: selectedCamp ? selectedCamp.id : undefined,
+                                                        campaignName: selectedCamp ? selectedCamp.name : (selectedId ? e.target.value : undefined)
+                                                    } : null);
+                                                }}
+                                                className="flex-1 min-w-0 bg-background/50 border border-border/70 rounded-xl px-2.5 py-2 text-xs font-semibold text-foreground focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
+                                            >
+                                                <option value="">Nessuna Campagna</option>
+                                                {campaignService.getCampaigns().map(camp => (
+                                                    <option key={camp.id} value={camp.id}>
+                                                        {camp.name}
+                                                    </option>
+                                                ))}
+                                                <option value="NEW">+ Gestisci Campagne...</option>
+                                            </select>
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsCampaignModalOpen(true)}
+                                                className="p-2.5 bg-accent/20 border border-accent/40 text-accent font-bold rounded-xl hover:bg-accent/30 transition-all flex items-center justify-center flex-shrink-0"
+                                                title="Gestisci o Unisciti a Campagne"
+                                            >
+                                                <UserGroupIcon className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </StyledSection>
+
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                         {/* Colonna 2: Statistiche Vitali e Difesa */}
@@ -571,11 +669,11 @@ export const CharacterSheet: React.FC = () => {
                 </div>
 
                 <div id="panel-combat" role="tabpanel" aria-labelledby="tab-combat" hidden={activeTab !== 'combat'} className="min-h-[60vh]">
-                    <div className="flex flex-col lg:flex-row gap-6 h-full">
-                        <div className="flex-1 lg:w-1/2 flex flex-col p-4 border border-border rounded-lg">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                        <div className="space-y-6">
                             <AttackList />
                         </div>
-                        <div className="flex-1 lg:w-1/2 flex flex-col p-4 border border-border rounded-lg">
+                        <div className="space-y-6">
                             <CategorizedFeatureList />
                         </div>
                     </div>
@@ -680,22 +778,7 @@ export const CharacterSheet: React.FC = () => {
                 </div>
 
                 <div id="panel-inventory" role="tabpanel" aria-labelledby="tab-inventory" hidden={activeTab !== 'inventory'} className="min-h-[60vh]">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-1">
-                            <StyledSection title="Currency" className="sticky top-6">
-                                <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(120px,1fr))]">
-                                    {(Object.keys(character.currency) as Array<keyof Currency>).map((type) => (
-                                        <StatInput key={type} label={type.toUpperCase()} value={character.currency[type]} onChange={(val) => handleCurrencyChange(type, Number(val))} inputClassName="text-2xl" />
-                                    ))}
-                                </div>
-                            </StyledSection>
-                        </div>
-                        <div className="lg:col-span-2">
-                            <StyledSection title="Equipment" className="min-h-[500px]">
-                                <EquipmentList />
-                            </StyledSection>
-                        </div>
-                    </div>
+                    <EquipmentList />
                 </div>
 
                 <div id="panel-spells" role="tabpanel" aria-labelledby="tab-spells" hidden={activeTab !== 'spells'} className="min-h-[60vh] space-y-6">
@@ -729,6 +812,18 @@ export const CharacterSheet: React.FC = () => {
                 isOpen={isUploaderOpen}
                 onClose={() => setIsUploaderOpen(false)}
                 onImageReady={handleCharacterImageUpload} />
-        </div >
+            <CampaignManagerModal
+                isOpen={isCampaignModalOpen}
+                onClose={() => setIsCampaignModalOpen(false)}
+                selectedCampaignId={character.campaignId}
+                onSelectCampaign={(camp) => {
+                    setCharacter(prev => prev ? {
+                        ...prev,
+                        campaignId: camp ? camp.id : undefined,
+                        campaignName: camp ? camp.name : undefined
+                    } : null);
+                }}
+            />
+        </div>
     );
 };
