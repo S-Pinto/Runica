@@ -88,12 +88,26 @@ export interface Attack {
   isProficient?: boolean; // add proficiency bonus to hit?
 }
 
+export type ItemCategory = 
+  | 'weapon'
+  | 'armor'
+  | 'shield'
+  | 'wondrous'
+  | 'ring'
+  | 'amulet'
+  | 'helmet'
+  | 'potion'
+  | 'scroll'
+  | 'gear';
+
+export type ChargeResetType = 'longRest' | 'shortRest' | 'dawn' | 'none';
+
 export interface EquipmentItem {
   id: string;
   name: string;
   quantity: number;
   description: string;
-  itemType?: 'weapon' | 'armor' | 'shield' | 'gear';
+  itemType?: ItemCategory;
   armorClass?: number; // Base AC for armor, or bonus for shields
   armorType?: 'light' | 'medium' | 'heavy' | 'shield';
   damage?: string; // e.g. "1d8", "2d6"
@@ -106,6 +120,16 @@ export interface EquipmentItem {
   isProficient?: boolean;
   equipped?: boolean;
   imageUrl?: string;
+
+  // --- Proprietà Magiche, Sintonizzazione & Cariche Attive ---
+  requiresAttunement?: boolean;
+  isAttuned?: boolean;
+  charges?: {
+    current: number;
+    max: number;
+    resetType: ChargeResetType;
+  };
+  bonusAC?: number; // es. +1 CA da anello/amuleto magico o armatura incantata
 }
 
 export interface Currency {

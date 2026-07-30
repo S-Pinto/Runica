@@ -97,17 +97,23 @@ const EquipmentForm = ({
         </div>
 
         <div>
-          <label htmlFor="itemType" className={labelClass}>Item Category</label>
+          <label htmlFor="itemType" className={labelClass}>Categoria Oggetto</label>
           <select
             id="itemType"
             value={formData.itemType || 'gear'}
             onChange={e => handleChange('itemType', e.target.value as any)}
             className={inputClass}
           >
-            <option value="weapon">Weapon / Arma</option>
-            <option value="armor">Armor / Armatura Body</option>
-            <option value="shield">Shield / Scudo</option>
-            <option value="gear">Adventuring Gear / Zaino & Altro</option>
+            <option value="weapon">⚔️ Arma</option>
+            <option value="armor">🛡️ Armatura Body</option>
+            <option value="shield">🛡️ Scudo</option>
+            <option value="wondrous">✨ Oggetto Prodigioso / Magico</option>
+            <option value="ring">💍 Anello Magico</option>
+            <option value="amulet">📿 Amuleto / Ciondolo</option>
+            <option value="helmet">🪖 Elmo / Copricapo</option>
+            <option value="potion">🧪 Pozione / Consumabile</option>
+            <option value="scroll">📜 Pergamena</option>
+            <option value="gear">🎒 Oggetto da Avventura / Zaino</option>
           </select>
         </div>
 
@@ -115,42 +121,118 @@ const EquipmentForm = ({
         {formData.itemType === 'weapon' && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-background/40 rounded-lg border border-accent/20">
             <div>
-              <label htmlFor="damage" className={labelClass}>Damage Formula</label>
-              <input id="damage" type="text" placeholder="e.g. 1d8 or 2d6" value={formData.damage || ''} onChange={e => handleChange('damage', e.target.value)} className={inputClass} />
+              <label htmlFor="damage" className={labelClass}>Formula Danno</label>
+              <input id="damage" type="text" placeholder="es. 1d8 o 2d6" value={formData.damage || ''} onChange={e => handleChange('damage', e.target.value)} className={inputClass} />
             </div>
             <div>
-              <label htmlFor="damageType" className={labelClass}>Damage Type</label>
-              <input id="damageType" type="text" placeholder="e.g. Slashing, Piercing" value={formData.damageType || ''} onChange={e => handleChange('damageType', e.target.value)} className={inputClass} />
+              <label htmlFor="damageType" className={labelClass}>Tipo Danno</label>
+              <input id="damageType" type="text" placeholder="es. Tagliente, Perforante" value={formData.damageType || ''} onChange={e => handleChange('damageType', e.target.value)} className={inputClass} />
             </div>
             <div>
-              <label htmlFor="attackBonus" className={labelClass}>Magic / Hit Bonus</label>
-              <input id="attackBonus" type="text" placeholder="e.g. +1" value={formData.attackBonus || ''} onChange={e => handleChange('attackBonus', e.target.value)} className={inputClass} />
+              <label htmlFor="attackBonus" className={labelClass}>Bonus Magico / Hit</label>
+              <input id="attackBonus" type="text" placeholder="es. +1" value={formData.attackBonus || ''} onChange={e => handleChange('attackBonus', e.target.value)} className={inputClass} />
             </div>
           </div>
         )}
 
-        {/* Armor / Shield Fields */}
-        {(formData.itemType === 'armor' || formData.itemType === 'shield') && (
+        {/* Armor / Shield / Magic AC Fields */}
+        {(formData.itemType === 'armor' || formData.itemType === 'shield' || formData.itemType === 'wondrous' || formData.itemType === 'ring' || formData.itemType === 'amulet' || formData.itemType === 'helmet') && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 bg-background/40 rounded-lg border border-accent/20">
             {formData.itemType === 'armor' && (
               <div>
-                <label htmlFor="armorType" className={labelClass}>Armor Type</label>
+                <label htmlFor="armorType" className={labelClass}>Tipo Armatura</label>
                 <select id="armorType" value={formData.armorType || 'light'} onChange={e => handleChange('armorType', e.target.value || undefined)} className={inputClass}>
-                  <option value="light">Light Armor</option>
-                  <option value="medium">Medium Armor</option>
-                  <option value="heavy">Heavy Armor</option>
+                  <option value="light">Armatura Leggera</option>
+                  <option value="medium">Armatura Media</option>
+                  <option value="heavy">Armatura Pesante</option>
                 </select>
               </div>
             )}
+            {(formData.itemType === 'armor' || formData.itemType === 'shield') && (
+              <div>
+                <label htmlFor="armorClass" className={labelClass}>Classe Armatura (CA Base / Scudo)</label>
+                <input id="armorClass" type="number" placeholder={formData.itemType === 'shield' ? "es. 2" : "es. 14"} value={formData.armorClass || ''} onChange={e => handleChange('armorClass', parseInt(e.target.value) || undefined)} className={inputClass} />
+              </div>
+            )}
             <div>
-              <label htmlFor="armorClass" className={labelClass}>Armor Class (AC) / Bonus</label>
-              <input id="armorClass" type="number" placeholder={formData.itemType === 'shield' ? "e.g., 2" : "e.g., 14"} value={formData.armorClass || ''} onChange={e => handleChange('armorClass', parseInt(e.target.value) || undefined)} className={inputClass} />
+              <label htmlFor="bonusAC" className={labelClass}>Bonus CA Magico (es. +1 da Anello/Mantello)</label>
+              <input id="bonusAC" type="number" placeholder="es. 1" value={formData.bonusAC || ''} onChange={e => handleChange('bonusAC', parseInt(e.target.value) || undefined)} className={inputClass} />
             </div>
           </div>
         )}
 
+        {/* Sintonizzazione (Attunement) & Cariche Attive */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 bg-purple-500/10 rounded-lg border border-purple-500/30">
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-purple-300">
+              <input
+                type="checkbox"
+                checked={formData.requiresAttunement || false}
+                onChange={e => handleChange('requiresAttunement', e.target.checked)}
+                className="rounded border-purple-500/50 bg-background/60 text-purple-500 focus:ring-purple-500"
+              />
+              <span>🔮 Richiede Sintonizzazione</span>
+            </label>
+            {formData.requiresAttunement && (
+              <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-purple-200 pl-4">
+                <input
+                  type="checkbox"
+                  checked={formData.isAttuned || false}
+                  onChange={e => handleChange('isAttuned', e.target.checked)}
+                  className="rounded border-purple-500/50 bg-background/60 text-purple-500"
+                />
+                <span>Sintonizzato Attualmente</span>
+              </label>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label htmlFor="maxCharges" className={labelClass}>Cariche Max / Usi</label>
+                <input
+                  id="maxCharges"
+                  type="number"
+                  min="0"
+                  placeholder="es. 1"
+                  value={formData.charges?.max || ''}
+                  onChange={e => {
+                    const max = parseInt(e.target.value) || 0;
+                    if (max > 0) {
+                      handleChange('charges', {
+                        current: formData.charges?.current ?? max,
+                        max,
+                        resetType: formData.charges?.resetType || 'longRest',
+                      });
+                    } else {
+                      handleChange('charges', undefined);
+                    }
+                  }}
+                  className={inputClass}
+                />
+              </div>
+              {formData.charges && formData.charges.max > 0 && (
+                <div className="flex-1">
+                  <label htmlFor="resetType" className={labelClass}>Reset al</label>
+                  <select
+                    id="resetType"
+                    value={formData.charges.resetType}
+                    onChange={e => handleChange('charges', { ...formData.charges!, resetType: e.target.value as any })}
+                    className={inputClass}
+                  >
+                    <option value="longRest">Riposo Lungo</option>
+                    <option value="shortRest">Riposo Breve</option>
+                    <option value="dawn">Alba</option>
+                    <option value="none">Nessun Reset</option>
+                  </select>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
         <div>
-          <label htmlFor="description" className={labelClass}>Description / Notes</label>
+          <label htmlFor="description" className={labelClass}>Descrizione / Note</label>
           <textarea id="description" value={formData.description} onChange={e => handleChange('description', e.target.value)} className={inputClass} rows={2}></textarea>
         </div>
 

@@ -118,6 +118,13 @@ export const calculateArmorClass = (character: ICharacter): number => {
         calculatedAC += equippedShield.armorClass || 2; // Default to +2 if ac is not specified on the shield item
     }
 
+    // Add bonusAC from any equipped magical item (e.g. Ring of Protection, Magic Amulet, Helmet, etc.)
+    (character.equipment || []).forEach(item => {
+        if (item.equipped && item.bonusAC && typeof item.bonusAC === 'number') {
+            calculatedAC += item.bonusAC;
+        }
+    });
+
     return calculatedAC;
 };
 

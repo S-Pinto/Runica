@@ -141,15 +141,29 @@ export const PlayView: FC = () => {
 
     const handleLongRest = () => {
         if (!character) return;
-        if (window.confirm('Eseguire un Riposo Lungo? Questo ripristinerà tutti i Punti Vita e gli Slot Incantesimo.')) {
+        if (window.confirm('Eseguire un Riposo Lungo? Questo ripristinerà tutti i Punti Vita, gli Slot Incantesimo e le Cariche degli Oggetti Magici.')) {
             const resetSlots = { ...character.spellSlots };
             Object.keys(resetSlots).forEach(level => {
                 resetSlots[Number(level)] = { ...resetSlots[Number(level)], used: 0 };
             });
 
+            const resetEquipment = (character.equipment || []).map(item => {
+                if (item.charges && (item.charges.resetType === 'longRest' || item.charges.resetType === 'shortRest')) {
+                    return {
+                        ...item,
+                        charges: {
+                            ...item.charges,
+                            current: item.charges.max,
+                        },
+                    };
+                }
+                return item;
+            });
+
             updateCharacter({
                 hp: { ...character.hp, current: character.hp.max, temporary: 0 },
                 spellSlots: resetSlots,
+                equipment: resetEquipment,
                 deathSaves: { successes: 0, failures: 0 },
             });
         }
