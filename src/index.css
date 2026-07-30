@@ -287,4 +287,43 @@ input[type="number"],
     background-image: var(--bg-color), var(--border-color);
     animation: rotate-border 4s linear infinite; /* Animazione di rotazione continua */
   }
+
+  .glass-panel {
+    background: rgba(var(--color-card), 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .glass-panel-accent {
+    background: linear-gradient(135deg, rgba(var(--color-accent), 0.12) 0%, rgba(var(--color-card), 0.75) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(var(--color-accent), 0.3);
+  }
+
+  .hero-glow-bg {
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-glow-bg::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    left: 20%;
+    width: 60%;
+    height: 160%;
+    background: radial-gradient(circle, rgba(var(--color-accent), 0.18) 0%, rgba(var(--color-accent), 0) 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glow-on-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .glow-on-hover:hover {
+    box-shadow: 0 0 25px -3px rgba(var(--color-accent), 0.35);
+    border-color: rgba(var(--color-accent), 0.6);
+    transform: translateY(-2px);
+  }
 }

@@ -148,55 +148,86 @@ export const CharacterList: React.FC = () => {
   }
 
   return (
-    <div className="p-4 sm:p-8 max-w-7xl mx-auto pt-8 space-y-8">
-      {/* Header Bar & Dashboard Title */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/60 pb-6">
-        <div>
-          <h2 className="text-4xl font-cinzel font-bold text-accent drop-shadow-sm">I Tuoi Eroi</h2>
-          <p className="text-muted-foreground text-sm mt-1">Gestisci i tuoi personaggi, avvia sessioni di gioco o organizza campagne.</p>
-        </div>
+    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8">
+      {/* Modern Dashboard Hero Section */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-card/90 via-card/60 to-accent/10 border border-accent/20 p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+        
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-2 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/15 border border-accent/30 text-accent text-xs font-bold font-mono uppercase tracking-widest">
+              <span>✦</span> Scheda Personaggio D&D 5e
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-cinzel font-black text-accent drop-shadow-md tracking-tight">
+              I Tuoi Eroi
+            </h2>
+            <p className="text-foreground/80 text-sm sm:text-base leading-relaxed">
+              Gestisci i tuoi avventurieri, organizza le tue campagne di gioco e lancia i tuoi dadi in tempo reale.
+            </p>
+            
+            {/* Quick Stat Indicators */}
+            <div className="flex items-center gap-4 pt-2">
+              <div className="flex items-center gap-2 bg-background/50 px-3 py-1.5 rounded-xl border border-border/50 text-xs font-semibold">
+                <span className="text-muted-foreground uppercase text-[10px]">Totale Eroi:</span>
+                <span className="font-mono font-bold text-accent text-sm">{characters.length}</span>
+              </div>
+              <div className="flex items-center gap-2 bg-background/50 px-3 py-1.5 rounded-xl border border-border/50 text-xs font-semibold">
+                <span className="text-muted-foreground uppercase text-[10px]">Campagne:</span>
+                <span className="font-mono font-bold text-accent text-sm">{campaignOptions.length}</span>
+              </div>
+            </div>
+          </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            onClick={() => setIsCampaignModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-card border border-accent/40 text-accent font-semibold text-sm rounded-xl hover:bg-accent/15 transition-all shadow-md"
-          >
-            <UserGroupIcon className="w-5 h-5" />
-            <span>Gestisci Campagne</span>
-          </button>
-          <button
-            onClick={() => handleSelectCharacter('new')}
-            className="flex items-center gap-2 px-5 py-2.5 bg-accent text-accent-foreground font-bold text-sm rounded-xl shadow-lg hover:bg-accent-light transition-all transform hover:scale-105"
-          >
-            <UserPlusIcon className="w-5 h-5" />
-            <span>Crea Nuovo Eroe</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setIsCampaignModalOpen(true)}
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-3 bg-card/80 border border-accent/40 text-accent font-bold text-xs uppercase tracking-wider rounded-2xl hover:bg-accent/20 hover:border-accent transition-all shadow-md active:scale-95"
+            >
+              <UserGroupIcon className="w-4 h-4" />
+              <span>Gestisci Campagne</span>
+            </button>
+            <button
+              onClick={() => handleSelectCharacter('new')}
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-3 bg-accent text-accent-foreground font-extrabold text-xs uppercase tracking-wider rounded-2xl shadow-[0_0_20px_rgba(var(--color-accent),0.3)] hover:shadow-[0_0_30px_rgba(var(--color-accent),0.5)] hover:bg-accent-light transition-all transform hover:scale-105 active:scale-95"
+            >
+              <UserPlusIcon className="w-4 h-4" />
+              <span>Crea Nuovo Eroe</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Filter & Search Bar */}
       {orderedCharacters.length > 0 && (
-        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-card/40 backdrop-blur-md p-4 rounded-2xl border border-border/50 shadow-sm">
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-card/40 backdrop-blur-xl p-4 rounded-2xl border border-border/60 shadow-lg">
           {/* Search Input */}
-          <div className="relative w-full sm:w-72">
-            <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <div className="relative w-full sm:w-80">
+            <MagnifyingGlassIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Cerca personaggio, classe..."
+              placeholder="Cerca personaggio, classe o razza..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-input/40 border border-border rounded-xl pl-10 pr-4 py-2 text-sm text-foreground focus:outline-none focus:border-accent"
+              className="w-full bg-input/40 border border-border/80 rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all font-medium"
             />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground hover:text-foreground"
+              >
+                ✕
+              </button>
+            )}
           </div>
 
           {/* Campaign Filter */}
           {campaignOptions.length > 0 && (
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <label className="text-xs font-bold text-muted-foreground uppercase whitespace-nowrap">Campagna:</label>
+            <div className="flex items-center gap-2.5 w-full sm:w-auto">
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider whitespace-nowrap">Campagna:</span>
               <select
                 value={selectedCampaignFilter}
                 onChange={(e) => setSelectedCampaignFilter(e.target.value)}
-                className="bg-input/40 border border-border text-foreground text-sm rounded-xl px-3 py-2 focus:outline-none focus:border-accent"
+                className="w-full sm:w-auto bg-input/40 border border-border/80 text-foreground text-sm font-semibold rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-accent transition-all cursor-pointer"
               >
                 <option value="all">Tutte le campagne</option>
                 <option value="none">Senza campagna</option>
