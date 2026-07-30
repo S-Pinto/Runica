@@ -7,7 +7,7 @@ import { ImageUploader } from './ImageUploader';
 import { ImageModal } from '../../../components/ui/ImageModal';
 import { CompanionAttackEditor } from './CompanionAttackEditor';
 import { CompanionSpellEditor } from './CompanionSpellEditor';
-import { CompanionHpManager } from './CompanionHpManager';
+import { CompanionHpManager, HpData } from './CompanionHpManager';
 import { debounce } from 'lodash';
 import { StatInput } from './StatInput';
 import { StyledInput, StyledTextArea } from './ui/StyledInputs';
@@ -99,7 +99,7 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
     }));
   };
 
-  const handleHpManagerChange = (newHp: ICompanion['hp']) => {
+  const handleHpManagerChange = (newHp: HpData) => {
     const updatedCompanion = { ...data, hp: newHp };
     setData(updatedCompanion);
     debouncedSave(updatedCompanion);

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { HeartIcon, PlusIcon, MinusIcon } from '../../../components/ui/icons';
 import { StatInput } from './StatInput';
 
-interface HpData {
+export interface HpData {
     current: number;
     max: number;
     temporary: number;

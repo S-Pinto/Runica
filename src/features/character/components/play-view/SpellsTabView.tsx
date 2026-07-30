@@ -1,4 +1,3 @@
-import React from 'react';
 import { useCharacter } from '../../CharacterProvider';
 import { getModifier, formatModifier } from '../../utils/characterUtils';
 import { StatBox } from '../ui/StatBox';

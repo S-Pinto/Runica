@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useCharacter } from '../../CharacterProvider';
 import { EquipmentItem, Currency } from '../../characterTypes';
 import { ChevronDownIcon } from '../../../../components/ui/icons';

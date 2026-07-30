@@ -16,7 +16,6 @@ export const SharedSpellSlotsTracker: React.FC<SpellSlotsTrackerProps> = ({
 }) => {
     if (level === 0 || slots.max <= 0) return null;
 
-    const pipSize = compact ? "w-3.5 h-3.5" : "w-6 h-6 rounded-lg";
     const containerClass = compact ? "flex items-center gap-1.5 ml-4" : "flex flex-col gap-3 group";
 
     // Wrapper for compact vs detailed view

@@ -39,6 +39,25 @@ const usePWAInstall = () => {
   return { canInstall: !!installPrompt && !isStandalone, isIos, isStandalone, promptInstall };
 };
 
+const useOnlineStatus = () => {
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  return isOnline;
+};
+
 interface AppHeaderProps {
   onSettingsClick: () => void;
 }
@@ -47,6 +66,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onSettingsClick }) => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const { canInstall, isIos, isStandalone, promptInstall } = usePWAInstall();
+  const isOnline = useOnlineStatus();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -88,7 +108,19 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onSettingsClick }) => {
       </h1>
 
       {/* Controlli a destra, raggruppati e con stili coerenti */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
+        {/* Online / Offline Status Badge */}
+        <div
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium transition-all ${
+            isOnline
+              ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/30'
+              : 'bg-rose-950/40 text-rose-400 border-rose-500/30 animate-pulse'
+          }`}
+          title={isOnline ? 'Connesso (Online)' : 'Modalità Offline attiva'}
+        >
+          <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-rose-500 shadow-[0_0_8px_#f43f5e]'}`} />
+          <span className="hidden sm:inline font-mono">{isOnline ? 'Online' : 'Offline'}</span>
+        </div>
         {canInstall && (
           <button
             onClick={promptInstall}
