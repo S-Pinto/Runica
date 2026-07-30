@@ -21,7 +21,7 @@ const FeatureForm = ({
 }) => {
     const [formData, setFormData] = useState(initialData);
 
-    const handleChange = (field: keyof typeof formData, value: string) => {
+    const handleChange = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
@@ -74,9 +74,47 @@ const FeatureForm = ({
                         placeholder="Describe the feature or trait..."
                         value={formData.description}
                         onChange={e => handleChange('description', e.target.value)}
-                        rows={6}
+                        rows={4}
                         className="w-full bg-background/50 p-2.5 rounded-lg border border-border/50 focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all resize-y"
                     />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-accent/5 rounded-lg border border-accent/10">
+                    <div>
+                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Max Uses</label>
+                        <input
+                            type="number"
+                            value={formData.uses?.max || ''}
+                            onChange={e => {
+                                const max = parseInt(e.target.value) || 0;
+                                handleChange('uses', { max, current: formData.uses?.current ?? max });
+                            }}
+                            className="w-full bg-background/50 p-2 rounded border border-border/50 text-sm"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Recovery</label>
+                        <select
+                            value={formData.recovery || 'none'}
+                            onChange={e => handleChange('recovery', e.target.value)}
+                            className="w-full bg-background/50 p-2 rounded border border-border/50 text-sm"
+                        >
+                            <option value="none">None</option>
+                            <option value="short">Short Rest</option>
+                            <option value="long">Long Rest</option>
+                        </select>
+                    </div>
+                    <div className="flex items-end pb-1.5 px-2">
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                checked={formData.isAction || false}
+                                onChange={e => handleChange('isAction', e.target.checked)}
+                                className="rounded border-border text-accent focus:ring-accent"
+                            />
+                            <span className="text-xs font-bold text-muted-foreground uppercase">Show in Combat</span>
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -153,7 +191,30 @@ const CategorySection = ({
                                         className="flex items-center justify-between p-3 cursor-pointer hover:bg-background/50 transition-colors"
                                         onClick={() => toggleFeature(feature.id)}
                                     >
-                                        <span className={`font-semibold text-${config.color}`}>{feature.name}</span>
+                                        <div className="flex flex-col gap-0.5">
+                                            <span className={`font-semibold text-${config.color}`}>{feature.name}</span>
+                                            {feature.uses && feature.uses.max > 0 && (
+                                                <div className="flex items-center gap-1.5 mt-0.5">
+                                                    <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                                                        {[...Array(feature.uses.max)].map((_, i) => (
+                                                            <div
+                                                                key={i}
+                                                                onClick={() => {
+                                                                    // Toggle usage
+                                                                    const newCurrent = i < (feature.uses?.current || 0) ? i : i + 1;
+                                                                    onEdit({ ...feature, uses: { ...feature.uses!, current: newCurrent } });
+                                                                }}
+                                                                className={`w-3 h-3 rounded-sm border cursor-pointer transition-all ${i < (feature.uses?.current || 0) ? `bg-${config.color} border-${config.color}` : 'bg-transparent border-muted-foreground/30'}`}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                    <span className="text-[10px] text-muted-foreground font-mono">
+                                                        {feature.uses.current}/{feature.uses.max}
+                                                        {feature.recovery !== 'none' && <span className="ml-1 opacity-70">({feature.recovery})</span>}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
                                         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                                             {deletingId === feature.id ? (
                                                 <>

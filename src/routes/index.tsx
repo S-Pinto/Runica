@@ -17,7 +17,13 @@ const CharacterLayout = () => (
   </CharacterProvider>
 );
 
+import { PrintableCharacterSheet } from '../features/character/components/print/PrintableCharacterSheet';
+
 export const router = createBrowserRouter([
+  {
+    path: '/character/:characterId/print',
+    element: <PrintableCharacterSheet />,
+  },
   {
     path: '/',
     element: <App />, // App.tsx è il layout che contiene l'Outlet

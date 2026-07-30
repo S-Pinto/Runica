@@ -128,6 +128,44 @@ const SpellForm = ({
           <input type="text" placeholder="e.g. Instantaneous" value={formData.duration} onChange={e => handleChange('duration', e.target.value)} className={inputClass} />
         </div>
       </div>
+
+      <div className="space-y-4 p-3 bg-purple-500/5 rounded-lg border border-purple-500/10">
+        <h4 className="text-[10px] font-bold text-purple-400 uppercase tracking-widest">Combat & Damage (Optional)</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1 block">Damage</label>
+            <input type="text" placeholder="e.g. 1d10" value={formData.damage || ''} onChange={e => handleChange('damage', e.target.value)} className={inputClass} />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1 block">Damage Type</label>
+            <input type="text" placeholder="Fire, Force..." value={formData.damageType || ''} onChange={e => handleChange('damageType', e.target.value)} className={inputClass} />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1 block">Attack Ability</label>
+            <select value={formData.attackAbility || ''} onChange={e => handleChange('attackAbility', e.target.value as any)} className={inputClass}>
+              <option value="">None (Static/Save)</option>
+              <option value="intelligence">Intelligence</option>
+              <option value="wisdom">Wisdom</option>
+              <option value="charisma">Charisma</option>
+              <option value="dexterity">Dexterity</option>
+              <option value="strength">Strength</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1 block">Save Ability</label>
+            <select value={formData.saveAbility || ''} onChange={e => handleChange('saveAbility', e.target.value as any)} className={inputClass}>
+              <option value="">None (Attack Roll)</option>
+              <option value="strength">Strength</option>
+              <option value="dexterity">Dexterity</option>
+              <option value="constitution">Constitution</option>
+              <option value="intelligence">Intelligence</option>
+              <option value="wisdom">Wisdom</option>
+              <option value="charisma">Charisma</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <div>
         <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1 block">Description</label>
         <textarea placeholder="Spell description..." value={formData.description} onChange={e => handleChange('description', e.target.value)} rows={4} className={`${inputClass} resize-y`}></textarea>

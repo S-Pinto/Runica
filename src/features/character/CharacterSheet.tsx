@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ICharacter, AbilityScores, Currency } from './characterTypes';
 import { useCharacter } from './CharacterProvider';
 import * as characterService from './characterService';
 import * as storageService from '../../services/storageService';
 import * as geminiService from '../../services/geminiService';
-import { SparklesIcon, BackIcon, SaveIcon, TrashIcon, PhotoIcon } from '../../components/ui/icons';
+import { SparklesIcon, BackIcon, SaveIcon, TrashIcon, PhotoIcon, PrinterIcon } from '../../components/ui/icons';
 import { StyledInput, StyledTextArea, StyledSection } from './components/ui/StyledInputs';
 import { ImageUploader } from './components/ImageUploader';
 import { Spellbook } from './components/Spellbook';
@@ -60,6 +60,7 @@ const TABS: { key: Tab; label: string }[] = [
 export const CharacterSheet: React.FC = () => {
     const { characterId } = useParams<{ characterId: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
     const { character, setCharacter, updateCharacter, deleteCharacter, saveCharacter } = useCharacter();
     const { currentUser } = useAuth();
     const [isSaving, setIsSaving] = useState(false);
@@ -67,24 +68,45 @@ export const CharacterSheet: React.FC = () => {
     const [personalityPrompt, setPersonalityPrompt] = useState('');
     const [activeTab, setActiveTab] = useState<Tab>('main');
     const [isUploaderOpen, setIsUploaderOpen] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const isNewCharacter = window.location.pathname.endsWith('/character/new');
+
+    // Sync active tab from URL query param
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const tabParam = params.get('tab');
+        if (tabParam && TABS.some(t => t.key === tabParam)) {
+            setActiveTab(tabParam as Tab);
+        }
+    }, [location.search]);
 
     useEffect(() => {
         let isMounted = true;
         const loadCharacter = async () => {
-            let loadedData;
-            if (!characterId) { // Route is /character/new
-                loadedData = { ...characterService.createNewCharacter(), id: 'temp_new' };
-            } else {
-                loadedData = await characterService.getCharacter(characterId);
-            }
+            try {
+                if (isMounted) setError(null);
+                let loadedData;
+                if (!characterId) { // Route is /character/new
+                    loadedData = characterService.createNewCharacter();
+                } else {
+                    loadedData = await characterService.getCharacter(characterId);
+                }
 
-            // **MIGRAZIONE DATI**: Assicura che i personaggi vecchi abbiano le nuove proprietà.
-            // Unisce i dati caricati con un personaggio "vuoto" per riempire i campi mancanti.
-            const charData = { ...characterService.createNewCharacter(), ...loadedData };
+                if (!loadedData && characterId) {
+                    if (isMounted) setError('Character not found');
+                    return;
+                }
 
-            if (isMounted) {
-                setCharacter(charData);
+                // **MIGRAZIONE DATI**: Assicura che i personaggi vecchi abbiano le nuove proprietà.
+                // Unisce i dati caricati con un personaggio "vuoto" per riempire i campi mancanti.
+                const charData = { ...characterService.createNewCharacter(), ...loadedData };
+
+                if (isMounted) {
+                    setCharacter(charData);
+                }
+            } catch (err) {
+                console.error("Failed to load character:", err);
+                if (isMounted) setError('Failed to load character');
             }
         };
         loadCharacter();
@@ -103,17 +125,10 @@ export const CharacterSheet: React.FC = () => {
         setIsSaving(true);
 
         try {
-            // If it's a new character, generate a permanent ID.
-            const id = isNewCharacter ? `char_${Date.now()}` : character.id;
-
-            // The ImageUploader now handles its own uploads and updates the character state directly.
-            // We just need to save the character object as it is.
-            const charToSave: ICharacter = { ...character, id, proficiencyBonus, initiative, lastUpdated: Date.now() };
+            const charToSave: ICharacter = { ...character, proficiencyBonus, initiative, lastUpdated: Date.now() };
             const savedChar = await saveCharacter(charToSave);
-
-            // Navigate to the character's play view.
-            // If it was a new character, replace the '/new' URL in history to prevent duplicates.
-            navigate(`/character/${savedChar.id}`, { replace: isNewCharacter });
+            const tabQuery = activeTab && activeTab !== 'main' ? `?tab=${activeTab}` : '';
+            navigate(`/character/${savedChar.id}${tabQuery}`, { replace: isNewCharacter });
         } catch (error) {
             console.error("Failed to save character:", error);
             alert("An error occurred while saving. Please try again.");
@@ -123,10 +138,15 @@ export const CharacterSheet: React.FC = () => {
     };
 
     const handleDeleteClick = async () => {
-        if (character && !isNewCharacter && window.confirm(`Are you sure you want to permanently delete ${character.name}?`)) {
+        if (!character) return;
+        const confirmMessage = isNewCharacter
+            ? "Are you sure you want to discard this character? Changes will not be saved."
+            : `Are you sure you want to permanently delete ${character.name}?`;
+
+        if (window.confirm(confirmMessage)) {
             try {
-                await deleteCharacter(character.id); // Usa la funzione dal context
-                navigate('/'); // Naviga alla home, che ora si riaggiornerà correttamente
+                await deleteCharacter(character.id);
+                navigate('/');
             } catch (error) {
                 console.error("Failed to delete character:", error);
                 alert("An error occurred while deleting the character.");
@@ -138,14 +158,15 @@ export const CharacterSheet: React.FC = () => {
         if (isNewCharacter) {
             navigate('/');
         } else if (character) {
-            navigate(`/character/${character.id}`);
+            const tabQuery = activeTab && activeTab !== 'main' ? `?tab=${activeTab}` : '';
+            navigate(`/character/${character.id}${tabQuery}`);
         } else {
-            navigate(-1); // Go back in history as a fallback
+            navigate(-1);
         }
     };
 
     const handleCharacterImageUpload = async (dataUrl: string) => {
-        if (!currentUser || !character || isNewCharacter) return;
+        if (!currentUser || !character) return;
         try {
             const imageUrl = await storageService.uploadCharacterImageFromDataUrl(dataUrl, currentUser.uid, character.id);
             updateCharacter({ imageUrl });
@@ -158,12 +179,10 @@ export const CharacterSheet: React.FC = () => {
     const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         if (!character) return;
         const { name, value, type } = e.target;
-
         let processedValue: string | number = value;
         if (type === 'number') {
             processedValue = parseInt(value) || 0;
         }
-
         updateCharacter({ [name]: processedValue });
     };
 
@@ -221,8 +240,6 @@ export const CharacterSheet: React.FC = () => {
         setCharacter(prev => ({ ...prev!, skills: newSkills }));
     };
 
-
-
     const handleUnarmoredAbilityToggle = (ability: keyof AbilityScores) => {
         if (!character) return;
         const currentAbilities = character.unarmoredDefense?.abilities || [];
@@ -267,6 +284,7 @@ export const CharacterSheet: React.FC = () => {
         return getModifier(character.abilityScores.dexterity);
     }, [character?.abilityScores.dexterity]);
 
+
     const { spellSaveDC, spellAttackBonus } = useMemo(() => {
         if (!character || !character.spellcastingAbility) return { spellSaveDC: '-', spellAttackBonus: '-' };
         const mod = getModifier(character.abilityScores[character.spellcastingAbility]);
@@ -275,6 +293,21 @@ export const CharacterSheet: React.FC = () => {
             spellAttackBonus: formatModifier(proficiencyBonus + mod),
         };
     }, [character?.spellcastingAbility, character?.abilityScores, proficiencyBonus]);
+
+    if (error) {
+        return (
+            <div className="flex flex-col justify-center items-center h-screen gap-4">
+                <div className="text-destructive text-xl font-bold">{error}</div>
+                <button
+                    onClick={() => navigate('/')}
+                    className="flex items-center gap-2 px-4 py-2 bg-accent/20 hover:bg-accent/30 text-accent rounded-lg transition-colors border border-accent/20"
+                >
+                    <BackIcon className="w-5 h-5" />
+                    Back to List
+                </button>
+            </div>
+        );
+    }
 
     if (!character) {
         return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-accent"></div></div>;
@@ -294,16 +327,22 @@ export const CharacterSheet: React.FC = () => {
                 </button>
 
                 <div className="flex items-center gap-2 self-end sm:self-center">
-                    {!isNewCharacter && (
-                        <button
-                            onClick={handleDeleteClick}
-                            className="flex items-center gap-2 rounded-md px-3 py-2 font-semibold text-destructive transition-all duration-200 hover:scale-105 hover:text-accent [text-shadow:0_1px_2px_rgba(0,0,0,0.3)]"
-                            aria-label="Delete Character"
-                        >
-                            <TrashIcon className="w-4 h-4" />
-                            <span className="hidden sm:inline">Delete</span>
-                        </button>
-                    )}
+                    <button
+                        onClick={() => window.open(`/character/${character?.id}/print`, '_blank')}
+                        className="flex items-center gap-2 rounded-md px-3 py-2 font-semibold text-muted-foreground transition-all duration-200 hover:scale-105 hover:text-accent [text-shadow:0_1px_2px_rgba(0,0,0,0.3)]"
+                        aria-label="Print Character"
+                    >
+                        <PrinterIcon className="w-5 h-5" />
+                        <span className="hidden sm:inline">Print</span>
+                    </button>
+                    <button
+                        onClick={handleDeleteClick}
+                        className="flex items-center gap-2 rounded-md px-3 py-2 font-semibold text-destructive transition-all duration-200 hover:scale-105 hover:text-accent [text-shadow:0_1px_2px_rgba(0,0,0,0.3)]"
+                        aria-label={isNewCharacter ? 'Discard Character' : 'Delete Character'}
+                    >
+                        <TrashIcon className="w-4 h-4" />
+                        <span className="hidden sm:inline">{isNewCharacter ? 'Discard' : 'Delete'}</span>
+                    </button>
                     <button
                         onClick={handleSaveClick}
                         disabled={isSaving}
@@ -559,8 +598,7 @@ export const CharacterSheet: React.FC = () => {
                                             <button
                                                 type="button"
                                                 onClick={() => setIsUploaderOpen(true)}
-                                                disabled={isNewCharacter}
-                                                className="absolute bottom-2 right-2 p-1.5 rounded-lg bg-background/80 backdrop-blur-sm border border-border shadow-sm text-xs font-semibold text-foreground hover:text-accent transition-colors disabled:opacity-0"
+                                                className="absolute bottom-2 right-2 p-1.5 rounded-lg bg-background/80 backdrop-blur-sm border border-border shadow-sm text-xs font-semibold text-foreground hover:text-accent transition-colors"
                                             >
                                                 <PhotoIcon className="w-4 h-4" />
                                             </button>

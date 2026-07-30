@@ -7,8 +7,9 @@
  */
 
 // 1. Importa le funzioni dai loro file dedicati.
-import {callGemini} from './handlers/geminiHandler';
+import { callGemini } from './handlers/geminiHandler';
+import { generateCharacterPDF } from './handlers/pdfHandler';
 
 // 2. Esportale in modo che Firebase possa trovarle.
 // Il nome della funzione nel cloud sarà lo stesso nome della costante importata.
-export {callGemini};
+export { callGemini, generateCharacterPDF };

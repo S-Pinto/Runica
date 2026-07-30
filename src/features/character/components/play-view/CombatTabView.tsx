@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react';
 import { useCharacter } from '../../CharacterProvider';
-import { Attack, Feature, FeatureCategory, CATEGORY_CONFIG, ICharacter } from '../../characterTypes';
+import { Attack, Feature, FeatureCategory, CATEGORY_CONFIG } from '../../characterTypes';
 import { rollDiceExpression } from '../../utils/characterUtils';
 import { AttackRow } from '../AttackRow';
 import { ChevronDownIcon, ChevronUpIcon, TrashIcon, SwordIcon, BoltIcon, FireIcon } from '../../../../components/ui/icons';
 import { WEAPON_MASTERIES, WEAPON_PROPERTIES } from '../../../../data/weaponProperties';
+import * as characterService from '../../characterService';
 
 interface RollResult {
     value: string;
@@ -25,6 +26,9 @@ const ABILITY_MAP: Record<string, string> = {
 const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items: Attack[], abilityScores: any, proficiencyBonus: number }) => {
     const [results, setResults] = useState<Record<string, { atk: RollResult[], dmg: RollResult[] }>>({});
     const [expandedAttackId, setExpandedAttackId] = useState<string | null>(null);
+    const { character, updateCharacter } = useCharacter();
+
+    if (!character) return null;
 
     const handleAttackRoll = (e: React.MouseEvent, attack: Attack) => {
         e.stopPropagation();
@@ -120,8 +124,6 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
         setResults(prev => ({ ...prev, [attack.id]: { ...prev[attack.id], dmg: [...(prev[attack.id]?.dmg || []), newRoll] } }));
     };
 
-
-
     const clearResults = (attackId: string) => {
         setResults(prev => {
             const newState = { ...prev };
@@ -153,76 +155,96 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
                                 onClick={() => toggleExpand(item.id)}
                                 variant="card"
                                 actions={
-                                    <>
-                                        <button
-                                            onClick={(e) => handleAttackRoll(e, item)}
-                                            className="h-9 px-3 bg-accent hover:bg-accent/90 text-accent-foreground rounded-lg font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all flex items-center gap-1.5"
-                                            title="Roll Attack"
-                                        >
-                                            <SwordIcon className="w-3.5 h-3.5" />
-                                            Hit
-                                        </button>
-                                        <button
-                                            onClick={(e) => handleDamageRoll(e, item)}
-                                            className="h-9 px-3 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-lg font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all flex items-center gap-1.5"
-                                            title="Roll Damage"
-                                        >
-                                            <FireIcon className="w-3.5 h-3.5" />
-                                            Dmg
-                                        </button>
-                                    </>
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={(e) => handleAttackRoll(e, item)}
+                                                className="h-9 px-3 bg-accent hover:bg-accent/90 text-accent-foreground rounded-lg font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all flex items-center gap-1.5"
+                                                title="Roll Attack"
+                                            >
+                                                <SwordIcon className="w-3.5 h-3.5" />
+                                                Hit
+                                            </button>
+                                            <button
+                                                onClick={(e) => handleDamageRoll(e, item)}
+                                                className="h-9 px-3 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-lg font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all flex items-center gap-1.5"
+                                                title="Roll Damage"
+                                            >
+                                                <FireIcon className="w-3.5 h-3.5" />
+                                                Dmg
+                                            </button>
+                                        </div>
+
+                                        {/* Usage Tracker */}
+                                        {item.uses && item.uses.max > 0 && (
+                                            <div className="flex items-center justify-between bg-background/50 rounded-lg border border-border/30 p-1 px-2 gap-2 animate-in fade-in slide-in-from-right-2">
+                                                <span className="text-[10px] font-black uppercase text-muted-foreground tracking-tighter">Uses:</span>
+                                                <div className="flex items-center gap-1.5">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            const update = characterService.updateActionUsage(character, item, -1);
+                                                            if (update) updateCharacter(update);
+                                                        }}
+                                                        disabled={item.uses.current <= 0}
+                                                        className="w-5 h-5 flex items-center justify-center bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-md border border-destructive/20 disabled:opacity-20 transition-all font-bold text-xs"
+                                                    >
+                                                        -
+                                                    </button>
+                                                    <span className={`text-[11px] font-mono font-black min-w-[3ch] text-center ${item.uses.current === 0 ? 'text-destructive animate-pulse' : 'text-foreground'}`}>
+                                                        {item.uses.current}/{item.uses.max}
+                                                    </span>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            const update = characterService.updateActionUsage(character, item, 1);
+                                                            if (update) updateCharacter(update);
+                                                        }}
+                                                        disabled={item.uses.current >= item.uses.max}
+                                                        className="w-5 h-5 flex items-center justify-center bg-accent/10 hover:bg-accent/20 text-accent rounded-md border border-accent/20 disabled:opacity-20 transition-all font-bold text-xs"
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 }
                             >
                                 {isExpanded && (
                                     <div className="pb-2 space-y-3">
                                         <div className="h-px bg-border/20 w-full my-2" />
 
-                                        {/* Dynamic Content based on Weapon vs Spell */}
-                                        {item.saveAbility ? (
-                                            <div className="grid grid-cols-2 gap-4 text-xs">
-                                                <div className="bg-background/40 p-2.5 rounded-lg border border-border/30">
-                                                    <span className="block text-muted-foreground mb-0.5 text-[10px] uppercase tracking-wider">Save DC</span>
-                                                    <span className="font-bold text-base text-foreground">
-                                                        {item.bonus} <span className="text-accent text-xs align-middle ml-0.5">{item.saveAbility.toUpperCase()}</span>
-                                                    </span>
-                                                </div>
-                                                <div className="bg-background/40 p-2.5 rounded-lg border border-border/30">
-                                                    <span className="block text-muted-foreground mb-0.5 text-[10px] uppercase tracking-wider">Effect</span>
-                                                    <span className="font-bold text-base text-foreground truncate">{item.damage || '-'}</span>
+                                        {/* Weapon Properties Detailed View */}
+                                        {(item.properties && item.properties.length > 0) && (
+                                            <div className="space-y-2">
+                                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Properties</span>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                    {item.properties.map(propKey => {
+                                                        const propData = WEAPON_PROPERTIES[propKey as keyof typeof WEAPON_PROPERTIES];
+                                                        return (
+                                                            <div key={propKey} className="bg-muted/30 border border-border/30 rounded px-2.5 py-1.5 flex flex-col gap-0.5">
+                                                                <span className="font-bold text-xs text-foreground">{propData?.name || propKey}</span>
+                                                                {propData?.description && <span className="text-[10px] text-muted-foreground leading-tight">{propData.description}</span>}
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
-                                        ) : (
-                                            <>
-                                                {/* Weapon Properties */}
-                                                {(item.properties && item.properties.length > 0) && (
-                                                    <div className="space-y-1.5">
-                                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Properties</span>
-                                                        <div className="flex flex-wrap gap-1.5">
-                                                            {item.properties.map(propKey => {
-                                                                const propData = WEAPON_PROPERTIES[propKey as keyof typeof WEAPON_PROPERTIES];
-                                                                return (
-                                                                    <div key={propKey} className="bg-muted/30 border border-border/30 rounded px-2 py-1">
-                                                                        <span className="font-bold text-[10px] text-foreground block">{propData?.name || propKey}</span>
-                                                                        {propData?.description && <span className="text-[9px] text-muted-foreground leading-tight block mt-0.5">{propData.description}</span>}
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {/* Weapon Mastery */}
-                                                {hasMastery && (
-                                                    <div className="bg-purple-500/5 border border-purple-500/20 rounded-lg p-2.5 mt-2">
-                                                        <div className="flex items-center gap-2 mb-1">
-                                                            <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">Mastery: {hasMastery.name}</span>
-                                                        </div>
-                                                        <p className="text-[10px] text-muted-foreground leading-relaxed">{hasMastery.description}</p>
-                                                    </div>
-                                                )}
-                                            </>
                                         )}
 
+                                        {/* Mastery Description */}
+                                        {hasMastery && (
+                                            <div className="bg-purple-500/5 border border-purple-500/20 rounded-lg p-3 mt-2">
+                                                <div className="flex items-center gap-2 mb-1.5">
+                                                    <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                                                        <SwordIcon className="w-3 h-3" />
+                                                        Mastery: {hasMastery.name}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-muted-foreground leading-relaxed">{hasMastery.description}</p>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
@@ -280,12 +302,12 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
                                 )}
                             </AttackRow>
                         </div>
-                    )
+                    );
                 })}
             </div>
         </div>
-    )
-}
+    );
+};
 
 const CategorySectionDisplay = ({
     category,
@@ -408,22 +430,24 @@ const FeaturesList = ({ items }: { items: Feature[] }) => {
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
 const CombatTabView = () => {
-    const { character } = useCharacter() as { character: ICharacter };
+    const { character } = useCharacter();
 
-    const attacks = useMemo(() => [...(character.attacks || [])].sort((a, b) => a.name.localeCompare(b.name)), [character.attacks]);
-    const features = useMemo(() => [...(character.featuresAndTraits || [])].sort((a, b) => a.name.localeCompare(b.name)), [character.featuresAndTraits]);
+    if (!character) return null;
+
+    const actions = useMemo(() => characterService.getAllActions(character), [character]);
+    const featuresSorted = useMemo(() => [...(character.featuresAndTraits || [])].sort((a, b) => a.name.localeCompare(b.name)), [character.featuresAndTraits]);
 
     // Calculate Proficiency Bonus (Level 1-4 = +2, 5-8 = +3, etc.)
     const proficiencyBonus = Math.ceil((character.level || 1) / 4) + 1;
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <AttacksAndCantrips items={attacks} abilityScores={character.abilityScores} proficiencyBonus={proficiencyBonus} />
-            <FeaturesList items={features} />
+            <AttacksAndCantrips items={actions} abilityScores={character.abilityScores} proficiencyBonus={proficiencyBonus} />
+            <FeaturesList items={featuresSorted} />
         </div>
     )
 };

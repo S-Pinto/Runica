@@ -28,6 +28,11 @@ export interface Spell {
   ritual: boolean;
   concentration: boolean;
   prepared?: boolean;
+  // New: for spells that have attack/damage components
+  damage?: string;
+  damageType?: string;
+  attackAbility?: keyof AbilityScores;
+  saveAbility?: keyof AbilityScores;
 }
 
 
@@ -71,6 +76,10 @@ export interface Feature {
   name: string;
   description: string;
   category: FeatureCategory;
+  // New: for features with limited uses
+  uses?: { max: number; current: number };
+  recovery?: 'short' | 'long' | 'none';
+  isAction?: boolean;
 }
 
 export interface Attack {
@@ -86,6 +95,12 @@ export interface Attack {
   damageAbility?: string; // 'str', 'dex', etc. to add to damage
   attackAbility?: string; // 'str', 'dex', etc. for hit roll
   isProficient?: boolean; // add proficiency bonus to hit?
+  // New: source tracking
+  sourceId?: string;
+  sourceType?: 'weapon' | 'feat' | 'item' | 'spell' | 'custom';
+  uses?: { max: number; current: number };
+  recovery?: 'short' | 'long' | 'none';
+  notes?: string;
 }
 
 export interface EquipmentItem {
@@ -93,10 +108,23 @@ export interface EquipmentItem {
   name: string;
   quantity: number;
   description: string;
-  armorClass?: number; // Base AC for armor, or bonus for shields
-  armorType?: 'light' | 'medium' | 'heavy' | 'shield';
+  armorClass?: number; // Base AC for armor, or bonus for shields. For weapons/magic items it can be magic bonus.
+  armorType?: 'light' | 'medium' | 'heavy' | 'shield' | 'weapon' | 'magic';
   equipped?: boolean;
   imageUrl?: string;
+  // New: for weapons and action-granting items
+  damage?: string;
+  damageType?: string;
+  attackAbility?: string;
+  damageAbility?: string;
+  isProficient?: boolean;
+  mastery?: string;
+  properties?: string[];
+  additionalDamage?: { formula: string; type: string }[];
+  grantsSpellName?: string;
+  saveAbility?: string; // For magic items/spells
+  uses?: { max: number; current: number };
+  recovery?: 'short' | 'long' | 'none';
 }
 
 export interface Currency {

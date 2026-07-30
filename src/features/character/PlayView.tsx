@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, Suspense, lazy, FC, useCallback, createElement } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import * as characterService from './characterService';
 import { useCharacter } from './CharacterProvider';
-import { BackIcon, EditIcon, ChevronLeftIcon, ChevronRightIcon } from '../../components/ui/icons';
+import { BackIcon, EditIcon, ChevronLeftIcon, ChevronRightIcon, PrinterIcon } from '../../components/ui/icons';
 import { AbilitiesDisplay } from './components/AbilitiesDisplay';
 import { ImageModal } from '../../components/ui/ImageModal';
 import { CompanionTab } from './components/play-view/CompanionTab';
@@ -62,6 +62,7 @@ const tabComponents: Record<PlayTab, React.ComponentType<any>> = {
 export const PlayView: FC = () => {
     const { characterId } = useParams<{ characterId: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
     const { character, setCharacter } = useCharacter();
     const [activeTab, setActiveTab] = useState<PlayTab>('main');
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
@@ -69,11 +70,32 @@ export const PlayView: FC = () => {
     const [showRightArrow, setShowRightArrow] = useState(false);
     const isInitialMount = useRef(true);
 
+    const [error, setError] = useState<string | null>(null);
+
+    // Sync active tab from URL query param
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const tabParam = params.get('tab');
+        if (tabParam && PLAY_TABS.some(t => t.key === tabParam)) {
+            setActiveTab(tabParam as PlayTab);
+        }
+    }, [location.search]);
+
     useEffect(() => {
         if (!characterId) return;
         const loadCharacter = async () => {
-            const charData = await characterService.getCharacter(characterId);
-            setCharacter(charData);
+            try {
+                setError(null);
+                const charData = await characterService.getCharacter(characterId);
+                if (charData) {
+                    setCharacter(charData);
+                } else {
+                    setError('Character not found');
+                }
+            } catch (err) {
+                console.error("Failed to load character:", err);
+                setError('Failed to load character');
+            }
         };
         loadCharacter();
     }, [characterId, setCharacter]);
@@ -118,6 +140,20 @@ export const PlayView: FC = () => {
         };
     }, [character, checkScroll]);
 
+    if (error) {
+        return (
+            <div className="flex flex-col justify-center items-center h-screen gap-4">
+                <div className="text-destructive text-xl font-bold">{error}</div>
+                <button
+                    onClick={() => navigate('/')}
+                    className="flex items-center gap-2 px-4 py-2 bg-accent/20 hover:bg-accent/30 text-accent rounded-lg transition-colors border border-accent/20"
+                >
+                    <BackIcon className="w-5 h-5" />
+                    Back to List
+                </button>
+            </div>
+        );
+    }
 
     if (!character) {
         return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-accent"></div></div>;
@@ -152,14 +188,24 @@ export const PlayView: FC = () => {
                     <span className="sm:hidden">Back</span>
                 </button>
 
-                <button
-                    onClick={() => navigate(`/character/${characterId}/edit`)}
-                    className="justify-self-end flex items-center gap-2 rounded-md px-3 py-2 font-bold text-primary transition-all duration-200 hover:scale-105 hover:text-accent [text-shadow:0_1px_2px_rgba(0,0,0,0.3)] sm:order-3"
-                >
-                    <EditIcon className="w-5 h-5" />
-                    <span className="hidden sm:inline">Edit Sheet</span>
-                    <span className="sm:hidden">Edit</span>
-                </button>
+                <div className="justify-self-end flex items-center gap-2 sm:order-3">
+                    <button
+                        onClick={() => window.open(`/character/${characterId}/print`, '_blank')}
+                        className="flex items-center gap-2 rounded-md px-3 py-2 font-semibold text-muted-foreground transition-all duration-200 hover:scale-105 hover:text-accent [text-shadow:0_1px_2px_rgba(0,0,0,0.3)]"
+                        aria-label="Print Character"
+                    >
+                        <PrinterIcon className="w-5 h-5" />
+                        <span className="hidden sm:inline">Print</span>
+                    </button>
+                    <button
+                        onClick={() => navigate(`/character/${characterId}/edit?tab=${activeTab}`)}
+                        className="flex items-center gap-2 rounded-md px-3 py-2 font-bold text-primary transition-all duration-200 hover:scale-105 hover:text-accent [text-shadow:0_1px_2px_rgba(0,0,0,0.3)]"
+                    >
+                        <EditIcon className="w-5 h-5" />
+                        <span className="hidden sm:inline">Edit Sheet</span>
+                        <span className="sm:hidden">Edit</span>
+                    </button>
+                </div>
             </header>
 
             <div className="relative">

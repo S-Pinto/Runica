@@ -1,10 +1,21 @@
-import { ICharacter, AbilityScores, Skill } from './characterTypes';
+import { ICharacter, AbilityScores, Skill, Attack } from './characterTypes';
 import { getFirebase } from '../../lib/getFirebase';
 import { collection, doc, getDocs, setDoc, deleteDoc, writeBatch, onSnapshot, query, CollectionReference, getDoc } from 'firebase/firestore';
 import * as storageService from '../../services/storageService';
 
 const getProficiencyBonus = (level: number): number => Math.ceil(level / 4) + 1;
 const getModifier = (score: number) => Math.floor((score - 10) / 2);
+
+export const WEAPON_MASTERIES_DATA: any = {
+    "Vex": { name: "Vex", description: "Advantage on next attack roll if hit." },
+    "Sap": { name: "Sap", description: "Disadvantage on target's next attack roll if hit." },
+    "Nick": { name: "Nick", description: "Extra attack of Light property part of Attack action." },
+    "Cleave": { name: "Cleave", description: "Hit second creature within 5ft for ability mod damage." },
+    "Graze": { name: "Graze", description: "Deal ability mod damage on miss." },
+    "Push": { name: "Push", description: "Push creature up to 10 feet away." },
+    "Slow": { name: "Slow", description: "Reduce target's Speed by 10 feet." },
+    "Topple": { name: "Topple", description: "Force Con save or target falls Prone." },
+};
 
 const getDefaultSkills = (): Skill[] => {
     return [
@@ -35,7 +46,7 @@ export const createNewCharacter = (): ICharacter => {
         intelligence: 10, wisdom: 10, charisma: 10,
     };
     return {
-        id: `new_${Date.now()}`,
+        id: `char_${Date.now()}`,
         lastUpdated: Date.now(),
         order: 0,
         name: '', class: '', subclass: '', level: 1, race: '',
@@ -135,6 +146,142 @@ export const calculateSpellAttackBonus = (character: ICharacter): number => {
     }
     const abilityMod = getModifier(character.abilityScores[character.spellcastingAbility]);
     return getProficiencyBonus(character.level) + abilityMod;
+};
+
+export const getAllActions = (character: ICharacter): (Attack & { sourceName?: string })[] => {
+    const actions: (Attack & { sourceName?: string })[] = [];
+    if (!character) return actions;
+
+    const getAbilityMod = (ability?: string) => {
+        const score = character.abilityScores[ability as keyof typeof character.abilityScores] || 10;
+        return Math.floor((score - 10) / 2);
+    };
+
+    // 1. Equipped Weapons
+    character.equipment?.filter(i => i.equipped && i.armorType === 'weapon').forEach(weapon => {
+        const bonus = (weapon.armorClass || 0); // We reused armorClass for magic bonus
+        const abilityMod = getAbilityMod(weapon.attackAbility || 'strength');
+        const profBonus = weapon.isProficient ? character.proficiencyBonus : 0;
+        const totalHit = (weapon.attackAbility || weapon.isProficient) ? (abilityMod + profBonus + bonus) : bonus;
+
+        let notes = weapon.mastery ? weapon.mastery : '';
+        if (weapon.mastery && WEAPON_MASTERIES_DATA[weapon.mastery]) {
+            notes = `${weapon.mastery}: ${WEAPON_MASTERIES_DATA[weapon.mastery].description}`;
+        }
+
+        actions.push({
+            id: weapon.id,
+            name: weapon.name,
+            bonus: totalHit >= 0 ? `+${totalHit}` : `${totalHit}`,
+            damage: weapon.damage || '1d4',
+            damageType: weapon.damageType,
+            damageAbility: weapon.damageAbility,
+            attackAbility: weapon.attackAbility,
+            isProficient: weapon.isProficient,
+            additionalDamage: weapon.additionalDamage,
+            mastery: weapon.mastery,
+            properties: weapon.properties,
+            sourceType: 'weapon',
+            sourceId: weapon.id,
+            sourceName: 'Equipped',
+            notes: notes
+        });
+    });
+
+    // 2. Equipped Magic Items with Actions
+    character.equipment?.filter(i => i.equipped && i.armorType === 'magic').forEach(item => {
+        const dc = calculateSpellSaveDC(character);
+        const bonus = calculateSpellAttackBonus(character);
+
+        actions.push({
+            id: `magic-${item.id}`,
+            name: item.grantsSpellName || item.name,
+            bonus: item.saveAbility ? `${dc}` : (bonus >= 0 ? `+${bonus}` : `${bonus}`),
+            damage: item.damage || 'Item Effect',
+            damageType: item.damageType,
+            saveAbility: item.saveAbility,
+            sourceType: 'item',
+            sourceId: item.id,
+            sourceName: item.name,
+            uses: item.uses,
+            recovery: item.recovery
+        });
+    });
+
+    // 3. Cantrips (Level 0) with damage
+    character.spells?.filter(s => s.level === 0 && s.damage).forEach(spell => {
+        const bonus = calculateSpellAttackBonus(character);
+        const dc = calculateSpellSaveDC(character);
+
+        actions.push({
+            id: spell.id,
+            name: spell.name,
+            bonus: spell.saveAbility ? `${dc}` : (bonus >= 0 ? `+${bonus}` : `${bonus}`),
+            damage: spell.damage!,
+            damageType: spell.damageType,
+            saveAbility: spell.saveAbility,
+            sourceType: 'spell',
+            sourceId: spell.id,
+            sourceName: 'Cantrip'
+        });
+    });
+
+    // 4. Features marked as Actions
+    character.featuresAndTraits?.filter(f => f.isAction).forEach(feat => {
+        actions.push({
+            id: feat.id,
+            name: feat.name,
+            bonus: '---',
+            damage: 'See Description',
+            sourceType: 'feat',
+            sourceId: feat.id,
+            sourceName: 'Feature',
+            uses: feat.uses,
+            recovery: feat.recovery,
+            properties: [feat.recovery].filter(Boolean) as string[]
+        });
+    });
+
+    // 5. Custom Manual Attacks
+    character.attacks?.forEach(attack => {
+        actions.push({
+            ...attack,
+            sourceType: 'custom',
+            sourceName: 'Special'
+        });
+    });
+
+    return actions;
+};
+
+export const updateActionUsage = (character: ICharacter, action: Attack, delta: number): Partial<ICharacter> => {
+    if (!action.sourceId || !action.sourceType || !action.uses) return {};
+
+    switch (action.sourceType) {
+        case 'item':
+        case 'weapon': {
+            const updatedEquipment = character.equipment.map(item => {
+                if (item.id === action.sourceId) {
+                    const newCurrent = Math.max(0, Math.min(item.uses?.max || 0, (item.uses?.current || 0) + delta));
+                    return { ...item, uses: { ...item.uses!, current: newCurrent } };
+                }
+                return item;
+            });
+            return { equipment: updatedEquipment };
+        }
+        case 'feat': {
+            const updatedFeatures = character.featuresAndTraits.map(feat => {
+                if (feat.id === action.sourceId) {
+                    const newCurrent = Math.max(0, Math.min(feat.uses?.max || 0, (feat.uses?.current || 0) + delta));
+                    return { ...feat, uses: { ...feat.uses!, current: newCurrent } };
+                }
+                return feat;
+            });
+            return { featuresAndTraits: updatedFeatures };
+        }
+        default:
+            return {};
+    }
 };
 
 const LOCAL_STORAGE_KEY = 'runica-characters';
