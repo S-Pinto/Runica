@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useCharacter } from '../CharacterProvider';
-import { EquipmentItem } from '../characterTypes';
+import { EquipmentItem, Currency } from '../characterTypes';
 import { PlusCircleIcon, TrashIcon, EditIcon, ChevronDownIcon, PhotoIcon } from '../../../components/ui/icons';
 import { ImageUploader } from './ImageUploader';
 import { useAuth } from '../../../providers/AuthProvider';
@@ -23,7 +23,10 @@ const EquipmentForm = ({
   onSave: (data: Omit<EquipmentItem, 'id'> | EquipmentItem) => void;
   onCancel: () => void;
 }) => {
-  const [formData, setFormData] = useState(initialData);
+  const [formData, setFormData] = useState<Omit<EquipmentItem, 'id'> & { id?: string }>({
+    ...initialData,
+    itemType: initialData.itemType || (initialData.armorType === 'shield' ? 'shield' : (initialData.armorType ? 'armor' : (initialData.damage ? 'weapon' : 'gear'))),
+  });
   const [isImageUploaderOpen, setIsImageUploaderOpen] = useState(false);
   const { currentUser } = useAuth();
   const { character } = useCharacter();
@@ -35,18 +38,25 @@ const EquipmentForm = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) return;
-    onSave(formData);
+
+    const dataToSave = { ...formData };
+    if (dataToSave.itemType === 'weapon') {
+      delete dataToSave.armorType;
+      delete dataToSave.armorClass;
+    } else if (dataToSave.itemType === 'armor' || dataToSave.itemType === 'shield') {
+      if (dataToSave.itemType === 'shield') {
+        dataToSave.armorType = 'shield';
+      }
+      delete dataToSave.damage;
+      delete dataToSave.damageType;
+    }
+
+    onSave(dataToSave);
   };
 
   const handleImageUpload = async (dataUrl: string) => {
     if (!currentUser || !character) return;
-    // If we don't have an ID yet (new item), we can't upload to a permanent path immediately 
-    // OR we generate a temp ID. 
-    // Better strategy: For new items, we wait to upload until we save? 
-    // Actually, 'initialData' might not have an ID.
-    // Let's generate a temporary ID if one is missing for the path, or use timestamp.
     const itemId = 'id' in initialData ? initialData.id : `temp_${Date.now()}`;
-
     try {
       const downloadUrl = await uploadItemImage(dataUrl, currentUser.uid, character.id, itemId);
       handleChange('imageUrl', downloadUrl);
@@ -78,7 +88,7 @@ const EquipmentForm = ({
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
           <div className="md:col-span-8">
             <label htmlFor="name" className={labelClass}>Item Name</label>
-            <input id="name" type="text" placeholder="e.g., Longsword" value={formData.name} onChange={e => handleChange('name', e.target.value)} required className={inputClass} />
+            <input id="name" type="text" placeholder="e.g., Longsword, Plate Armor, Potion of Healing" value={formData.name} onChange={e => handleChange('name', e.target.value)} required className={inputClass} />
           </div>
           <div className="md:col-span-4">
             <label htmlFor="quantity" className={labelClass}>Quantity</label>
@@ -87,25 +97,61 @@ const EquipmentForm = ({
         </div>
 
         <div>
-          <label htmlFor="description" className={labelClass}>Description</label>
-          <textarea id="description" value={formData.description} onChange={e => handleChange('description', e.target.value)} className={inputClass} rows={3}></textarea>
+          <label htmlFor="itemType" className={labelClass}>Item Category</label>
+          <select
+            id="itemType"
+            value={formData.itemType || 'gear'}
+            onChange={e => handleChange('itemType', e.target.value as any)}
+            className={inputClass}
+          >
+            <option value="weapon">Weapon / Arma</option>
+            <option value="armor">Armor / Armatura Body</option>
+            <option value="shield">Shield / Scudo</option>
+            <option value="gear">Adventuring Gear / Zaino & Altro</option>
+          </select>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="armorType" className={labelClass}>Armor Type</label>
-            <select id="armorType" value={formData.armorType || ''} onChange={e => handleChange('armorType', e.target.value || undefined)} className={inputClass}>
-              <option value="">Not Armor</option>
-              <option value="light">Light Armor</option>
-              <option value="medium">Medium Armor</option>
-              <option value="heavy">Heavy Armor</option>
-              <option value="shield">Shield</option>
-            </select>
+        {/* Weapon Fields */}
+        {formData.itemType === 'weapon' && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-background/40 rounded-lg border border-accent/20">
+            <div>
+              <label htmlFor="damage" className={labelClass}>Damage Formula</label>
+              <input id="damage" type="text" placeholder="e.g. 1d8 or 2d6" value={formData.damage || ''} onChange={e => handleChange('damage', e.target.value)} className={inputClass} />
+            </div>
+            <div>
+              <label htmlFor="damageType" className={labelClass}>Damage Type</label>
+              <input id="damageType" type="text" placeholder="e.g. Slashing, Piercing" value={formData.damageType || ''} onChange={e => handleChange('damageType', e.target.value)} className={inputClass} />
+            </div>
+            <div>
+              <label htmlFor="attackBonus" className={labelClass}>Magic / Hit Bonus</label>
+              <input id="attackBonus" type="text" placeholder="e.g. +1" value={formData.attackBonus || ''} onChange={e => handleChange('attackBonus', e.target.value)} className={inputClass} />
+            </div>
           </div>
-          <div>
-            <label htmlFor="armorClass" className={labelClass}>Armor Class (AC) / Bonus</label>
-            <input id="armorClass" type="number" placeholder="e.g., 14 or +2" value={formData.armorClass || ''} onChange={e => handleChange('armorClass', parseInt(e.target.value) || undefined)} className={inputClass} />
+        )}
+
+        {/* Armor / Shield Fields */}
+        {(formData.itemType === 'armor' || formData.itemType === 'shield') && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 bg-background/40 rounded-lg border border-accent/20">
+            {formData.itemType === 'armor' && (
+              <div>
+                <label htmlFor="armorType" className={labelClass}>Armor Type</label>
+                <select id="armorType" value={formData.armorType || 'light'} onChange={e => handleChange('armorType', e.target.value || undefined)} className={inputClass}>
+                  <option value="light">Light Armor</option>
+                  <option value="medium">Medium Armor</option>
+                  <option value="heavy">Heavy Armor</option>
+                </select>
+              </div>
+            )}
+            <div>
+              <label htmlFor="armorClass" className={labelClass}>Armor Class (AC) / Bonus</label>
+              <input id="armorClass" type="number" placeholder={formData.itemType === 'shield' ? "e.g., 2" : "e.g., 14"} value={formData.armorClass || ''} onChange={e => handleChange('armorClass', parseInt(e.target.value) || undefined)} className={inputClass} />
+            </div>
           </div>
+        )}
+
+        <div>
+          <label htmlFor="description" className={labelClass}>Description / Notes</label>
+          <textarea id="description" value={formData.description} onChange={e => handleChange('description', e.target.value)} className={inputClass} rows={2}></textarea>
         </div>
 
         <div className="flex justify-between items-center pt-4 border-t border-border/30">
@@ -138,6 +184,7 @@ const ItemDisplayList = ({
   items,
   expandedItem,
   onToggleExpand,
+  onToggleEquip,
   onEdit,
   onDelete,
 }: {
@@ -145,6 +192,7 @@ const ItemDisplayList = ({
   items: EquipmentItem[];
   expandedItem: string | null;
   onToggleExpand: (id: string) => void;
+  onToggleEquip: (id: string) => void;
   onEdit: (item: EquipmentItem) => void;
   onDelete: (id: string) => void;
 }) => (
@@ -153,7 +201,7 @@ const ItemDisplayList = ({
       {title}
       <span className="text-xs bg-muted/40 px-2 py-0.5 rounded text-muted-foreground">{items.length}</span>
     </h4>
-    <div className="space-y-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
       {items.length === 0 && <p className="text-center text-muted-foreground text-xs py-4 border border-dashed border-border/30 rounded-lg">No items in {title.toLowerCase()}.</p>}
       {items.map(item => (
         <div key={item.id} className="bg-card/40 backdrop-blur-sm rounded-lg text-sm border border-border/30 hover:border-accent/30 transition-all">
@@ -177,33 +225,51 @@ const ItemDisplayList = ({
               <div className="flex flex-col min-w-0">
                 <p className="font-semibold text-accent truncate" title={item.name}>
                   {item.name}
-                  {item.equipped && <span className="ml-2 text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded uppercase tracking-wider">Equipped</span>}
+                  {item.equipped && <span className="ml-2 text-[10px] bg-primary/20 text-primary font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">Equipped</span>}
                 </p>
-                <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                <p className="text-xs text-muted-foreground">
+                  Qty: {item.quantity} {item.damage && `• Dmg: ${item.damage}`} {item.armorClass ? `• AC: ${item.armorClass}` : ''}
+                </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-1 flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={() => onToggleEquip(item.id)}
+                className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md transition-all shadow-sm ${
+                  item.equipped
+                    ? 'bg-primary text-primary-foreground shadow-primary/20'
+                    : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/50'
+                }`}
+              >
+                {item.equipped ? 'Equipped' : 'Equip'}
+              </button>
               <button onClick={() => onEdit(item)} className="text-muted-foreground hover:text-accent p-1.5 hover:bg-accent/10 rounded transition-colors"><EditIcon className="w-4 h-4" /></button>
               <button onClick={() => onDelete(item.id)} className="text-muted-foreground hover:text-destructive p-1.5 hover:bg-destructive/10 rounded transition-colors"><TrashIcon className="w-4 h-4" /></button>
             </div>
           </div>
           {expandedItem === item.id && (
             <div className="p-3 border-t border-border/30 bg-muted/10 space-y-2">
-              {item.armorType && (
-                <div className="flex gap-4 text-xs">
+              <div className="flex flex-wrap gap-2 text-xs">
+                {item.armorType && (
                   <div className="bg-background/50 px-2 py-1 rounded border border-border/50">
-                    <span className="text-muted-foreground capitalize mr-1">Type:</span>
+                    <span className="text-muted-foreground capitalize mr-1">Armor:</span>
                     <span className="font-medium">{item.armorType}</span>
                   </div>
-                  {item.armorClass && (
-                    <div className="bg-background/50 px-2 py-1 rounded border border-border/50">
-                      <span className="text-muted-foreground capitalize mr-1">AC:</span>
-                      <span className="font-medium">{item.armorClass}</span>
-                    </div>
-                  )}
-                </div>
-              )}
+                )}
+                {item.armorClass && (
+                  <div className="bg-background/50 px-2 py-1 rounded border border-border/50">
+                    <span className="text-muted-foreground capitalize mr-1">AC:</span>
+                    <span className="font-medium">{item.armorClass}</span>
+                  </div>
+                )}
+                {item.damage && (
+                  <div className="bg-background/50 px-2 py-1 rounded border border-border/50">
+                    <span className="text-muted-foreground capitalize mr-1">Damage:</span>
+                    <span className="font-medium">{item.damage} {item.damageType}</span>
+                  </div>
+                )}
+              </div>
               {item.description && <p className="text-foreground/80 whitespace-pre-wrap text-[13px] leading-relaxed pl-1">{item.description}</p>}
             </div>
           )}
@@ -254,11 +320,35 @@ export const EquipmentList = () => {
     setExpandedItem(prev => (prev === itemId ? null : itemId));
   };
 
+  const handleToggleEquip = (itemId: string) => {
+    const clickedItem = character.equipment.find(item => item.id === itemId);
+    if (!clickedItem) return;
+
+    const isEquipping = !clickedItem.equipped;
+    const isClickedBodyArmor = clickedItem.itemType === 'armor' || ['light', 'medium', 'heavy'].includes(clickedItem.armorType || '');
+    const isClickedShield = clickedItem.itemType === 'shield' || clickedItem.armorType === 'shield';
+
+    const newEquipment = character.equipment.map(item => {
+      if (item.id === itemId) {
+        return { ...item, equipped: isEquipping };
+      }
+      if (isEquipping) {
+        const isItemBodyArmor = item.itemType === 'armor' || ['light', 'medium', 'heavy'].includes(item.armorType || '');
+        const isItemShield = item.itemType === 'shield' || item.armorType === 'shield';
+
+        if (isClickedBodyArmor && isItemBodyArmor) return { ...item, equipped: false };
+        if (isClickedShield && isItemShield) return { ...item, equipped: false };
+      }
+      return item;
+    });
+    updateCharacter({ equipment: newEquipment });
+  };
+
   const { equippableItems, backpackItems } = useMemo(() => {
     const equippable: EquipmentItem[] = [];
     const backpack: EquipmentItem[] = [];
     (character.equipment || []).forEach(item => {
-      if (item.armorType) {
+      if (item.equipped || item.itemType === 'weapon' || item.itemType === 'armor' || item.itemType === 'shield' || item.armorType || item.damage) {
         equippable.push(item);
       } else {
         backpack.push(item);
@@ -270,44 +360,118 @@ export const EquipmentList = () => {
     };
   }, [character.equipment]);
 
+  const handleCurrencyChange = (type: keyof Currency, val: number) => {
+    updateCharacter({
+      currency: {
+        ...character.currency,
+        [type]: Math.max(0, val),
+      },
+    });
+  };
+
+  const totalGp = useMemo(() => {
+    const c = character.currency || { pp: 0, gp: 0, ep: 0, sp: 0, cp: 0 };
+    const total = (c.pp || 0) * 10 + (c.gp || 0) + (c.ep || 0) * 0.5 + (c.sp || 0) * 0.1 + (c.cp || 0) * 0.01;
+    return total.toLocaleString('it-IT', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }, [character.currency]);
+
   return (
-    <div className="bg-card/20 p-6 rounded-xl border border-border/50 h-full flex flex-col">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-cinzel text-accent">Inventory</h3>
-        <button
-          onClick={() => setEditingItem('new')}
-          className="flex items-center gap-2 text-sm bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 px-3 py-2 rounded-lg transition-all shadow-sm hover:shadow-md"
-        >
-          <PlusCircleIcon className="w-5 h-5" />
-          <span className="font-bold">Add Item</span>
-        </button>
+    <div className="space-y-6">
+      {/* Top Currency Banner */}
+      <div className="bg-card/40 backdrop-blur-md p-6 rounded-2xl border border-border/50 shadow-md space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/40 pb-3">
+          <h3 className="text-xl font-cinzel text-accent flex items-center gap-2">
+            <span>🪙</span> Monete & Portamonete
+          </h3>
+          <div className="bg-accent/10 text-accent px-3.5 py-1 rounded-xl border border-accent/20 text-xs font-bold font-mono">
+            Valore Totale Stimato: <span className="text-white text-sm font-black">{totalGp} GP</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {[
+            { key: 'pp', label: 'PP (Platino)', color: 'border-cyan-500/30 bg-cyan-500/5 text-cyan-300' },
+            { key: 'gp', label: 'GP (Oro)', color: 'border-yellow-500/30 bg-yellow-500/5 text-yellow-400' },
+            { key: 'ep', label: 'EP (Elettro)', color: 'border-indigo-500/30 bg-indigo-500/5 text-indigo-300' },
+            { key: 'sp', label: 'SP (Argento)', color: 'border-slate-400/30 bg-slate-400/5 text-slate-200' },
+            { key: 'cp', label: 'CP (Rame)', color: 'border-orange-600/30 bg-orange-600/5 text-orange-400' },
+          ].map((coin) => {
+            const val = character.currency[coin.key as keyof Currency] || 0;
+            return (
+              <div key={coin.key} className={`p-3 rounded-xl border ${coin.color} flex flex-col items-center justify-between gap-2 shadow-sm`}>
+                <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">{coin.label}</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleCurrencyChange(coin.key as keyof Currency, val - 1)}
+                    className="w-7 h-7 rounded-lg bg-background/50 hover:bg-background border border-border/50 text-foreground font-bold flex items-center justify-center transition-colors text-sm"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    value={val}
+                    onChange={(e) => handleCurrencyChange(coin.key as keyof Currency, parseInt(e.target.value) || 0)}
+                    className="w-14 bg-background/60 text-center font-mono font-bold text-base rounded border border-border/40 py-0.5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleCurrencyChange(coin.key as keyof Currency, val + 1)}
+                    className="w-7 h-7 rounded-lg bg-background/50 hover:bg-background border border-border/50 text-foreground font-bold flex items-center justify-center transition-colors text-sm"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {editingItem && (
-        <EquipmentForm
-          initialData={editingItem === 'new' ? DEFAULT_ITEM : editingItem}
-          onSave={handleSave}
-          onCancel={() => setEditingItem(null)}
-        />
-      )}
+      {/* Main Inventory Gear List */}
+      <div className="bg-card/20 backdrop-blur-md p-6 rounded-2xl border border-border/50 space-y-6">
+        <div className="flex justify-between items-center border-b border-border/40 pb-4">
+          <div>
+            <h3 className="text-xl font-cinzel text-accent">Zaino ed Equipaggiamento</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Gestisci tutti i tuoi oggetti, armi, armature e consumabili</p>
+          </div>
+          <button
+            onClick={() => setEditingItem('new')}
+            className="flex items-center gap-2 text-sm bg-accent hover:bg-accent/90 text-accent-foreground font-bold px-4 py-2.5 rounded-xl transition-all shadow-md hover:shadow-lg"
+          >
+            <PlusCircleIcon className="w-5 h-5" />
+            <span>Aggiungi Oggetto</span>
+          </button>
+        </div>
 
-      <div className="space-y-8 overflow-y-auto px-1 -mx-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
-        <ItemDisplayList
-          title="Equippable Gear"
-          items={equippableItems}
-          expandedItem={expandedItem}
-          onToggleExpand={handleToggleExpand}
-          onEdit={setEditingItem}
-          onDelete={handleDelete}
-        />
-        <ItemDisplayList
-          title="Backpack"
-          items={backpackItems}
-          expandedItem={expandedItem}
-          onToggleExpand={handleToggleExpand}
-          onEdit={setEditingItem}
-          onDelete={handleDelete}
-        />
+        {editingItem && (
+          <EquipmentForm
+            initialData={editingItem === 'new' ? DEFAULT_ITEM : editingItem}
+            onSave={handleSave}
+            onCancel={() => setEditingItem(null)}
+          />
+        )}
+
+        <div className="space-y-8">
+          <ItemDisplayList
+            title="🛡️ Armi, Armature & Oggetti Equipaggiati"
+            items={equippableItems}
+            expandedItem={expandedItem}
+            onToggleExpand={handleToggleExpand}
+            onToggleEquip={handleToggleEquip}
+            onEdit={setEditingItem}
+            onDelete={handleDelete}
+          />
+          <ItemDisplayList
+            title="🎒 Zaino & Oggetti da Avventura"
+            items={backpackItems}
+            expandedItem={expandedItem}
+            onToggleExpand={handleToggleExpand}
+            onToggleEquip={handleToggleEquip}
+            onEdit={setEditingItem}
+            onDelete={handleDelete}
+          />
+        </div>
       </div>
     </div>
   );

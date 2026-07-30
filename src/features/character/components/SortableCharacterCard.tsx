@@ -10,6 +10,8 @@ interface SortableCharacterCardProps {
   onSelect: () => void;
   onDelete: (e: React.MouseEvent) => void;
   onEdit: (e: React.MouseEvent) => void;
+  onDuplicate?: (e: React.MouseEvent) => void;
+  onExport?: (e: React.MouseEvent) => void;
   activeCardId: string | null;
 }
 

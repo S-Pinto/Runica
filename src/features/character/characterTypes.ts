@@ -93,8 +93,17 @@ export interface EquipmentItem {
   name: string;
   quantity: number;
   description: string;
+  itemType?: 'weapon' | 'armor' | 'shield' | 'gear';
   armorClass?: number; // Base AC for armor, or bonus for shields
   armorType?: 'light' | 'medium' | 'heavy' | 'shield';
+  damage?: string; // e.g. "1d8", "2d6"
+  damageType?: string; // e.g. "Slashing", "Piercing"
+  attackBonus?: string; // e.g. "+1"
+  mastery?: string; // e.g. "Flex", "Vex", "Sap"
+  properties?: string[];
+  attackAbility?: string; // "str", "dex"
+  damageAbility?: string;
+  isProficient?: boolean;
   equipped?: boolean;
   imageUrl?: string;
 }
@@ -187,9 +196,21 @@ export interface ICharacter {
   customResources: CustomResource[];
   companions: ICompanion[];
 
-  // Syncing
+  // Syncing & Organization
   lastUpdated: number;
   order?: number; // For custom sorting
+  campaignId?: string;
+  campaignName?: string;
+}
+
+export interface ICampaign {
+  id: string;
+  name: string;
+  description?: string;
+  code: string;
+  createdBy: string;
+  createdAt: number;
+  characterIds: string[];
 }
 
 export interface ICompanion {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   DndContext,
@@ -18,94 +18,62 @@ import {
   rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { useAuth } from '../../providers/AuthProvider';
-import { UserPlusIcon } from '../../components/ui/icons';
+import { UserPlusIcon, MagnifyingGlassIcon, UserGroupIcon } from '../../components/ui/icons';
 import { useCharacter } from './CharacterProvider';
-import { ICharacter } from './characterTypes'; // Assicurati che il percorso all'interfaccia ICharacter sia corretto
+import { ICharacter } from './characterTypes';
 import { SortableCharacterCard } from './components/SortableCharacterCard';
 import { CharacterCard } from './components/CharacterCard';
 import { useIsTouchDevice } from '../../hooks/useIsTouchDevice';
+import { CampaignManagerModal } from './components/CampaignManagerModal';
 
 export const CharacterList: React.FC = () => {
-  const { characters, loading, deleteCharacter, saveCharacterOrder } = useCharacter();
+  const { characters, loading, deleteCharacter, saveCharacterOrder, duplicateCharacter } = useCharacter();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [orderedCharacters, setOrderedCharacters] = useState<ICharacter[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [activeCardId, setActiveCardId] = useState<string | null>(null);
+  const [activeCardId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCampaignFilter, setSelectedCampaignFilter] = useState<string>('all');
+  const [isCampaignModalOpen, setIsCampaignModalOpen] = useState(false);
   const isTouchDevice = useIsTouchDevice();
-  const intersectingIds = useRef(new Map<string, number>());
 
   useEffect(() => {
-    // Inizializza o aggiorna la lista ordinata quando i personaggi cambiano.
-    // In un'applicazione reale, potresti voler caricare l'ordine da uno storage persistente (es. Firestore)
-    // e salvarlo in handleDragEnd.
     setOrderedCharacters(characters);
   }, [characters]);
 
-  useEffect(() => {
-    // Attiviamo l'observer solo su dispositivi touch
-    if (isTouchDevice) {
-      const options = {
-        root: null, // usa il viewport come root
-        rootMargin: '0px',
-        // Attiva il callback appena una piccola parte della card è visibile (1%).
-        // Un valore basso come 0.01 assicura che anche le card in fondo alla pagina,
-        // che potrebbero non raggiungere mai il 50% di visibilità, vengano considerate.
-        threshold: 0.01,
-      };
+  // List of unique campaign names for filtering
+  const campaignOptions = useMemo(() => {
+    const names = new Set<string>();
+    characters.forEach(c => {
+      if (c.campaignName) names.add(c.campaignName);
+    });
+    return Array.from(names);
+  }, [characters]);
 
-      const observer = new IntersectionObserver((entries) => {
-        // Se stiamo trascinando, non aggiorniamo l'ID attivo per evitare flickering o salti di layout
-        if (activeId) return;
+  // Filtered characters based on search query and campaign filter
+  const filteredCharacters = useMemo(() => {
+    return orderedCharacters.filter(c => {
+      const matchesSearch =
+        c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.race.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.class.toLowerCase().includes(searchQuery.toLowerCase());
 
-        entries.forEach(entry => {
-          const id = (entry.target as HTMLElement).dataset.characterId;
-          if (!id) return;
+      const matchesCampaign =
+        selectedCampaignFilter === 'all' ||
+        (selectedCampaignFilter === 'none' && !c.campaignName) ||
+        c.campaignName === selectedCampaignFilter;
 
-          if (entry.isIntersecting) {
-            intersectingIds.current.set(id, entry.boundingClientRect.top);
-          } else {
-            intersectingIds.current.delete(id);
-          }
-        });
-
-        const visibleElements = Array.from(intersectingIds.current.entries());
-
-        if (visibleElements.length === 0) {
-          setActiveCardId(null);
-          return;
-        }
-
-        // Ordina per posizione (il valore nella mappa) per trovare l'elemento più in alto
-        visibleElements.sort(([, topA], [, topB]) => topA - topB);
-
-        const topMostId = visibleElements[0][0];
-
-        // Aggiorna lo stato solo se l'ID attivo è cambiato, per evitare re-render superflui
-        setActiveCardId(currentActiveId => (currentActiveId !== topMostId ? topMostId : currentActiveId));
-      }, options);
-
-      const cards = document.querySelectorAll('.character-card-observable');
-      cards.forEach(card => observer.observe(card));
-
-      return () => {
-        observer.disconnect();
-        intersectingIds.current.clear();
-      };
-    }
-  }, [orderedCharacters, isTouchDevice]); // Riavvia l'observer se la lista o il tipo di dispositivo cambia
+      return matchesSearch && matchesCampaign;
+    });
+  }, [orderedCharacters, searchQuery, selectedCampaignFilter]);
 
   const pointerSensor = useSensor(PointerSensor, {
-    activationConstraint: {
-      distance: 10,
-    },
+    activationConstraint: { distance: 10 },
   });
 
   const touchSensor = useSensor(TouchSensor, {
-    activationConstraint: {
-      delay: 1000,
-      tolerance: 15,
-    },
+    activationConstraint: { delay: 1000, tolerance: 15 },
   });
 
   const keyboardSensor = useSensor(KeyboardSensor, {
@@ -135,14 +103,8 @@ export const CharacterList: React.FC = () => {
         const oldIndex = items.findIndex((item) => item.id === active.id);
         const newIndex = items.findIndex((item) => item.id === over.id);
         const newOrder = arrayMove(items, oldIndex, newIndex);
-
-        // Update the order property for all items to match their new index
-        // This ensures the local state is consistent with what we send to the backend
         const updatedOrder = newOrder.map((char, index) => ({ ...char, order: index }));
-
-        // Save to backend
         saveCharacterOrder(updatedOrder);
-
         return updatedOrder;
       });
     }
@@ -151,14 +113,30 @@ export const CharacterList: React.FC = () => {
   const activeCharacter = activeId ? orderedCharacters.find(c => c.id === activeId) : null;
 
   const handleEditCharacter = (id: string) => {
-    // Naviga alla pagina di modifica del personaggio
     navigate(`/character/${id}/edit`);
   };
 
   const handleDeleteCharacter = async (id: string, name: string) => {
-    if (window.confirm(`Are you sure you want to delete ${name}? This cannot be undone.`)) {
+    if (window.confirm(`Sei sicuro di voler eliminare ${name}? L'azione non può essere annullata.`)) {
       await deleteCharacter(id);
     }
+  };
+
+  const handleDuplicateCharacter = async (char: ICharacter) => {
+    await duplicateCharacter(char);
+  };
+
+  const handleExportCharacter = (char: ICharacter) => {
+    const dataStr = JSON.stringify(char, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${char.name || 'character'}-runica-sheet.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -170,73 +148,142 @@ export const CharacterList: React.FC = () => {
   }
 
   return (
-    <div className="p-4 sm:p-8 max-w-7xl mx-auto pt-12">
-      <h2 className="text-3xl font-cinzel text-center text-foreground mb-8">Your Characters</h2>
-      <div className="flex flex-col items-center">
-        <button
-          onClick={() => handleSelectCharacter('new')}
-          className="mb-10 flex items-center gap-2 px-6 py-3 bg-accent-dark text-white font-bold rounded-lg shadow-md hover:bg-accent transition-all duration-300 transform hover:scale-105"
-        >
-          <UserPlusIcon className="w-5 h-5" />
-          Create New Character
-        </button>
+    <div className="p-4 sm:p-8 max-w-7xl mx-auto pt-8 space-y-8">
+      {/* Header Bar & Dashboard Title */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/60 pb-6">
+        <div>
+          <h2 className="text-4xl font-cinzel font-bold text-accent drop-shadow-sm">I Tuoi Eroi</h2>
+          <p className="text-muted-foreground text-sm mt-1">Gestisci i tuoi personaggi, avvia sessioni di gioco o organizza campagne.</p>
+        </div>
 
-        {orderedCharacters.length > 0 ? (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => setIsCampaignModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-card border border-accent/40 text-accent font-semibold text-sm rounded-xl hover:bg-accent/15 transition-all shadow-md"
           >
-            <SortableContext items={orderedCharacters.map(c => c.id)} strategy={rectSortingStrategy}>
-              <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {orderedCharacters.map(char => (
-                  <SortableCharacterCard
-                    key={char.id}
-                    id={char.id}
-                    character={char}
-                    activeCardId={activeCardId}
-                    onSelect={() => handleSelectCharacter(char.id)}
-                    onDelete={(e) => {
-                      e.stopPropagation();
-                      handleDeleteCharacter(char.id, char.name);
-                    }}
-                    onEdit={(e) => {
-                      e.stopPropagation();
-                      handleEditCharacter(char.id);
-                    }}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-
-            <DragOverlay adjustScale={true}>
-              {activeCharacter ? (
-                <div className="w-full max-w-sm sm:max-w-xs pointer-events-none touch-none shadow-2xl ring-2 ring-accent rounded-lg overflow-hidden scale-105">
-                  <CharacterCard
-                    character={activeCharacter}
-                    onSelect={() => { }}
-                    onDelete={() => { }}
-                    onEdit={() => { }}
-                  />
-                </div>
-              ) : null}
-            </DragOverlay>
-          </DndContext>
-        ) : (
-          <div className="text-center w-full max-w-2xl mt-8 py-16 px-6 bg-card/50 rounded-lg border border-border">
-            <h2 className="text-2xl font-semibold text-foreground font-cinzel">Your adventure awaits!</h2>
-            <p className="text-text-muted mt-2">
-              {currentUser
-                ? "You have no characters synced to this account."
-                : "You have no local characters."
-              }
-              <br />
-              Click the button above to forge your first hero.
-            </p>
-          </div>
-        )}
+            <UserGroupIcon className="w-5 h-5" />
+            <span>Gestisci Campagne</span>
+          </button>
+          <button
+            onClick={() => handleSelectCharacter('new')}
+            className="flex items-center gap-2 px-5 py-2.5 bg-accent text-accent-foreground font-bold text-sm rounded-xl shadow-lg hover:bg-accent-light transition-all transform hover:scale-105"
+          >
+            <UserPlusIcon className="w-5 h-5" />
+            <span>Crea Nuovo Eroe</span>
+          </button>
+        </div>
       </div>
+
+      {/* Filter & Search Bar */}
+      {orderedCharacters.length > 0 && (
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-card/40 backdrop-blur-md p-4 rounded-2xl border border-border/50 shadow-sm">
+          {/* Search Input */}
+          <div className="relative w-full sm:w-72">
+            <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Cerca personaggio, classe..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-input/40 border border-border rounded-xl pl-10 pr-4 py-2 text-sm text-foreground focus:outline-none focus:border-accent"
+            />
+          </div>
+
+          {/* Campaign Filter */}
+          {campaignOptions.length > 0 && (
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <label className="text-xs font-bold text-muted-foreground uppercase whitespace-nowrap">Campagna:</label>
+              <select
+                value={selectedCampaignFilter}
+                onChange={(e) => setSelectedCampaignFilter(e.target.value)}
+                className="bg-input/40 border border-border text-foreground text-sm rounded-xl px-3 py-2 focus:outline-none focus:border-accent"
+              >
+                <option value="all">Tutte le campagne</option>
+                <option value="none">Senza campagna</option>
+                {campaignOptions.map(camp => (
+                  <option key={camp} value={camp}>{camp}</option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Character Cards Grid */}
+      {filteredCharacters.length > 0 ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={filteredCharacters.map(c => c.id)} strategy={rectSortingStrategy}>
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredCharacters.map(char => (
+                <SortableCharacterCard
+                  key={char.id}
+                  id={char.id}
+                  character={char}
+                  activeCardId={activeCardId}
+                  onSelect={() => handleSelectCharacter(char.id)}
+                  onDelete={(e) => {
+                    e.stopPropagation();
+                    handleDeleteCharacter(char.id, char.name);
+                  }}
+                  onEdit={(e) => {
+                    e.stopPropagation();
+                    handleEditCharacter(char.id);
+                  }}
+                  onDuplicate={(e) => {
+                    e.stopPropagation();
+                    handleDuplicateCharacter(char);
+                  }}
+                  onExport={(e) => {
+                    e.stopPropagation();
+                    handleExportCharacter(char);
+                  }}
+                />
+              ))}
+            </div>
+          </SortableContext>
+
+          <DragOverlay adjustScale={true}>
+            {activeCharacter ? (
+              <div className="w-full max-w-sm sm:max-w-xs pointer-events-none touch-none shadow-2xl ring-2 ring-accent rounded-lg overflow-hidden scale-105">
+                <CharacterCard
+                  character={activeCharacter}
+                  onSelect={() => { }}
+                  onDelete={() => { }}
+                  onEdit={() => { }}
+                />
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      ) : (
+        <div className="text-center w-full max-w-2xl mx-auto py-16 px-6 bg-card/40 backdrop-blur-md rounded-2xl border border-border space-y-4">
+          <h3 className="text-2xl font-semibold text-foreground font-cinzel">Nessun eroe trovato</h3>
+          <p className="text-muted-foreground text-sm">
+            {searchQuery || selectedCampaignFilter !== 'all'
+              ? "Nessun personaggio corrisponde ai filtri di ricerca impostati."
+              : currentUser
+              ? "Non hai ancora schede salvate in questo account."
+              : "Non hai schede locali salvate."}
+          </p>
+          <button
+            onClick={() => handleSelectCharacter('new')}
+            className="px-6 py-2.5 bg-accent text-accent-foreground font-bold rounded-xl shadow-md hover:bg-accent-light transition-all text-sm"
+          >
+            Crea il tuo primo personaggio
+          </button>
+        </div>
+      )}
+
+      {/* Campaign Manager Modal */}
+      <CampaignManagerModal
+        isOpen={isCampaignModalOpen}
+        onClose={() => setIsCampaignModalOpen(false)}
+      />
     </div>
   );
 };

@@ -150,27 +150,31 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
                         <div key={item.id} className="group relative">
                             <AttackRow
                                 attack={item}
+                                abilityScores={abilityScores}
+                                proficiencyBonus={proficiencyBonus}
                                 onClick={() => toggleExpand(item.id)}
                                 variant="card"
                                 actions={
-                                    <>
-                                        <button
-                                            onClick={(e) => handleAttackRoll(e, item)}
-                                            className="h-9 px-3 bg-accent hover:bg-accent/90 text-accent-foreground rounded-lg font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all flex items-center gap-1.5"
-                                            title="Roll Attack"
-                                        >
-                                            <SwordIcon className="w-3.5 h-3.5" />
-                                            Hit
-                                        </button>
+                                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                                        {!item.saveAbility && (
+                                            <button
+                                                onClick={(e) => handleAttackRoll(e, item)}
+                                                className="flex-1 sm:flex-initial h-10 px-3.5 bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1.5"
+                                                title="Lancia Attacco per Colpire"
+                                            >
+                                                <SwordIcon className="w-4 h-4" />
+                                                Lancia Hit
+                                            </button>
+                                        )}
                                         <button
                                             onClick={(e) => handleDamageRoll(e, item)}
-                                            className="h-9 px-3 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-lg font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all flex items-center gap-1.5"
-                                            title="Roll Damage"
+                                            className="flex-1 sm:flex-initial h-10 px-3.5 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1.5"
+                                            title="Lancia Danni"
                                         >
-                                            <FireIcon className="w-3.5 h-3.5" />
-                                            Dmg
+                                            <FireIcon className="w-4 h-4" />
+                                            Lancia Danni
                                         </button>
-                                    </>
+                                    </div>
                                 }
                             >
                                 {isExpanded && (
@@ -414,7 +418,32 @@ const FeaturesList = ({ items }: { items: Feature[] }) => {
 const CombatTabView = () => {
     const { character } = useCharacter() as { character: ICharacter };
 
-    const attacks = useMemo(() => [...(character.attacks || [])].sort((a, b) => a.name.localeCompare(b.name)), [character.attacks]);
+    const attacks = useMemo(() => {
+        const customAttacks = character.attacks || [];
+        const equippedWeapons: Attack[] = (character.equipment || [])
+            .filter(item => item.equipped && (item.itemType === 'weapon' || Boolean(item.damage)))
+            .map(item => ({
+                id: item.id,
+                name: item.name,
+                bonus: item.attackBonus || '+0',
+                damage: item.damage || '1d6',
+                damageType: item.damageType || 'Slashing',
+                mastery: item.mastery || '',
+                properties: item.properties || [],
+                attackAbility: item.attackAbility || 'str',
+                damageAbility: item.damageAbility || 'str',
+                isProficient: item.isProficient ?? true,
+            }));
+
+        const all = [...customAttacks];
+        equippedWeapons.forEach(wAtk => {
+            if (!all.some(a => a.id === wAtk.id || a.name.toLowerCase() === wAtk.name.toLowerCase())) {
+                all.push(wAtk);
+            }
+        });
+
+        return all.sort((a, b) => a.name.localeCompare(b.name));
+    }, [character.attacks, character.equipment]);
     const features = useMemo(() => [...(character.featuresAndTraits || [])].sort((a, b) => a.name.localeCompare(b.name)), [character.featuresAndTraits]);
 
     // Calculate Proficiency Bonus (Level 1-4 = +2, 5-8 = +3, etc.)

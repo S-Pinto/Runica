@@ -13,6 +13,7 @@ interface ICharacterContext {
   deleteCharacter: (id: string) => Promise<void>;
   saveCharacter: (character: ICharacter) => Promise<ICharacter>;
   saveCharacterOrder: (characters: ICharacter[]) => Promise<void>;
+  duplicateCharacter: (character: ICharacter) => Promise<ICharacter>;
 }
 
 const CharacterContext = createContext<ICharacterContext | undefined>(undefined);
@@ -92,9 +93,15 @@ export const CharacterProvider = ({ children }: { children: ReactNode }) => {
     return await characterService.saveCharacter(characterToSave);
   }, []);
 
+  const duplicateCharacter = useCallback(async (char: ICharacter): Promise<ICharacter> => {
+    const cloned = await characterService.duplicateCharacter(char);
+    setCharacters(prev => sortCharacters([...prev, cloned]));
+    return cloned;
+  }, []);
+
   const value = {
     character, setCharacter, updateCharacter,
-    characters, loading, deleteCharacter, saveCharacter, saveCharacterOrder
+    characters, loading, deleteCharacter, saveCharacter, saveCharacterOrder, duplicateCharacter
   };
 
   return (
