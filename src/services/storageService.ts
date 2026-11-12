@@ -1,5 +1,5 @@
 import { getFirebase } from '../lib/getFirebase';
-import { ref, uploadBytes, getDownloadURL, uploadString, StringFormat } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, uploadString, getBlob, deleteObject, StringFormat } from 'firebase/storage';
 import imageCompression, { Options } from 'browser-image-compression';
 
 /**
@@ -123,4 +123,39 @@ export const uploadItemImage = async (dataUrl: string, userId: string, character
 
     const snapshot = await uploadString(storageRef, dataUrl, 'data_url');
     return await getDownloadURL(snapshot.ref);
+};
+
+const campaignPortraitRef = (campaignId: string, userId: string, characterId: string) =>
+    ref(getFirebase().storage, `campaigns/${campaignId}/portraits/${userId}/${characterId}`);
+
+/**
+ * Copia il ritratto di un personaggio nello Storage della campagna, così i membri possono
+ * vederlo senza avere accesso alla cartella privata del proprietario.
+ * @param sourceUrl URL del ritratto originale (Storage o data URL).
+ * @returns URL di download della copia.
+ */
+export const copyPortraitToCampaign = async (
+    sourceUrl: string,
+    campaignId: string,
+    userId: string,
+    characterId: string,
+): Promise<string> => {
+    const target = campaignPortraitRef(campaignId, userId, characterId);
+    if (sourceUrl.startsWith('data:')) {
+        await uploadString(target, sourceUrl, StringFormat.DATA_URL);
+    } else {
+        const blob = await getBlob(ref(getFirebase().storage, sourceUrl));
+        await uploadBytes(target, blob, { contentType: blob.type || 'image/jpeg' });
+    }
+    return getDownloadURL(target);
+};
+
+/** Elimina la copia del ritratto in una campagna; ignora l'assenza del file. */
+export const deleteCampaignPortrait = async (campaignId: string, userId: string, characterId: string): Promise<void> => {
+    try {
+        await deleteObject(campaignPortraitRef(campaignId, userId, characterId));
+    } catch (error) {
+        const code = (error as { code?: string })?.code;
+        if (code !== 'storage/object-not-found') throw error;
+    }
 };

@@ -4,6 +4,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client'; // Assicurati che l'import sia corretto
 import { RouterProvider } from 'react-router-dom';
 import { AuthProvider } from './providers/AuthProvider';
+import { CampaignProvider } from './providers/CampaignProvider';
 import { ThemeProvider } from './providers/ThemeProvider';
 import { router } from './routes/index';
 import { DialogHost } from './components/ui/Dialogs';
@@ -20,7 +21,9 @@ ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <ThemeProvider>
       <AuthProvider>
-        <RouterProvider router={router} />
+        <CampaignProvider>
+          <RouterProvider router={router} />
+        </CampaignProvider>
         <DialogHost />
       </AuthProvider>
     </ThemeProvider>

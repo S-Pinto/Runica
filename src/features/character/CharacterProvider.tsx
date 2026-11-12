@@ -1,9 +1,11 @@
 // src/features/character/CharacterProvider.tsx
-import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect, useRef } from 'react';
 import { ICharacter } from './characterTypes';
 import * as characterRepository from './characterRepository';
 import { promptAndMigrateLocalCharacters } from './migrationActions';
 import { useAuth } from '../../providers/AuthProvider';
+import { useCampaigns } from '../../providers/CampaignProvider';
+import { syncCharacterWithCampaigns, unpublishDeletedCharacter } from './campaignSync';
 import { describeDataError } from '../../lib/errors';
 
 interface ICharacterContext {
@@ -57,6 +59,15 @@ export const CharacterProvider = ({ children }: { children: ReactNode }) => {
 
   const uid = currentUser?.uid ?? null;
 
+  // Riferimenti aggiornati a ogni render: i callback sotto restano stabili ma vedono i dati correnti.
+  const { campaigns } = useCampaigns();
+  const charactersRef = useRef<ICharacter[]>([]);
+  charactersRef.current = characters;
+  const uidRef = useRef<string | null>(null);
+  uidRef.current = uid;
+  const cloudCampaignIdsRef = useRef<ReadonlySet<string>>(new Set());
+  cloudCampaignIdsRef.current = new Set(campaigns.map(c => c.id));
+
   useEffect(() => {
     // Al cambio utente (login/logout) i dati dell'account precedente non devono restare visibili.
     setLoading(true);
@@ -94,7 +105,11 @@ export const CharacterProvider = ({ children }: { children: ReactNode }) => {
   }, [uid]);
 
   const deleteCharacter = useCallback(async (id: string) => {
+    const removed = charactersRef.current.find(c => c.id === id);
     await characterRepository.deleteCharacter(id);
+    if (removed && uidRef.current) {
+      void unpublishDeletedCharacter(uidRef.current, removed, cloudCampaignIdsRef.current);
+    }
     setCharacters(prev => prev.filter(char => char.id !== id));
   }, []);
 
@@ -117,6 +132,7 @@ export const CharacterProvider = ({ children }: { children: ReactNode }) => {
     // Aggiornamento ottimistico: aggiorna l'interfaccia immediatamente
     // con i dati che stiamo per salvare. Questo fornisce un feedback istantaneo.
     let previous: ICharacter[] = [];
+    const previousCampaignId = charactersRef.current.find(c => c.id === characterToSave.id)?.campaignId;
     setCharacters(prev => {
       previous = prev;
       const existingIndex = prev.findIndex(c => c.id === characterToSave.id);
@@ -131,7 +147,11 @@ export const CharacterProvider = ({ children }: { children: ReactNode }) => {
     });
 
     try {
-      return await characterRepository.saveCharacter(characterToSave);
+      const saved = await characterRepository.saveCharacter(characterToSave);
+      if (uidRef.current) {
+        void syncCharacterWithCampaigns(uidRef.current, previousCampaignId, saved, cloudCampaignIdsRef.current);
+      }
+      return saved;
     } catch (error) {
       setCharacters(previous);
       throw error;

@@ -249,7 +249,54 @@ export interface ICharacter {
   campaignName?: string;
 }
 
+/** Campagna condivisa su Firestore (`campaigns/{id}`). Il DM è `ownerUid`. */
 export interface ICampaign {
+  id: string;
+  name: string;
+  description?: string;
+  ownerUid: string;
+  /** Tutti i membri, DM incluso: serve a query e regole di sicurezza. */
+  memberUids: string[];
+  inviteCode: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export type CampaignRole = 'dm' | 'player';
+
+/** `campaigns/{id}/members/{uid}` */
+export interface ICampaignMember {
+  uid: string;
+  role: CampaignRole;
+  displayName: string;
+  photoURL?: string;
+  joinedAt: number;
+  /** Codice usato per entrare: le regole lo verificano contro `campaignInvites`. */
+  joinCode?: string;
+}
+
+/** `campaigns/{id}/sharedCharacters/{characterId}`: riepilogo visibile ai membri. */
+export interface ISharedCharacter {
+  id: string;
+  ownerUid: string;
+  name: string;
+  class: string;
+  subclass: string;
+  race: string;
+  level: number;
+  hpCurrent: number;
+  hpMax: number;
+  hpTemp: number;
+  armorClass: number;
+  /** Copia del ritratto nello Storage della campagna. */
+  portraitUrl?: string;
+  /** URL del ritratto originale da cui è stata fatta la copia. */
+  portraitSource?: string;
+  lastUpdated: number;
+}
+
+/** Campagna salvata solo nel browser (prima della Fase G). Si può condividere con un tap. */
+export interface ILocalCampaign {
   id: string;
   name: string;
   description?: string;

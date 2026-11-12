@@ -3,6 +3,8 @@ import { useAuth } from '../../providers/AuthProvider';
 import { UserPlusIcon, UserGroupIcon } from '../../components/ui/icons';
 import { Button } from '../../components/ui/Button';
 import { useCharacter } from './CharacterProvider';
+import { useCampaigns } from '../../providers/CampaignProvider';
+import { resolveCampaignName } from './rules/campaign';
 import { CampaignManagerModal } from './components/CampaignManagerModal';
 import { CharacterListSkeleton } from './components/character-list/CharacterListSkeleton';
 import { CharacterListToolbar } from './components/character-list/CharacterListToolbar';
@@ -14,6 +16,7 @@ import { useCharacterActions } from './hooks/useCharacterActions';
 export const CharacterList: React.FC = () => {
   const { characters, loading, loadError, saveCharacterOrder } = useCharacter();
   const { currentUser } = useAuth();
+  const { campaignNames } = useCampaigns();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCampaignFilter, setSelectedCampaignFilter] = useState<string>('all');
   const [isCampaignModalOpen, setIsCampaignModalOpen] = useState(false);
@@ -22,14 +25,16 @@ export const CharacterList: React.FC = () => {
     handleSelectCharacter, handleEditCharacter, handleDeleteCharacter, handleDuplicateCharacter, handleExportCharacter,
   } = useCharacterActions();
 
-  // List of unique campaign names for filtering
+  // Campagne dei personaggi, per id (il nome può cambiare), con il nome aggiornato se noto
   const campaignOptions = useMemo(() => {
-    const names = new Set<string>();
+    const options = new Map<string, string>();
     characters.forEach(c => {
-      if (c.campaignName) names.add(c.campaignName);
+      const key = c.campaignId || c.campaignName;
+      const label = resolveCampaignName(c, campaignNames);
+      if (key && label) options.set(key, label);
     });
-    return Array.from(names);
-  }, [characters]);
+    return Array.from(options, ([value, label]) => ({ value, label }));
+  }, [characters, campaignNames]);
 
   // Filtered characters based on search query and campaign filter
   const filteredCharacters = useMemo(() => {
@@ -41,8 +46,8 @@ export const CharacterList: React.FC = () => {
 
       const matchesCampaign =
         selectedCampaignFilter === 'all' ||
-        (selectedCampaignFilter === 'none' && !c.campaignName) ||
-        c.campaignName === selectedCampaignFilter;
+        (selectedCampaignFilter === 'none' && !c.campaignId && !c.campaignName) ||
+        (c.campaignId || c.campaignName) === selectedCampaignFilter;
 
       return matchesSearch && matchesCampaign;
     });

@@ -36,6 +36,7 @@ Deploy: GitHub Actions su merge (`.github/workflows/`), oppure `npm run deploy:l
 ```
 ThemeProvider            tema salvato nel browser ('app-theme')
 └─ AuthProvider          utente Firebase, login Google
+   ├─ CampaignProvider   campagne condivise (Firestore) e locali, per l'utente corrente
    ├─ RouterProvider
    └─ DialogHost         toast / confirmDialog / alertDialog globali
 ```
@@ -62,7 +63,7 @@ ThemeProvider            tema salvato nel browser ('app-theme')
 src/
   main.tsx, App.tsx, index.css
   routes/            definizione del router
-  providers/         AuthProvider, ThemeProvider
+  providers/         AuthProvider, ThemeProvider, CampaignProvider
   features/
     auth/            LoginPage, AccountPage
     character/       dominio principale
@@ -95,8 +96,9 @@ functions/src/
 ### Dati
 
 - **Firestore**: `users/{uid}/characters/{characterId}`; le regole permettono accesso solo al proprietario.
-- **Storage**: `users/{uid}/profile.jpg`, `users/{uid}/character-portraits/{id}`, `users/{uid}/characters/{id}/companions/{cid}/portrait.jpg`, `.../items/{itemId}/image.jpg`. Lettura pubblica, scrittura solo del proprietario con limiti di dimensione.
-- **Browser (localStorage)**: personaggi in modalità offline/senza login, campagne (`campaignService`, solo locale), tema.
+- **Storage**: `users/{uid}/profile.jpg`, `users/{uid}/character-portraits/{id}`, `users/{uid}/characters/{id}/companions/{cid}/portrait.jpg`, `.../items/{itemId}/image.jpg`: lettura e scrittura solo del proprietario, con limiti di dimensione. Eccezione: `campaigns/{cid}/portraits/{uid}/{characterId}`, copia del ritratto per i membri della campagna (scrive il proprietario, leggono i membri via `firestore.exists` su `members/{uid}`).
+- **Firestore, campagne** (Fase G): `campaigns/{id}` (DM = `ownerUid`, `memberUids`, `inviteCode`), `campaigns/{id}/members/{uid}` (ruolo `dm`/`player`), `campaigns/{id}/sharedCharacters/{characterId}` (riepilogo pubblicato dal proprietario, mai la scheda intera), `campaignInvites/{codice}` (codice → campagna, leggibile con `get`, mai `list`). L'unione richiede un `members/{uid}` con `joinCode` valido nello stesso batch dell'aggiornamento di `memberUids`.
+- **Browser (localStorage)**: personaggi in modalità offline/senza login, campagne locali storiche e quelle create senza login (`campaignService`, `ILocalCampaign`, condivisibili dopo il login), tema.
 - Quando si legge un documento si fa merge con `createNewCharacter()` per riempire i campi mancanti: aggiungere un campo a `ICharacter` richiede un default lì.
 
 ## Convenzioni
@@ -129,8 +131,8 @@ functions/src/
 1. `pdfHandler` (v1) non controlla l'autenticazione e usa la regione predefinita; il client collega l'emulatore a ogni chiamata su `localhost`.
 2. ~~Pagina di stampa fuori da `CharacterProvider` e auth non pronta~~ — risolto nella Fase E (`AuthProvider` blocca il render finché l'auth è risolta).
 3. Persistenza su tre livelli (Firestore, localStorage, migrazione): regola di conflitto definita nella Fase E (vince `lastUpdated` più recente), ma nessun merge campo per campo.
-4. Campagne solo locali: "unisciti con codice" non funziona tra dispositivi.
-5. Immagini Storage leggibili da chiunque.
+4. ~~Campagne solo locali~~ — risolto nella Fase G (campagne su Firestore con DM, giocatori e codice d'invito).
+5. Immagini Storage: le regole sono solo-proprietario, ma gli URL di download contengono un token e funzionano per chiunque li abbia (anche quello del ritratto condiviso in campagna).
 6. ~~`characterService` mescolava I/O, regole e UI~~ — risolto nella Fase D.
 7. ~~File molto grandi~~ — risolto nella Fase F (nessun componente sopra ~300 righe; restano `icons.tsx`, un elenco di icone, e `characterTypes.ts`, solo tipi).
 8. ~~Residui~~ — risolti nella Fase C (file inutilizzati rimossi, `firebaseConfig` unito in `getFirebase`, refuso e classe mancante corretti, README riscritto).
@@ -181,8 +183,11 @@ Ogni fase è indipendente: si può fare in qualsiasi ordine, con un branch e una
 - Non fatto: scelta fra stampa HTML del client e PDF del server (il doppione di layout resta, rimandato a una fase dedicata perché cambierebbe il comportamento e tocca la Fase A).
 - **Fatto quando**: nessun componente sopra ~300 righe; comportamento invariato.
 
-### Fase G — Campagne condivise (funzionale)
-- Spostare le campagne su Firestore (collezione top-level con membri), regole di accesso per i membri, unione via codice.
+### Fase G — Campagne condivise (funzionale) — fatta
+- Campagne su Firestore con ruoli DM/giocatore, unione via codice, riepilogo dei personaggi visibile ai membri, copia del ritratto nello Storage della campagna.
+- Fatto: `ICampaign`/`ICampaignMember`/`ISharedCharacter` in `characterTypes.ts`; `rules/campaign.ts` (codici, ruoli, riepilogo, piano di sincronizzazione; con test); `services/campaignService.ts` (I/O Firestore + campagne locali) e `storageService` (copia ritratti); `providers/CampaignProvider.tsx`; `features/character/campaignSync.ts` (pubblica/ritira il riepilogo al salvataggio o all'eliminazione del personaggio, best effort); regole in `firestore.rules` e `storage.rules`.
+- UI: `CampaignManagerModal` (le mie / nuova / unisciti, con "Condividi" per le campagne locali), nuova rotta `/campaign/:campaignId` (`features/campaign/`: gruppo, membri, codice, modifica/elimina per il DM, abbandona per il giocatore), `CampaignSelect` e filtro della lista per id.
+- Non fatto / da sapere: nessun test delle regole con l'emulatore Firestore (il progetto non ne ha uno) e nessun test del servizio; le regole vanno distribuite (`firebase deploy --only firestore:rules,storage`); la copia del ritratto richiede che il bucket permetta la lettura via SDK (CORS), altrimenti il riepilogo si pubblica senza ritratto; `firestore.exists` in `storage.rules` punta al database `runica-db`; il DM non si trasferisce; la scheda completa dei giocatori non è visibile al DM (solo il riepilogo).
 - **Fatto quando**: due utenti diversi vedono la stessa campagna.
 
 Dipendenze consigliate, non obbligatorie: B prima di D/F rende il refactor più sicuro; D semplifica E.

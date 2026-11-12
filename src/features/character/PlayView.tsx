@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, Suspense, lazy, FC, createElement } from '
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import * as characterRepository from './characterRepository';
 import { useCharacter } from './CharacterProvider';
+import { useCampaigns } from '../../providers/CampaignProvider';
+import { resolveCampaignName } from './rules/campaign';
 import { describeDataError } from '../../lib/errors';
 import { BackIcon, EditIcon, SparklesIcon, MoonIcon, SunIcon, PrinterIcon, EllipsisVerticalIcon, UserGroupIcon, HeartIcon, StarIcon, SwordIcon, UserCircleIcon, ShieldIcon } from '../../components/ui/icons';
 import { Button } from '../../components/ui/Button';
@@ -52,6 +54,7 @@ export const PlayView: FC = () => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const { character, setCharacter, updateCharacter } = useCharacter();
+    const { campaignNames } = useCampaigns();
     const [error, setError] = useState<string | null>(null);
     
     const tabParam = searchParams.get('tab') as PlayTab | null;
@@ -193,10 +196,10 @@ export const PlayView: FC = () => {
                         <div className="min-w-0">
                             <h1 className="truncate font-cinzel text-2xl font-bold text-foreground sm:text-3xl">{character.name || 'Senza nome'}</h1>
                             <p className="truncate text-sm capitalize text-muted-foreground">{subtitle}</p>
-                            {character.campaignName && (
+                            {resolveCampaignName(character, campaignNames) && (
                                 <span className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent">
                                     <UserGroupIcon className="h-3.5 w-3.5" />
-                                    {character.campaignName}
+                                    {resolveCampaignName(character, campaignNames)}
                                 </span>
                             )}
                         </div>
