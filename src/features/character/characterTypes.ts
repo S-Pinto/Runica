@@ -238,6 +238,8 @@ export interface ICharacter {
     [level: number]: { max: number; used: number };
   };
   customResources: CustomResource[];
+  /** Which derived values are calculated from class and level (true) or set by hand (false). */
+  automation?: { spellSlots?: boolean; proficiency?: boolean; hitDie?: boolean };
   companions: ICompanion[];
 
   // Syncing & Organization

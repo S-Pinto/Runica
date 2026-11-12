@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "skills": {
+    "animate": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/animate/SKILL.md",
+      "computedHash": "18c66551f62a1b1d0d3c5116a2fe6af66d8fbc643db84c99c11f8abd584fcf1e"
+    },
+    "cc-apply": {
+      "source": "claude89757/claude-code-context-skills",
+      "sourceType": "github",
+      "skillPath": "skills/cc-apply/SKILL.md",
+      "computedHash": "5453185dd179f9c33506cc5f573f898a200bc4c4691ffd0459e47b3817c119e2"
+    },
+    "cc-learn": {
+      "source": "claude89757/claude-code-context-skills",
+      "sourceType": "github",
+      "skillPath": "skills/cc-learn/SKILL.md",
+      "computedHash": "35335cc057c56abe6a89c359d5d7f27007c3b81570b9b2730759229bbe1e99df"
+    },
+    "cc-trace": {
+      "source": "claude89757/claude-code-context-skills",
+      "sourceType": "github",
+      "skillPath": "skills/cc-trace/SKILL.md",
+      "computedHash": "a0884e1078acdce6f94e6e916807ee5a10e941392c5b13560a3c428d4e85ee84"
+    },
+    "cc-verify": {
+      "source": "claude89757/claude-code-context-skills",
+      "sourceType": "github",
+      "skillPath": "skills/cc-verify/SKILL.md",
+      "computedHash": "b80c91e746ed48224db1be373a8e7505f770bd25807b884051e7695f7bc1406a"
+    },
+    "design-taste-frontend": {
+      "source": "Leonxlnx/taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/taste-skill/SKILL.md",
+      "computedHash": "974e1bb8cf7c78d3a63f1456d54a97119c03e7ab8bf374e04ade800892326ec7"
+    },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/impeccable/SKILL.md",
+      "computedHash": "482387065ecc2502379bbd95c6b8170d528380c94ce357434d05b2cbb63cd550"
+    }
+  }
+}
