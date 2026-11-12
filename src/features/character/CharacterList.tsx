@@ -18,7 +18,8 @@ import {
   rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { useAuth } from '../../providers/AuthProvider';
-import { UserPlusIcon, MagnifyingGlassIcon, UserGroupIcon } from '../../components/ui/icons';
+import { UserPlusIcon, MagnifyingGlassIcon, UserGroupIcon, PlusIcon } from '../../components/ui/icons';
+import { Button } from '../../components/ui/Button';
 import { useCharacter } from './CharacterProvider';
 import { ICharacter } from './characterTypes';
 import { SortableCharacterCard } from './components/SortableCharacterCard';
@@ -33,7 +34,6 @@ export const CharacterList: React.FC = () => {
   const navigate = useNavigate();
   const [orderedCharacters, setOrderedCharacters] = useState<ICharacter[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [activeCardId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCampaignFilter, setSelectedCampaignFilter] = useState<string>('all');
   const [isCampaignModalOpen, setIsCampaignModalOpen] = useState(false);
@@ -142,180 +142,168 @@ export const CharacterList: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-accent"></div>
+      <div className="mx-auto max-w-7xl space-y-8 p-4 sm:p-8" aria-busy="true" aria-label="Caricamento personaggi">
+        <div className="h-16 w-64 animate-pulse rounded-xl bg-muted/30" />
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="overflow-hidden rounded-2xl border border-border/50 bg-card">
+              <div className="aspect-[4/3] animate-pulse bg-muted/30" />
+              <div className="space-y-3 p-4">
+                <div className="h-2 animate-pulse rounded bg-muted/40" />
+                <div className="h-10 animate-pulse rounded-xl bg-muted/30" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
+  const isFiltering = searchQuery !== '' || selectedCampaignFilter !== 'all';
+  const filterChips: { value: string; label: string }[] = [
+    { value: 'all', label: 'Tutti' },
+    ...campaignOptions.map((c) => ({ value: c, label: c })),
+    { value: 'none', label: 'Senza campagna' },
+  ];
+
   return (
-    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8">
-      {/* Modern Dashboard Hero Section */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-card/90 via-card/60 to-accent/10 border border-accent/20 p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
-        
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/15 border border-accent/30 text-accent text-xs font-bold font-mono uppercase tracking-widest">
-              <span>✦</span> Scheda Personaggio D&D 5e
-            </div>
-            <h2 className="text-3xl sm:text-5xl font-cinzel font-black text-accent drop-shadow-md tracking-tight">
-              I Tuoi Eroi
-            </h2>
-            <p className="text-foreground/80 text-sm sm:text-base leading-relaxed">
-              Gestisci i tuoi avventurieri, organizza le tue campagne di gioco e lancia i tuoi dadi in tempo reale.
-            </p>
-            
-            {/* Quick Stat Indicators */}
-            <div className="flex items-center gap-4 pt-2">
-              <div className="flex items-center gap-2 bg-background/50 px-3 py-1.5 rounded-xl border border-border/50 text-xs font-semibold">
-                <span className="text-muted-foreground uppercase text-[10px]">Totale Eroi:</span>
-                <span className="font-mono font-bold text-accent text-sm">{characters.length}</span>
-              </div>
-              <div className="flex items-center gap-2 bg-background/50 px-3 py-1.5 rounded-xl border border-border/50 text-xs font-semibold">
-                <span className="text-muted-foreground uppercase text-[10px]">Campagne:</span>
-                <span className="font-mono font-bold text-accent text-sm">{campaignOptions.length}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={() => setIsCampaignModalOpen(true)}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-3 bg-card/80 border border-accent/40 text-accent font-bold text-xs uppercase tracking-wider rounded-2xl hover:bg-accent/20 hover:border-accent transition-all shadow-md active:scale-95"
-            >
-              <UserGroupIcon className="w-4 h-4" />
-              <span>Gestisci Campagne</span>
-            </button>
-            <button
-              onClick={() => handleSelectCharacter('new')}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-3 bg-accent text-accent-foreground font-extrabold text-xs uppercase tracking-wider rounded-2xl shadow-[0_0_20px_rgb(var(--color-accent)/0.3)] hover:shadow-[0_0_30px_rgb(var(--color-accent)/0.5)] hover:bg-accent-light transition-all transform hover:scale-105 active:scale-95"
-            >
-              <UserPlusIcon className="w-4 h-4" />
-              <span>Crea Nuovo Eroe</span>
-            </button>
-          </div>
+    <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-8">
+      {/* Header */}
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="font-cinzel text-3xl font-bold text-foreground sm:text-4xl">I tuoi eroi</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {characters.length === 1 ? '1 eroe' : `${characters.length} eroi`}
+            {campaignOptions.length > 0 &&
+              ` · ${campaignOptions.length} ${campaignOptions.length === 1 ? 'campagna' : 'campagne'}`}
+          </p>
         </div>
-      </div>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={() => setIsCampaignModalOpen(true)} className="flex-1 sm:flex-none">
+            <UserGroupIcon className="h-4 w-4" /> Campagne
+          </Button>
+          <Button onClick={() => handleSelectCharacter('new')} className="flex-1 sm:flex-none">
+            <UserPlusIcon className="h-4 w-4" /> Nuovo eroe
+          </Button>
+        </div>
+      </header>
 
-      {/* Filter & Search Bar */}
-      {orderedCharacters.length > 0 && (
-        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-card/40 backdrop-blur-xl p-4 rounded-2xl border border-border/60 shadow-lg">
-          {/* Search Input */}
-          <div className="relative w-full sm:w-80">
-            <MagnifyingGlassIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+      {/* Toolbar */}
+      {characters.length > 0 && (
+        <div className="flex flex-col gap-3 md:flex-row md:items-center">
+          <div className="relative md:w-80">
+            <MagnifyingGlassIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
-              type="text"
-              placeholder="Cerca personaggio, classe o razza..."
+              type="search"
+              aria-label="Cerca personaggi"
+              placeholder="Cerca per nome, classe o razza"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-input/40 border border-border/80 rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all font-medium"
+              className="h-10 w-full rounded-xl border border-border bg-card pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground/70 transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-ring/30"
             />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground hover:text-foreground"
-              >
-                ✕
-              </button>
-            )}
           </div>
-
-          {/* Campaign Filter */}
           {campaignOptions.length > 0 && (
-            <div className="flex items-center gap-2.5 w-full sm:w-auto">
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider whitespace-nowrap">Campagna:</span>
-              <select
-                value={selectedCampaignFilter}
-                onChange={(e) => setSelectedCampaignFilter(e.target.value)}
-                className="w-full sm:w-auto bg-input/40 border border-border/80 text-foreground text-sm font-semibold rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-accent transition-all cursor-pointer"
-              >
-                <option value="all">Tutte le campagne</option>
-                <option value="none">Senza campagna</option>
-                {campaignOptions.map(camp => (
-                  <option key={camp} value={camp}>{camp}</option>
-                ))}
-              </select>
+            <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:px-0" role="group" aria-label="Filtra per campagna">
+              {filterChips.map((chip) => {
+                const active = selectedCampaignFilter === chip.value;
+                return (
+                  <button
+                    key={chip.value}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setSelectedCampaignFilter(chip.value)}
+                    className={`h-8 shrink-0 whitespace-nowrap rounded-full border px-3.5 text-xs font-semibold transition-colors ${
+                      active
+                        ? 'border-accent bg-accent/15 text-accent'
+                        : 'border-border text-muted-foreground hover:border-accent/50 hover:text-text'
+                    }`}
+                  >
+                    {chip.label}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
       )}
 
-      {/* Character Cards Grid */}
+      {/* Grid */}
       {filteredCharacters.length > 0 ? (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext items={filteredCharacters.map(c => c.id)} strategy={rectSortingStrategy}>
-            <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredCharacters.map(char => (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <SortableContext items={filteredCharacters.map((c) => c.id)} strategy={rectSortingStrategy}>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {filteredCharacters.map((char) => (
                 <SortableCharacterCard
                   key={char.id}
                   id={char.id}
                   character={char}
-                  activeCardId={activeCardId}
                   onSelect={() => handleSelectCharacter(char.id)}
-                  onDelete={(e) => {
-                    e.stopPropagation();
-                    handleDeleteCharacter(char.id, char.name);
-                  }}
-                  onEdit={(e) => {
-                    e.stopPropagation();
-                    handleEditCharacter(char.id);
-                  }}
-                  onDuplicate={(e) => {
-                    e.stopPropagation();
-                    handleDuplicateCharacter(char);
-                  }}
-                  onExport={(e) => {
-                    e.stopPropagation();
-                    handleExportCharacter(char);
-                  }}
+                  onDelete={() => handleDeleteCharacter(char.id, char.name)}
+                  onEdit={() => handleEditCharacter(char.id)}
+                  onDuplicate={() => handleDuplicateCharacter(char)}
+                  onExport={() => handleExportCharacter(char)}
                 />
               ))}
+              {!isFiltering && (
+                <button
+                  type="button"
+                  onClick={() => handleSelectCharacter('new')}
+                  className="group flex min-h-[16rem] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-muted-foreground/30 text-muted-foreground transition-colors hover:border-accent/60 hover:bg-accent/5 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full border border-current transition-transform group-hover:scale-110">
+                    <PlusIcon className="h-6 w-6" />
+                  </span>
+                  <span className="text-sm font-semibold">Nuovo eroe</span>
+                </button>
+              )}
             </div>
           </SortableContext>
 
-          <DragOverlay adjustScale={true}>
+          <DragOverlay adjustScale>
             {activeCharacter ? (
-              <div className="w-full max-w-sm sm:max-w-xs pointer-events-none touch-none shadow-2xl ring-2 ring-accent rounded-lg overflow-hidden scale-105">
-                <CharacterCard
-                  character={activeCharacter}
-                  onSelect={() => { }}
-                  onDelete={() => { }}
-                  onEdit={() => { }}
-                />
+              <div className="pointer-events-none rotate-2 scale-105 rounded-2xl shadow-2xl ring-2 ring-accent">
+                <CharacterCard character={activeCharacter} onSelect={() => {}} onDelete={() => {}} onEdit={() => {}} />
               </div>
             ) : null}
           </DragOverlay>
         </DndContext>
-      ) : (
-        <div className="text-center w-full max-w-2xl mx-auto py-16 px-6 bg-card/40 backdrop-blur-md rounded-2xl border border-border space-y-4">
-          <h3 className="text-2xl font-semibold text-foreground font-cinzel">Nessun eroe trovato</h3>
-          <p className="text-muted-foreground text-sm">
-            {searchQuery || selectedCampaignFilter !== 'all'
-              ? "Nessun personaggio corrisponde ai filtri di ricerca impostati."
-              : currentUser
-              ? "Non hai ancora schede salvate in questo account."
-              : "Non hai schede locali salvate."}
-          </p>
-          <button
-            onClick={() => handleSelectCharacter('new')}
-            className="px-6 py-2.5 bg-accent text-accent-foreground font-bold rounded-xl shadow-md hover:bg-accent-light transition-all text-sm"
+      ) : isFiltering ? (
+        <div className="rounded-2xl border border-border/60 bg-card/50 px-6 py-14 text-center">
+          <p className="font-semibold text-foreground">Nessun eroe corrisponde ai filtri</p>
+          <p className="mt-1 text-sm text-muted-foreground">Prova un'altra ricerca o un'altra campagna.</p>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="mt-5"
+            onClick={() => {
+              setSearchQuery('');
+              setSelectedCampaignFilter('all');
+            }}
           >
-            Crea il tuo primo personaggio
-          </button>
+            Azzera filtri
+          </Button>
+        </div>
+      ) : (
+        <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-card px-6 py-16 text-center sm:py-20">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgb(var(--color-accent)/0.18),transparent_60%)]" />
+          <div className="relative mx-auto max-w-md">
+            <div className="mx-auto mb-6 flex h-16 w-16 rotate-45 items-center justify-center rounded-2xl border border-accent/40 bg-accent/10">
+              <span className="-rotate-45 font-norse text-3xl text-accent">R</span>
+            </div>
+            <h2 className="font-cinzel text-2xl font-bold text-foreground">La tua avventura inizia qui</h2>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              {currentUser
+                ? 'Non hai ancora personaggi su questo account.'
+                : 'Non hai personaggi salvati su questo dispositivo. Accedi per sincronizzarli tra i tuoi dispositivi.'}
+            </p>
+            <Button size="lg" className="mt-8" onClick={() => handleSelectCharacter('new')}>
+              <UserPlusIcon className="h-4 w-4" /> Crea il tuo primo eroe
+            </Button>
+          </div>
         </div>
       )}
 
-      {/* Campaign Manager Modal */}
-      <CampaignManagerModal
-        isOpen={isCampaignModalOpen}
-        onClose={() => setIsCampaignModalOpen(false)}
-      />
+      <CampaignManagerModal isOpen={isCampaignModalOpen} onClose={() => setIsCampaignModalOpen(false)} />
     </div>
   );
 };

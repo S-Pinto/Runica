@@ -334,3 +334,12 @@ input[type="number"],
     transform: translateY(-2px);
   }
 }
+@layer utilities {
+  /* Horizontal scrollers (chip rows) without a visible scrollbar. */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
