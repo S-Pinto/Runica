@@ -43,7 +43,7 @@ export const ImageModal: React.FC<ImageModalProps> = ({ imageUrl, altText, onClo
                 <button
                     onClick={onClose}
                     className="absolute -top-12 right-0 md:-right-12 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 rounded-full p-2.5 transition-all backdrop-blur-md border border-white/10"
-                    aria-label="Close image view"
+                    aria-label="Chiudi immagine"
                 >
                     <XMarkIcon className="w-6 h-6" />
                 </button>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Attack, AbilityScores } from '../characterTypes';
+import { WEAPON_MASTERIES } from '../../../data/weaponProperties';
 
 type AttackRowVariant = 'card' | 'list';
 
@@ -24,7 +25,7 @@ const ABILITY_MAP: Record<string, keyof AbilityScores> = {
 
 const ABILITY_LABELS: Record<string, string> = {
   strength: 'FOR',
-  dexterity: 'DEX',
+  dexterity: 'DES',
   constitution: 'COS',
   intelligence: 'INT',
   wisdom: 'SAG',
@@ -59,8 +60,8 @@ export function getAttackSummary(
   if (attack.saveAbility) {
     return {
       isSave: true,
-      dcText: `CD ${attack.bonus || 10} ${attack.saveAbility.toUpperCase()}`,
-      damageText: attack.damage ? `${attack.damage} ${attack.damageType || ''}`.trim() : 'N/A',
+      dcText: `CD ${attack.bonus || 10} ${ABILITY_LABELS[ABILITY_MAP[attack.saveAbility.toLowerCase()] || attack.saveAbility] || attack.saveAbility.toUpperCase()}`,
+      damageText: attack.damage ? `${attack.damage} ${attack.damageType || ''}`.trim() : '–',
       additionalDamage: attack.additionalDamage,
       hitBreakdownParts: [],
       damageBreakdownParts: [],
@@ -83,7 +84,7 @@ export function getAttackSummary(
 
   if (attack.isProficient && proficiencyBonus) {
     hitBonus += proficiencyBonus;
-    hitParts.push(`+${proficiencyBonus} PB`);
+    hitParts.push(`+${proficiencyBonus} Comp.`);
   }
 
   if (attack.bonus) {
@@ -238,7 +239,7 @@ export const AttackRow: React.FC<AttackRowProps> = ({
           <div className="flex flex-wrap gap-2 items-center pt-1 border-t border-border/30">
             {attack.mastery && (
               <span className="bg-purple-500/15 text-purple-300 px-2.5 py-1 rounded-lg border border-purple-500/30 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1 shadow-sm">
-                ✨ {attack.mastery}
+                ✨ {WEAPON_MASTERIES[attack.mastery]?.name ?? attack.mastery}
               </span>
             )}
             {attack.properties && attack.properties.map(p => (

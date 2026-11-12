@@ -111,7 +111,7 @@ export const CompanionSkillSelector: React.FC<CompanionSkillSelectorProps> = ({ 
                     );
                 })}
             </div>
-            {!readOnly && <p className="text-xs text-muted-foreground mt-2 italic">* Click once for Proficiency, twice for Expertise, three times to clear.</p>}
+            {!readOnly && <p className="text-xs text-muted-foreground mt-2 italic">* Un clic per la competenza, due per la maestria, tre per rimuovere.</p>}
         </div>
     );
 };

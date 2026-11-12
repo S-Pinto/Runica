@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useCharacter } from '../../CharacterProvider';
 import { HeartIcon, PlusIcon, MinusIcon, ShieldIcon } from '../../../../components/ui/icons';
+import { toast } from '../../../../components/ui/Dialogs';
 
 const QUICK_AMOUNTS = [1, 5, 10];
 
@@ -15,15 +16,34 @@ export const HPTracker = () => {
     const applyDamage = () => {
         if (value <= 0) return;
         const toTemp = Math.min(value, hp.temporary);
+        const toHp = value - toTemp;
+        const newCurrent = Math.max(0, hp.current - toHp);
+        const saves = character.deathSaves;
+        let deathSaves = saves;
+
+        if (hp.current === 0 && toHp > 0) {
+            // Already down: each hit is a failed death save; massive damage (>= max HP) kills outright.
+            deathSaves = { ...saves, failures: toHp >= hp.max ? 3 : Math.min(3, saves.failures + 1) };
+        } else if (newCurrent === 0 && toHp - hp.current >= hp.max) {
+            // Dropped to 0 and the leftover damage is at least the HP maximum: instant death.
+            deathSaves = { ...saves, failures: 3 };
+        }
+
         updateCharacter({
-            hp: { ...hp, temporary: hp.temporary - toTemp, current: Math.max(0, hp.current - (value - toTemp)) },
+            hp: { ...hp, temporary: hp.temporary - toTemp, current: newCurrent },
+            ...(deathSaves !== saves ? { deathSaves } : {}),
         });
+        if (hp.current === 0 && toHp > 0 && deathSaves.failures < 3) toast.info('Danno a 0 PV: un fallimento al tiro contro la morte.');
         setAmount('');
     };
 
     const applyHeal = () => {
         if (value <= 0) return;
-        updateCharacter({ hp: { ...hp, current: Math.min(hp.max, hp.current + value) } });
+        updateCharacter({
+            hp: { ...hp, current: Math.min(hp.max, hp.current + value) },
+            // Regaining any HP at 0 brings you back and clears death saves.
+            ...(hp.current === 0 ? { deathSaves: { successes: 0, failures: 0 } } : {}),
+        });
         setAmount('');
     };
 

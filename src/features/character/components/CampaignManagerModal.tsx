@@ -56,7 +56,7 @@ export const CampaignManagerModal: React.FC<CampaignManagerModalProps> = ({
         <header className="flex justify-between items-center px-6 py-4 border-b border-border bg-background/50">
           <div className="flex items-center gap-2 text-accent">
             <UserGroupIcon className="w-6 h-6" />
-            <h3 className="text-xl font-cinzel font-bold">Gestione Campagne</h3>
+            <h3 className="text-xl font-cinzel font-bold">Campagne</h3>
           </div>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted transition-colors">
             <XMarkIcon className="w-6 h-6" />
@@ -83,7 +83,7 @@ export const CampaignManagerModal: React.FC<CampaignManagerModalProps> = ({
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
-            + Nuova Campagna
+            + Nuova campagna
           </button>
           <button
             onClick={() => setActiveTab('join')}
@@ -93,7 +93,7 @@ export const CampaignManagerModal: React.FC<CampaignManagerModalProps> = ({
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
-            Unisciti tramite Codice
+            Unisciti con un codice
           </button>
         </div>
 
@@ -151,7 +151,7 @@ export const CampaignManagerModal: React.FC<CampaignManagerModalProps> = ({
                             : 'bg-secondary/60 text-secondary-foreground hover:bg-accent hover:text-accent-foreground'
                         }`}
                       >
-                        {selectedCampaignId === camp.id ? 'Selezionata (Clicca per rimuovere)' : 'Associa Scheda'}
+                        {selectedCampaignId === camp.id ? 'Selezionata (clicca per rimuovere)' : 'Associa'}
                       </button>
                     )}
                   </div>
@@ -164,7 +164,7 @@ export const CampaignManagerModal: React.FC<CampaignManagerModalProps> = ({
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
-                  Nome Campagna
+                  Nome della campagna
                 </label>
                 <input
                   type="text"
@@ -177,7 +177,7 @@ export const CampaignManagerModal: React.FC<CampaignManagerModalProps> = ({
               </div>
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
-                  Descrizione / Note DM (Opzionale)
+                  Descrizione o note del DM (facoltativo)
                 </label>
                 <textarea
                   value={newCampaignDesc}
@@ -191,7 +191,7 @@ export const CampaignManagerModal: React.FC<CampaignManagerModalProps> = ({
                 type="submit"
                 className="w-full py-3 bg-accent text-accent-foreground font-bold rounded-xl shadow-lg hover:bg-accent-light transition-all flex items-center justify-center gap-2"
               >
-                <PlusIcon className="w-5 h-5" /> Crea Campagna
+                <PlusIcon className="w-5 h-5" /> Crea campagna
               </button>
             </form>
           )}
@@ -215,7 +215,7 @@ export const CampaignManagerModal: React.FC<CampaignManagerModalProps> = ({
             >
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
-                  Codice Invito Campagna (6 caratteri)
+                  Codice d'invito (6 caratteri)
                 </label>
                 <input
                   type="text"
@@ -231,7 +231,7 @@ export const CampaignManagerModal: React.FC<CampaignManagerModalProps> = ({
                 type="submit"
                 className="w-full py-3 bg-accent text-accent-foreground font-bold rounded-xl shadow-lg hover:bg-accent-light transition-all flex items-center justify-center gap-2"
               >
-                Unisciti alla Campagna
+                Unisciti alla campagna
               </button>
             </form>
           )}

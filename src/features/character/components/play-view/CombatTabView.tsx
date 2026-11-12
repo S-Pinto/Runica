@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useCharacter } from '../../CharacterProvider';
 import { Attack, Feature, FeatureCategory, CATEGORY_CONFIG, EquipmentItem } from '../../characterTypes';
-import { rollDiceExpression } from '../../utils/characterUtils';
-import { AttackRow } from '../AttackRow';
+import { rollDiceExpression, doubleDice } from '../../utils/characterUtils';
+import { AttackRow, getAttackSummary } from '../AttackRow';
 import { ChevronDownIcon, ChevronUpIcon, TrashIcon, SwordIcon, BoltIcon, FireIcon } from '../../../../components/ui/icons';
 import { WEAPON_MASTERIES, WEAPON_PROPERTIES } from '../../../../data/weaponProperties';
 
@@ -82,33 +82,26 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
     const handleDamageRoll = (e: React.MouseEvent, attack: Attack) => {
         e.stopPropagation();
 
-        // Roll Main Damage
-        const mainResult = rollDiceExpression(attack.damage);
-        let totalDamage = mainResult.total;
-        let details = [`${mainResult.total} ${attack.damageType || ''}`.trim()];
-        let breakdownParts = [`${mainResult.pretty} ${attack.damageType ? `(${attack.damageType})` : ''}`];
+        // Same formula the card shows (dice + ability modifier + magic bonus), so display and roll agree.
+        const summary = getAttackSummary(attack, abilityScores, proficiencyBonus);
+        const baseFormula: string = (summary.isSave ? attack.damage : summary.damageFormula) || attack.damage || '';
 
-        // Add Modifier from Ability
-        if (attack.damageAbility && abilityScores) {
-            const abilityKey = ABILITY_MAP[attack.damageAbility.toLowerCase()] || attack.damageAbility;
-            const score = abilityScores[abilityKey] || 10;
-            const modifier = Math.floor((score - 10) / 2);
-            if (modifier !== 0) {
-                totalDamage += modifier;
-                const sign = modifier >= 0 ? '+' : '-';
-                breakdownParts.push(`${sign}${Math.abs(modifier)} (${attack.damageAbility.toUpperCase()})`);
-            }
-        }
+        // A natural 20 on the latest attack roll doubles every damage die.
+        const lastAttack = results[attack.id]?.atk?.slice(-1)[0];
+        const isCrit = !summary.isSave && !!lastAttack?.isCrit;
+        const formula = isCrit ? doubleDice(baseFormula) : baseFormula;
 
-        // Roll Additional Damages
-        if (attack.additionalDamage) {
-            attack.additionalDamage.forEach(extra => {
-                const extraResult = rollDiceExpression(extra.formula);
-                totalDamage += extraResult.total;
-                details.push(`${extraResult.total} ${extra.type}`);
-                breakdownParts.push(`${extraResult.pretty} (${extra.type})`);
-            });
-        }
+        const main = rollDiceExpression(formula);
+        let totalDamage = main.total;
+        const details = [`${main.total} ${attack.damageType || ''}`.trim()];
+        const breakdownParts = [`${main.pretty}${attack.damageType ? ` (${attack.damageType})` : ''}`];
+
+        (attack.additionalDamage || []).forEach(extra => {
+            const extraResult = rollDiceExpression(isCrit ? doubleDice(extra.formula) : extra.formula);
+            totalDamage += extraResult.total;
+            details.push(`${extraResult.total} ${extra.type}`);
+            breakdownParts.push(`${extraResult.pretty} (${extra.type})`);
+        });
 
         const valueString = details.length > 1
             ? `${totalDamage} (${details.join(' + ')})`
@@ -116,9 +109,9 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
 
         const newRoll: RollResult = {
             value: valueString,
-            breakdown: breakdownParts.join(' + '),
-            isCrit: false,
-            isFail: false
+            breakdown: (isCrit ? 'Critico, dadi raddoppiati: ' : '') + breakdownParts.join(' + '),
+            isCrit,
+            isFail: false,
         };
         setResults(prev => ({ ...prev, [attack.id]: { ...prev[attack.id], dmg: [...(prev[attack.id]?.dmg || []), newRoll] } }));
     };

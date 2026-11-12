@@ -128,11 +128,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   return (
     <dialog ref={dialogRef} onClose={onClose} className="bg-card text-text p-0 rounded-lg shadow-2xl w-full max-w-sm border border-border backdrop:bg-black/50">
       <header className="flex items-center justify-between p-4 border-b border-border">
-        <h3 className="text-lg font-cinzel text-accent">Settings</h3>
+        <h3 className="text-lg font-cinzel text-accent">Impostazioni</h3>
         <button onClick={onClose} className="p-1 rounded-full hover:bg-input transition-colors"><XMarkIcon className="w-5 h-5" /></button>
       </header>
       <div className="p-6 max-h-[70vh] overflow-y-auto">
-        <SettingsSection title="Appearance">
+        <SettingsSection title="Aspetto">
           <div className="grid grid-cols-2 gap-3">
             {THEMES.map((t) => (
               <button key={t.id} onClick={() => setTheme(t.id as any)} className={`flex items-center justify-between p-3 rounded-md border-2 transition-colors ${theme === t.id ? 'border-accent' : 'border-border hover:border-border'}`}>
@@ -145,9 +145,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           </div>
         </SettingsSection>
 
-        <SettingsSection title="Gameplay & Gameplay Tools">
+        <SettingsSection title="Strumenti di gioco">
           <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase text-muted-foreground">Modalità Dice Roller (Dadiere)</label>
+            <label className="block text-xs font-bold uppercase text-muted-foreground">Dadiera</label>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
@@ -162,7 +162,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     : 'border-border bg-card text-muted-foreground hover:border-border'
                 }`}
               >
-                <span>Dock Fluttuante</span>
+                <span>Barra fissa</span>
                 <span className="text-[10px] text-muted-foreground font-normal">Sempre in basso</span>
               </button>
               <button
@@ -178,31 +178,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     : 'border-border bg-card text-muted-foreground hover:border-border'
                 }`}
               >
-                <span>Modale Popover</span>
+                <span>Finestra</span>
                 <span className="text-[10px] text-muted-foreground font-normal">Su richiesta</span>
               </button>
             </div>
           </div>
         </SettingsSection>
 
-        <SettingsSection title="Data Management">
+        <SettingsSection title="Dati">
           <div className="space-y-3">
             <button onClick={handleExportData} className="w-full flex items-center justify-center gap-2 bg-input hover:bg-input text-text font-semibold py-2 px-4 rounded-md transition-colors">
               <ArrowDownTrayIcon className="w-5 h-5" />
-              Export All Data
+              Esporta tutti i dati
             </button>
             <button onClick={handleImportClick} className="w-full flex items-center justify-center gap-2 bg-input hover:bg-input text-text font-semibold py-2 px-4 rounded-md transition-colors">
               <ArrowUpTrayIcon className="w-5 h-5" />
-              Import from Backup
+              Importa da backup
             </button>
             <input type="file" ref={fileInputRef} onChange={handleImportData} accept=".json" className="hidden" />
           </div>
         </SettingsSection>
 
-        <SettingsSection title="Danger Zone">
+        <SettingsSection title="Zona pericolosa">
           <button onClick={handleClearAllData} className="w-full flex items-center justify-center gap-2 bg-destructive/20 hover:bg-destructive/40 text-destructive font-semibold py-2 px-4 rounded-md transition-colors border border-destructive/50">
             <ExclamationTriangleIcon className="w-5 h-5" />
-            Clear All Data
+            Elimina tutti i dati
           </button>
         </SettingsSection>
       </div>

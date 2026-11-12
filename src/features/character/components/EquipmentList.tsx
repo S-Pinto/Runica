@@ -280,7 +280,7 @@ const EquipmentForm = ({
                 <label className={labelClass}>Maestria</label>
                 <select value={formData.mastery || ''} onChange={e => handleChange('mastery', e.target.value)} className={inputClass}>
                   <option value="">Nessuna</option>
-                  {Object.keys(WEAPON_MASTERIES).map(m => <option key={m} value={m}>{m}</option>)}
+                  {Object.entries(WEAPON_MASTERIES).map(([key, m]) => <option key={key} value={key}>{m.name}</option>)}
                 </select>
               </div>
             </div>
@@ -329,7 +329,7 @@ const EquipmentForm = ({
                         }`}
                       title={WEAPON_PROPERTIES[prop].description}
                     >
-                      {prop}
+                      {WEAPON_PROPERTIES[prop].name}
                     </button>
                   );
                 })}

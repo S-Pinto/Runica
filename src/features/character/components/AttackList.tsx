@@ -301,8 +301,8 @@ const AttackForm = ({
                 className={inputClass}
               >
                 <option value="">Nessuna (trucchetto o arma semplice)</option>
-                {Object.values(WEAPON_MASTERIES).map(m => (
-                  <option key={m.name} value={m.name}>{m.name}</option>
+                {Object.entries(WEAPON_MASTERIES).map(([key, m]) => (
+                  <option key={key} value={key}>{m.name}</option>
                 ))}
               </select>
             </div>
@@ -325,7 +325,7 @@ const AttackForm = ({
                         }`}
                       title={WEAPON_PROPERTIES[prop].description}
                     >
-                      {prop}
+                      {WEAPON_PROPERTIES[prop].name}
                     </button>
                   );
                 })}

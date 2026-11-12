@@ -16,6 +16,8 @@ export const DeathSavesTracker = () => {
     const setSaves = (type: SaveType, count: number) =>
         updateCharacter({ deathSaves: { ...saves, [type]: Math.max(0, Math.min(3, count)) } });
     const reset = () => updateCharacter({ deathSaves: { successes: 0, failures: 0 } });
+    const naturalTwenty = () =>
+        updateCharacter({ hp: { ...character.hp, current: 1 }, deathSaves: { successes: 0, failures: 0 } });
 
     const isStable = saves.successes >= 3;
     const isDead = saves.failures >= 3;
@@ -61,15 +63,27 @@ export const DeathSavesTracker = () => {
                     <div key={row.type} className="space-y-2.5">
                         <div className="flex items-center justify-between">
                             <span className={`text-xs font-semibold uppercase tracking-wider ${row.text}`}>{row.label}</span>
-                            <button
-                                type="button"
-                                onClick={() => setSaves(row.type, saves[row.type] + 2)}
-                                disabled={isComplete || saves[row.type] >= 2}
-                                className={`rounded-lg border px-2 py-0.5 text-xs font-semibold opacity-80 transition-opacity hover:opacity-100 disabled:opacity-25 ${row.text} ${row.border}`}
-                                title={row.type === 'successes' ? 'Aggiunge due successi' : 'Aggiunge due fallimenti (colpo critico o 1 naturale)'}
-                            >
-                                +2
-                            </button>
+                            {row.type === 'successes' ? (
+                                <button
+                                    type="button"
+                                    onClick={naturalTwenty}
+                                    disabled={isComplete || character.hp.current > 0}
+                                    className={`rounded-lg border px-2 py-0.5 text-xs font-semibold opacity-80 transition-opacity hover:opacity-100 disabled:opacity-25 ${row.text} ${row.border}`}
+                                    title="20 naturale: torni cosciente con 1 punto vita"
+                                >
+                                    20 naturale
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() => setSaves(row.type, saves[row.type] + 2)}
+                                    disabled={isComplete}
+                                    className={`rounded-lg border px-2 py-0.5 text-xs font-semibold opacity-80 transition-opacity hover:opacity-100 disabled:opacity-25 ${row.text} ${row.border}`}
+                                    title="1 naturale o colpo critico subito: due fallimenti"
+                                >
+                                    +2
+                                </button>
+                            )}
                         </div>
                         <div className="flex gap-2.5">
                             {[0, 1, 2].map((i) => {

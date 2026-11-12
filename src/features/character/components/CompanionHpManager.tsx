@@ -54,7 +54,7 @@ export const CompanionHpManager: React.FC<CompanionHpManagerProps> = ({ hp, onHp
     return (
         <div className="bg-muted/30 p-4 rounded-lg border border-border space-y-3">
             <div className="flex justify-between items-center text-lg font-bold">
-                <span className="text-muted-foreground text-sm uppercase">Punti Ferita</span>
+                <span className="text-muted-foreground text-sm uppercase">Punti vita</span>
                 <div>
                     <span>{hp.current}</span>
                     {hp.temporary > 0 && <span className="text-blue-400"> + {hp.temporary}</span>}

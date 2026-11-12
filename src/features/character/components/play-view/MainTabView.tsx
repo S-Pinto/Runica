@@ -65,7 +65,7 @@ const MainTabView = () => {
                     subValue={hasShield ? "con scudo" : undefined}
                     icon={ShieldIcon}
                 />
-                <StatBox label="Iniziativa" value={formatModifier(character.initiative)} icon={BoltIcon} />
+                <StatBox label="Iniziativa" value={formatModifier(getModifier(character.abilityScores.dexterity))} icon={BoltIcon} />
                 <StatBox
                     label="Velocità"
                     value={character.speed}
@@ -119,7 +119,7 @@ const MainTabView = () => {
                                                         >
                                                             <div className="flex items-center gap-2">
                                                                 <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
-                                                                {condName}
+                                                                {condition.name}
                                                             </div>
                                                             {isExpanded ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
                                                         </div>
@@ -163,13 +163,13 @@ const MainTabView = () => {
                                 <div className="flex flex-col gap-2 animate-in slide-in-from-bottom-2 duration-300">
 
                                     <div className="grid grid-cols-1 gap-2">
-                                        {Object.values(CONDITIONS).map(condition => {
-                                            const isActive = character.conditions?.includes(condition.name);
-                                            const isExpanded = expandedCondition === condition.name;
+                                        {Object.entries(CONDITIONS).map(([condKey, condition]) => {
+                                            const isActive = character.conditions?.includes(condKey);
+                                            const isExpanded = expandedCondition === condKey;
 
                                             return (
-                                                <div key={condition.name} className={`rounded-lg border transition-all duration-200 ${isActive ? 'bg-destructive/5 border-destructive/30' : 'bg-background/50 border-border/30 hover:border-accent/40'}`}>
-                                                    <div className="flex items-center justify-between p-2.5 cursor-pointer" onClick={() => setExpandedCondition(isExpanded ? null : condition.name)}>
+                                                <div key={condKey} className={`rounded-lg border transition-all duration-200 ${isActive ? 'bg-destructive/5 border-destructive/30' : 'bg-background/50 border-border/30 hover:border-accent/40'}`}>
+                                                    <div className="flex items-center justify-between p-2.5 cursor-pointer" onClick={() => setExpandedCondition(isExpanded ? null : condKey)}>
                                                         <span className={`text-sm font-semibold transition-colors ${isActive ? 'text-destructive' : 'text-foreground'}`}>{condition.name}</span>
                                                         <div className="flex items-center gap-3">
                                                             <button
@@ -177,8 +177,8 @@ const MainTabView = () => {
                                                                     e.stopPropagation();
                                                                     const current = character.conditions || [];
                                                                     const newConditions = isActive
-                                                                        ? current.filter(c => c !== condition.name)
-                                                                        : [...current, condition.name];
+                                                                        ? current.filter(c => c !== condKey)
+                                                                        : [...current, condKey];
                                                                     updateCharacter({ conditions: newConditions });
                                                                 }}
                                                                 className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all shadow-sm ${isActive

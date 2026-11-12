@@ -52,13 +52,13 @@ export const CompanionFeatureEditor: React.FC<CompanionFeatureEditorProps> = ({ 
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center border-b border-border pb-2">
-                <h4 className="text-lg font-cinzel text-accent">Features & Traits</h4>
+                <h4 className="text-lg font-cinzel text-accent">Privilegi e tratti</h4>
                 {!readOnly && !isAdding && (
                     <button
                         onClick={() => setIsAdding(true)}
                         className="flex items-center gap-1 text-xs font-bold text-primary hover:text-primary/90 transition-colors"
                     >
-                        <PlusCircleIcon className="w-4 h-4" /> Add Trait
+                        <PlusCircleIcon className="w-4 h-4" /> Aggiungi tratto
                     </button>
                 )}
             </div>
@@ -66,18 +66,18 @@ export const CompanionFeatureEditor: React.FC<CompanionFeatureEditorProps> = ({ 
             {!readOnly && isAdding && (
                 <div className="bg-card/50 p-4 rounded-lg border border-accent/20 space-y-3 animate-in fade-in slide-in-from-top-2">
                     <StyledInput
-                        label="Trait Name"
+                        label="Nome del tratto"
                         name="name"
                         value={newFeature.name}
                         onChange={(e: any) => setNewFeature(prev => ({ ...prev, name: e.target.value }))}
-                        placeholder="e.g. Pack Tactics"
+                        placeholder="Es. Tattiche del branco"
                     />
                     <StyledTextArea
-                        label="Description"
+                        label="Descrizione"
                         name="description"
                         value={newFeature.description}
                         onChange={(e: any) => setNewFeature(prev => ({ ...prev, description: e.target.value }))}
-                        placeholder="Description of the trait..."
+                        placeholder="Descrizione del tratto…"
                         rows={3}
                     />
                     <div className="flex justify-end gap-2 pt-2">
@@ -85,14 +85,14 @@ export const CompanionFeatureEditor: React.FC<CompanionFeatureEditorProps> = ({ 
                             onClick={() => setIsAdding(false)}
                             className="px-3 py-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
                         >
-                            Cancel
+                            Annulla
                         </button>
                         <button
                             onClick={handleAddFeature}
                             disabled={!newFeature.name || !newFeature.description}
                             className="px-3 py-1 text-xs font-bold bg-accent text-accent-foreground rounded-md shadow-sm hover:bg-accent/90 transition-colors disabled:opacity-50"
                         >
-                            Add Trait
+                            Aggiungi tratto
                         </button>
                     </div>
                 </div>
@@ -100,7 +100,7 @@ export const CompanionFeatureEditor: React.FC<CompanionFeatureEditorProps> = ({ 
 
             <div className="space-y-2">
                 {companion.featuresAndTraits.length === 0 && !isAdding && (
-                    <p className="text-sm text-muted-foreground italic text-center py-4">No special traits recorded.</p>
+                    <p className="text-sm text-muted-foreground italic text-center py-4">Nessun tratto speciale.</p>
                 )}
 
                 {companion.featuresAndTraits.map(feature => (

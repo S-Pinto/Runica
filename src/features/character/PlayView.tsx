@@ -2,14 +2,15 @@ import { useState, useEffect, useRef, Suspense, lazy, FC, createElement } from '
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import * as characterService from './characterService';
 import { useCharacter } from './CharacterProvider';
-import { BackIcon, EditIcon, SparklesIcon, MoonIcon, PrinterIcon, EllipsisVerticalIcon, UserGroupIcon, HeartIcon, StarIcon, SwordIcon, UserCircleIcon, ShieldIcon } from '../../components/ui/icons';
+import { BackIcon, EditIcon, SparklesIcon, MoonIcon, SunIcon, PrinterIcon, EllipsisVerticalIcon, UserGroupIcon, HeartIcon, StarIcon, SwordIcon, UserCircleIcon, ShieldIcon } from '../../components/ui/icons';
 import { Button } from '../../components/ui/Button';
 import { Menu, MenuItem } from '../../components/ui/Menu';
 import { AbilitiesDisplay } from './components/AbilitiesDisplay';
 import { ImageModal } from '../../components/ui/ImageModal';
 import { CompanionTab } from './components/play-view/CompanionTab';
 import { DiceRoller } from './components/play-view/DiceRoller';
-import { confirmDialog } from '../../components/ui/Dialogs';
+import { confirmDialog, toast } from '../../components/ui/Dialogs';
+import { longRestUpdate, shortRestUpdate } from './rules/rest';
 import { TabButton } from '../../components/ui/TabButton';
 
 type PlayTab = 'main' | 'stats' | 'combat' | 'bio' | 'inventory' | 'spells' | 'companions';
@@ -117,32 +118,27 @@ export const PlayView: FC = () => {
 
     const handleLongRest = async () => {
         if (!character) return;
-        if (await confirmDialog({ title: 'Riposo lungo?', message: 'Verranno ripristinati Punti Vita, slot incantesimo e cariche degli oggetti magici.', confirmLabel: 'Riposa' })) {
-            const resetSlots = { ...character.spellSlots };
-            Object.keys(resetSlots).forEach(level => {
-                resetSlots[Number(level)] = { ...resetSlots[Number(level)], used: 0 };
-            });
+        const ok = await confirmDialog({
+            title: 'Riposo lungo?',
+            message: 'Ripristina Punti Vita, dadi vita, slot incantesimo, usi dei privilegi, cariche degli oggetti e risorse. Azzera PV temporanei e tiri contro la morte.',
+            confirmLabel: 'Riposa',
+        });
+        if (!ok) return;
+        updateCharacter(longRestUpdate(character));
+        toast.success('Riposo lungo completato.');
+    };
 
-            const resetEquipment = (character.equipment || []).map(item => {
-                if (item.charges && (item.charges.resetType === 'longRest' || item.charges.resetType === 'shortRest')) {
-                    return {
-                        ...item,
-                        charges: {
-                            ...item.charges,
-                            current: item.charges.max,
-                        },
-                    };
-                }
-                return item;
-            });
-
-            updateCharacter({
-                hp: { ...character.hp, current: character.hp.max, temporary: 0 },
-                spellSlots: resetSlots,
-                equipment: resetEquipment,
-                deathSaves: { successes: 0, failures: 0 },
-            });
-        }
+    const handleShortRest = async () => {
+        if (!character) return;
+        const ok = await confirmDialog({
+            title: 'Riposo breve?',
+            message: 'Ripristina gli usi e le cariche che si ricaricano con un riposo breve. Puoi spendere dadi vita dalla Panoramica.',
+            confirmLabel: 'Riposa',
+        });
+        if (!ok) return;
+        updateCharacter(shortRestUpdate(character));
+        handleTabChange('main');
+        toast.success('Riposo breve completato.');
     };
 
     if (error) {
@@ -178,6 +174,7 @@ export const PlayView: FC = () => {
     ].filter(Boolean).join(' · ');
 
     const menuItems: MenuItem[] = [
+        { label: 'Riposo breve', icon: <SunIcon />, onSelect: handleShortRest },
         { label: 'Stampa scheda', icon: <PrinterIcon />, onSelect: () => window.open(`/character/${characterId}/print`, '_blank') },
         ...(diceMode === 'modal' ? [{ label: 'Apri dadiera', icon: <SparklesIcon />, onSelect: () => setIsDiceModalOpen(true) }] : []),
     ];

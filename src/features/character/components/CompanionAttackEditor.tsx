@@ -19,10 +19,10 @@ export const CompanionAttackEditor: React.FC<CompanionAttackEditorProps> = ({ co
   if (readOnly) {
     return (
       <div className="space-y-2">
-        <h4 className="text-md font-semibold text-muted-foreground mb-2">Attacks</h4>
+        <h4 className="text-md font-semibold text-muted-foreground mb-2">Attacchi</h4>
         <div className="space-y-3 p-3 bg-muted/30 rounded-md border border-border">
           {companion.attacks.length === 0 ? (
-            <p className="text-muted-foreground text-sm text-center italic">No attacks defined.</p>
+            <p className="text-muted-foreground text-sm text-center italic">Nessun attacco.</p>
           ) : (
             companion.attacks.map((attack, index) => (
               <div key={index} className="grid grid-cols-[1fr_auto_auto] gap-2 items-center text-sm">
@@ -53,7 +53,7 @@ export const CompanionAttackEditor: React.FC<CompanionAttackEditorProps> = ({ co
 
   return (
     <div className="space-y-2">
-      <h4 className="text-md font-semibold text-muted-foreground mb-2">Attacks</h4>
+      <h4 className="text-md font-semibold text-muted-foreground mb-2">Attacchi</h4>
       <div className="space-y-3 p-3 bg-muted/30 rounded-md border border-border">
         {companion.attacks.map((attack, index) => (
 
@@ -62,7 +62,7 @@ export const CompanionAttackEditor: React.FC<CompanionAttackEditorProps> = ({ co
           <div key={index} className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-2 items-center">
             <input
               type="text"
-              placeholder="Attack Name"
+              placeholder="Nome dell'attacco"
               value={attack.name}
               onChange={(e) => handleAttackChange(index, 'name', e.target.value)}
               className="w-full bg-input border border-border rounded-md py-1 px-2 text-sm"
@@ -76,7 +76,7 @@ export const CompanionAttackEditor: React.FC<CompanionAttackEditorProps> = ({ co
             />
             <input
               type="text"
-              placeholder="Damage"
+              placeholder="Danni"
               value={attack.damage}
               onChange={(e) => handleAttackChange(index, 'damage', e.target.value)}
               className="w-20 bg-input border border-border rounded-md py-1 px-2 text-sm text-center"
@@ -86,7 +86,7 @@ export const CompanionAttackEditor: React.FC<CompanionAttackEditorProps> = ({ co
               onChange={(e) => handleAttackChange(index, 'damageType', e.target.value)}
               className="w-24 bg-input border border-border rounded-md py-1 px-2 text-sm"
             >
-              <option value="">Type</option>
+              <option value="">Tipo</option>
               {DAMAGE_TYPES.map(type => (
                 <option key={type} value={type}>{type}</option>
               ))}
@@ -97,7 +97,7 @@ export const CompanionAttackEditor: React.FC<CompanionAttackEditorProps> = ({ co
           </div>
         ))}
         <button onClick={addAttack} className="w-full flex items-center justify-center gap-1 text-sm text-accent hover:text-primary transition-colors py-1 border border-dashed border-border rounded-md">
-          <PlusIcon className="w-4 h-4" /> Add Attack
+          <PlusIcon className="w-4 h-4" /> Aggiungi attacco
         </button>
       </div>
     </div>

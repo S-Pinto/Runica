@@ -3,29 +3,33 @@ export interface WeaponPropertyDef {
     description: string;
 }
 
+/**
+ * Weapon masteries and properties (5e, 2024 rules). Keys stay in English because
+ * they are stored on attacks/items; `name` is the Italian label.
+ */
 export const WEAPON_MASTERIES: Record<string, WeaponPropertyDef> = {
-    "Vex": { name: "Vex", description: "If you hit a creature and deal damage, you have Advantage on your next attack roll against that creature before the end of your next turn." },
-    "Sap": { name: "Sap", description: "If you hit a creature, it has Disadvantage on its next attack roll before the start of your next turn." },
-    "Nick": { name: "Nick", description: "When you make the extra attack of the Light property, you can make it as part of the Attack action instead of as a Bonus Action." },
-    "Cleave": { name: "Cleave", description: "If you hit a creature, you can make a second attack roll against a creature within 5 feet of it that is also within your reach. On a hit, the second creature takes damage equal to your ability modifier." },
-    "Graze": { name: "Graze", description: "If you miss a creature, you deal damage equal to your ability modifier. This damage is the same type as the weapon's damage." },
-    "Push": { name: "Push", description: "If you hit a creature, you can push it up to 10 feet away from you." },
-    "Slow": { name: "Slow", description: "If you hit a creature and deal damage, its Speed is reduced by 10 feet until the start of your next turn." },
-    "Topple": { name: "Topple", description: "If you hit a creature, you can force it to make a Constitution saving throw (DC 8 + Prof + Ability Mod). On a failed save, the creature has the Prone condition." },
+    "Vex": { name: "Irritare", description: "Se colpisci e infliggi danni, hai vantaggio al prossimo tiro per colpire contro quella creatura entro la fine del tuo prossimo turno." },
+    "Sap": { name: "Fiaccare", description: "Se colpisci, la creatura ha svantaggio al suo prossimo tiro per colpire prima dell'inizio del tuo prossimo turno." },
+    "Nick": { name: "Intaccare", description: "L'attacco extra della proprietà Leggera può far parte dell'azione di Attacco invece di richiedere un'azione bonus." },
+    "Cleave": { name: "Fendere", description: "Se colpisci, puoi attaccare una seconda creatura entro 1,5 m dalla prima e nella tua portata. Se la colpisci, subisce danni pari al tuo modificatore di caratteristica. Una volta per turno." },
+    "Graze": { name: "Sfiorare", description: "Se manchi, infliggi comunque danni pari al tuo modificatore di caratteristica, dello stesso tipo dell'arma." },
+    "Push": { name: "Spingere", description: "Se colpisci una creatura Grande o più piccola, puoi spingerla fino a 3 m lontano da te." },
+    "Slow": { name: "Rallentare", description: "Se colpisci e infliggi danni, la velocità della creatura si riduce di 3 m fino all'inizio del tuo prossimo turno." },
+    "Topple": { name: "Rovesciare", description: "Se colpisci, la creatura effettua un tiro salvezza su Costituzione (CD 8 + competenza + modificatore usato per l'attacco). Se fallisce, è prona." },
 };
 
 export const WEAPON_PROPERTIES: Record<string, WeaponPropertyDef> = {
-    "Ammunition": { name: "Ammunition", description: "You need ammunition to use this weapon." },
-    "Finesse": { name: "Finesse", description: "Use your Strength or Dexterity modifier for attack and damage rolls." },
-    "Heavy": { name: "Heavy", description: "Small creatures have Disadvantage on attack rolls with this weapon." },
-    "Light": { name: "Light", description: "A light weapon is small and easy to handle, making it ideal for use when fighting with two weapons." },
-    "Loading": { name: "Loading", description: "You can fire only one piece of ammunition from it when you use an action, bonus action, or reaction to fire it, regardless of the number of attacks you can normally make." },
-    "Range": { name: "Range", description: "A weapon that can be used to make a ranged attack has a range shown in parentheses." },
-    "Reach": { name: "Reach", description: "This weapon adds 5 feet to your reach when you attack with it." },
-    "Thrown": { name: "Thrown", description: "If a weapon has the thrown property, you can throw the weapon to make a ranged attack." },
-    "Two-Handed": { name: "Two-Handed", description: "This weapon requires two hands to use." },
-    "Versatile": { name: "Versatile", description: "This weapon can be used with one or two hands. A damage value in parentheses appears with the property—the damage when the weapon is used with two hands." },
-    "Silvered": { name: "Silvered", description: "Effective against lycanthropes and some other monsters." },
-    "Adamantine": { name: "Adamantine", description: "Effective against objects and constructs. Critical hits on objects." },
-    "Magical": { name: "Magical", description: "Bypasses resistance to non-magical attacks." },
+    "Ammunition": { name: "Munizioni", description: "Serve una munizione per ogni attacco a distanza." },
+    "Finesse": { name: "Accurata", description: "Per attacco e danni puoi usare Forza o Destrezza, a tua scelta." },
+    "Heavy": { name: "Pesante", description: "Hai svantaggio se la tua Forza (mischia) o Destrezza (distanza) è inferiore a 13." },
+    "Light": { name: "Leggera", description: "Quando attacchi con un'arma leggera, puoi fare un attacco extra con un'altra arma leggera come azione bonus." },
+    "Loading": { name: "Ricarica", description: "Puoi sparare un solo colpo per azione, azione bonus o reazione, anche se hai più attacchi." },
+    "Range": { name: "Gittata", description: "Può essere usata per attacchi a distanza; la gittata è indicata tra parentesi." },
+    "Reach": { name: "Portata", description: "Aggiunge 1,5 m alla tua portata quando attacchi con quest'arma." },
+    "Thrown": { name: "Da lancio", description: "Puoi lanciarla per un attacco a distanza usando la stessa caratteristica dell'attacco in mischia." },
+    "Two-Handed": { name: "A due mani", description: "Richiede due mani per attaccare." },
+    "Versatile": { name: "Versatile", description: "Si può usare a una o due mani; il danno tra parentesi vale impugnandola a due mani." },
+    "Silvered": { name: "Argentata", description: "Efficace contro licantropi e alcuni altri mostri." },
+    "Adamantine": { name: "Adamantio", description: "Efficace contro oggetti e costrutti; i colpi contro gli oggetti sono critici." },
+    "Magical": { name: "Magica", description: "Supera la resistenza ai danni non magici." },
 };
