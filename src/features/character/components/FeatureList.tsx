@@ -33,12 +33,12 @@ const FeatureForm = ({
 
   return (
     <form onSubmit={handleSubmit} className="bg-card/80 p-4 rounded-lg border border-accent/30 space-y-4 mb-4">
-      <h3 className="font-cinzel text-lg text-accent">{'id' in initialData ? 'Edit Feature' : 'Add New Feature'}</h3>
-      <input type="text" placeholder="Feature or Trait Name" value={formData.name} onChange={e => handleChange('name', e.target.value)} required className="w-full bg-input p-2 rounded border border-border focus:ring-ring focus:border-accent" />
-      <textarea placeholder="Description" value={formData.description} onChange={e => handleChange('description', e.target.value)} rows={4} className="w-full bg-input p-2 rounded border border-border focus:ring-ring focus:border-accent resize-y"></textarea>
+      <h3 className="font-cinzel text-lg text-accent">{'id' in initialData ? 'Modifica privilegio' : 'Nuovo privilegio'}</h3>
+      <input type="text" placeholder="Nome del privilegio o tratto" value={formData.name} onChange={e => handleChange('name', e.target.value)} required className="w-full bg-input p-2 rounded border border-border focus:ring-ring focus:border-accent" />
+      <textarea placeholder="Descrizione" value={formData.description} onChange={e => handleChange('description', e.target.value)} rows={4} className="w-full bg-input p-2 rounded border border-border focus:ring-ring focus:border-accent resize-y"></textarea>
       <div className="flex justify-end gap-2">
-        <button type="button" onClick={onCancel} className="bg-secondary hover:bg-secondary/80 text-secondary-foreground font-bold py-2 px-4 rounded transition">Cancel</button>
-        <button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2 px-4 rounded transition">Save Feature</button>
+        <button type="button" onClick={onCancel} className="bg-secondary hover:bg-secondary/80 text-secondary-foreground font-bold py-2 px-4 rounded transition">Annulla</button>
+        <button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2 px-4 rounded transition">Salva privilegio</button>
       </div>
     </form>
   );
@@ -81,9 +81,9 @@ export const FeatureList = () => {
   return (
     <div className="bg-card/80 p-4 rounded-lg border border-border flex flex-col h-full">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-cinzel text-accent">Features & Traits</h3>
+        <h3 className="text-lg font-cinzel text-accent">Privilegi e tratti</h3>
         <button onClick={() => setEditingFeature('new')} className="flex items-center gap-2 text-sm bg-primary hover:bg-primary/90 px-3 py-2 rounded-md text-primary-foreground transition">
-          <PlusCircleIcon className="w-5 h-5" /> Add Feature
+          <PlusCircleIcon className="w-5 h-5" /> Aggiungi privilegio
         </button>
       </div>
 
@@ -98,7 +98,7 @@ export const FeatureList = () => {
       <div className="space-y-2 overflow-y-auto pr-2 -mr-2 flex-grow">
         {sortedFeatures.length === 0 && !editingFeature && (
           <div className="flex items-center justify-center h-full">
-            <p className="text-center text-muted-foreground text-sm py-4">No features or traits have been added.</p>
+            <p className="text-center text-muted-foreground text-sm py-4">Nessun privilegio o tratto ancora.</p>
           </div>
         )}
         {sortedFeatures.map(feature => (

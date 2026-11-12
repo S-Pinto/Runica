@@ -36,31 +36,31 @@ const FeatureForm = ({
             <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl -z-10 -mr-32 -mt-32 pointer-events-none" />
 
             <div className="flex items-center justify-between border-b border-border/40 pb-4 mb-4">
-                <h3 className="font-cinzel text-xl font-bold text-accent">{'id' in initialData ? 'Edit Feature' : 'New Feature'}</h3>
+                <h3 className="font-cinzel text-xl font-bold text-accent">{'id' in initialData ? 'Modifica privilegio' : 'Nuovo privilegio'}</h3>
             </div>
 
             <div className="space-y-4">
                 <div className="space-y-1">
-                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Category</label>
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Categoria</label>
                     <select
                         value={formData.category}
                         onChange={e => handleChange('category', e.target.value)}
                         className="w-full bg-background/50 p-2.5 rounded-lg border border-border/50 focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
                     >
-                        <option value="class">Class Feature</option>
-                        <option value="racial">Racial Trait</option>
-                        <option value="feat-origin">Origin Feat</option>
-                        <option value="feat-general">General Feat</option>
-                        <option value="feat-combat">Combat Feat</option>
-                        <option value="feat-epic">Epic Feat</option>
+                        <option value="class">Privilegio di classe</option>
+                        <option value="racial">Tratto di specie</option>
+                        <option value="feat-origin">Talento delle origini</option>
+                        <option value="feat-general">Talento generale</option>
+                        <option value="feat-combat">Talento di combattimento</option>
+                        <option value="feat-epic">Dono epico</option>
                     </select>
                 </div>
 
                 <div className="space-y-1">
-                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Name</label>
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Nome</label>
                     <input
                         type="text"
-                        placeholder="e.g. Action Surge, Darkvision"
+                        placeholder="Es. Azione impetuosa, Scurovisione"
                         value={formData.name}
                         onChange={e => handleChange('name', e.target.value)}
                         required
@@ -69,9 +69,9 @@ const FeatureForm = ({
                 </div>
 
                 <div className="space-y-1">
-                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Description</label>
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Descrizione</label>
                     <textarea
-                        placeholder="Describe the feature or trait..."
+                        placeholder="Descrivi il privilegio o il tratto…"
                         value={formData.description}
                         onChange={e => handleChange('description', e.target.value)}
                         rows={4}
@@ -81,7 +81,7 @@ const FeatureForm = ({
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-accent/5 rounded-lg border border-accent/10">
                     <div>
-                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Max Uses</label>
+                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Usi massimi</label>
                         <input
                             type="number"
                             value={formData.uses?.max || ''}
@@ -93,15 +93,15 @@ const FeatureForm = ({
                         />
                     </div>
                     <div>
-                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Recovery</label>
+                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Si ricarica con</label>
                         <select
                             value={formData.recovery || 'none'}
                             onChange={e => handleChange('recovery', e.target.value)}
                             className="w-full bg-background/50 p-2 rounded border border-border/50 text-sm"
                         >
-                            <option value="none">None</option>
-                            <option value="short">Short Rest</option>
-                            <option value="long">Long Rest</option>
+                            <option value="none">Nessuna</option>
+                            <option value="short">Riposo breve</option>
+                            <option value="long">Riposo lungo</option>
                         </select>
                     </div>
                     <div className="flex items-end pb-1.5 px-2">
@@ -112,15 +112,15 @@ const FeatureForm = ({
                                 onChange={e => handleChange('isAction', e.target.checked)}
                                 className="rounded border-border text-accent focus:ring-accent"
                             />
-                            <span className="text-xs font-bold text-muted-foreground uppercase">Show in Combat</span>
+                            <span className="text-xs font-bold text-muted-foreground uppercase">Mostra in combattimento</span>
                         </label>
                     </div>
                 </div>
             </div>
 
             <div className="flex justify-end gap-3 pt-2 border-t border-border/20">
-                <button type="button" onClick={onCancel} className="bg-muted/20 hover:bg-muted/40 text-muted-foreground hover:text-foreground font-bold py-2 px-5 rounded-lg transition-colors text-sm">Cancel</button>
-                <button type="submit" className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold py-2 px-6 rounded-lg transition-all shadow-md hover:shadow-lg hover:shadow-accent/20 text-sm">Save</button>
+                <button type="button" onClick={onCancel} className="bg-muted/20 hover:bg-muted/40 text-muted-foreground hover:text-foreground font-bold py-2 px-5 rounded-lg transition-colors text-sm">Annulla</button>
+                <button type="submit" className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold py-2 px-6 rounded-lg transition-all shadow-md hover:shadow-lg hover:shadow-accent/20 text-sm">Salva</button>
             </div>
         </form>
     );
@@ -172,7 +172,7 @@ const CategorySection = ({
                     className={`flex items-center gap-1.5 text-xs bg-${config.color}/10 hover:bg-${config.color} text-${config.color} hover:text-white border border-${config.color}/20 rounded-lg px-3 py-1.5 transition-all font-bold uppercase tracking-wide`}
                 >
                     <PlusCircleIcon className="w-4 h-4" />
-                    Add
+                    Aggiungi
                 </button>
             </div>
 
@@ -218,7 +218,7 @@ const CategorySection = ({
                                         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                                             {deletingId === feature.id ? (
                                                 <>
-                                                    <span className="text-xs text-destructive-foreground">Sure?</span>
+                                                    <span className="text-xs text-destructive-foreground">Sicuro?</span>
                                                     <button onClick={() => { onDelete(feature.id); setDeletingId(null); }} className="text-destructive hover:text-destructive-foreground p-1"><CheckIcon className="w-4 h-4" /></button>
                                                     <button onClick={() => setDeletingId(null)} className="text-muted-foreground hover:text-accent p-1"><XMarkIcon className="w-4 h-4" /></button>
                                                 </>
@@ -301,7 +301,7 @@ export const CategorizedFeatureList = () => {
     return (
         <div className="bg-card/80 p-4 rounded-lg border border-border flex flex-col h-full">
             <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-cinzel text-accent">Features & Traits</h3>
+                <h3 className="text-lg font-cinzel text-accent">Privilegi e tratti</h3>
             </div>
 
             {editingFeature && (
@@ -334,7 +334,7 @@ export const CategorizedFeatureList = () => {
                     <div className="p-3 bg-accent/5 border-b border-accent/20">
                         <h4 className="font-cinzel text-base font-bold text-accent flex items-center gap-2">
                             <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-                            Feats
+                            Talenti
                         </h4>
                     </div>
                     <div className="p-3 space-y-3">

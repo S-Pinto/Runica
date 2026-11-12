@@ -299,25 +299,25 @@ const InventoryTabView = () => {
       <div className="bg-card p-6 rounded-2xl border border-border/50 shadow-md space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/40 pb-3">
           <h3 className="text-xl font-cinzel font-bold text-foreground flex items-center gap-2">
-            <span>🪙</span> Monete & Portamonete
+            <span>🪙</span> Monete
           </h3>
           <div className="flex flex-wrap items-center gap-3">
             <div className="bg-purple-500/10 text-purple-300 px-3.5 py-1 rounded-xl border border-purple-500/30 text-xs font-bold">
               🔮 Sintonizzazione: <span className="text-white text-sm font-black">{attunedCount} / 3</span>
             </div>
             <div className="bg-accent/10 text-accent px-3.5 py-1 rounded-xl border border-accent/20 text-xs font-bold font-mono">
-              Valore Totale Stimato: <span className="text-white text-sm font-black">{totalGp} GP</span>
+              Valore totale stimato: <span className="text-foreground text-sm font-black">{totalGp} MO</span>
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {[
-            { key: 'pp', label: 'PP (Platino)', color: 'border-cyan-500/30 bg-cyan-500/5 text-cyan-300' },
-            { key: 'gp', label: 'GP (Oro)', color: 'border-yellow-500/30 bg-yellow-500/5 text-yellow-400' },
-            { key: 'ep', label: 'EP (Elettro)', color: 'border-indigo-500/30 bg-indigo-500/5 text-indigo-300' },
-            { key: 'sp', label: 'SP (Argento)', color: 'border-slate-400/30 bg-slate-400/5 text-slate-200' },
-            { key: 'cp', label: 'CP (Rame)', color: 'border-orange-600/30 bg-orange-600/5 text-orange-400' },
+            { key: 'pp', label: 'MP (platino)', color: 'border-cyan-500/30 bg-cyan-500/5 text-cyan-300' },
+            { key: 'gp', label: 'MO (oro)', color: 'border-yellow-500/30 bg-yellow-500/5 text-yellow-400' },
+            { key: 'ep', label: 'ME (electrum)', color: 'border-indigo-500/30 bg-indigo-500/5 text-indigo-300' },
+            { key: 'sp', label: 'MA (argento)', color: 'border-slate-400/30 bg-slate-400/5 text-slate-200' },
+            { key: 'cp', label: 'MR (rame)', color: 'border-orange-600/30 bg-orange-600/5 text-orange-400' },
           ].map((coin) => {
             const val = character.currency[coin.key as keyof Currency] || 0;
             return (
@@ -353,8 +353,8 @@ const InventoryTabView = () => {
 
       {/* Main Full-Width Inventory Lists */}
       <div className="space-y-6">
-        <ItemList title="🛡️ Armi, Armature & Oggetti Equipaggiati" items={equippableItems} />
-        <ItemList title="🎒 Zaino & Oggetti da Avventura" items={backpackItems} />
+        <ItemList title="🛡️ Equipaggiati" items={equippableItems} />
+        <ItemList title="🎒 Zaino" items={backpackItems} />
       </div>
     </div>
   );

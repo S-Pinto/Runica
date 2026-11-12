@@ -166,7 +166,7 @@ export function DialogHost() {
       {snapshot.confirm && <ConfirmModal pending={snapshot.confirm} />}
       <div
         aria-live="polite"
-        className="fixed z-[110] bottom-4 left-1/2 -translate-x-1/2 sm:left-auto sm:right-4 sm:translate-x-0 flex flex-col gap-2 w-[calc(100%-2rem)] sm:w-96 pointer-events-none"
+        className="fixed z-[110] bottom-20 sm:bottom-4 left-1/2 -translate-x-1/2 sm:left-auto sm:right-4 sm:translate-x-0 flex flex-col gap-2 w-[calc(100%-2rem)] sm:w-96 pointer-events-none"
       >
         {snapshot.toasts.map((t) => (
           <div
