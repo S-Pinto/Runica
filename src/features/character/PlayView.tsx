@@ -1,8 +1,7 @@
-import { useState, useEffect, useRef, useCallback, Suspense, lazy, FC, createElement } from 'react';
+import { useState, useEffect, useRef, Suspense, lazy, FC, createElement } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import * as characterRepository from './characterRepository';
 import { useCharacter } from './CharacterProvider';
-import type { ICharacter } from './characterTypes';
 import { describeDataError } from '../../lib/errors';
 import { BackIcon, EditIcon, SparklesIcon, MoonIcon, SunIcon, PrinterIcon, EllipsisVerticalIcon, UserGroupIcon, HeartIcon, StarIcon, SwordIcon, UserCircleIcon, ShieldIcon } from '../../components/ui/icons';
 import { Button } from '../../components/ui/Button';
@@ -13,6 +12,8 @@ import { CompanionTab } from './components/play-view/CompanionTab';
 import { DiceRoller } from './components/play-view/DiceRoller';
 import { confirmDialog, toast } from '../../components/ui/Dialogs';
 import { longRestUpdate, shortRestUpdate } from './rules/rest';
+import { usePlayViewAutosave } from './hooks/usePlayViewAutosave';
+import { useDiceMode } from './hooks/useDiceMode';
 import { TabButton } from '../../components/ui/TabButton';
 
 type PlayTab = 'main' | 'stats' | 'combat' | 'bio' | 'inventory' | 'spells' | 'companions';
@@ -58,24 +59,12 @@ export const PlayView: FC = () => {
     const [activeTab, setActiveTab] = useState<PlayTab>(initialTab);
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const [isDiceModalOpen, setIsDiceModalOpen] = useState(false);
-    const [diceMode, setDiceMode] = useState<'dock' | 'modal'>('dock');
-    const isInitialMount = useRef(true);
+    const diceMode = useDiceMode();
 
     const handleTabChange = (tab: PlayTab) => {
         setActiveTab(tab);
         setSearchParams({ tab }, { replace: true });
     };
-
-    useEffect(() => {
-        const storedMode = (localStorage.getItem('runica_dice_mode') as 'dock' | 'modal') || 'dock';
-        setDiceMode(storedMode);
-
-        const handleStorageChange = () => {
-            setDiceMode((localStorage.getItem('runica_dice_mode') as 'dock' | 'modal') || 'dock');
-        };
-        window.addEventListener('storage', handleStorageChange);
-        return () => window.removeEventListener('storage', handleStorageChange);
-    }, []);
 
     useEffect(() => {
         if (!characterId) return;
@@ -96,40 +85,7 @@ export const PlayView: FC = () => {
         loadCharacter();
     }, [characterId, setCharacter]);
 
-    const pendingSave = useRef<ICharacter | null>(null);
-    const saveFailed = useRef(false);
-    const flushSave = useCallback(() => {
-        const toSave = pendingSave.current;
-        if (!toSave) return;
-        pendingSave.current = null;
-        characterRepository.saveCharacter(toSave).then(
-            () => { saveFailed.current = false; },
-            (error) => {
-                console.error('Autosave failed', error);
-                // Un solo avviso per serie di fallimenti, per non spammare ogni 1,5 s.
-                if (!saveFailed.current) {
-                    toast.error(describeDataError(error, 'Salvataggio automatico non riuscito.'));
-                }
-                saveFailed.current = true;
-            },
-        );
-    }, []);
-
-    useEffect(() => {
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
-            return;
-        }
-
-        if (character) {
-            pendingSave.current = character;
-            const handler = setTimeout(() => flushSave(), 1500);
-            return () => clearTimeout(handler);
-        }
-    }, [character, flushSave]);
-
-    // Se si lascia la pagina entro il debounce, l'ultima modifica non va persa.
-    useEffect(() => () => flushSave(), [flushSave]);
+    usePlayViewAutosave(character);
 
     const tabContainerRef = useRef<HTMLDivElement>(null);
 

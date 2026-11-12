@@ -70,11 +70,14 @@ src/
       characterRepository.ts  Firestore / localStorage + migrazione locale→cloud (solo I/O)
       migrationActions.ts     dialoghi di conferma/toast della migrazione (UI)
       characterTypes.ts     ICharacter e tipi collegati
-      rules/                regole pure: progression, rest, combat, defaults, characterData
+      hooks/                useCharacterEditor, useFieldChange, useCharacterOrdering, useCharacterActions, usePlayViewAutosave, useDiceMode
+      rules/                regole pure: progression, rest, combat, defaults, characterData, equipment
       utils/
       components/           editor e card (armi, equip., incantesimi, compagni…)
-        play-view/          schede e tracker della vista di gioco
-        print/              scheda stampabile
+        editor/             sezioni dell'editor di CharacterSheet
+        equipment/ attacks/ features/ spellbook/ character-list/   parti dei componenti omonimi
+        play-view/          schede e tracker della vista di gioco (+ combat/, inventory/)
+        print/              scheda stampabile (una pagina per file)
         ui/                 input e box specifici del dominio
   components/
     layout/AppHeader.tsx, SettingsModal.tsx, ErrorBoundary.tsx
@@ -129,7 +132,7 @@ functions/src/
 4. Campagne solo locali: "unisciti con codice" non funziona tra dispositivi.
 5. Immagini Storage leggibili da chiunque.
 6. ~~`characterService` mescolava I/O, regole e UI~~ — risolto nella Fase D.
-7. File molto grandi: `CharacterSheet` (~850 righe), `EquipmentList` (~750), `PrintableCharacterSheet` (~660), `CombatTabView` (~535).
+7. ~~File molto grandi~~ — risolto nella Fase F (nessun componente sopra ~300 righe; restano `icons.tsx`, un elenco di icone, e `characterTypes.ts`, solo tipi).
 8. ~~Residui~~ — risolti nella Fase C (file inutilizzati rimossi, `firebaseConfig` unito in `getFirebase`, refuso e classe mancante corretti, README riscritto).
 9. Copertura test limitata a `rules/` (il repository Firebase non è testato). Nessun ESLint.
 
@@ -171,9 +174,11 @@ Ogni fase è indipendente: si può fare in qualsiasi ordine, con un branch e una
 - Non fatto: le rotte personaggio restano accessibili senza login (modalità locale voluta), quindi nessuna route protetta; nessun test del repository/provider (richiederebbe mock di Firebase).
 - **Fatto quando**: caricamento, salvataggio e login non restano bloccati né falliscono in silenzio senza rete.
 
-### Fase F — Scomposizione dei componenti grandi
+### Fase F — Scomposizione dei componenti grandi — fatta
 - Spezzare `CharacterSheet`, `EquipmentList`, `PrintableCharacterSheet`, `CombatTabView` in sezioni con stato locale minimo.
 - Scegliere un'unica strada per la stampa (HTML del client o PDF del server) ed eliminare il doppione di layout.
+- Fatto: `CharacterSheet` (851→~145 righe) con `hooks/useCharacterEditor`, `hooks/useFieldChange` e le sezioni in `components/editor/`; `EquipmentList` con `components/equipment/` (form a sezioni, elenco, monete); `PrintableCharacterSheet` in pagine (`PrintPageCore/Spells/Inventory/Companion`) più `printStyles` e `printUtils`; `CombatTabView` con `play-view/combat/` e `useAttackRolls`; `AttackList` (`attacks/`), `CategorizedFeatureList` (`features/`), `Spellbook` (`spellbook/`), `InventoryTabView` (`play-view/inventory/`), `CharacterList` (`character-list/`, `useCharacterOrdering`, `useCharacterActions`) e `PlayView` (`usePlayViewAutosave`, `useDiceMode`). La logica di equipaggiamento duplicata (equipaggia/rimuovi, divisione equipaggiabile/zaino) è ora in `rules/equipment.ts`.
+- Non fatto: scelta fra stampa HTML del client e PDF del server (il doppione di layout resta, rimandato a una fase dedicata perché cambierebbe il comportamento e tocca la Fase A).
 - **Fatto quando**: nessun componente sopra ~300 righe; comportamento invariato.
 
 ### Fase G — Campagne condivise (funzionale)
