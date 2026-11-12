@@ -1,12 +1,79 @@
-import * as functions from 'firebase-functions/v1';
-import * as admin from 'firebase-admin';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import * as logger from 'firebase-functions/logger';
 import * as puppeteer from 'puppeteer-core';
 import chromium from '@sparticuz/chromium';
 import * as fs from 'fs';
 
-if (admin.apps.length === 0) {
-  admin.initializeApp();
-}
+// --- LIMITI E SANITIZZAZIONE DELL'INPUT ---
+
+const MAX_PAYLOAD_CHARS = 300_000;
+const MAX_STRING_LENGTH = 20_000;
+const MAX_ARRAY_LENGTH = 200;
+const MAX_DEPTH = 8;
+
+/** Host da cui Chromium può caricare risorse durante il rendering. */
+const ALLOWED_HOSTS = [
+  'fonts.googleapis.com',
+  'fonts.gstatic.com',
+  'firebasestorage.googleapis.com',
+  'storage.googleapis.com',
+];
+
+const escapeHtml = (value: string): string =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+/** Intero limitato a [min, max]; un valore non numerico diventa `min`. */
+const clampInt = (value: unknown, min: number, max: number): number => {
+  const n = Math.floor(Number(value));
+  if (!Number.isFinite(n)) return min;
+  return Math.min(max, Math.max(min, n));
+};
+
+/**
+ * Copia ricorsiva dell'input in cui ogni stringa è escapata per l'HTML e
+ * array, profondità e lunghezze sono limitati. I template possono quindi
+ * interpolare i valori senza ulteriore escape.
+ */
+const sanitizeDeep = (value: unknown, depth = 0): any => {
+  if (depth > MAX_DEPTH) return undefined;
+  if (typeof value === 'string') return escapeHtml(value.slice(0, MAX_STRING_LENGTH));
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+  if (typeof value === 'boolean' || value === null) return value;
+  if (Array.isArray(value)) {
+    return value.slice(0, MAX_ARRAY_LENGTH).map((v) => sanitizeDeep(v, depth + 1));
+  }
+  if (typeof value === 'object') {
+    const out: Record<string, any> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      if (k === '__proto__' || k === 'constructor' || k === 'prototype') continue;
+      out[k] = sanitizeDeep(v, depth + 1);
+    }
+    return out;
+  }
+  return undefined;
+};
+
+/** Accetta solo URL https verso gli host consentiti (immagini di Storage). */
+const isAllowedImageUrl = (url: unknown): url is string => {
+  if (typeof url !== 'string') return false;
+  try {
+    const u = new URL(url);
+    return u.protocol === 'https:' && ALLOWED_HOSTS.includes(u.hostname);
+  } catch {
+    return false;
+  }
+};
+
+const sanitizeFileName = (name: unknown): string => {
+  const base = typeof name === 'string' ? name : 'character';
+  const cleaned = base.replace(/[^\p{L}\p{N}_-]+/gu, '_').replace(/^_+|_+$/g, '').slice(0, 60);
+  return `${cleaned || 'character'}_sheet.pdf`;
+};
 
 const WEAPON_MASTERIES_DATA: any = {
   "Vex": { name: "Vex", description: "Advantage on next attack roll if hit." },
@@ -31,22 +98,38 @@ const CATEGORY_LABELS: any = {
 /**
  * Main function to generate the PDF.
  */
-export const generateCharacterPDF = functions
-  .runWith({
-    memory: '1GB',
+export const generateCharacterPDF = onCall(
+  {
+    region: 'europe-west1',
+    memory: '1GiB',
     timeoutSeconds: 60,
-  })
-  .https.onCall(async (data: any, context: any) => {
-    const { character } = data;
-
-    if (!character) {
-      throw new functions.https.HttpsError('invalid-argument', 'Character data is required');
+    maxInstances: 5,
+  },
+  async (request: { auth?: unknown; data: unknown }) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'La funzione deve essere chiamata da un utente autenticato.');
     }
 
+    const rawCharacter = (request.data as { character?: unknown } | null)?.character;
+
+    if (!rawCharacter || typeof rawCharacter !== 'object' || Array.isArray(rawCharacter)) {
+      throw new HttpsError('invalid-argument', 'Character data is required');
+    }
+
+    if (JSON.stringify(rawCharacter).length > MAX_PAYLOAD_CHARS) {
+      throw new HttpsError('invalid-argument', 'Character data is too large');
+    }
+
+    const character = sanitizeDeep(rawCharacter);
+    // Solo URL di immagini verso host consentiti; altrimenti nessun ritratto.
+    const rawImageUrl = (rawCharacter as { imageUrl?: unknown }).imageUrl;
+    character.imageUrl = isAllowedImageUrl(rawImageUrl) ? escapeHtml(rawImageUrl) : undefined;
+
+    let browser: puppeteer.Browser | undefined;
     try {
       const html = generateCharacterSheetHTML(character);
 
-      const isLocal = process.env.FUNCTIONS_EMULATOR === 'true' || process.platform === 'win32';
+      const isLocal = process.env.FUNCTIONS_EMULATOR === 'true';
 
       let launchOptions: any;
       if (isLocal) {
@@ -75,9 +158,31 @@ export const generateCharacterPDF = functions
         };
       }
 
-      const browser = await puppeteer.launch(launchOptions);
+      browser = await puppeteer.launch(launchOptions);
       const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: 'networkidle0' });
+
+      // Il contenuto è solo HTML statico: niente JavaScript e rete limitata
+      // agli host consentiti (font e immagini di Storage) per evitare SSRF.
+      await page.setJavaScriptEnabled(false);
+      await page.setRequestInterception(true);
+      page.on('request', (req) => {
+        const url = req.url();
+        if (url.startsWith('data:') || url === 'about:blank') {
+          req.continue();
+          return;
+        }
+        let allowed = false;
+        try {
+          const u = new URL(url);
+          allowed = u.protocol === 'https:' && ALLOWED_HOSTS.includes(u.hostname);
+        } catch {
+          allowed = false;
+        }
+        if (allowed) req.continue();
+        else req.abort();
+      });
+
+      await page.setContent(html, { waitUntil: 'networkidle0', timeout: 30_000 });
 
       const pdfBuffer = await page.pdf({
         format: 'A4',
@@ -86,18 +191,22 @@ export const generateCharacterPDF = functions
         margin: { top: '6mm', bottom: '6mm', left: '6mm', right: '6mm' }
       });
 
-      await browser.close();
-
       return {
         success: true,
         pdf: Buffer.from(pdfBuffer).toString('base64'),
-        fileName: `${character.name || 'character'}_sheet.pdf`,
+        fileName: sanitizeFileName(rawCharacter && (rawCharacter as { name?: unknown }).name),
       };
-    } catch (error: any) {
-      console.error('PDF Error:', error);
-      throw new functions.https.HttpsError('internal', error.message);
+    } catch (error) {
+      // Il dettaglio resta nei log; al client va un messaggio generico.
+      logger.error('PDF Error:', error);
+      throw new HttpsError('internal', 'Impossibile generare il PDF.');
+    } finally {
+      if (browser) {
+        await browser.close().catch(() => undefined);
+      }
     }
-  });
+  }
+);
 
 // --- TEMPLATE GENERATORS ---
 
@@ -328,7 +437,7 @@ function renderVitals(char: any, h: any, svgs: any) {
   const wisMod = h.getMod(char.abilityScores?.wisdom || 10);
   const isPerceptionProf = char.skills?.find((s: any) => s.name === 'Perception')?.proficient;
   const passivePerc = 10 + wisMod + (isPerceptionProf ? h.pb : 0);
-  const lvl = char.level || 1;
+  const lvl = clampInt(char.level || 1, 1, 20);
 
   return `
     <div class="vitals-row">
@@ -526,7 +635,7 @@ function renderFeatures(char: any, h: any, svgs: any) {
                     ${list.map((f: any) => {
       let tracker = '';
       if (f.uses && f.uses.max > 0) {
-        tracker = `<div class="feature-tracker">${svgs.diamond.repeat(f.uses.max)}</div>`;
+        tracker = `<div class="feature-tracker">${svgs.diamond.repeat(clampInt(f.uses.max, 0, 30))}</div>`;
       }
       return `
                         <div class="feature-item-v14">
@@ -565,7 +674,7 @@ function renderSpellSlots(char: any, svgs: any) {
     <div class="spell-slots-card">
         <div class="section-title">SPELL SLOTS</div>
         ${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(lv => {
-    const max = char.spellSlots?.[lv]?.max || 0;
+    const max = clampInt(char.spellSlots?.[lv]?.max, 0, 30);
     if (max === 0) return '';
     return `
             <div class="slot-row">
@@ -587,7 +696,7 @@ function renderCustomResources(char: any, svgs: any) {
             <div class="res-row">
                 <div class="res-name-tracker">
                     <span class="font-serif res-name">${res.name}</span>
-                    <div class="res-tracker">${svgs.diamond.repeat(res.max)}</div>
+                    <div class="res-tracker">${svgs.diamond.repeat(clampInt(res.max, 0, 30))}</div>
                 </div>
             </div>
         `).join('')}

@@ -1,10 +1,27 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Consente a un utente di leggere e scrivere solo i propri documenti.
-    // L'ID utente nel percorso del documento deve corrispondere all'ID utente dell'autenticazione.
+
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // Controlli di base sul documento di un personaggio: struttura e tipi dei
+    // campi principali, per evitare documenti arbitrari o fuori scala.
+    // (Firestore limita già a 1 MiB la dimensione di un documento.)
+    function isValidCharacter() {
+      let data = request.resource.data;
+      return data is map
+          && data.keys().size() <= 120
+          && (!('name' in data) || (data.name is string && data.name.size() <= 200))
+          && (!('level' in data) || (data.level is number && data.level >= 0 && data.level <= 20));
+    }
+
+    // Un utente può leggere e scrivere solo i propri personaggi.
+    // L'ID utente nel percorso deve corrispondere all'ID dell'autenticazione.
     match /users/{userId}/characters/{characterId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, delete: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidCharacter();
     }
   }
 }
