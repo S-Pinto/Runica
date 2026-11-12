@@ -3,44 +3,44 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // Regole per le immagini del profilo utente
+    // L'utente autenticato è il proprietario del percorso.
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // Immagine raster valida (niente SVG/HTML) e sotto il limite indicato.
+    function isValidImage(maxBytes) {
+      return request.resource.size < maxBytes
+          && request.resource.contentType.matches('image/(jpeg|png|webp|gif|avif)');
+    }
+
+    // Foto profilo: lettura, scrittura e cancellazione solo del proprietario.
     match /users/{userId}/profile.jpg {
-      // Chiunque può leggere le immagini del profilo.
-      allow read;
-
-      // Solo il proprietario può scrivere la propria immagine del profilo,
-      // con validazione su tipo e dimensione del file.
-      allow write: if request.auth != null && request.auth.uid == userId
-                   && request.resource.size < 500 * 1024
-                   && request.resource.contentType.matches('image/.*');
+      allow read, delete: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidImage(500 * 1024);
     }
 
-    // Regole per i ritratti dei personaggi
+    // Ritratti dei personaggi.
     match /users/{userId}/character-portraits/{characterId} {
-        // Chiunque può leggere i ritratti dei personaggi.
-        allow read;
-
-        // Solo il proprietario può scrivere i ritratti per i propri personaggi,
-        // con validazione su tipo e dimensione del file.
-        allow write: if request.auth != null && request.auth.uid == userId
-                     && request.resource.size < 1 * 1024 * 1024 // 1MB
-                     && request.resource.contentType.matches('image/.*');
+      allow read, delete: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidImage(1024 * 1024);
     }
 
-    // Regole per i ritratti dei compagni
+    // Ritratti dei compagni.
     match /users/{userId}/characters/{characterId}/companions/{companionId}/portrait.jpg {
-        // Chiunque può leggere i ritratti.
-        allow read;
-        // Solo il proprietario del personaggio può scrivere i ritratti per i compagni.
-        allow write: if request.auth != null && request.auth.uid == userId
-                     && request.resource.size < 1 * 1024 * 1024; // 1MB
+      allow read, delete: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidImage(1024 * 1024);
     }
 
-    // Regole per le immagini degli oggetti
+    // Immagini degli oggetti.
     match /users/{userId}/characters/{characterId}/items/{itemId}/image.jpg {
-        allow read;
-        allow write: if request.auth != null && request.auth.uid == userId
-                     && request.resource.size < 1 * 1024 * 1024; // 1MB
+      allow read, delete: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidImage(1024 * 1024);
+    }
+
+    // Tutto il resto è negato.
+    match /{allPaths=**} {
+      allow read, write: if false;
     }
   }
 }
