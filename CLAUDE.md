@@ -124,8 +124,8 @@ functions/src/
 ## Problemi noti
 
 1. `pdfHandler` (v1) non controlla l'autenticazione e usa la regione predefinita; il client collega l'emulatore a ogni chiamata su `localhost`.
-2. Pagina di stampa fuori da `CharacterProvider`: con caricamento diretto, se l'auth non è pronta, `getCharacter` ripiega sulla copia locale.
-3. Persistenza su tre livelli (Firestore, localStorage, migrazione) senza regole di conflitto.
+2. ~~Pagina di stampa fuori da `CharacterProvider` e auth non pronta~~ — risolto nella Fase E (`AuthProvider` blocca il render finché l'auth è risolta).
+3. Persistenza su tre livelli (Firestore, localStorage, migrazione): regola di conflitto definita nella Fase E (vince `lastUpdated` più recente), ma nessun merge campo per campo.
 4. Campagne solo locali: "unisciti con codice" non funziona tra dispositivi.
 5. Immagini Storage leggibili da chiunque.
 6. ~~`characterService` mescolava I/O, regole e UI~~ — risolto nella Fase D.
@@ -161,11 +161,15 @@ Ogni fase è indipendente: si può fare in qualsiasi ordine, con un branch e una
 - Fatto: `characterService.ts` eliminato; `rules/combat.ts`, `rules/defaults.ts`, `rules/characterData.ts` (pure, con test), `characterRepository.ts` (I/O) e `migrationActions.ts` (UI). La migrazione parte da `CharacterProvider` al login (quindi sulle rotte personaggio), `AuthProvider` non importa più nulla dal dominio. Eliminati gli `any` del servizio.
 - **Fatto quando**: `rules/` e il repository non importano nulla da `components/`.
 
-### Fase E — Affidabilità auth e dati
-- Esporre `authReady` da `AuthProvider` e attenderlo prima di leggere i dati (risolve il punto 2).
-- Portare la pagina di stampa dentro il contesto dei personaggi o farle attendere l'auth.
-- Definire la strategia offline (Firestore con cache persistente vs localStorage) e una regola di conflitto chiara per la migrazione.
-- Decidere se le rotte personaggio richiedono login; se sì, aggiungere una route protetta.
+### Fase E — Affidabilità auth e dati — fatta
+- `AuthProvider` espone `authReady` e non renderizza i figli finché lo stato di login non è noto (quindi anche la pagina di stampa, fuori da `CharacterProvider`, legge i dati solo ad auth risolta: punto 2 risolto). Un `getIdToken()` fallito offline non blocca più l'avvio; errore del listener = utente non loggato.
+- Strategia offline: Firestore con cache persistente multi-scheda (`getFirebase`, con ripiego su cache in memoria); le scritture usano `settleOrQueue` (timeout 6 s: offline il dato è in cache e si sincronizza al ritorno della rete). localStorage resta solo per la modalità senza login.
+- Regola di conflitto della migrazione: vince la copia con `lastUpdated` più recente (`selectCharactersToMigrate`); se il cloud è irraggiungibile la migrazione fallisce senza toccare i dati locali. Proposta di migrazione una volta per utente e sessione (`createKeyedGuard`), riproponibile solo dopo un errore.
+- `CharacterProvider`: errore del listener esposto come `loadError` (la lista non resta più in caricamento infinito), reset dei dati al cambio utente, rollback degli aggiornamenti ottimistici se il salvataggio fallisce.
+- Errori di rete/permessi tradotti in messaggi italiani (`lib/errors.ts`); login con popup chiuso/bloccato/offline gestito; autosave di `PlayView` con avviso unico e salvataggio finale all'uscita dalla pagina; niente più rejection non gestite in lista, scheda e stampa.
+- Test: `lib/async.test.ts`, `lib/errors.test.ts`.
+- Non fatto: le rotte personaggio restano accessibili senza login (modalità locale voluta), quindi nessuna route protetta; nessun test del repository/provider (richiederebbe mock di Firebase).
+- **Fatto quando**: caricamento, salvataggio e login non restano bloccati né falliscono in silenzio senza rete.
 
 ### Fase F — Scomposizione dei componenti grandi
 - Spezzare `CharacterSheet`, `EquipmentList`, `PrintableCharacterSheet`, `CombatTabView` in sezioni con stato locale minimo.

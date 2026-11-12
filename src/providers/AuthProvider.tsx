@@ -7,6 +7,8 @@ import * as authService from '../services/authService';
 interface AuthContextType {
   currentUser: User | null;
   loading: boolean;
+  /** True quando lo stato di login è noto (utente o assenza di utente). */
+  authReady: boolean;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -14,6 +16,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   currentUser: null,
   loading: true,
+  authReady: false,
   signInWithGoogle: () => Promise.reject('Auth provider not initialized'),
   logout: () => Promise.reject('Auth provider not initialized'),
 });
@@ -31,25 +34,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const handleUserLogin = async (user: User | null) => {
-      setCurrentUser(user);
       if (user) {
-        // RISOLUZIONE DEL BUG:
-        // Attendiamo che il token di autenticazione sia pronto.
-        // Questo assicura che tutti i servizi Firebase (incluso Storage)
-        // siano a conoscenza dello stato di autenticazione prima di procedere.
-        await user.getIdToken();
+        // Attendiamo che il token sia pronto, così tutti i servizi Firebase (incluso
+        // Storage) conoscono lo stato di autenticazione prima di procedere.
+        // Offline il refresh del token può fallire: l'utente resta comunque loggato
+        // (le sessioni sono persistite) e i dati arrivano dalla cache locale.
+        try {
+          await user.getIdToken();
+        } catch (error) {
+          console.warn('Impossibile ottenere il token di autenticazione (offline?).', error);
+        }
       }
+      if (cancelled) return;
+      setCurrentUser(user);
       setLoading(false);
     };
 
-    const unsubscribe = authService.onAuthStateChangedListener(handleUserLogin);
+    let cancelled = false;
+    const unsubscribe = authService.onAuthStateChangedListener((user) => {
+      void handleUserLogin(user);
+    });
 
-    return unsubscribe; // Cleanup subscription on unmount
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, []);
 
   const value = {
     currentUser,
     loading,
+    // Il provider non renderizza i figli finché l'auth non è risolta: dentro l'app è sempre true.
+    authReady: !loading,
     signInWithGoogle: authService.signInWithGoogle,
     logout: authService.signOutUser,
   };

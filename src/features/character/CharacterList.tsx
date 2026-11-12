@@ -26,10 +26,11 @@ import { SortableCharacterCard } from './components/SortableCharacterCard';
 import { CharacterCard } from './components/CharacterCard';
 import { useIsTouchDevice } from '../../hooks/useIsTouchDevice';
 import { CampaignManagerModal } from './components/CampaignManagerModal';
-import { confirmDialog } from '../../components/ui/Dialogs';
+import { confirmDialog, toast } from '../../components/ui/Dialogs';
+import { describeDataError } from '../../lib/errors';
 
 export const CharacterList: React.FC = () => {
-  const { characters, loading, deleteCharacter, saveCharacterOrder, duplicateCharacter } = useCharacter();
+  const { characters, loading, loadError, deleteCharacter, saveCharacterOrder, duplicateCharacter } = useCharacter();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [orderedCharacters, setOrderedCharacters] = useState<ICharacter[]>([]);
@@ -100,13 +101,17 @@ export const CharacterList: React.FC = () => {
     setActiveId(null);
 
     if (over && active.id !== over.id) {
-      setOrderedCharacters((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
-        const newOrder = arrayMove(items, oldIndex, newIndex);
-        const updatedOrder = newOrder.map((char, index) => ({ ...char, order: index }));
-        saveCharacterOrder(updatedOrder);
-        return updatedOrder;
+      // Il salvataggio sta fuori dall'updater di setState (che React può eseguire due volte).
+      const oldIndex = orderedCharacters.findIndex((item) => item.id === active.id);
+      const newIndex = orderedCharacters.findIndex((item) => item.id === over.id);
+      if (oldIndex < 0 || newIndex < 0) return;
+      const updatedOrder = arrayMove(orderedCharacters, oldIndex, newIndex)
+        .map((char, index) => ({ ...char, order: index }));
+      setOrderedCharacters(updatedOrder);
+      saveCharacterOrder(updatedOrder).catch((error) => {
+        console.error('Failed to save character order', error);
+        setOrderedCharacters(characters);
+        toast.error(describeDataError(error, 'Impossibile salvare il nuovo ordine.'));
       });
     }
   };
@@ -119,12 +124,22 @@ export const CharacterList: React.FC = () => {
 
   const handleDeleteCharacter = async (id: string, name: string) => {
     if (await confirmDialog({ title: `Eliminare ${name}?`, message: "L'azione non può essere annullata.", confirmLabel: 'Elimina', destructive: true })) {
-      await deleteCharacter(id);
+      try {
+        await deleteCharacter(id);
+      } catch (error) {
+        console.error('Failed to delete character', error);
+        toast.error(describeDataError(error, 'Eliminazione non riuscita.'));
+      }
     }
   };
 
   const handleDuplicateCharacter = async (char: ICharacter) => {
-    await duplicateCharacter(char);
+    try {
+      await duplicateCharacter(char);
+    } catch (error) {
+      console.error('Failed to duplicate character', error);
+      toast.error(describeDataError(error, 'Duplicazione non riuscita.'));
+    }
   };
 
   const handleExportCharacter = (char: ICharacter) => {
@@ -155,6 +170,21 @@ export const CharacterList: React.FC = () => {
             </div>
           ))}
         </div>
+      </div>
+    );
+  }
+
+  if (loadError && characters.length === 0) {
+    return (
+      <div className="mx-auto max-w-xl p-8 text-center" role="alert">
+        <p className="mb-4 text-destructive">{loadError}</p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="rounded-xl border border-border bg-card px-4 py-2 text-text hover:bg-input"
+        >
+          Riprova
+        </button>
       </div>
     );
   }

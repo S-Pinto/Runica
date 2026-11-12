@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef, Suspense, lazy, FC, createElement } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense, lazy, FC, createElement } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import * as characterRepository from './characterRepository';
 import { useCharacter } from './CharacterProvider';
+import type { ICharacter } from './characterTypes';
+import { describeDataError } from '../../lib/errors';
 import { BackIcon, EditIcon, SparklesIcon, MoonIcon, SunIcon, PrinterIcon, EllipsisVerticalIcon, UserGroupIcon, HeartIcon, StarIcon, SwordIcon, UserCircleIcon, ShieldIcon } from '../../components/ui/icons';
 import { Button } from '../../components/ui/Button';
 import { Menu, MenuItem } from '../../components/ui/Menu';
@@ -88,11 +90,30 @@ export const PlayView: FC = () => {
                 }
             } catch (err) {
                 console.error("Failed to load character:", err);
-                setError('Impossibile caricare il personaggio');
+                setError(describeDataError(err, 'Impossibile caricare il personaggio'));
             }
         };
         loadCharacter();
     }, [characterId, setCharacter]);
+
+    const pendingSave = useRef<ICharacter | null>(null);
+    const saveFailed = useRef(false);
+    const flushSave = useCallback(() => {
+        const toSave = pendingSave.current;
+        if (!toSave) return;
+        pendingSave.current = null;
+        characterRepository.saveCharacter(toSave).then(
+            () => { saveFailed.current = false; },
+            (error) => {
+                console.error('Autosave failed', error);
+                // Un solo avviso per serie di fallimenti, per non spammare ogni 1,5 s.
+                if (!saveFailed.current) {
+                    toast.error(describeDataError(error, 'Salvataggio automatico non riuscito.'));
+                }
+                saveFailed.current = true;
+            },
+        );
+    }, []);
 
     useEffect(() => {
         if (isInitialMount.current) {
@@ -101,13 +122,14 @@ export const PlayView: FC = () => {
         }
 
         if (character) {
-            const handler = setTimeout(() => {
-                characterRepository.saveCharacter(character);
-            }, 1500);
-
+            pendingSave.current = character;
+            const handler = setTimeout(() => flushSave(), 1500);
             return () => clearTimeout(handler);
         }
-    }, [character]);
+    }, [character, flushSave]);
+
+    // Se si lascia la pagina entro il debounce, l'ultima modifica non va persa.
+    useEffect(() => () => flushSave(), [flushSave]);
 
     const tabContainerRef = useRef<HTMLDivElement>(null);
 

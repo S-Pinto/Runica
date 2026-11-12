@@ -24,6 +24,7 @@ import { getModifier, formatModifier } from './utils/characterUtils';
 import * as campaignService from '../../services/campaignService';
 import { CampaignManagerModal } from './components/CampaignManagerModal';
 import { confirmDialog, toast } from '../../components/ui/Dialogs';
+import { describeDataError } from '../../lib/errors';
 import { TabButton } from '../../components/ui/TabButton';
 import { ABILITY_LABELS, ABILITY_SHORT, skillLabel } from '../../lib/labels';
 import { CONDITIONS } from '../../data/conditions';
@@ -122,7 +123,7 @@ export const CharacterSheet: React.FC = () => {
                 }
             } catch (err) {
                 console.error("Failed to load character:", err);
-                if (isMounted) setError('Impossibile caricare il personaggio');
+                if (isMounted) setError(describeDataError(err, 'Impossibile caricare il personaggio'));
             }
         };
         loadCharacter();
@@ -153,7 +154,7 @@ export const CharacterSheet: React.FC = () => {
             navigate(`/character/${savedChar.id}?tab=${activeTab}`, { replace: isNewCharacter });
         } catch (error) {
             console.error("Failed to save character:", error);
-            toast.error('Salvataggio non riuscito. Riprova.');
+            toast.error(describeDataError(error, 'Salvataggio non riuscito. Riprova.'));
         } finally {
             setIsSaving(false);
         }
@@ -185,7 +186,7 @@ export const CharacterSheet: React.FC = () => {
                 navigate('/');
             } catch (error) {
                 console.error("Failed to delete character:", error);
-                toast.error('Eliminazione non riuscita.');
+                toast.error(describeDataError(error, 'Eliminazione non riuscita.'));
             }
         }
     };
