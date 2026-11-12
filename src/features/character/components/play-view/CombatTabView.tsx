@@ -25,6 +25,7 @@ const ABILITY_MAP: Record<string, string> = {
 const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items: Attack[], abilityScores: any, proficiencyBonus: number }) => {
     const [results, setResults] = useState<Record<string, { atk: RollResult[], dmg: RollResult[] }>>({});
     const [expandedAttackId, setExpandedAttackId] = useState<string | null>(null);
+    const [rollMode, setRollMode] = useState<'normal' | 'advantage' | 'disadvantage'>('normal');
     const { character } = useCharacter();
 
     if (!character) return null;
@@ -32,9 +33,12 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
     const handleAttackRoll = (e: React.MouseEvent, attack: Attack) => {
         e.stopPropagation();
 
-        const d20Roll = Math.floor(Math.random() * 20) + 1;
+        // Advantage/disadvantage: roll two d20 and keep the higher/lower one.
+        const first = Math.floor(Math.random() * 20) + 1;
+        const second = rollMode === 'normal' ? first : Math.floor(Math.random() * 20) + 1;
+        const d20Roll = rollMode === 'advantage' ? Math.max(first, second) : rollMode === 'disadvantage' ? Math.min(first, second) : first;
         let total = d20Roll;
-        let breakdownParts = [`d20(${d20Roll})`];
+        let breakdownParts = [rollMode === 'normal' ? `d20(${d20Roll})` : `d20 ${rollMode === 'advantage' ? 'vantaggio' : 'svantaggio'}(${first}|${second} → ${d20Roll})`];
 
         // 1. Ability Modifier
         if (attack.attackAbility && abilityScores) {
@@ -51,7 +55,7 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
         // 2. Proficiency
         if (attack.isProficient) {
             total += proficiencyBonus;
-            breakdownParts.push(`+${proficiencyBonus}(PB)`);
+            breakdownParts.push(`+${proficiencyBonus}(comp.)`);
         }
 
         // 3. Custom/Magic Bonus
@@ -65,7 +69,7 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
         if (magicBonus !== 0) {
             total += magicBonus;
             const sign = magicBonus >= 0 ? '+' : '';
-            breakdownParts.push(`${sign}${magicBonus}(Misc)`);
+            breakdownParts.push(`${sign}${magicBonus}(magico)`);
         }
 
         const breakdown = breakdownParts.join(' + ').replace(/\+ \+/g, '+ ').replace(/\+ -/g, '- '); // Clean up signs
@@ -130,10 +134,34 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
 
     return (
         <div className="bg-card p-6 rounded-2xl border border-border/50 flex flex-col h-full">
-            <h3 className="text-xl font-cinzel font-bold text-foreground mb-6 flex items-center gap-2">
-                <SwordIcon className="w-5 h-5" />
-                Attacchi e trucchetti
-            </h3>
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+                <h3 className="text-xl font-cinzel font-bold text-foreground flex items-center gap-2">
+                    <SwordIcon className="w-5 h-5" />
+                    Attacchi e trucchetti
+                </h3>
+                <div role="radiogroup" aria-label="Modalità del tiro per colpire" className="flex rounded-xl border border-border bg-background/40 p-0.5 text-xs font-semibold">
+                    {([
+                        ['normal', 'Normale'],
+                        ['advantage', 'Vantaggio'],
+                        ['disadvantage', 'Svantaggio'],
+                    ] as const).map(([mode, label]) => (
+                        <button
+                            key={mode}
+                            type="button"
+                            role="radio"
+                            aria-checked={rollMode === mode}
+                            onClick={() => setRollMode(mode)}
+                            className={`rounded-lg px-2.5 py-1.5 transition-colors ${
+                                rollMode === mode
+                                    ? mode === 'advantage' ? 'bg-success/20 text-success' : mode === 'disadvantage' ? 'bg-destructive/20 text-destructive' : 'bg-accent/20 text-accent'
+                                    : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                        >
+                            {label}
+                        </button>
+                    ))}
+                </div>
+            </div>
             <div className="space-y-3 flex-grow overflow-y-auto pr-2 -mr-2">
                 {items.length === 0 && <p className="text-muted-foreground text-sm text-center py-8 bg-muted/20 rounded-xl border border-dashed border-border/50">Nessun attacco o trucchetto.</p>}
                 {items.map(item => {
@@ -445,10 +473,10 @@ const ActiveMagicItems = ({ equipment, onUpdate }: { equipment: EquipmentItem[];
     );
 };
 
-const CombatTabView = () => {
-    const { character, updateCharacter } = useCharacter();
+const CombatTabViewContent = () => {
+    const { character: maybeCharacter, updateCharacter } = useCharacter();
+    const character = maybeCharacter!;
 
-    if (!character) return null;
 
     const attacks = useMemo(() => {
         const customAttacks = character.attacks || [];
@@ -497,6 +525,12 @@ const CombatTabView = () => {
             </div>
         </div>
     );
+};
+
+/** Renders CombatTabViewContent only once the character is loaded, so its hooks never run conditionally. */
+const CombatTabView = () => {
+    const { character } = useCharacter();
+    return character ? <CombatTabViewContent /> : null;
 };
 
 export default CombatTabView;

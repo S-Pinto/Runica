@@ -44,12 +44,12 @@ const FeatureForm = ({
   );
 };
 
-export const FeatureList = () => {
-  const { character, updateCharacter } = useCharacter();
+const FeatureListContent = () => {
+  const { character: maybeCharacter, updateCharacter } = useCharacter();
+  const character = maybeCharacter!;
   const [editingFeature, setEditingFeature] = useState<Feature | 'new' | null>(null);
   const [expandedFeatures, setExpandedFeatures] = useState<Record<string, boolean>>({});
 
-  if (!character) return null;
 
   const handleSaveFeature = (featureData: Feature | Omit<Feature, 'id'>) => {
     let updatedFeatures: Feature[];
@@ -120,4 +120,10 @@ export const FeatureList = () => {
       </div>
     </div>
   );
+};
+
+/** Renders FeatureListContent only once the character is loaded, so its hooks never run conditionally. */
+export const FeatureList = () => {
+    const { character } = useCharacter();
+    return character ? <FeatureListContent /> : null;
 };

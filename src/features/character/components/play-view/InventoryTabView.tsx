@@ -5,12 +5,12 @@ import { ChevronDownIcon } from '../../../../components/ui/icons';
 import { ImageModal } from '../../../../components/ui/ImageModal';
 import { toast } from '../../../../components/ui/Dialogs';
 
-const InventoryTabView = () => {
-  const { character, updateCharacter } = useCharacter();
+const InventoryTabViewContent = () => {
+  const { character: maybeCharacter, updateCharacter } = useCharacter();
+  const character = maybeCharacter!;
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<{ url: string; alt: string } | null>(null);
 
-  if (!character) return null;
 
   const handleToggleEquip = (itemId: string) => {
     const clickedItem = character.equipment.find(item => item.id === itemId);
@@ -358,6 +358,12 @@ const InventoryTabView = () => {
       </div>
     </div>
   );
+};
+
+/** Renders InventoryTabViewContent only once the character is loaded, so its hooks never run conditionally. */
+const InventoryTabView = () => {
+    const { character } = useCharacter();
+    return character ? <InventoryTabViewContent /> : null;
 };
 
 export default InventoryTabView;

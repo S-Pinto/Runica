@@ -245,11 +245,11 @@ const CategorySection = ({
     );
 };
 
-export const CategorizedFeatureList = () => {
-    const { character, updateCharacter } = useCharacter();
+const CategorizedFeatureListContent = () => {
+    const { character: maybeCharacter, updateCharacter } = useCharacter();
+    const character = maybeCharacter!;
     const [editingFeature, setEditingFeature] = useState<Feature | Omit<Feature, 'id'> | null>(null);
 
-    if (!character) return null;
 
     const handleSaveFeature = (featureData: Feature | Omit<Feature, 'id'>) => {
         let updatedFeatures: Feature[];
@@ -371,4 +371,10 @@ export const CategorizedFeatureList = () => {
             </div>
         </div>
     );
+};
+
+/** Renders CategorizedFeatureListContent only once the character is loaded, so its hooks never run conditionally. */
+export const CategorizedFeatureList = () => {
+    const { character } = useCharacter();
+    return character ? <CategorizedFeatureListContent /> : null;
 };

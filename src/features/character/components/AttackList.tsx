@@ -343,12 +343,12 @@ const AttackForm = ({
   );
 };
 
-export const AttackList = () => {
-  const { character, updateCharacter } = useCharacter();
+const AttackListContent = () => {
+  const { character: maybeCharacter, updateCharacter } = useCharacter();
+  const character = maybeCharacter!;
   const [editingAttack, setEditingAttack] = useState<Attack | 'new' | null>(null);
   const [deletingAttackId, setDeletingAttackId] = useState<string | null>(null);
 
-  if (!character) return null;
 
   const handleSaveAttack = (attackData: Attack | Omit<Attack, 'id'>) => {
     let updatedAttacks: Attack[];
@@ -459,4 +459,10 @@ export const AttackList = () => {
       </div>
     </div>
   );
+};
+
+/** Renders AttackListContent only once the character is loaded, so its hooks never run conditionally. */
+export const AttackList = () => {
+    const { character } = useCharacter();
+    return character ? <AttackListContent /> : null;
 };

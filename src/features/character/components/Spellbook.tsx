@@ -121,7 +121,7 @@ const SpellForm = ({
         </div>
         <div>
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1 block">Componenti</label>
-          <input type="text" placeholder="e.g. V, S, M" value={formData.components} onChange={e => handleChange('components', e.target.value)} className={inputClass} />
+          <input type="text" placeholder="Es. V, S, M" value={formData.components} onChange={e => handleChange('components', e.target.value)} className={inputClass} />
         </div>
         <div>
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1 block">Durata</label>
@@ -134,7 +134,7 @@ const SpellForm = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1 block">Danni</label>
-            <input type="text" placeholder="e.g. 1d10" value={formData.damage || ''} onChange={e => handleChange('damage', e.target.value)} className={inputClass} />
+            <input type="text" placeholder="Es. 1d10" value={formData.damage || ''} onChange={e => handleChange('damage', e.target.value)} className={inputClass} />
           </div>
           <div>
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1 block">Tipo di danno</label>
@@ -180,14 +180,14 @@ const SpellForm = ({
 
 
 
-export const Spellbook = () => {
-  const { character, updateCharacter } = useCharacter();
+const SpellbookContent = () => {
+  const { character: maybeCharacter, updateCharacter } = useCharacter();
+  const character = maybeCharacter!;
   const [editingSpell, setEditingSpell] = useState<Spell | 'new' | null>(null);
   const [expandedSpells, setExpandedSpells] = useState<Record<string, boolean>>({});
   const [deletingSpellId, setDeletingSpellId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  if (!character) return null;
 
   const spellSaveDC = calculateSpellSaveDC(character);
   const spellAttackBonus = calculateSpellAttackBonus(character);
@@ -366,4 +366,10 @@ export const Spellbook = () => {
       </div>
     </div>
   );
+};
+
+/** Renders SpellbookContent only once the character is loaded, so its hooks never run conditionally. */
+export const Spellbook = () => {
+    const { character } = useCharacter();
+    return character ? <SpellbookContent /> : null;
 };

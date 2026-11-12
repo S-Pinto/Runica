@@ -545,12 +545,12 @@ const ItemDisplayList = ({
   </div>
 );
 
-export const EquipmentList = () => {
-  const { character, updateCharacter } = useCharacter();
+const EquipmentListContent = () => {
+  const { character: maybeCharacter, updateCharacter } = useCharacter();
+  const character = maybeCharacter!;
   const [editingItem, setEditingItem] = useState<EquipmentItem | 'new' | null>(null);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
-  if (!character) return null;
 
   const handleSave = (itemData: Omit<EquipmentItem, 'id'> | EquipmentItem) => {
     let updatedEquipment: EquipmentItem[];
@@ -741,4 +741,10 @@ export const EquipmentList = () => {
       </div>
     </div>
   );
+};
+
+/** Renders EquipmentListContent only once the character is loaded, so its hooks never run conditionally. */
+export const EquipmentList = () => {
+    const { character } = useCharacter();
+    return character ? <EquipmentListContent /> : null;
 };

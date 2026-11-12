@@ -25,6 +25,7 @@ import { CampaignManagerModal } from './components/CampaignManagerModal';
 import { confirmDialog, toast } from '../../components/ui/Dialogs';
 import { TabButton } from '../../components/ui/TabButton';
 import { ABILITY_LABELS, ABILITY_SHORT, skillLabel } from '../../lib/labels';
+import { CONDITIONS } from '../../data/conditions';
 
 type Tab = 'main' | 'stats' | 'combat' | 'bio' | 'spells' | 'inventory' | 'companions';
 const ABILITIES: (keyof AbilityScores)[] = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
@@ -295,10 +296,13 @@ export const CharacterSheet: React.FC = () => {
         }));
     };
 
-    const handleConditionsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!character) return;
-        const conditionsList = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
-        setCharacter(prev => ({ ...prev!, conditions: conditionsList }));
+    // Conditions are stored by English key (e.g. 'Poisoned') and shown by Italian name.
+    const toggleCondition = (key: string) => {
+        setCharacter(prev => {
+            if (!prev) return prev;
+            const current = prev.conditions || [];
+            return { ...prev, conditions: current.includes(key) ? current.filter(c => c !== key) : [...current, key] };
+        });
     };
 
     const handleGeneratePersonality = async () => {
@@ -526,7 +530,7 @@ export const CharacterSheet: React.FC = () => {
                                             <StatInput label="PV temporanei" value={character.hp.temporary} onChange={(val) => handleHpChange('temporary', Number(val))} inputClassName="text-blue-400" />
                                         </div>
                                         <div className="mt-4 pt-4 border-t border-border/30">
-                                            <StyledInput label="Dadi vita" subLabel="Total Available" name="hitDice" value={character.hitDice.total} onChange={handleHitDiceChange} placeholder="e.g. 1d8" className="w-1/2 mx-auto text-center" />
+                                            <StyledInput label="Dadi vita" subLabel="Tipo di dado" name="hitDice" value={character.hitDice.total} onChange={handleHitDiceChange} placeholder="Es. 1d8" className="w-1/2 mx-auto text-center" />
                                         </div>
                                     </div>
 
@@ -560,13 +564,41 @@ export const CharacterSheet: React.FC = () => {
                                     <div className="space-y-4 pt-2">
                                         <div className="grid grid-cols-1 gap-4">
                                             <div>
-                                                <StyledTextArea label="Resistenze" subLabel="Half Damage" name="resistances" value={character.defenses?.resistances || ''} onChange={handleDefensesChange} placeholder="Fuoco, veleno…" rows={2} className="min-h-[80px]" />
+                                                <StyledTextArea label="Resistenze" subLabel="Danni dimezzati" name="resistances" value={character.defenses?.resistances || ''} onChange={handleDefensesChange} placeholder="Fuoco, veleno…" rows={2} className="min-h-[80px]" />
                                             </div>
                                             <div>
-                                                <StyledTextArea label="Immunità" subLabel="No Damage" name="immunities" value={character.defenses?.immunities || ''} onChange={handleDefensesChange} placeholder="Freddo, charme…" rows={2} className="min-h-[80px]" />
+                                                <StyledTextArea label="Immunità" subLabel="Nessun danno" name="immunities" value={character.defenses?.immunities || ''} onChange={handleDefensesChange} placeholder="Freddo, charme…" rows={2} className="min-h-[80px]" />
                                             </div>
                                         </div>
-                                        <StyledInput label="Condizioni" name="conditions" value={character.conditions?.join(', ') || ''} onChange={handleConditionsChange} placeholder="Accecato, avvelenato…" />
+                                        <div>
+                                            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Condizioni</p>
+                                            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Condizioni">
+                                                {Object.entries(CONDITIONS).map(([key, cond]) => {
+                                                    const active = character.conditions?.includes(key);
+                                                    return (
+                                                        <button
+                                                            key={key}
+                                                            type="button"
+                                                            aria-pressed={active}
+                                                            title={cond.description}
+                                                            onClick={() => toggleCondition(key)}
+                                                            className={`rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
+                                                                active
+                                                                    ? 'border-destructive/50 bg-destructive/15 text-destructive'
+                                                                    : 'border-border text-muted-foreground hover:border-accent/50 hover:text-foreground'
+                                                            }`}
+                                                        >
+                                                            {cond.name}
+                                                        </button>
+                                                    );
+                                                })}
+                                                {(character.conditions || []).filter(c => !CONDITIONS[c]).map(c => (
+                                                    <button key={c} type="button" onClick={() => toggleCondition(c)} title="Condizione personalizzata: clicca per rimuoverla" className="rounded-full border border-destructive/50 bg-destructive/15 px-2.5 py-1 text-xs font-medium text-destructive">
+                                                        {c} ×
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </StyledSection>
@@ -759,7 +791,7 @@ export const CharacterSheet: React.FC = () => {
                             <StyledSection title="Note di campagna">
                                 <div className="space-y-4">
                                     <StyledTextArea label="Note generali" name="notes" value={character.notes} onChange={handleFieldChange} placeholder="Eventi e diario della campagna…" className="min-h-[200px]" />
-                                    <StyledTextArea label="Note del DM" subLabel="Secrets" name="dmNotes" value={character.dmNotes} onChange={handleFieldChange} placeholder="Note private…" />
+                                    <StyledTextArea label="Note del DM" subLabel="Riservate" name="dmNotes" value={character.dmNotes} onChange={handleFieldChange} placeholder="Note private…" />
                                 </div>
                             </StyledSection>
                         </div>
