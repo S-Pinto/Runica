@@ -3,7 +3,6 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import type { User } from 'firebase/auth';
 import * as authService from '../services/authService';
-import * as characterService from '../features/character/characterService';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -39,7 +38,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Questo assicura che tutti i servizi Firebase (incluso Storage)
         // siano a conoscenza dello stato di autenticazione prima di procedere.
         await user.getIdToken();
-        await characterService.migrateLocalDataToFirestore();
       }
       setLoading(false);
     };

@@ -12,7 +12,7 @@ const DEFAULT_ATTACK: Omit<Attack, 'id'> = {
 };
 
 import { WEAPON_MASTERIES, WEAPON_PROPERTIES } from '../../../data/weaponProperties';
-import * as characterService from '../characterService';
+import * as combat from '../rules/combat';
 
 const DAMAGE_TYPES = [
   'Acid', 'Bludgeoning', 'Cold', 'Fire', 'Force', 'Lightning', 'Necrotic',
@@ -57,10 +57,10 @@ const AttackForm = ({
 
   const autoFillSpellStats = () => {
     if (spellType === 'attack') {
-      const bonus = characterService.calculateSpellAttackBonus(character);
+      const bonus = combat.calculateSpellAttackBonus(character);
       handleChange('bonus', bonus >= 0 ? `+${bonus}` : `${bonus}`);
     } else {
-      const dc = characterService.calculateSpellSaveDC(character);
+      const dc = combat.calculateSpellSaveDC(character);
       handleChange('bonus', `${dc}`);
       handleChange('saveAbility', character.spellcastingAbility || 'int');
     }

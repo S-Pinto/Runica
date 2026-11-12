@@ -11,7 +11,7 @@ import {
   ShieldIcon,
 } from '../../../components/ui/icons';
 import { Menu, MenuItem } from '../../../components/ui/Menu';
-import { calculateArmorClass } from '../characterService';
+import { calculateArmorClass } from '../rules/combat';
 
 interface CharacterCardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onSelect'> {
   character: ICharacter;

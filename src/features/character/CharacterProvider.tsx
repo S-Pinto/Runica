@@ -1,7 +1,8 @@
 // src/features/character/CharacterProvider.tsx
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
 import { ICharacter } from './characterTypes';
-import * as characterService from './characterService';
+import * as characterRepository from './characterRepository';
+import { promptAndMigrateLocalCharacters } from './migrationActions';
 import { useAuth } from '../../providers/AuthProvider';
 
 interface ICharacterContext {
@@ -52,27 +53,30 @@ export const CharacterProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     setLoading(true);
-    const unsubscribe = characterService.onCharactersSnapshot((chars) => {
-      const migratedChars = chars.map(char => ({
-        ...characterService.createNewCharacter(),
-        ...char,
-      }));
-      setCharacters(sortCharacters(migratedChars));
+    const unsubscribe = characterRepository.onCharactersSnapshot((chars) => {
+      setCharacters(sortCharacters(chars));
       setLoading(false);
     });
 
     return () => unsubscribe(); // Cleanup the listener
   }, [currentUser]);
 
+  // Al login, propone di spostare sul cloud i personaggi salvati in locale.
+  useEffect(() => {
+    if (currentUser) {
+      void promptAndMigrateLocalCharacters();
+    }
+  }, [currentUser]);
+
   const deleteCharacter = useCallback(async (id: string) => {
-    await characterService.deleteCharacter(id);
+    await characterRepository.deleteCharacter(id);
     setCharacters(prev => prev.filter(char => char.id !== id));
   }, []);
 
   const saveCharacterOrder = useCallback(async (orderedCharacters: ICharacter[]) => {
     // Optimistic update
     setCharacters(orderedCharacters);
-    await characterService.saveCharacterOrder(orderedCharacters);
+    await characterRepository.saveCharacterOrder(orderedCharacters);
   }, []);
 
   const saveCharacter = useCallback(async (characterToSave: ICharacter): Promise<ICharacter> => {
@@ -90,11 +94,11 @@ export const CharacterProvider = ({ children }: { children: ReactNode }) => {
       return sortCharacters(newList);
     });
 
-    return await characterService.saveCharacter(characterToSave);
+    return await characterRepository.saveCharacter(characterToSave);
   }, []);
 
   const duplicateCharacter = useCallback(async (char: ICharacter): Promise<ICharacter> => {
-    const cloned = await characterService.duplicateCharacter(char);
+    const cloned = await characterRepository.duplicateCharacter(char);
     setCharacters(prev => sortCharacters([...prev, cloned]));
     return cloned;
   }, []);

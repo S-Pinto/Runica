@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { getCharacter, getAllActions, calculateArmorClass } from '../../characterService';
+import { getCharacter } from '../../characterRepository';
+import { getAllActions, calculateArmorClass } from '../../rules/combat';
 import { ICharacter } from '../../characterTypes';
 import { generateCharacterPDF } from '../../../../api/characterApi';
 import React from 'react';

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, Suspense, lazy, FC, createElement } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import * as characterService from './characterService';
+import * as characterRepository from './characterRepository';
 import { useCharacter } from './CharacterProvider';
 import { BackIcon, EditIcon, SparklesIcon, MoonIcon, SunIcon, PrinterIcon, EllipsisVerticalIcon, UserGroupIcon, HeartIcon, StarIcon, SwordIcon, UserCircleIcon, ShieldIcon } from '../../components/ui/icons';
 import { Button } from '../../components/ui/Button';
@@ -80,7 +80,7 @@ export const PlayView: FC = () => {
         const loadCharacter = async () => {
             try {
                 setError(null);
-                const charData = await characterService.getCharacter(characterId);
+                const charData = await characterRepository.getCharacter(characterId);
                 if (charData) {
                     setCharacter(charData);
                 } else {
@@ -102,7 +102,7 @@ export const PlayView: FC = () => {
 
         if (character) {
             const handler = setTimeout(() => {
-                characterService.saveCharacter(character);
+                characterRepository.saveCharacter(character);
             }, 1500);
 
             return () => clearTimeout(handler);
