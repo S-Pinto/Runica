@@ -1,15 +1,28 @@
-import { getFunctions, httpsCallable, connectFunctionsEmulator } from 'firebase/functions';
+import { getFunctions, httpsCallable, connectFunctionsEmulator, Functions } from 'firebase/functions';
+import { getFirebase } from '../lib/getFirebase';
+
+const FUNCTIONS_REGION = 'europe-west1';
+
+let functionsInstance: Functions | null = null;
+
+/**
+ * Istanza condivisa di Functions nella regione corretta.
+ * L'emulatore viene collegato una sola volta e solo con VITE_USE_EMULATORS=true.
+ */
+const getFunctionsInstance = (): Functions => {
+    if (!functionsInstance) {
+        const { app } = getFirebase();
+        functionsInstance = getFunctions(app, FUNCTIONS_REGION);
+        if (import.meta.env.VITE_USE_EMULATORS === 'true') {
+            connectFunctionsEmulator(functionsInstance, 'localhost', 5001);
+        }
+    }
+    return functionsInstance;
+};
 
 export const generateCharacterPDF = async (character: any): Promise<Blob> => {
-    const functions = getFunctions();
-
-    // Supporto per i test in locale
-    if (window.location.hostname === 'localhost') {
-        connectFunctionsEmulator(functions, 'localhost', 5001);
-    }
-
     const generatePDF = httpsCallable<{ character: any }, { success: boolean; pdf: string; fileName: string }>(
-        functions,
+        getFunctionsInstance(),
         'generateCharacterPDF'
     );
 
