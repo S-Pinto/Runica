@@ -38,6 +38,23 @@ service firebase.storage {
       allow create, update: if isOwner(userId) && isValidImage(1024 * 1024);
     }
 
+    // Ritratti condivisi in una campagna (Fase G): il proprietario del personaggio ne carica
+    // una copia, tutti i membri della campagna possono leggerla. L'appartenenza si verifica
+    // sul documento members/{uid} di Firestore (database `runica-db`, vedi firebase.json).
+    // Nota: l'URL di download restituito al caricamento contiene un token e funziona anche
+    // fuori da queste regole; per questo viene salvato solo in sharedCharacters, leggibile
+    // ai soli membri.
+    function isCampaignMember(campaignId) {
+      return request.auth != null
+          && firestore.exists(/databases/runica-db/documents/campaigns/$(campaignId)/members/$(request.auth.uid));
+    }
+
+    match /campaigns/{campaignId}/portraits/{userId}/{characterId} {
+      allow read: if isCampaignMember(campaignId);
+      allow create, update: if isOwner(userId) && isCampaignMember(campaignId) && isValidImage(1024 * 1024);
+      allow delete: if isOwner(userId);
+    }
+
     // Tutto il resto è negato.
     match /{allPaths=**} {
       allow read, write: if false;

@@ -1,240 +1,149 @@
-import React, { useState, useEffect } from 'react';
-import { ICampaign } from '../characterTypes';
+import { useState } from 'react';
+import { XMarkIcon, UserGroupIcon } from '../../../components/ui/icons';
+import { confirmDialog, toast } from '../../../components/ui/Dialogs';
+import { useAuth } from '../../../providers/AuthProvider';
+import { useCampaigns } from '../../../providers/CampaignProvider';
 import * as campaignService from '../../../services/campaignService';
-import { XMarkIcon, PlusIcon, UserGroupIcon, CopyIcon, CheckIcon } from '../../../components/ui/icons';
-import { toast } from '../../../components/ui/Dialogs';
+import { describeDataError } from '../../../lib/errors';
+import { useCharacter } from '../CharacterProvider';
+import type { ILocalCampaign } from '../characterTypes';
+import { CampaignListTab, type CampaignChoice } from './campaign/CampaignListTab';
+import { CampaignCreateForm } from './campaign/CampaignCreateForm';
+import { CampaignJoinForm } from './campaign/CampaignJoinForm';
 
 interface CampaignManagerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectCampaign?: (campaign: ICampaign | null) => void;
+  onSelectCampaign?: (campaign: CampaignChoice | null) => void;
   selectedCampaignId?: string;
 }
 
-export const CampaignManagerModal: React.FC<CampaignManagerModalProps> = ({
-  isOpen,
-  onClose,
-  onSelectCampaign,
-  selectedCampaignId,
-}) => {
-  const [campaigns, setCampaigns] = useState<ICampaign[]>([]);
-  const [newCampaignName, setNewCampaignName] = useState('');
-  const [newCampaignDesc, setNewCampaignDesc] = useState('');
-  const [joinCode, setJoinCode] = useState('');
-  const [activeTab, setActiveTab] = useState<'list' | 'create' | 'join'>('list');
-  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+type Tab = 'list' | 'create' | 'join';
 
-  useEffect(() => {
-    if (isOpen) {
-      setCampaigns(campaignService.getCampaigns());
-    }
-  }, [isOpen]);
+export const CampaignManagerModal = ({ isOpen, onClose, onSelectCampaign, selectedCampaignId }: CampaignManagerModalProps) => {
+  const { currentUser } = useAuth();
+  const { campaigns, localCampaigns, loading, loadError, refreshLocalCampaigns } = useCampaigns();
+  const { characters, saveCharacter } = useCharacter();
+  const [activeTab, setActiveTab] = useState<Tab>('list');
 
   if (!isOpen) return null;
 
-  const handleCreate = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCampaignName.trim()) return;
-    const created = campaignService.createCampaign(newCampaignName, newCampaignDesc);
-    setCampaigns(campaignService.getCampaigns());
-    setNewCampaignName('');
-    setNewCampaignDesc('');
-    setActiveTab('list');
-    if (onSelectCampaign) onSelectCampaign(created);
+  const uid = currentUser?.uid ?? null;
+  const user = currentUser
+    ? { uid: currentUser.uid, displayName: currentUser.displayName || currentUser.email || 'Giocatore', photoURL: currentUser.photoURL }
+    : null;
+
+  const handleCreate = async (name: string, description: string) => {
+    try {
+      const created = user
+        ? await campaignService.createCampaign(user, name, description)
+        : campaignService.createLocalCampaign(name, description);
+      if (!user) refreshLocalCampaigns();
+      setActiveTab('list');
+      toast.success(`Campagna "${created.name}" creata.`);
+      onSelectCampaign?.({ id: created.id, name: created.name });
+    } catch (error) {
+      toast.error(describeDataError(error, 'Impossibile creare la campagna.'));
+    }
   };
 
-  const handleCopyCode = (code: string) => {
-    navigator.clipboard.writeText(code);
-    setCopiedCode(code);
-    setTimeout(() => setCopiedCode(null), 2000);
+  const handleJoin = async (code: string) => {
+    if (!user) return;
+    try {
+      const joined = await campaignService.joinCampaignByCode(user, code);
+      setActiveTab('list');
+      toast.success(`Ti sei unito alla campagna "${joined.name}".`);
+    } catch (error) {
+      toast.error(error instanceof campaignService.CampaignError
+        ? error.message
+        : describeDataError(error, 'Impossibile unirsi alla campagna.'));
+    }
   };
+
+  const handleShareLocal = async (local: ILocalCampaign) => {
+    if (!user) return;
+    try {
+      const created = await campaignService.shareLocalCampaign(user, local);
+      refreshLocalCampaigns();
+      // I personaggi associati alla campagna locale passano a quella condivisa.
+      const linked = characters.filter((c) => c.campaignId === local.id);
+      for (const character of linked) {
+        const updated = await saveCharacter({ ...character, campaignId: created.id, campaignName: created.name });
+        // La campagna non è ancora nell'elenco in tempo reale: pubblichiamo il riepilogo direttamente.
+        await campaignService.publishCharacter(created.id, updated, user.uid).catch(() => undefined);
+      }
+      if (selectedCampaignId === local.id) onSelectCampaign?.({ id: created.id, name: created.name });
+      toast.success(`"${created.name}" è ora condivisa. Codice d'invito: ${created.inviteCode}`);
+    } catch (error) {
+      toast.error(describeDataError(error, 'Impossibile condividere la campagna.'));
+    }
+  };
+
+  const handleDeleteLocal = async (local: ILocalCampaign) => {
+    const ok = await confirmDialog({
+      title: `Eliminare "${local.name}"?`,
+      message: 'La campagna salvata su questo dispositivo verrà rimossa. I personaggi non vengono eliminati.',
+      confirmLabel: 'Elimina',
+      destructive: true,
+    });
+    if (!ok) return;
+    campaignService.deleteLocalCampaign(local.id);
+    refreshLocalCampaigns();
+  };
+
+  const tabs: { id: Tab; label: string }[] = [
+    { id: 'list', label: `Le mie campagne (${campaigns.length + localCampaigns.length})` },
+    { id: 'create', label: '+ Nuova' },
+    ...(user ? [{ id: 'join' as const, label: 'Unisciti con un codice' }] : []),
+  ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-card border border-border text-foreground w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
-        {/* Modal Header */}
-        <header className="flex justify-between items-center px-6 py-4 border-b border-border bg-background/50">
+    <div className="fixed inset-0 z-50 flex animate-fadeIn items-center justify-center bg-black/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Campagne">
+      <div className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-2xl">
+        <header className="flex items-center justify-between border-b border-border bg-background/50 px-6 py-4">
           <div className="flex items-center gap-2 text-accent">
-            <UserGroupIcon className="w-6 h-6" />
-            <h3 className="text-xl font-cinzel font-bold">Campagne</h3>
+            <UserGroupIcon className="h-6 w-6" />
+            <h3 className="font-cinzel text-xl font-bold">Campagne</h3>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted transition-colors">
-            <XMarkIcon className="w-6 h-6" />
+          <button onClick={onClose} aria-label="Chiudi" className="rounded-lg p-1 transition-colors hover:bg-muted">
+            <XMarkIcon className="h-6 w-6" />
           </button>
         </header>
 
-        {/* Tab Selection */}
-        <div className="flex border-b border-border bg-background/20 px-6 pt-3 gap-4">
-          <button
-            onClick={() => setActiveTab('list')}
-            className={`pb-3 font-semibold text-sm transition-all border-b-2 ${
-              activeTab === 'list'
-                ? 'border-accent text-accent'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Le Mie Campagne ({campaigns.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('create')}
-            className={`pb-3 font-semibold text-sm transition-all border-b-2 ${
-              activeTab === 'create'
-                ? 'border-accent text-accent'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            + Nuova campagna
-          </button>
-          <button
-            onClick={() => setActiveTab('join')}
-            className={`pb-3 font-semibold text-sm transition-all border-b-2 ${
-              activeTab === 'join'
-                ? 'border-accent text-accent'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Unisciti con un codice
-          </button>
+        <div className="no-scrollbar flex gap-4 overflow-x-auto border-b border-border bg-background/20 px-6 pt-3" role="tablist">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`shrink-0 whitespace-nowrap border-b-2 pb-3 text-sm font-semibold transition-all ${
+                activeTab === tab.id ? 'border-accent text-accent' : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
-        {/* Modal Content */}
-        <div className="p-6 overflow-y-auto space-y-4 flex-1">
+        <div className="flex-1 overflow-y-auto p-6">
           {activeTab === 'list' && (
-            <div className="space-y-3">
-              {campaigns.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground space-y-2">
-                  <p>Nessuna campagna creata al momento.</p>
-                  <button
-                    onClick={() => setActiveTab('create')}
-                    className="px-4 py-2 bg-accent/20 border border-accent/40 text-accent font-semibold rounded-lg hover:bg-accent/30 transition-all text-sm"
-                  >
-                    Crea la prima campagna
-                  </button>
-                </div>
-              ) : (
-                campaigns.map((camp) => (
-                  <div
-                    key={camp.id}
-                    className={`p-4 rounded-xl border transition-all flex flex-col gap-2 ${
-                      selectedCampaignId === camp.id
-                        ? 'border-accent bg-accent/10 shadow-[0_0_12px_rgb(var(--color-accent)/0.2)]'
-                        : 'border-border bg-background/30 hover:border-accent/40'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-cinzel text-lg font-bold text-accent">{camp.name}</h4>
-                        {camp.description && (
-                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{camp.description}</p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleCopyCode(camp.code)}
-                          className="flex items-center gap-1 text-xs px-2.5 py-1 rounded bg-muted/60 hover:bg-accent/20 text-accent border border-accent/30 transition-all"
-                          title="Copia codice di invito"
-                        >
-                          {copiedCode === camp.code ? <CheckIcon className="w-3.5 h-3.5 text-success" /> : <CopyIcon className="w-3.5 h-3.5" />}
-                          <span className="font-mono">{camp.code}</span>
-                        </button>
-                      </div>
-                    </div>
-                    {onSelectCampaign && (
-                      <button
-                        onClick={() => {
-                          onSelectCampaign(selectedCampaignId === camp.id ? null : camp);
-                          onClose();
-                        }}
-                        className={`w-full mt-2 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                          selectedCampaignId === camp.id
-                            ? 'bg-accent text-accent-foreground shadow-sm'
-                            : 'bg-secondary/60 text-secondary-foreground hover:bg-accent hover:text-accent-foreground'
-                        }`}
-                      >
-                        {selectedCampaignId === camp.id ? 'Selezionata (clicca per rimuovere)' : 'Associa'}
-                      </button>
-                    )}
-                  </div>
-                ))
-              )}
-            </div>
+            <CampaignListTab
+              uid={uid}
+              campaigns={campaigns}
+              localCampaigns={localCampaigns}
+              loading={loading}
+              loadError={loadError}
+              selectedCampaignId={selectedCampaignId}
+              onSelectCampaign={onSelectCampaign}
+              onShareLocal={handleShareLocal}
+              onDeleteLocal={handleDeleteLocal}
+              onCreate={() => setActiveTab('create')}
+              onClose={onClose}
+            />
           )}
-
-          {activeTab === 'create' && (
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
-                  Nome della campagna
-                </label>
-                <input
-                  type="text"
-                  value={newCampaignName}
-                  onChange={(e) => setNewCampaignName(e.target.value)}
-                  placeholder="Es. La Maledizione di Strahd"
-                  required
-                  className="w-full bg-input/60 border border-border rounded-xl p-3 text-foreground focus:ring-2 focus:ring-accent/40 focus:border-accent outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
-                  Descrizione o note del DM (facoltativo)
-                </label>
-                <textarea
-                  value={newCampaignDesc}
-                  onChange={(e) => setNewCampaignDesc(e.target.value)}
-                  placeholder="Breve intro o dettagli della campagna..."
-                  rows={3}
-                  className="w-full bg-input/60 border border-border rounded-xl p-3 text-foreground focus:ring-2 focus:ring-accent/40 focus:border-accent outline-none resize-none"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full py-3 bg-accent text-accent-foreground font-bold rounded-xl shadow-lg hover:bg-accent-light transition-all flex items-center justify-center gap-2"
-              >
-                <PlusIcon className="w-5 h-5" /> Crea campagna
-              </button>
-            </form>
-          )}
-
-          {activeTab === 'join' && (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (!joinCode.trim()) return;
-                const joined = campaignService.joinCampaignByCode(joinCode, 'temp_char');
-                if (joined) {
-                  setCampaigns(campaignService.getCampaigns());
-                  setJoinCode('');
-                  setActiveTab('list');
-                  toast.success(`Ti sei unito alla campagna "${joined.name}".`);
-                } else {
-                  toast.error('Codice campagna non valido.');
-                }
-              }}
-              className="space-y-4"
-            >
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
-                  Codice d'invito (6 caratteri)
-                </label>
-                <input
-                  type="text"
-                  value={joinCode}
-                  onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                  placeholder="Es. X7K9AB"
-                  maxLength={6}
-                  required
-                  className="w-full bg-input/60 border border-border rounded-xl p-3 font-mono text-center tracking-widest text-lg font-bold text-accent uppercase focus:ring-2 focus:ring-accent/40 focus:border-accent outline-none"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full py-3 bg-accent text-accent-foreground font-bold rounded-xl shadow-lg hover:bg-accent-light transition-all flex items-center justify-center gap-2"
-              >
-                Unisciti alla campagna
-              </button>
-            </form>
-          )}
+          {activeTab === 'create' && <CampaignCreateForm isShared={!!user} onCreate={handleCreate} />}
+          {activeTab === 'join' && user && <CampaignJoinForm onJoin={handleJoin} />}
         </div>
       </div>
     </div>

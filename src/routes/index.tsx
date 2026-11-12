@@ -9,6 +9,7 @@ import { CharacterSheet } from '../features/character/CharacterSheet';
 import { PlayView } from '../features/character/PlayView';
 import { LoginPage } from '../features/auth/LoginPage';
 import { AccountPage } from '../features/auth/AccountPage';
+import { CampaignPage } from '../features/campaign/CampaignPage';
 import { ErrorBoundary, NotFound } from '../components/ErrorBoundary'; // Importa i tuoi componenti
 
 const CharacterLayout = () => (
@@ -49,6 +50,10 @@ export const router = createBrowserRouter([
             element: <PlayView />,
           },
         ],
+      },
+      {
+        path: 'campaign/:campaignId',
+        element: <CampaignPage />,
       },
       {
         path: 'login',

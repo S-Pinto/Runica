@@ -3,7 +3,7 @@ import { MagnifyingGlassIcon } from '../../../../components/ui/icons';
 interface CharacterListToolbarProps {
   searchQuery: string;
   onSearchChange: (value: string) => void;
-  campaignOptions: string[];
+  campaignOptions: { value: string; label: string }[];
   selectedCampaignFilter: string;
   onCampaignFilterChange: (value: string) => void;
 }
@@ -14,7 +14,7 @@ export const CharacterListToolbar = ({
 }: CharacterListToolbarProps) => {
   const filterChips: { value: string; label: string }[] = [
     { value: 'all', label: 'Tutti' },
-    ...campaignOptions.map((c) => ({ value: c, label: c })),
+    ...campaignOptions,
     { value: 'none', label: 'Senza campagna' },
   ];
 

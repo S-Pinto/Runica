@@ -34,7 +34,7 @@ Runica sostituisce la scheda cartacea o il PDF compilabile con una scheda viva: 
 - Lingua attuale dell'interfaccia: italiano; i dati salvati usano chiavi inglesi.
 - **Vincolo: mobile-first in gioco.** La vista di gioco deve funzionare bene sul telefono; l'editor può privilegiare schermi più ampi.
 - **Vincolo: nessun contenuto proprietario incorporato.** Niente testi di incantesimi, regole o descrizioni copiati da manuali: l'utente inserisce i propri contenuti.
-- Campagne: oggi solo locali al dispositivo; la condivisione tra giocatori e DM è una decisione aperta (vedi roadmap in `CLAUDE.md`).
+- Campagne: condivise tra giocatori e DM su Firestore (codice d'invito, riepilogo dei personaggi visibile ai membri, scheda completa sempre privata). Senza login restano locali al dispositivo e si possono condividere dopo l'accesso.
 - Obbligo di login per le rotte dei personaggi: decisione aperta.
 
 ## Brand Commitments

@@ -12,6 +12,8 @@ import {
 } from '../../../components/ui/icons';
 import { Menu, MenuItem } from '../../../components/ui/Menu';
 import { calculateArmorClass } from '../rules/combat';
+import { resolveCampaignName } from '../rules/campaign';
+import { useCampaigns } from '../../../providers/CampaignProvider';
 
 interface CharacterCardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onSelect'> {
   character: ICharacter;
@@ -35,6 +37,8 @@ const hpTone = (pct: number) => (pct > 50 ? 'bg-success' : pct > 20 ? 'bg-warnin
 export const CharacterCard = forwardRef<HTMLDivElement, CharacterCardProps>(
   ({ character, onSelect, onDelete, onEdit, onDuplicate, onExport, className = '', onKeyDown, ...rest }, ref) => {
     const { hp } = character;
+    const { campaignNames } = useCampaigns();
+    const campaignName = resolveCampaignName(character, campaignNames);
     const hpPercent = hp.max > 0 ? Math.min(100, Math.max(0, (hp.current / hp.max) * 100)) : 100;
     const subtitle = [character.race, character.class].filter(Boolean).join(' · ') || 'Avventuriero';
 
@@ -89,10 +93,10 @@ export const CharacterCard = forwardRef<HTMLDivElement, CharacterCardProps>(
             <span className="rounded-full border border-accent/40 bg-background/80 px-2.5 py-0.5 font-mono text-xs font-bold text-accent backdrop-blur">
               Lv {character.level || 1}
             </span>
-            {character.campaignName && (
+            {campaignName && (
               <span className="flex min-w-0 items-center gap-1 rounded-full border border-border/60 bg-background/80 px-2.5 py-0.5 text-xs font-medium text-text backdrop-blur">
                 <UserGroupIcon className="h-3.5 w-3.5 shrink-0 text-accent" />
-                <span className="truncate max-w-[9rem]">{character.campaignName}</span>
+                <span className="truncate max-w-[9rem]">{campaignName}</span>
               </span>
             )}
           </div>
