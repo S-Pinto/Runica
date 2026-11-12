@@ -807,7 +807,7 @@ export const CharacterSheet: React.FC = () => {
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <div className="bg-background/20 rounded-xl p-4 border border-border/40">
                                 <label className="block text-xs font-bold text-accent uppercase tracking-widest mb-4">Slot incantesimo massimi</label>
-                                <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(100px,1fr))]">
+                                <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(120px,1fr))]">
                                     {Array.from({ length: 9 }, (_, i) => i + 1).map((level) => (
                                         <StatInput key={level} label={`Lvl ${level}`} value={character.spellSlots[level]?.max ?? 0} onChange={(val) => handleSpellSlotChange(level, Number(val))} />
                                     ))}
