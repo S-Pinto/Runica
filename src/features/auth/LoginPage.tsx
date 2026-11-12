@@ -32,7 +32,7 @@ export const LoginPage: React.FC = () => {
         <p className="text-muted-foreground mb-8">
           Sign in with Google to sync your characters across devices.
         </p>
-        <button onClick={handleSignIn} className="flex items-center justify-center gap-3 w-full px-6 py-3 bg-white text-zinc-700 font-bold rounded-lg shadow-md hover:bg-zinc-200 transition-colors">
+        <button onClick={handleSignIn} className="flex items-center justify-center gap-3 w-full px-6 py-3 bg-white text-background font-bold rounded-lg shadow-md hover:bg-foreground transition-colors">
           <GoogleIcon className="w-6 h-6" />
           Sign In with Google
         </button>

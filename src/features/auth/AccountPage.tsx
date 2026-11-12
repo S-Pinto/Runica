@@ -5,6 +5,7 @@ import { useAuth } from '../../providers/AuthProvider';
 import { updateProfile } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import imageCompression from 'browser-image-compression';
+import { toast } from '../../components/ui/Dialogs';
 
 export const AccountPage: React.FC = () => {
   const { currentUser } = useAuth();
@@ -58,7 +59,7 @@ export const AccountPage: React.FC = () => {
         photoURL: photoURL,
       });
 
-      alert('Profile updated successfully!');
+      toast.success('Profilo aggiornato.');
       setNewImageFile(null);
     } catch (err) {
       console.error("Error updating profile:", err);

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ICharacter, CustomResource } from '../characterTypes';
 import { TrashIcon, EditIcon, PlusCircleIcon } from '../../../components/ui/icons';
+import { confirmDialog } from '../../../components/ui/Dialogs';
 
 const DEFAULT_RESOURCE: Omit<CustomResource, 'id' | 'used'> = {
   name: '',
@@ -58,8 +59,8 @@ export const CustomResourceEditor = ({ character, onUpdateCharacter }: { charact
     setEditingResource(null);
   };
 
-  const handleDelete = (resourceId: string) => {
-    if (window.confirm('Are you sure you want to delete this resource?')) {
+  const handleDelete = async (resourceId: string) => {
+    if (await confirmDialog({ title: 'Eliminare questa risorsa?', confirmLabel: 'Elimina', destructive: true })) {
       const updatedResources = (character.customResources || []).filter(r => r.id !== resourceId);
       onUpdateCharacter({ customResources: updatedResources });
     }

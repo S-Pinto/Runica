@@ -4,6 +4,7 @@ import { ICompanion } from '../../characterTypes';
 import { PlusCircleIcon, SparklesIcon } from '../../../../components/ui/icons';
 import { CompanionCard } from '../CompanionCard';
 import { CompanionSheetModal } from '../CompanionSheetModal';
+import { confirmDialog } from '../../../../components/ui/Dialogs';
 
 interface CompanionTabProps {
   readOnly?: boolean;
@@ -45,8 +46,8 @@ export const CompanionTab: React.FC<CompanionTabProps> = ({ readOnly = false }) 
     setIsModalReadOnly(true);
   };
 
-  const handleDeleteCompanion = (companionId: string) => {
-    if (window.confirm('Are you sure you want to delete this companion?')) {
+  const handleDeleteCompanion = async (companionId: string) => {
+    if (await confirmDialog({ title: 'Eliminare questo compagno?', confirmLabel: 'Elimina', destructive: true })) {
       setCharacter(prev => {
         if (!prev) return null;
         return {
@@ -145,7 +146,7 @@ export const CompanionTab: React.FC<CompanionTabProps> = ({ readOnly = false }) 
       ) : (
         <div className="text-center py-16 px-6 bg-muted/20 rounded-lg border-2 border-dashed border-border">
             <SparklesIcon className="mx-auto h-12 w-12 text-muted-foreground/50" />
-            <h3 className="mt-2 text-lg font-medium text-zinc-300">No Companions Yet</h3>
+            <h3 className="mt-2 text-lg font-medium text-text">No Companions Yet</h3>
             <p className="mt-1 text-sm text-muted-foreground">Your familiars, animal companions, and summons will appear here.</p>
             {!readOnly && (
               <div className="mt-6">

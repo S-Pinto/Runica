@@ -384,9 +384,9 @@ const FeaturesList = ({ items }: { items: Feature[] }) => {
                         featuresByCategory['feat-combat'].length > 0 ||
                         featuresByCategory['feat-epic'].length > 0) && (
                             <div className="flex items-center gap-2 px-1 pb-2 pt-2">
-                                <span className="w-1 h-1 rounded-full bg-amber-500/50" />
-                                <h4 className="text-xs font-bold text-amber-500/80 uppercase tracking-widest">Feats</h4>
-                                <div className="h-px bg-amber-500/20 flex-1" />
+                                <span className="w-1 h-1 rounded-full bg-accent/50" />
+                                <h4 className="text-xs font-bold text-accent/80 uppercase tracking-widest">Feats</h4>
+                                <div className="h-px bg-accent/20 flex-1" />
                             </div>
                         )}
 

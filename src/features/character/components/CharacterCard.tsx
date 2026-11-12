@@ -79,8 +79,8 @@ export const CharacterCard = forwardRef<HTMLDivElement, CharacterCardProps>(
                 <span className="font-mono text-foreground">{character.hp.current} / {character.hp.max}</span>
               </div>
               <div className="flex items-center gap-1.5 font-bold bg-background/50 px-2 py-0.5 rounded-lg border border-border/40">
-                <span className="text-amber-400 uppercase text-[10px] tracking-wider">CA</span>
-                <span className="font-mono text-amber-300 font-extrabold">{calculateArmorClass(character)}</span>
+                <span className="text-accent uppercase text-[10px] tracking-wider">CA</span>
+                <span className="font-mono text-accent font-extrabold">{calculateArmorClass(character)}</span>
               </div>
             </div>
             <div className="w-full bg-background/60 h-2 rounded-full overflow-hidden p-0.5 border border-border/30">
@@ -102,7 +102,7 @@ export const CharacterCard = forwardRef<HTMLDivElement, CharacterCardProps>(
               e.stopPropagation();
               onSelect();
             }}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 bg-accent text-accent-foreground text-xs font-black uppercase tracking-wider rounded-xl shadow-md hover:bg-accent-light hover:shadow-[0_0_15px_rgba(var(--color-accent),0.4)] transition-all active:scale-95"
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 bg-accent text-accent-foreground text-xs font-black uppercase tracking-wider rounded-xl shadow-md hover:bg-accent-light hover:shadow-[0_0_15px_rgb(var(--color-accent)/0.4)] transition-all active:scale-95"
           >
             <PlayIcon className="w-4 h-4" /> Gioca
           </button>

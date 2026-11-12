@@ -2,6 +2,7 @@ import { ICharacter, AbilityScores, Skill, Attack } from './characterTypes';
 import { getFirebase } from '../../lib/getFirebase';
 import { collection, doc, getDocs, setDoc, deleteDoc, writeBatch, onSnapshot, query, CollectionReference, getDoc } from 'firebase/firestore';
 import * as storageService from '../../services/storageService';
+import { confirmDialog, toast } from '../../components/ui/Dialogs';
 
 const getProficiencyBonus = (level: number): number => Math.ceil(level / 4) + 1;
 const getModifier = (score: number) => Math.floor((score - 10) / 2);
@@ -450,7 +451,7 @@ export const migrateLocalDataToFirestore = async () => {
         return;
     }
 
-    if (!window.confirm("You have local characters saved on this device. Do you want to move them to your account? This will merge them with any existing characters on your account.")) {
+    if (!(await confirmDialog({ title: 'Spostare i personaggi sul tuo account?', message: 'Su questo dispositivo ci sono personaggi salvati in locale. Verranno uniti a quelli già presenti sul tuo account.', confirmLabel: 'Sposta' }))) {
         return;
     }
 
@@ -493,15 +494,15 @@ export const migrateLocalDataToFirestore = async () => {
     if (migratedCount > 0) {
         try {
             await batch.commit();
-            alert(`${migratedCount} character(s) migrated to your account.`);
+            toast.success(`${migratedCount} personaggi spostati sul tuo account.`);
             // On successful migration, clear local storage.
             saveLocalCharacters([]);
         } catch (error) {
             console.error("Failed to migrate characters:", error);
-            alert("There was an error migrating your characters. They remain on this device for now.");
+            toast.error('Spostamento non riuscito: i personaggi restano su questo dispositivo.');
         }
     } else {
-        alert("No characters needed to be migrated. Your cloud data is up to date.");
+        toast.info('Nessun personaggio da spostare: il cloud è già aggiornato.');
         saveLocalCharacters([]); // Also clear if everything is already up-to-date.
     }
 };

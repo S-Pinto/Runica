@@ -320,7 +320,7 @@ const AttackForm = ({
                       onClick={() => toggleProperty(prop)}
                       className={`text-[10px] px-2.5 py-1 rounded-md border transition-all duration-200 font-semibold uppercase tracking-wide
                                         ${isActive
-                          ? 'bg-accent text-accent-foreground border-accent shadow-[0_0_10px_-4px_rgba(var(--color-accent),0.5)]'
+                          ? 'bg-accent text-accent-foreground border-accent shadow-[0_0_10px_-4px_rgb(var(--color-accent)/0.5)]'
                           : 'bg-background/50 text-muted-foreground border-border/50 hover:border-accent/50 hover:text-foreground'
                         }`}
                       title={WEAPON_PROPERTIES[prop].description}
@@ -437,8 +437,8 @@ export const AttackList = () => {
                   </>
                 ) : (
                   <>
-                    <button onClick={() => { setEditingAttack(attack); setDeletingAttackId(null); }} disabled={editingAttack !== null} className="text-muted-foreground hover:text-accent p-1 disabled:text-muted/50 disabled:cursor-not-allowed"><EditIcon className="w-4 h-4" /></button>
-                    <button onClick={() => { setDeletingAttackId(attack.id); setEditingAttack(null); }} disabled={editingAttack !== null} className="text-muted-foreground hover:text-destructive p-1 disabled:text-muted/50 disabled:cursor-not-allowed"><TrashIcon className="w-4 h-4" /></button>
+                    <button onClick={() => { setEditingAttack(attack); setDeletingAttackId(null); }} disabled={editingAttack !== null} className="text-muted-foreground hover:text-accent p-1 disabled:text-muted-foreground/50 disabled:cursor-not-allowed"><EditIcon className="w-4 h-4" /></button>
+                    <button onClick={() => { setDeletingAttackId(attack.id); setEditingAttack(null); }} disabled={editingAttack !== null} className="text-muted-foreground hover:text-destructive p-1 disabled:text-muted-foreground/50 disabled:cursor-not-allowed"><TrashIcon className="w-4 h-4" /></button>
                   </>
                 )
               }

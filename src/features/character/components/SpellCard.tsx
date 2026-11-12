@@ -73,7 +73,7 @@ export const SpellCard: React.FC<SpellCardProps> = ({
                 }}
                 // Placeholder until I add the prop
                 className={`w-6 h-6 flex items-center justify-center rounded-lg border transition-all ${spell.prepared
-                  ? 'bg-accent text-accent-foreground border-accent shadow-[0_0_8px_rgba(var(--color-accent),0.5)]'
+                  ? 'bg-accent text-accent-foreground border-accent shadow-[0_0_8px_rgb(var(--color-accent)/0.5)]'
                   : 'bg-background/20 text-muted-foreground/30 border-border/30 hover:border-accent/50 hover:text-accent'
                   }`}
                 title={spell.prepared ? "Prepared" : "Click to Prepare"}
@@ -127,8 +127,8 @@ export const SpellCard: React.FC<SpellCardProps> = ({
                 </>
               ) : (
                 <>
-                  <button onClick={(e) => { e.stopPropagation(); onEdit?.(); }} disabled={isEditingActive} className="text-muted-foreground hover:text-accent p-1 disabled:text-muted/50 disabled:cursor-not-allowed"><EditIcon className="w-4 h-4" /></button>
-                  <button onClick={(e) => { e.stopPropagation(); onDelete?.(); }} disabled={isEditingActive} className="text-muted-foreground hover:text-destructive p-1 disabled:text-muted/50 disabled:cursor-not-allowed"><TrashIcon className="w-4 h-4" /></button>
+                  <button onClick={(e) => { e.stopPropagation(); onEdit?.(); }} disabled={isEditingActive} className="text-muted-foreground hover:text-accent p-1 disabled:text-muted-foreground/50 disabled:cursor-not-allowed"><EditIcon className="w-4 h-4" /></button>
+                  <button onClick={(e) => { e.stopPropagation(); onDelete?.(); }} disabled={isEditingActive} className="text-muted-foreground hover:text-destructive p-1 disabled:text-muted-foreground/50 disabled:cursor-not-allowed"><TrashIcon className="w-4 h-4" /></button>
                 </>
               )}
             </div>

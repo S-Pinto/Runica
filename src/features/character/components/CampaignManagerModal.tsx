@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ICampaign } from '../characterTypes';
 import * as campaignService from '../../../services/campaignService';
 import { XMarkIcon, PlusIcon, UserGroupIcon, CopyIcon, CheckIcon } from '../../../components/ui/icons';
+import { toast } from '../../../components/ui/Dialogs';
 
 interface CampaignManagerModalProps {
   isOpen: boolean;
@@ -116,7 +117,7 @@ export const CampaignManagerModal: React.FC<CampaignManagerModalProps> = ({
                     key={camp.id}
                     className={`p-4 rounded-xl border transition-all flex flex-col gap-2 ${
                       selectedCampaignId === camp.id
-                        ? 'border-accent bg-accent/10 shadow-[0_0_12px_rgba(var(--color-accent),0.2)]'
+                        ? 'border-accent bg-accent/10 shadow-[0_0_12px_rgb(var(--color-accent)/0.2)]'
                         : 'border-border bg-background/30 hover:border-accent/40'
                     }`}
                   >
@@ -205,9 +206,9 @@ export const CampaignManagerModal: React.FC<CampaignManagerModalProps> = ({
                   setCampaigns(campaignService.getCampaigns());
                   setJoinCode('');
                   setActiveTab('list');
-                  alert(`Ti sei unito alla campagna "${joined.name}"!`);
+                  toast.success(`Ti sei unito alla campagna "${joined.name}".`);
                 } else {
-                  alert('Codice campagna non valido.');
+                  toast.error('Codice campagna non valido.');
                 }
               }}
               className="space-y-4"

@@ -38,7 +38,7 @@ export const AbilitiesDisplay: FC<{ readOnly?: boolean }> = () => {
                                 {/* Saving Throw */}
                                 <div className="flex items-center justify-between text-sm text-foreground">
                                     <div className="flex items-center gap-3">
-                                        <span className={`w-4 h-4 rounded-full border-2 transition-all duration-300 ${savingThrow.proficient ? 'bg-accent border-accent shadow-[0_0_10px_rgba(var(--color-accent),0.6)]' : 'bg-transparent border-border/60'}`}></span>
+                                        <span className={`w-4 h-4 rounded-full border-2 transition-all duration-300 ${savingThrow.proficient ? 'bg-accent border-accent shadow-[0_0_10px_rgb(var(--color-accent)/0.6)]' : 'bg-transparent border-border/60'}`}></span>
                                         <span className="font-medium">Saving Throw</span>
                                     </div>
                                     <span className="font-mono font-bold text-lg text-accent-light">{formatModifier(savingThrowBonus)}</span>
@@ -50,9 +50,9 @@ export const AbilitiesDisplay: FC<{ readOnly?: boolean }> = () => {
                                         const skillBonus = abilityModifier + (skill.proficient ? proficiencyBonus : 0) + (skill.expertise ? proficiencyBonus : 0);
                                         let proficiencyIndicatorClass = 'bg-transparent border-border/60';
                                         if (skill.expertise) {
-                                            proficiencyIndicatorClass = 'bg-accent border-accent ring-2 ring-accent/30 ring-offset-2 ring-offset-muted/60 shadow-[0_0_10px_rgba(var(--color-accent),0.6)]';
+                                            proficiencyIndicatorClass = 'bg-accent border-accent ring-2 ring-accent/30 ring-offset-2 ring-offset-muted/60 shadow-[0_0_10px_rgb(var(--color-accent)/0.6)]';
                                         } else if (skill.proficient) {
-                                            proficiencyIndicatorClass = 'bg-accent border-accent shadow-[0_0_10px_rgba(var(--color-accent),0.4)]';
+                                            proficiencyIndicatorClass = 'bg-accent border-accent shadow-[0_0_10px_rgb(var(--color-accent)/0.4)]';
                                         }
 
                                         return (

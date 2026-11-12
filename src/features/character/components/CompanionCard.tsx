@@ -121,14 +121,14 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, onEdit,
               <EllipsisVerticalIcon className="w-5 h-5" />
             </button>
             {isMenuOpen && (
-              <div className="absolute right-0 mt-1 w-32 bg-zinc-800 border border-border rounded-md shadow-xl z-10">
-                <button onClick={() => { onEdit(); setIsMenuOpen(false); }} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm hover:bg-zinc-700">
+              <div className="absolute right-0 mt-1 w-32 bg-card border border-border rounded-md shadow-xl z-10">
+                <button onClick={() => { onEdit(); setIsMenuOpen(false); }} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm hover:bg-input">
                   <EditIcon className="w-4 h-4" /> Edit
                 </button>
-                <button onClick={() => { onDuplicate(); setIsMenuOpen(false); }} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm hover:bg-zinc-700">
+                <button onClick={() => { onDuplicate(); setIsMenuOpen(false); }} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm hover:bg-input">
                   <DocumentDuplicateIcon className="w-4 h-4" /> Duplicate
                 </button>
-                <button onClick={() => { onDelete(); setIsMenuOpen(false); }} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-zinc-700">
+                <button onClick={() => { onDelete(); setIsMenuOpen(false); }} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-input">
                   <TrashIcon className="w-4 h-4" /> Delete
                 </button>
               </div>

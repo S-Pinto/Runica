@@ -19,7 +19,7 @@ export const CompanionAttackEditor: React.FC<CompanionAttackEditorProps> = ({ co
   if (readOnly) {
     return (
       <div className="space-y-2">
-        <h4 className="text-md font-semibold text-zinc-400 mb-2">Attacks</h4>
+        <h4 className="text-md font-semibold text-muted-foreground mb-2">Attacks</h4>
         <div className="space-y-3 p-3 bg-muted/30 rounded-md border border-border">
           {companion.attacks.length === 0 ? (
             <p className="text-muted-foreground text-sm text-center italic">No attacks defined.</p>
@@ -53,7 +53,7 @@ export const CompanionAttackEditor: React.FC<CompanionAttackEditorProps> = ({ co
 
   return (
     <div className="space-y-2">
-      <h4 className="text-md font-semibold text-zinc-400 mb-2">Attacks</h4>
+      <h4 className="text-md font-semibold text-muted-foreground mb-2">Attacks</h4>
       <div className="space-y-3 p-3 bg-muted/30 rounded-md border border-border">
         {companion.attacks.map((attack, index) => (
 

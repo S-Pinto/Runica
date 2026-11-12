@@ -6,6 +6,7 @@ import { WEAPON_MASTERIES, WEAPON_PROPERTIES } from '../../../data/weaponPropert
 import { ImageUploader } from './ImageUploader';
 import { useAuth } from '../../../providers/AuthProvider';
 import { uploadItemImage } from '../../../services/storageService';
+import { confirmDialog, toast } from '../../../components/ui/Dialogs';
 
 const DEFAULT_ITEM: Omit<EquipmentItem, 'id'> = {
   name: '',
@@ -63,7 +64,7 @@ const EquipmentForm = ({
       handleChange('imageUrl', downloadUrl);
     } catch (error) {
       console.error("Failed to upload item image:", error);
-      alert("Failed to upload image.");
+      toast.error('Caricamento immagine non riuscito.');
     }
   };
 
@@ -323,7 +324,7 @@ const EquipmentForm = ({
                       }}
                       className={`text-[10px] px-2.5 py-1 rounded-md border transition-all duration-200 font-semibold uppercase tracking-wide
                         ${isActive
-                          ? 'bg-accent text-accent-foreground border-accent shadow-[0_0_10px_-4px_rgba(var(--color-accent),0.5)]'
+                          ? 'bg-accent text-accent-foreground border-accent shadow-[0_0_10px_-4px_rgb(var(--color-accent)/0.5)]'
                           : 'bg-background/50 text-muted-foreground border-border/50 hover:border-accent/50 hover:text-foreground'
                         }`}
                       title={WEAPON_PROPERTIES[prop].description}
@@ -401,9 +402,9 @@ const EquipmentForm = ({
 
         {/* Limited Resource/Charge Tracking */}
         {(formData.armorType === 'magic' || formData.armorType === 'weapon' || formData.uses?.max) && (
-          <div className="p-4 bg-amber-500/5 rounded-xl border border-amber-500/20 space-y-3">
-            <h4 className="text-[10px] font-black text-amber-500/70 uppercase tracking-widest mb-2 flex items-center gap-2">
-              <span className="w-1 h-1 rounded-full bg-amber-500 animate-pulse" />
+          <div className="p-4 bg-accent/5 rounded-xl border border-accent/20 space-y-3">
+            <h4 className="text-[10px] font-black text-accent/70 uppercase tracking-widest mb-2 flex items-center gap-2">
+              <span className="w-1 h-1 rounded-full bg-accent animate-pulse" />
               Resource & Charge Capacity
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
@@ -574,8 +575,8 @@ export const EquipmentList = () => {
     setEditingItem(null);
   };
 
-  const handleDelete = (itemId: string) => {
-    if (window.confirm('Are you sure you want to delete this item?')) {
+  const handleDelete = async (itemId: string) => {
+    if (await confirmDialog({ title: 'Eliminare questo oggetto?', confirmLabel: 'Elimina', destructive: true })) {
       const updatedEquipment = (character.equipment || []).filter(item => item.id !== itemId);
       updateCharacter({ equipment: updatedEquipment });
     }

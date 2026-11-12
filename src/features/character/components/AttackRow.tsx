@@ -174,8 +174,8 @@ export const AttackRow: React.FC<AttackRowProps> = ({
         {/* Stats Grid Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {summary.isSave ? (
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-center justify-between shadow-sm">
-              <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">🛡️ Tiro Salvezza</span>
+            <div className="bg-accent/10 border border-accent/30 rounded-xl p-3 flex items-center justify-between shadow-sm">
+              <span className="text-xs font-bold text-accent uppercase tracking-wider">🛡️ Tiro Salvezza</span>
               <span className="text-sm font-black text-foreground">{summary.dcText}</span>
             </div>
           ) : (
@@ -224,7 +224,7 @@ export const AttackRow: React.FC<AttackRowProps> = ({
         {summary.additionalDamage && summary.additionalDamage.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {summary.additionalDamage.map((extra, idx) => (
-              <div key={idx} className="bg-amber-500/10 border border-amber-500/30 text-amber-300 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5">
+              <div key={idx} className="bg-accent/10 border border-accent/30 text-accent px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5">
                 <span>🔥 Extra:</span>
                 <span>+{extra.formula}</span>
                 <span className="text-[10px] uppercase">{extra.type}</span>

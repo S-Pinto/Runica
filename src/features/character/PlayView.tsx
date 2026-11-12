@@ -7,6 +7,8 @@ import { AbilitiesDisplay } from './components/AbilitiesDisplay';
 import { ImageModal } from '../../components/ui/ImageModal';
 import { CompanionTab } from './components/play-view/CompanionTab';
 import { DiceRoller } from './components/play-view/DiceRoller';
+import { confirmDialog } from '../../components/ui/Dialogs';
+import { TabButton } from '../../components/ui/TabButton';
 
 type PlayTab = 'main' | 'stats' | 'combat' | 'bio' | 'inventory' | 'spells' | 'companions';
 
@@ -18,26 +20,6 @@ const BioTabView = lazy(() => import('./components/play-view/InfoTabView'));
 
 const TabLoadingSpinner = () => <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-accent"></div></div>;
 
-const TabButton = ({ label, isActive, onClick, id, controls }: { label: string, isActive: boolean, onClick: () => void, id: string, controls: string }) => (
-    <button
-        id={id}
-        role="tab"
-        aria-selected={isActive}
-        aria-controls={controls}
-        onClick={onClick}
-        className={`px-6 py-2.5 text-sm sm:text-base font-semibold transition-all duration-300 whitespace-nowrap relative group ${isActive
-            ? 'text-accent'
-            : 'text-muted-foreground hover:text-foreground'
-            }`}
-    >
-        {label}
-        {isActive ? (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent shadow-[0_0_8px_rgba(var(--color-accent),0.6)] rounded-full" />
-        ) : (
-            <div className="absolute bottom-0 left-1/2 right-1/2 h-0.5 bg-accent/30 rounded-full transition-all duration-300 group-hover:left-0 group-hover:right-0" />
-        )}
-    </button>
-);
 
 const PLAY_TABS: { key: PlayTab; label: string }[] = [
     { key: 'main', label: 'Main' },
@@ -150,9 +132,9 @@ export const PlayView: FC = () => {
         };
     }, [character, checkScroll]);
 
-    const handleLongRest = () => {
+    const handleLongRest = async () => {
         if (!character) return;
-        if (window.confirm('Eseguire un Riposo Lungo? Questo ripristinerà tutti i Punti Vita, gli Slot Incantesimo e le Cariche degli Oggetti Magici.')) {
+        if (await confirmDialog({ title: 'Riposo lungo?', message: 'Verranno ripristinati Punti Vita, slot incantesimo e cariche degli oggetti magici.', confirmLabel: 'Riposa' })) {
             const resetSlots = { ...character.spellSlots };
             Object.keys(resetSlots).forEach(level => {
                 resetSlots[Number(level)] = { ...resetSlots[Number(level)], used: 0 };

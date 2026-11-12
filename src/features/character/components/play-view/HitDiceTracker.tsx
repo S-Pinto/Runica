@@ -54,7 +54,7 @@ export const HitDiceTracker = () => {
                             key={i}
                             onClick={() => toggleHitDie(i)}
                             className={`w-8 h-8 rounded-lg border-2 transition-all duration-300 relative overflow-hidden group ${i < usedHitDice
-                                ? 'bg-accent border-accent shadow-[0_0_12px_rgba(var(--color-accent),0.4)] scale-105'
+                                ? 'bg-accent border-accent shadow-[0_0_12px_rgb(var(--color-accent)/0.4)] scale-105'
                                 : 'bg-background/20 border-border/60 hover:border-accent/40 hover:bg-accent/5'
                                 }`}
                             aria-label={`Hit Die ${i + 1}. ${i < usedHitDice ? 'Used' : 'Available'}`}
@@ -76,7 +76,7 @@ export const HitDiceTracker = () => {
                         <button
                             onClick={handleAutoSpend}
                             disabled={usedHitDice >= totalHitDice || character.hp.current === 0}
-                            className="flex-grow bg-accent/90 hover:bg-accent text-accent-foreground font-bold py-2.5 px-4 rounded-xl transition-all active:scale-95 disabled:bg-muted/50 disabled:text-muted-foreground/50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(var(--color-accent),0.2)]"
+                            className="flex-grow bg-accent/90 hover:bg-accent text-accent-foreground font-bold py-2.5 px-4 rounded-xl transition-all active:scale-95 disabled:bg-muted/50 disabled:text-muted-foreground/50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgb(var(--color-accent)/0.2)]"
                         >
                             Roll & Heal ({character.hitDice.total})
                         </button>

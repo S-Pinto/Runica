@@ -101,7 +101,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onSettingsClick }) => {
         onClick={() => navigate('/')} 
         className="group cursor-pointer flex items-center gap-3 transition-transform duration-300 hover:scale-105"
       >
-        <div className="w-10 h-10 rounded-xl bg-accent/15 border border-accent/40 flex items-center justify-center text-accent shadow-[0_0_15px_rgba(var(--color-accent),0.3)] group-hover:border-accent group-hover:shadow-[0_0_25px_rgba(var(--color-accent),0.5)] transition-all">
+        <div className="w-10 h-10 rounded-xl bg-accent/15 border border-accent/40 flex items-center justify-center text-accent shadow-[0_0_15px_rgb(var(--color-accent)/0.3)] group-hover:border-accent group-hover:shadow-[0_0_25px_rgb(var(--color-accent)/0.5)] transition-all">
           <span className="font-norse text-2xl font-bold">ᚱ</span>
         </div>
         <h1 
@@ -152,7 +152,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onSettingsClick }) => {
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => setIsUserMenuOpen(prev => !prev)}
-              className="flex items-center gap-2.5 p-1 rounded-full border border-accent/30 bg-background/50 hover:border-accent hover:shadow-[0_0_15px_rgba(var(--color-accent),0.3)] transition-all duration-300 group"
+              className="flex items-center gap-2.5 p-1 rounded-full border border-accent/30 bg-background/50 hover:border-accent hover:shadow-[0_0_15px_rgb(var(--color-accent)/0.3)] transition-all duration-300 group"
             >
               <img 
                 src={currentUser.photoURL || `https://api.dicebear.com/8.x/lorelei/svg?seed=${currentUser.uid}`} 

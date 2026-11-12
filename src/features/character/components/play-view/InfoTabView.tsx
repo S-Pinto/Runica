@@ -35,7 +35,7 @@ const InfoTabView = () => {
                 <div className="flex flex-col md:flex-row gap-8 items-start">
                     {/* Portrait Section */}
                     <div className="flex-shrink-0 mx-auto md:mx-0">
-                        <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-accent/30 shadow-[0_0_15px_rgba(var(--color-accent),0.2)] overflow-hidden bg-muted relative group cursor-pointer transition-transform hover:scale-105"
+                        <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-accent/30 shadow-[0_0_15px_rgb(var(--color-accent)/0.2)] overflow-hidden bg-muted relative group cursor-pointer transition-transform hover:scale-105"
                             onClick={() => character.imageUrl && setSelectedImage({ url: character.imageUrl, alt: character.name })}
                         >
                             {character.imageUrl ? (

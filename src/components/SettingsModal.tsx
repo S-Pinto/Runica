@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useTheme } from '../providers/ThemeProvider';
 import { XMarkIcon, CheckIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, ExclamationTriangleIcon } from './ui/icons';
 import * as characterService from '../features/character/characterService';
+import { alertDialog, confirmDialog, toast } from './ui/Dialogs';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -9,8 +10,8 @@ interface SettingsModalProps {
 }
 
 const SettingsSection: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <div className="border-t border-zinc-700 pt-4 mt-4 first:border-t-0 first:mt-0 first:pt-0">
-    <h4 className="text-md font-semibold text-zinc-400 mb-3">{title}</h4>
+  <div className="border-t border-border pt-4 mt-4 first:border-t-0 first:mt-0 first:pt-0">
+    <h4 className="text-md font-semibold text-muted-foreground mb-3">{title}</h4>
     {children}
   </div>
 );
@@ -66,10 +67,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      alert('Data exported successfully!');
+      toast.success('Backup esportato.');
     } catch (error) {
       console.error('Failed to export data:', error);
-      alert('Error exporting data. Check the console for details.');
+      toast.error('Esportazione non riuscita.');
     }
   };
 
@@ -81,7 +82,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!window.confirm('Are you sure you want to import data? This will overwrite all current characters.')) {
+    if (!(await confirmDialog({ title: 'Importare il backup?', message: 'Tutti i personaggi attuali verranno sovrascritti.', confirmLabel: 'Importa', destructive: true }))) {
       return;
     }
 
@@ -101,40 +102,40 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         if (data.settings?.theme) {
           setTheme(data.settings.theme);
         }
-        alert('Data imported successfully! The page will now reload.');
+        await alertDialog('Backup importato', 'La pagina verrà ricaricata.');
         window.location.reload();
       } catch (error) {
         console.error('Failed to import data:', error);
-        alert('Error importing data. Make sure it is a valid backup file.');
+        toast.error('Importazione non riuscita: il file non è un backup valido.');
       }
     };
     reader.readAsText(file);
   };
 
   const handleClearAllData = async () => {
-    if (window.confirm('DANGER! This will permanently delete ALL your characters. This action cannot be undone. Are you absolutely sure?')) {
+    if (await confirmDialog({ title: 'Eliminare tutti i dati?', message: 'Tutti i tuoi personaggi verranno eliminati definitivamente. L\'azione non può essere annullata.', confirmLabel: 'Elimina tutto', destructive: true })) {
       try {
         await characterService.clearAllData();
-        alert('All data has been cleared. The app will now reload.');
+        await alertDialog('Dati eliminati', 'L\'app verrà ricaricata.');
         window.location.reload();
       } catch (error) {
         console.error('Failed to clear data:', error);
-        alert('An error occurred while clearing data.');
+        toast.error('Errore durante l\'eliminazione dei dati.');
       }
     }
   };
 
   return (
-    <dialog ref={dialogRef} onClose={onClose} className="bg-zinc-800 text-zinc-200 p-0 rounded-lg shadow-2xl w-full max-w-sm border border-zinc-700 backdrop:bg-black/50">
-      <header className="flex items-center justify-between p-4 border-b border-zinc-700">
+    <dialog ref={dialogRef} onClose={onClose} className="bg-card text-text p-0 rounded-lg shadow-2xl w-full max-w-sm border border-border backdrop:bg-black/50">
+      <header className="flex items-center justify-between p-4 border-b border-border">
         <h3 className="text-lg font-cinzel text-accent">Settings</h3>
-        <button onClick={onClose} className="p-1 rounded-full hover:bg-zinc-700 transition-colors"><XMarkIcon className="w-5 h-5" /></button>
+        <button onClick={onClose} className="p-1 rounded-full hover:bg-input transition-colors"><XMarkIcon className="w-5 h-5" /></button>
       </header>
       <div className="p-6 max-h-[70vh] overflow-y-auto">
         <SettingsSection title="Appearance">
           <div className="grid grid-cols-2 gap-3">
             {THEMES.map((t) => (
-              <button key={t.id} onClick={() => setTheme(t.id as any)} className={`flex items-center justify-between p-3 rounded-md border-2 transition-colors ${theme === t.id ? 'border-accent' : 'border-zinc-600 hover:border-zinc-500'}`}>
+              <button key={t.id} onClick={() => setTheme(t.id as any)} className={`flex items-center justify-between p-3 rounded-md border-2 transition-colors ${theme === t.id ? 'border-accent' : 'border-border hover:border-border'}`}>
                 <span className="flex items-center gap-2">
                   <span className={`w-5 h-5 rounded-full ${t.color}`}></span> {t.name}
                 </span>
@@ -146,7 +147,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
         <SettingsSection title="Gameplay & Gameplay Tools">
           <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase text-zinc-400">Modalità Dice Roller (Dadiere)</label>
+            <label className="block text-xs font-bold uppercase text-muted-foreground">Modalità Dice Roller (Dadiere)</label>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
@@ -157,12 +158,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 }}
                 className={`p-3 rounded-lg border flex flex-col items-center gap-1 text-xs font-semibold transition-all ${
                   diceMode === 'dock'
-                    ? 'border-accent bg-accent/20 text-amber-400'
-                    : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600'
+                    ? 'border-accent bg-accent/20 text-accent'
+                    : 'border-border bg-card text-muted-foreground hover:border-border'
                 }`}
               >
                 <span>Dock Fluttuante</span>
-                <span className="text-[10px] text-zinc-500 font-normal">Sempre in basso</span>
+                <span className="text-[10px] text-muted-foreground font-normal">Sempre in basso</span>
               </button>
               <button
                 type="button"
@@ -173,12 +174,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 }}
                 className={`p-3 rounded-lg border flex flex-col items-center gap-1 text-xs font-semibold transition-all ${
                   diceMode === 'modal'
-                    ? 'border-accent bg-accent/20 text-amber-400'
-                    : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600'
+                    ? 'border-accent bg-accent/20 text-accent'
+                    : 'border-border bg-card text-muted-foreground hover:border-border'
                 }`}
               >
                 <span>Modale Popover</span>
-                <span className="text-[10px] text-zinc-500 font-normal">Su richiesta</span>
+                <span className="text-[10px] text-muted-foreground font-normal">Su richiesta</span>
               </button>
             </div>
           </div>
@@ -186,11 +187,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
         <SettingsSection title="Data Management">
           <div className="space-y-3">
-            <button onClick={handleExportData} className="w-full flex items-center justify-center gap-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-200 font-semibold py-2 px-4 rounded-md transition-colors">
+            <button onClick={handleExportData} className="w-full flex items-center justify-center gap-2 bg-input hover:bg-input text-text font-semibold py-2 px-4 rounded-md transition-colors">
               <ArrowDownTrayIcon className="w-5 h-5" />
               Export All Data
             </button>
-            <button onClick={handleImportClick} className="w-full flex items-center justify-center gap-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-200 font-semibold py-2 px-4 rounded-md transition-colors">
+            <button onClick={handleImportClick} className="w-full flex items-center justify-center gap-2 bg-input hover:bg-input text-text font-semibold py-2 px-4 rounded-md transition-colors">
               <ArrowUpTrayIcon className="w-5 h-5" />
               Import from Backup
             </button>

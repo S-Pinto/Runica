@@ -330,10 +330,10 @@ export const CategorizedFeatureList = () => {
                 />
 
                 {/* Feats Group */}
-                <div className="bg-card/40 backdrop-blur-sm rounded-xl border border-amber-500/30 overflow-hidden">
-                    <div className="p-3 bg-amber-500/5 border-b border-amber-500/20">
-                        <h4 className="font-cinzel text-base font-bold text-amber-500 flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                <div className="bg-card/40 backdrop-blur-sm rounded-xl border border-accent/30 overflow-hidden">
+                    <div className="p-3 bg-accent/5 border-b border-accent/20">
+                        <h4 className="font-cinzel text-base font-bold text-accent flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
                             Feats
                         </h4>
                     </div>

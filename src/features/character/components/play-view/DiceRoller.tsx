@@ -85,7 +85,7 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({ mode = 'dock', isOpen = 
               onClick={() => setSelectedDice(dice)}
               className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
                 selectedDice === dice
-                  ? 'bg-accent text-accent-foreground shadow-[0_0_10px_rgba(var(--color-accent),0.4)] scale-105'
+                  ? 'bg-accent text-accent-foreground shadow-[0_0_10px_rgb(var(--color-accent)/0.4)] scale-105'
                   : 'bg-muted/40 hover:bg-muted text-muted-foreground'
               }`}
             >
@@ -178,7 +178,7 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({ mode = 'dock', isOpen = 
       {lastRoll && (
         <div className="p-4 bg-background/80 rounded-xl border border-accent/40 text-center space-y-1 animate-fadeIn">
           <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Risultato</div>
-          <div className="text-4xl font-black font-mono text-accent drop-shadow-[0_0_12px_rgba(var(--color-accent),0.6)]">
+          <div className="text-4xl font-black font-mono text-accent drop-shadow-[0_0_12px_rgb(var(--color-accent)/0.6)]">
             {lastRoll.total}
           </div>
           <div className="text-xs text-muted-foreground">

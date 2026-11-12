@@ -5,3 +5,5 @@ package-lock.json
 .env.local.old
 .env.production.old
 .env.staging
+# Build output
+dist

@@ -97,7 +97,7 @@ export const ResourceTracker: FC<ResourceTrackerProps> = ({ title, slots, onSlot
                                         key={i}
                                         onClick={() => toggleSlot(key, i)}
                                         className={`w-6 h-6 rounded-lg border-2 transition-all duration-300 relative overflow-hidden ${i < data.used
-                                            ? 'bg-accent border-accent shadow-[0_0_12px_rgba(var(--color-accent),0.4)] scale-105'
+                                            ? 'bg-accent border-accent shadow-[0_0_12px_rgb(var(--color-accent)/0.4)] scale-105'
                                             : 'bg-background/20 border-border/60 hover:border-accent/40 hover:bg-accent/5'
                                             }`}
                                         aria-label={`Slot ${i + 1} for ${levelLabel}. ${i < data.used ? 'Used' : 'Available'}`}

@@ -3,6 +3,7 @@ import { useCharacter } from '../../CharacterProvider';
 import { EquipmentItem, Currency } from '../../characterTypes';
 import { ChevronDownIcon } from '../../../../components/ui/icons';
 import { ImageModal } from '../../../../components/ui/ImageModal';
+import { toast } from '../../../../components/ui/Dialogs';
 
 const InventoryTabView = () => {
   const { character, updateCharacter } = useCharacter();
@@ -50,7 +51,7 @@ const InventoryTabView = () => {
 
     const currentAttuned = (character.equipment || []).filter(i => i.isAttuned).length;
     if (!item.isAttuned && currentAttuned >= 3) {
-      alert("Hai già sintonizzato il massimo di 3 Oggetti Magici (Regola D&D 5e/2024)!");
+      toast.info('Puoi essere in sintonia con al massimo 3 oggetti magici.');
       return;
     }
 
@@ -188,7 +189,7 @@ const InventoryTabView = () => {
                     <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-xs text-muted-foreground">
                       <span className="bg-background/50 px-1.5 py-0.5 rounded border border-border/30 font-mono">Qtà: {item.quantity}</span>
                       {item.damage && <span className="text-accent font-bold bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">Dmg: {item.damage}</span>}
-                      {item.armorClass && <span className="text-amber-300 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">CA: {item.armorClass}</span>}
+                      {item.armorClass && <span className="text-accent font-bold bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">CA: {item.armorClass}</span>}
                       {item.bonusAC && <span className="text-cyan-300 font-bold bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">+ {item.bonusAC} CA</span>}
                     </div>
                   </div>

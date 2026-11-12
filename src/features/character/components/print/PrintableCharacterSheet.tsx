@@ -4,6 +4,7 @@ import { getCharacter, getAllActions, calculateArmorClass } from '../../characte
 import { ICharacter } from '../../characterTypes';
 import { generateCharacterPDF } from '../../../../api/characterApi';
 import React from 'react';
+import { toast } from '../../../../components/ui/Dialogs';
 
 const CATEGORY_LABELS: any = {
     'class': 'CLASS FEATURES',
@@ -305,7 +306,7 @@ export const PrintableCharacterSheet = () => {
             link.remove();
         } catch (error) {
             console.error('Download error:', error);
-            alert('Errore durante la generazione del PDF.');
+            toast.error('Errore durante la generazione del PDF.');
         } finally {
             setDownloading(false);
         }

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Feature } from '../characterTypes';
 import { useCharacter } from '../CharacterProvider';
 import { TrashIcon, EditIcon, PlusCircleIcon } from '../../../components/ui/icons';
+import { confirmDialog } from '../../../components/ui/Dialogs';
 
 const DEFAULT_FEATURE: Omit<Feature, 'id'> = {
   name: '',
@@ -62,8 +63,8 @@ export const FeatureList = () => {
     setEditingFeature(null);
   };
 
-  const handleDeleteFeature = (featureId: string) => {
-    if (window.confirm('Are you sure you want to delete this feature?')) {
+  const handleDeleteFeature = async (featureId: string) => {
+    if (await confirmDialog({ title: 'Eliminare questo privilegio?', confirmLabel: 'Elimina', destructive: true })) {
       const updatedFeatures = character.featuresAndTraits.filter(f => f.id !== featureId);
       updateCharacter({ featuresAndTraits: updatedFeatures });
     }

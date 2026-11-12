@@ -25,6 +25,7 @@ import { SortableCharacterCard } from './components/SortableCharacterCard';
 import { CharacterCard } from './components/CharacterCard';
 import { useIsTouchDevice } from '../../hooks/useIsTouchDevice';
 import { CampaignManagerModal } from './components/CampaignManagerModal';
+import { confirmDialog } from '../../components/ui/Dialogs';
 
 export const CharacterList: React.FC = () => {
   const { characters, loading, deleteCharacter, saveCharacterOrder, duplicateCharacter } = useCharacter();
@@ -117,7 +118,7 @@ export const CharacterList: React.FC = () => {
   };
 
   const handleDeleteCharacter = async (id: string, name: string) => {
-    if (window.confirm(`Sei sicuro di voler eliminare ${name}? L'azione non può essere annullata.`)) {
+    if (await confirmDialog({ title: `Eliminare ${name}?`, message: "L'azione non può essere annullata.", confirmLabel: 'Elimina', destructive: true })) {
       await deleteCharacter(id);
     }
   };
@@ -188,7 +189,7 @@ export const CharacterList: React.FC = () => {
             </button>
             <button
               onClick={() => handleSelectCharacter('new')}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-3 bg-accent text-accent-foreground font-extrabold text-xs uppercase tracking-wider rounded-2xl shadow-[0_0_20px_rgba(var(--color-accent),0.3)] hover:shadow-[0_0_30px_rgba(var(--color-accent),0.5)] hover:bg-accent-light transition-all transform hover:scale-105 active:scale-95"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-3 bg-accent text-accent-foreground font-extrabold text-xs uppercase tracking-wider rounded-2xl shadow-[0_0_20px_rgb(var(--color-accent)/0.3)] hover:shadow-[0_0_30px_rgb(var(--color-accent)/0.5)] hover:bg-accent-light transition-all transform hover:scale-105 active:scale-95"
             >
               <UserPlusIcon className="w-4 h-4" />
               <span>Crea Nuovo Eroe</span>

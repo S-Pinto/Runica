@@ -6,6 +6,7 @@ import {
     User
 } from "firebase/auth";
 import { getFirebase } from '../lib/getFirebase';
+import { toast } from '../components/ui/Dialogs';
 
 const provider = new GoogleAuthProvider();
 
@@ -14,7 +15,7 @@ export const signInWithGoogle = (): Promise<void> => {
         const { auth } = getFirebase();
         return signInWithPopup(auth, provider).then(() => {});
     } catch (error) {
-        alert("Firebase is not configured. Cloud sign-in is disabled. Please update firebaseConfig.ts.");
+        toast.error('Accesso cloud non disponibile: Firebase non è configurato.');
         return Promise.resolve();
     }
 };

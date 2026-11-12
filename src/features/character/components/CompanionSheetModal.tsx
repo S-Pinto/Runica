@@ -8,7 +8,7 @@ import { ImageModal } from '../../../components/ui/ImageModal';
 import { CompanionAttackEditor } from './CompanionAttackEditor';
 import { CompanionSpellEditor } from './CompanionSpellEditor';
 import { CompanionHpManager, HpData } from './CompanionHpManager';
-import { debounce } from 'lodash';
+import { debounce } from '../../../lib/debounce';
 import { StatInput } from './StatInput';
 import { StyledInput, StyledTextArea } from './ui/StyledInputs';
 import { getModifier, formatModifier } from '../utils/characterUtils';
@@ -37,7 +37,7 @@ const StatDisplay = ({ label, value }: { label: string, value: number }) => {
   const modifier = formatModifier(getModifier(value));
   return (
     <div className="flex flex-col items-center gap-1 bg-background/40 p-2 rounded-xl border border-border/50 shadow-inner">
-      <div className="text-xl font-bold text-accent h-7 flex items-center drop-shadow-[0_0_8px_rgba(var(--color-accent),0.3)]">{modifier}</div>
+      <div className="text-xl font-bold text-accent h-7 flex items-center drop-shadow-[0_0_8px_rgb(var(--color-accent)/0.3)]">{modifier}</div>
       <div className="text-3xl font-bold text-foreground font-mono">
         {value}
       </div>
@@ -223,7 +223,7 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
           </div>
 
           <div>
-            <h4 className="text-md font-semibold text-zinc-400 mb-2">Ability Scores</h4>
+            <h4 className="text-md font-semibold text-muted-foreground mb-2">Ability Scores</h4>
             {/* Griglia reattiva per le statistiche per evitare sovrapposizioni su mobile */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-y-4 gap-x-2 sm:gap-4">
               {readOnly ? (
@@ -248,7 +248,7 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
           </div>
 
           <div>
-            <h4 className="text-md font-semibold text-zinc-400 mb-2">Skills</h4>
+            <h4 className="text-md font-semibold text-muted-foreground mb-2">Skills</h4>
             <CompanionSkillSelector companion={data} onChange={handleSkillChange} readOnly={readOnly} />
           </div>
         </div>

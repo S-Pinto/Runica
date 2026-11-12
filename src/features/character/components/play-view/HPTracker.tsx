@@ -65,7 +65,7 @@ export const HPTracker = () => {
 
             <div className="relative w-full bg-background/40 rounded-full h-4 overflow-hidden border border-border/20 shadow-inner">
                 <div
-                    className={`${hpColor} h-full rounded-full transition-all duration-700 ease-out shadow-[0_0_15px_rgba(var(--color-hp),0.5)]`}
+                    className={`${hpColor} h-full rounded-full transition-all duration-700 ease-out shadow-[0_0_15px_rgb(var(--color-hp)/0.5)]`}
                     style={{ width: `${hpPercentage}%` }}
                 >
                     <div className="w-full h-full bg-gradient-to-b from-white/20 to-transparent" />

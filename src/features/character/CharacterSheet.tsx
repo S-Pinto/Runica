@@ -20,33 +20,12 @@ import { StatInput } from './components/StatInput';
 import { getModifier, formatModifier } from './utils/characterUtils';
 import * as campaignService from '../../services/campaignService';
 import { CampaignManagerModal } from './components/CampaignManagerModal';
+import { confirmDialog, toast } from '../../components/ui/Dialogs';
+import { TabButton } from '../../components/ui/TabButton';
 
 type Tab = 'main' | 'stats' | 'combat' | 'bio' | 'spells' | 'inventory' | 'companions';
 const ABILITIES: (keyof AbilityScores)[] = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
 
-interface TabButtonProps {
-    id: string;
-    label: string;
-    isActive: boolean;
-    onClick: () => void;
-    controls: string;
-}
-
-const TabButton: React.FC<TabButtonProps> = ({ id, label, isActive, onClick, controls }) => (
-    <button
-        id={id}
-        role="tab"
-        aria-selected={isActive}
-        aria-controls={controls}
-        onClick={onClick}
-        className={`px-4 py-2 text-sm sm:text-base font-semibold border-b-2 transition-all duration-200 whitespace-nowrap ${isActive
-            ? 'border-accent text-accent'
-            : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-            }`}
-    >
-        {label}
-    </button>
-);
 
 const TABS: { key: Tab; label: string }[] = [
     { key: 'main', label: 'Main' },
@@ -134,7 +113,7 @@ export const CharacterSheet: React.FC = () => {
             navigate(`/character/${savedChar.id}?tab=${activeTab}`, { replace: isNewCharacter });
         } catch (error) {
             console.error("Failed to save character:", error);
-            alert("An error occurred while saving. Please try again.");
+            toast.error('Salvataggio non riuscito. Riprova.');
         } finally {
             setIsSaving(false);
         }
@@ -143,16 +122,16 @@ export const CharacterSheet: React.FC = () => {
     const handleDeleteClick = async () => {
         if (!character) return;
         const confirmMessage = isNewCharacter
-            ? "Are you sure you want to discard this character? Changes will not be saved."
-            : `Are you sure you want to permanently delete ${character.name}?`;
+            ? { title: 'Scartare questo personaggio?', message: 'Le modifiche non verranno salvate.', confirmLabel: 'Scarta', destructive: true }
+            : { title: `Eliminare ${character.name}?`, message: "L'azione non può essere annullata.", confirmLabel: 'Elimina', destructive: true };
 
-        if (window.confirm(confirmMessage)) {
+        if (await confirmDialog(confirmMessage)) {
             try {
                 await deleteCharacter(character.id);
                 navigate('/');
             } catch (error) {
                 console.error("Failed to delete character:", error);
-                alert("An error occurred while deleting the character.");
+                toast.error('Eliminazione non riuscita.');
             }
         }
     };
@@ -174,7 +153,7 @@ export const CharacterSheet: React.FC = () => {
             updateCharacter({ imageUrl });
         } catch (error) {
             console.error("Failed to upload character portrait:", error);
-            alert("Error uploading image. Please try again.");
+            toast.error('Caricamento immagine non riuscito. Riprova.');
         }
     };
 
@@ -502,7 +481,7 @@ export const CharacterSheet: React.FC = () => {
                                                     <label key={ability} className={`
                                                         cursor-pointer px-3 py-1.5 rounded-lg border text-xs font-bold uppercase transition-all
                                                         ${character.unarmoredDefense?.abilities.includes(ability)
-                                                            ? 'bg-accent text-accent-foreground border-accent shadow-[0_0_10px_rgba(var(--color-accent),0.4)]'
+                                                            ? 'bg-accent text-accent-foreground border-accent shadow-[0_0_10px_rgb(var(--color-accent)/0.4)]'
                                                             : 'bg-background/50 text-muted-foreground border-border hover:border-accent/50'}
                                                     `}>
                                                         <input type="checkbox" className="hidden" checked={character.unarmoredDefense?.abilities.includes(ability)} onChange={() => handleUnarmoredAbilityToggle(ability)} />
