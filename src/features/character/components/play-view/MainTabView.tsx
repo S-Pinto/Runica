@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useCharacter } from '../../CharacterProvider';
 import { getModifier, formatModifier } from '../../utils/characterUtils';
-import * as characterService from '../../characterService';
+import * as combat from '../../rules/combat';
 import { StatBox } from '../ui/StatBox';
 import { HPTracker } from './HPTracker';
 import { DeathSavesTracker } from './DeathSavesTracker';
@@ -45,7 +45,7 @@ const MainTabView = () => {
     }, [character]);
 
     // Calculate Armor Class (memoized)
-    const armorClass = useMemo(() => (character ? characterService.calculateArmorClass(character) : 10), [character]);
+    const armorClass = useMemo(() => (character ? combat.calculateArmorClass(character) : 10), [character]);
 
     const hasShield = useMemo(() => {
         return character?.equipment?.some(item => item.equipped && item.armorType === 'shield');

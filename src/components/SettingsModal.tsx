@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useTheme } from '../providers/ThemeProvider';
 import { XMarkIcon, CheckIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, ExclamationTriangleIcon } from './ui/icons';
-import * as characterService from '../features/character/characterService';
+import * as characterRepository from '../features/character/characterRepository';
 import { alertDialog, confirmDialog, toast } from './ui/Dialogs';
 
 interface SettingsModalProps {
@@ -50,7 +50,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
   const handleExportData = async () => {
     try {
-      const allCharacters = await characterService.getAllCharacters();
+      const allCharacters = await characterRepository.getAllCharacters();
       const dataToExport = {
         version: 1,
         exportedAt: new Date().toISOString(),
@@ -98,7 +98,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           throw new Error('Invalid backup file format.');
         }
 
-        await characterService.importCharacters(data.characters);
+        await characterRepository.importCharacters(data.characters);
         if (data.settings?.theme) {
           setTheme(data.settings.theme);
         }
@@ -115,7 +115,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const handleClearAllData = async () => {
     if (await confirmDialog({ title: 'Eliminare tutti i dati?', message: 'Tutti i tuoi personaggi verranno eliminati definitivamente. L\'azione non può essere annullata.', confirmLabel: 'Elimina tutto', destructive: true })) {
       try {
-        await characterService.clearAllData();
+        await characterRepository.clearAllData();
         await alertDialog('Dati eliminati', 'L\'app verrà ricaricata.');
         window.location.reload();
       } catch (error) {

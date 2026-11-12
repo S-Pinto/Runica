@@ -16,7 +16,7 @@ npm test                 # Vitest (una esecuzione); npm run test:watch per il wa
 
 CI: `.github/workflows/ci.yml` (su PR e push su `main`) esegue type-check frontend + `functions/`, test Vitest e build. I workflow `firebase-hosting-*` si occupano solo di build e deploy.
 
-Deploy: GitHub Actions su merge (`.github/workflows/`), oppure `npm run deploy:live` / `deploy:staging`. Dettagli in `DEPLOYMENT_GUIDE.md`. I test (Vitest, ambiente `node`, file `*.test.ts` accanto al codice) coprono per ora `rules/progression.ts` e `rules/rest.ts`.
+Deploy: GitHub Actions su merge (`.github/workflows/`), oppure `npm run deploy:live` / `deploy:staging`. Dettagli in `DEPLOYMENT_GUIDE.md`. I test (Vitest, ambiente `node`, file `*.test.ts` accanto al codice) coprono `rules/` (progression, rest, combat, characterData).
 
 ## Stack
 
@@ -67,9 +67,10 @@ src/
     auth/            LoginPage, AccountPage
     character/       dominio principale
       CharacterProvider.tsx, CharacterList.tsx, CharacterSheet.tsx, PlayView.tsx
-      characterService.ts   Firestore + calcoli di regole + modalità locale
+      characterRepository.ts  Firestore / localStorage + migrazione locale→cloud (solo I/O)
+      migrationActions.ts     dialoghi di conferma/toast della migrazione (UI)
       characterTypes.ts     ICharacter e tipi collegati
-      rules/                regole pure (progression.ts, rest.ts)
+      rules/                regole pure: progression, rest, combat, defaults, characterData
       utils/
       components/           editor e card (armi, equip., incantesimi, compagni…)
         play-view/          schede e tracker della vista di gioco
@@ -127,10 +128,10 @@ functions/src/
 3. Persistenza su tre livelli (Firestore, localStorage, migrazione) senza regole di conflitto.
 4. Campagne solo locali: "unisciti con codice" non funziona tra dispositivi.
 5. Immagini Storage leggibili da chiunque.
-6. `characterService` mescola I/O, regole e UI (importa `Dialogs`); `AuthProvider` dipende da `characterService`.
+6. ~~`characterService` mescolava I/O, regole e UI~~ — risolto nella Fase D.
 7. File molto grandi: `CharacterSheet` (~850 righe), `EquipmentList` (~750), `PrintableCharacterSheet` (~660), `CombatTabView` (~535).
 8. ~~Residui~~ — risolti nella Fase C (file inutilizzati rimossi, `firebaseConfig` unito in `getFirebase`, refuso e classe mancante corretti, README riscritto).
-9. Copertura test limitata a `rules/progression.ts` e `rules/rest.ts`; i calcoli di `characterService` non sono testabili finché restano mescolati a Firebase e UI (Fase D). Nessun ESLint.
+9. Copertura test limitata a `rules/` (il repository Firebase non è testato). Nessun ESLint.
 
 ## Roadmap del refactor
 
@@ -145,7 +146,7 @@ Ogni fase è indipendente: si può fare in qualsiasi ordine, con un branch e una
 ### Fase B — Rete di sicurezza (CI e qualità) — fatta
 - `ci.yml` con `tsc --noEmit` (frontend e `functions/`), Vitest e build.
 - Primi test su `rules/progression.ts` e `rules/rest.ts`.
-- Rimasto: test dei calcoli di `characterService` (dopo la Fase D), ESLint (rimandato), branch protection su `main` con `ci` come check obbligatorio (impostazione GitHub).
+- Rimasto: ESLint (rimandato), branch protection su `main` con `ci` come check obbligatorio (impostazione GitHub).
 - **Fatto quando**: la CI fallisce su errori di tipo o test rotti.
 
 ### Fase C — Pulizia — fatta
@@ -154,9 +155,10 @@ Ogni fase è indipendente: si può fare in qualsiasi ordine, con un branch e una
 - `CATEGORY_CONFIG` usa ora `accent` per tutte le categorie (le classi dinamiche `text-${color}` non venivano generate da Tailwind).
 - **Fatto quando**: nessun file inutilizzato e build invariata.
 
-### Fase D — Separazione del servizio personaggi
+### Fase D — Separazione del servizio personaggi — fatta
 - Dividere `characterService.ts` in: repository (Firestore/locale), calcoli (in `rules/`), e azioni UI (dialoghi spostati nei componenti o nel provider).
 - Eliminare la dipendenza `AuthProvider` → `characterService` (es. migrazione attivata da `CharacterProvider` al cambio utente).
+- Fatto: `characterService.ts` eliminato; `rules/combat.ts`, `rules/defaults.ts`, `rules/characterData.ts` (pure, con test), `characterRepository.ts` (I/O) e `migrationActions.ts` (UI). La migrazione parte da `CharacterProvider` al login (quindi sulle rotte personaggio), `AuthProvider` non importa più nulla dal dominio. Eliminati gli `any` del servizio.
 - **Fatto quando**: `rules/` e il repository non importano nulla da `components/`.
 
 ### Fase E — Affidabilità auth e dati

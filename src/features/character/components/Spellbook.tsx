@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Spell } from '../characterTypes';
 import { useCharacter } from '../CharacterProvider';
-import { calculateSpellSaveDC, calculateSpellAttackBonus } from '../characterService';
+import { calculateSpellSaveDC, calculateSpellAttackBonus } from '../rules/combat';
 import { PlusCircleIcon, SearchIcon, SparklesIcon } from '../../../components/ui/icons';
 import { SpellCard } from './SpellCard';
 

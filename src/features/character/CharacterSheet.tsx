@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams, useBlocker } from 'react-router-dom';
 import { ICharacter, AbilityScores } from './characterTypes';
 import { useCharacter } from './CharacterProvider';
-import * as characterService from './characterService';
+import * as characterRepository from './characterRepository';
+import { createNewCharacter } from './rules/defaults';
 import * as storageService from '../../services/storageService';
 import * as geminiService from '../../services/geminiService';
 import { SparklesIcon, BackIcon, SaveIcon, TrashIcon, PhotoIcon, UserGroupIcon, PrinterIcon, EllipsisVerticalIcon, HeartIcon, StarIcon, SwordIcon, ShieldIcon, UserCircleIcon } from '../../components/ui/icons';
@@ -101,9 +102,9 @@ export const CharacterSheet: React.FC = () => {
                 if (isMounted) setError(null);
                 let loadedData;
                 if (!characterId) { // Route is /character/new
-                    loadedData = characterService.createNewCharacter();
+                    loadedData = createNewCharacter();
                 } else {
-                    loadedData = await characterService.getCharacter(characterId);
+                    loadedData = await characterRepository.getCharacter(characterId);
                 }
 
                 if (!loadedData && characterId) {
@@ -113,7 +114,7 @@ export const CharacterSheet: React.FC = () => {
 
                 // **MIGRAZIONE DATI**: Assicura che i personaggi vecchi abbiano le nuove proprietà.
                 // Unisce i dati caricati con un personaggio "vuoto" per riempire i campi mancanti.
-                const charData = { ...characterService.createNewCharacter(), ...loadedData };
+                const charData = { ...createNewCharacter(), ...loadedData };
 
                 if (isMounted) {
                     savedSnapshot.current = JSON.stringify(charData);
