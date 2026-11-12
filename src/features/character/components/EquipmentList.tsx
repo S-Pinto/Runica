@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useCharacter } from '../CharacterProvider';
 import { EquipmentItem, Currency } from '../characterTypes';
 import { PlusCircleIcon } from '../../../components/ui/icons';
+import { toggleEquippedItem, splitEquipment } from '../rules/equipment';
 import { confirmDialog } from '../../../components/ui/Dialogs';
 import { EquipmentForm } from './equipment/EquipmentForm';
 import { ItemDisplayList } from './equipment/ItemDisplayList';
@@ -56,44 +57,11 @@ const EquipmentListContent = () => {
   };
 
   const handleToggleEquip = (itemId: string) => {
-    const clickedItem = character.equipment.find(item => item.id === itemId);
-    if (!clickedItem) return;
-
-    const isEquipping = !clickedItem.equipped;
-    const isClickedBodyArmor = clickedItem.itemType === 'armor' || ['light', 'medium', 'heavy'].includes(clickedItem.armorType || '');
-    const isClickedShield = clickedItem.itemType === 'shield' || clickedItem.armorType === 'shield';
-
-    const newEquipment = character.equipment.map(item => {
-      if (item.id === itemId) {
-        return { ...item, equipped: isEquipping };
-      }
-      if (isEquipping) {
-        const isItemBodyArmor = item.itemType === 'armor' || ['light', 'medium', 'heavy'].includes(item.armorType || '');
-        const isItemShield = item.itemType === 'shield' || item.armorType === 'shield';
-
-        if (isClickedBodyArmor && isItemBodyArmor) return { ...item, equipped: false };
-        if (isClickedShield && isItemShield) return { ...item, equipped: false };
-      }
-      return item;
-    });
-    updateCharacter({ equipment: newEquipment });
+    const newEquipment = toggleEquippedItem(character.equipment, itemId);
+    if (newEquipment) updateCharacter({ equipment: newEquipment });
   };
 
-  const { equippableItems, backpackItems } = useMemo(() => {
-    const equippable: EquipmentItem[] = [];
-    const backpack: EquipmentItem[] = [];
-    (character.equipment || []).forEach(item => {
-      if (item.equipped || item.itemType === 'weapon' || item.itemType === 'armor' || item.itemType === 'shield' || item.armorType || item.damage) {
-        equippable.push(item);
-      } else {
-        backpack.push(item);
-      }
-    });
-    return {
-      equippableItems: equippable.sort((a, b) => a.name.localeCompare(b.name)),
-      backpackItems: backpack.sort((a, b) => a.name.localeCompare(b.name)),
-    };
-  }, [character.equipment]);
+  const { equippableItems, backpackItems } = useMemo(() => splitEquipment(character.equipment), [character.equipment]);
 
   const handleCurrencyChange = (type: keyof Currency, val: number) => {
     updateCharacter({
