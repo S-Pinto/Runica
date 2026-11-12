@@ -1,6 +1,8 @@
 node_modules
-package-lock.json
 .env.local
 .env.production
 .env.local.old
 .env.production.old
+.env.staging
+# Build output
+dist

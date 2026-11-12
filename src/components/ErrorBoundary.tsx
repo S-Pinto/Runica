@@ -1,103 +1,48 @@
-import React from 'react';
-import { useRouteError, isRouteErrorResponse } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useRouteError, isRouteErrorResponse } from 'react-router-dom';
+
+const ErrorPage = ({ title, message }: { title: string; message: string }) => (
+  <div className="mx-auto flex max-w-md flex-col items-center gap-4 px-4 py-24 text-center">
+    <p className="font-norse text-5xl text-accent">R</p>
+    <h1 className="font-cinzel text-2xl font-bold text-foreground">{title}</h1>
+    <p className="text-sm text-muted-foreground">{message}</p>
+    <Link
+      to="/"
+      className="mt-2 inline-flex h-10 items-center rounded-xl bg-accent px-4 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-dark"
+    >
+      Torna ai tuoi eroi
+    </Link>
+  </div>
+);
+
+const isChunkLoadError = (message: string) =>
+  message.includes('dynamically imported module') || message.includes('Importing a module script failed');
 
 export function ErrorBoundary() {
   const error = useRouteError();
+  const message = error instanceof Error ? error.message : '';
+
+  // After a new deploy, old lazy-loaded chunks disappear: reload once to fetch the new build.
+  useEffect(() => {
+    if (!isChunkLoadError(message)) return;
+    const last = Number(sessionStorage.getItem('runica-last-reload') || 0);
+    if (Date.now() - last > 5000) {
+      sessionStorage.setItem('runica-last-reload', String(Date.now()));
+      window.location.reload();
+    }
+  }, [message]);
 
   if (isRouteErrorResponse(error)) {
-    return (
-      <div className="text-center p-8">
-        <h1 className="text-2xl font-bold text-red-500">{error.status} {error.statusText}</h1>
-        <p className="text-zinc-400">{error.data}</p>
-      </div>
+    return error.status === 404 ? (
+      <NotFound />
+    ) : (
+      <ErrorPage title={`Errore ${error.status}`} message={typeof error.data === 'string' ? error.data : error.statusText} />
     );
   }
 
-  // Puoi gestire altri tipi di errore qui
-  const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-
-  return (
-    <div className="text-center p-8">
-      <h1 className="text-2xl font-bold text-red-500">Something went wrong</h1>
-      <p className="text-zinc-400">{errorMessage}</p>
-    </div>
-  );
+  return <ErrorPage title="Qualcosa è andato storto" message={message || 'Errore sconosciuto. Prova a ricaricare la pagina.'} />;
 }
 
-export function ErrorFallback({ error }: { error: Error }) {
-  return (
-    <div className="text-center p-8">
-      <h1 className="text-2xl font-bold text-red-500">Error</h1>
-      <p className="text-zinc-400">{error.message}</p>
-    </div>
-  );
-}
 export function NotFound() {
-  return (
-    <div className="text-center p-8">
-      <h1 className="text-2xl font-bold text-red-500">404 Not Found</h1>
-      <p className="text-zinc-400">The page you are looking for does not exist.</p>
-    </div>
-  );
-}
-export function Unauthorized() {
-  return (
-    <div className="text-center p-8">
-      <h1 className="text-2xl font-bold text-red-500">Unauthorized</h1>
-      <p className="text-zinc-400">You do not have permission to access this page.</p>
-    </div>
-  );
-}
-export function Forbidden() {
-  return (
-    <div className="text-center p-8">
-      <h1 className="text-2xl font-bold text-red-500">403 Forbidden</h1>
-      <p className="text-zinc-400">You do not have permission to access this resource.</p>
-    </div>
-  );
-}
-
-export function InternalServerError() {
-  return (
-    <div className="text-center p-8">
-      <h1 className="text-2xl font-bold text-red-500">500 Internal Server Error</h1>
-      <p className="text-zinc-400">An unexpected error occurred on the server.</p>
-    </div>
-  );
-}
-
-export function BadRequest() {
-  return (
-    <div className="text-center p-8">
-      <h1 className="text-2xl font-bold text-red-500">400 Bad Request</h1>
-      <p className="text-zinc-400">The request could not be understood by the server due to malformed syntax.</p>
-    </div>
-  );
-}
-
-export function ServiceUnavailable() {
-  return (
-    <div className="text-center p-8">
-      <h1 className="text-2xl font-bold text-red-500">503 Service Unavailable</h1>
-      <p className="text-zinc-400">The server is currently unable to handle the request due to temporary overloading or maintenance.</p>
-    </div>
-  );
-}
-
-export function GatewayTimeout() {
-  return (
-    <div className="text-center p-8">
-      <h1 className="text-2xl font-bold text-red-500">504 Gateway Timeout</h1>
-      <p className="text-zinc-400">The server did not receive a timely response from an upstream server.</p>
-    </div>
-  );
-}
-
-export function Conflict() {
-  return (
-    <div className="text-center p-8">
-      <h1 className="text-2xl font-bold text-red-500">409 Conflict</h1>
-      <p className="text-zinc-400">The request could not be completed due to a conflict with the current state of the resource.</p>
-    </div>
-  );
+  return <ErrorPage title="Pagina non trovata" message="La pagina che cerchi non esiste o è stata spostata." />;
 }

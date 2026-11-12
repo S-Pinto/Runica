@@ -1,5 +1,18 @@
 {
   "projects": {
     "default": "runica-heros-folio"
-  }
+  },
+  "targets": {
+    "runica-heros-folio": {
+      "hosting": {
+        "live": [
+          "runica-heros-folio"
+        ],
+        "staging": [
+          "runica-heros-folio-staging"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
