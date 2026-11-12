@@ -118,7 +118,7 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({ mode = 'dock', isOpen = 
               onClick={() => setAdvantageMode('advantage')}
               className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all ${
                 advantageMode === 'advantage'
-                  ? 'bg-emerald-950/60 border border-emerald-500 text-emerald-400'
+                  ? 'bg-success/15 border border-success text-success'
                   : 'bg-muted/30 border border-transparent text-muted-foreground hover:bg-muted/50'
               }`}
             >
@@ -129,7 +129,7 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({ mode = 'dock', isOpen = 
               onClick={() => setAdvantageMode('disadvantage')}
               className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all ${
                 advantageMode === 'disadvantage'
-                  ? 'bg-rose-950/60 border border-rose-500 text-rose-400'
+                  ? 'bg-destructive/15 border border-destructive text-destructive'
                   : 'bg-muted/30 border border-transparent text-muted-foreground hover:bg-muted/50'
               }`}
             >

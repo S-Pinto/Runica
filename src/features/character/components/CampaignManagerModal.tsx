@@ -134,7 +134,7 @@ export const CampaignManagerModal: React.FC<CampaignManagerModalProps> = ({
                           className="flex items-center gap-1 text-xs px-2.5 py-1 rounded bg-muted/60 hover:bg-accent/20 text-accent border border-accent/30 transition-all"
                           title="Copia codice di invito"
                         >
-                          {copiedCode === camp.code ? <CheckIcon className="w-3.5 h-3.5 text-emerald-400" /> : <CopyIcon className="w-3.5 h-3.5" />}
+                          {copiedCode === camp.code ? <CheckIcon className="w-3.5 h-3.5 text-success" /> : <CopyIcon className="w-3.5 h-3.5" />}
                           <span className="font-mono">{camp.code}</span>
                         </button>
                       </div>

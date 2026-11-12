@@ -182,7 +182,7 @@ const MainTabView = () => {
                                                                     updateCharacter({ conditions: newConditions });
                                                                 }}
                                                                 className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all shadow-sm ${isActive
-                                                                    ? 'bg-destructive text-white hover:bg-destructive/90 hover:scale-105 active:scale-95 ring-2 ring-destructive/20'
+                                                                    ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:scale-105 active:scale-95 ring-2 ring-destructive/20'
                                                                     : 'bg-accent/10 text-accent hover:bg-accent hover:text-accent-foreground hover:scale-105 active:scale-95'
                                                                     }`}
                                                             >

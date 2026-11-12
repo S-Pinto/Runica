@@ -55,11 +55,11 @@ export const SpellCard: React.FC<SpellCardProps> = ({
               </span>
               {/* Casting Time Badge */}
               {spell.castingTime.toLowerCase().includes('bonus') ? (
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-500/30 text-orange-400 bg-orange-500/10 uppercase tracking-wide">Bonus</span>
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-warning/30 text-warning bg-warning/10 uppercase tracking-wide">Bonus</span>
               ) : spell.castingTime.toLowerCase().includes('reaction') ? (
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-yellow-500/30 text-yellow-400 bg-yellow-500/10 uppercase tracking-wide">Reazione</span>
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-warning/30 text-warning bg-warning/10 uppercase tracking-wide">Reazione</span>
               ) : spell.castingTime.toLowerCase().includes('1 action') ? (
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-blue-500/30 text-blue-400 bg-blue-500/10 uppercase tracking-wide">Azione</span>
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-accent/30 text-accent bg-accent/10 uppercase tracking-wide">Azione</span>
               ) : null}
             </div>
           </div>
@@ -87,7 +87,7 @@ export const SpellCard: React.FC<SpellCardProps> = ({
               <span className="bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold w-6 h-6 flex items-center justify-center rounded-lg shadow-sm" title="Concentrazione">C</span>
             )}
             {spell.ritual && (
-              <span className="bg-purple-500/10 text-purple-500 border border-purple-500/20 text-[10px] font-bold w-6 h-6 flex items-center justify-center rounded-lg shadow-sm" title="Rituale">R</span>
+              <span className="bg-accent/10 text-accent border border-accent/20 text-[10px] font-bold w-6 h-6 flex items-center justify-center rounded-lg shadow-sm" title="Rituale">R</span>
             )}
           </div>
         </div>

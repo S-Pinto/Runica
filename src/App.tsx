@@ -7,7 +7,7 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   return (
-    <div className="bg-background min-h-screen text-text-main">
+    <div className="bg-background min-h-screen">
       <AppHeader onSettingsClick={() => setIsSettingsOpen(true)} />
       <main>
         <Outlet />

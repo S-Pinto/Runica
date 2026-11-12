@@ -69,11 +69,11 @@ const SpellForm = ({
 
         <div className="sm:col-span-12 flex items-center justify-start gap-6 pt-2">
           <label className="flex items-center gap-2 cursor-pointer text-sm select-none group">
-            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${formData.ritual ? 'bg-purple-500 border-purple-500 text-white' : 'bg-input border-border'}`}>
+            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${formData.ritual ? 'bg-accent border-accent text-accent-foreground' : 'bg-input border-border'}`}>
               {formData.ritual && <SparklesIcon className="w-3.5 h-3.5" />}
             </div>
             <input type="checkbox" checked={formData.ritual} onChange={() => handleCheckboxChange('ritual')} className="hidden" />
-            <span className="group-hover:text-purple-400 transition-colors">Rituale</span>
+            <span className="group-hover:text-accent transition-colors">Rituale</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer text-sm select-none group">
             <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${formData.concentration ? 'bg-accent border-accent text-accent-foreground' : 'bg-input border-border'}`}>
@@ -83,11 +83,11 @@ const SpellForm = ({
             <span className="group-hover:text-accent transition-colors">Concentrazione</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer text-sm select-none group">
-            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${formData.prepared ? 'bg-blue-500 border-blue-500 text-white' : 'bg-input border-border'}`}>
+            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${formData.prepared ? 'bg-accent border-accent text-accent-foreground' : 'bg-input border-border'}`}>
               {formData.prepared && <div className="w-2.5 h-2.5 rounded-sm bg-current" />}
             </div>
             <input type="checkbox" checked={formData.prepared || false} onChange={() => handleCheckboxChange('prepared')} className="hidden" />
-            <span className="group-hover:text-blue-400 transition-colors">Preparato</span>
+            <span className="group-hover:text-accent transition-colors">Preparato</span>
           </label>
         </div>
       </div>
@@ -129,8 +129,8 @@ const SpellForm = ({
         </div>
       </div>
 
-      <div className="space-y-4 p-3 bg-purple-500/5 rounded-lg border border-purple-500/10">
-        <h4 className="text-[10px] font-bold text-purple-400 uppercase tracking-widest">Combattimento e danni (facoltativo)</h4>
+      <div className="space-y-4 p-3 bg-accent/5 rounded-lg border border-accent/10">
+        <h4 className="text-[10px] font-bold text-accent uppercase tracking-widest">Combattimento e danni (facoltativo)</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1 block">Danni</label>

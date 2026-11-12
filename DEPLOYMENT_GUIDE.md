@@ -10,7 +10,7 @@ Ci sono due siti, definiti in `.firebaserc` e `firebase.json`:
 
 ## Configurazione: le variabili `VITE_*`
 
-Il build legge la configurazione da variabili d'ambiente (vedi `src/lib/firebaseConfig.ts` e `vite.config.ts`).
+Il build legge la configurazione da variabili d'ambiente (vedi `src/lib/getFirebase.ts` e `vite.config.ts`).
 **Non sono nel repository**: in locale stanno nei file `.env.*` (esclusi da git), su GitHub nei secret.
 
 | Variabile | Valore | Note |

@@ -26,7 +26,7 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, onEdit,
   const menuRef = useRef<HTMLDivElement>(null);
 
   const hpPercentage = companion.hp.max > 0 ? (companion.hp.current / companion.hp.max) * 100 : 0;
-  const hpColor = hpPercentage > 50 ? 'bg-green-500' : hpPercentage > 25 ? 'bg-yellow-500' : 'bg-red-500';
+  const hpColor = hpPercentage > 50 ? 'bg-success' : hpPercentage > 25 ? 'bg-warning' : 'bg-destructive';
   const dexModifier = getModifier(companion.abilityScores.dexterity);
   const initiative = dexModifier;
   const speedInMeters = getSpeedInMeters(companion.speed);
@@ -80,7 +80,7 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, onEdit,
               <div className="text-xs text-muted-foreground uppercase tracking-wider">Velocità</div>
             </div>
             <div title="Iniziativa">
-              <BoltIcon className="w-6 h-6 mx-auto text-yellow-400/80 mb-1" />
+              <BoltIcon className="w-6 h-6 mx-auto text-warning/80 mb-1" />
               <div className="font-bold text-2xl text-foreground">{formatModifier(initiative)}</div>
               <div className="text-xs text-muted-foreground uppercase tracking-wider">Iniziativa</div>
             </div>

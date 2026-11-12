@@ -125,7 +125,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ isOpen, onClose, o
                         />
                     </div>
                 )}
-                {error && <p className="text-red-400 text-sm mt-4">{error}</p>}
+                {error && <p className="text-destructive text-sm mt-4">{error}</p>}
             </div>
             <footer className="flex justify-end gap-2 p-4 bg-muted/50 border-t border-border">
                 <button
@@ -138,7 +138,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ isOpen, onClose, o
                 <button
                     onClick={handleCrop}
                     disabled={isProcessing || !imageSrc}
-                    className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 bg-success hover:bg-success/80 text-background font-bold py-2 px-4 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <UploadIcon className="w-5 h-5" />
                     {isProcessing ? 'Saving...' : 'Salva immagine ritagliata'}

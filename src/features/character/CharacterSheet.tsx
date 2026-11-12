@@ -525,9 +525,9 @@ export const CharacterSheet: React.FC = () => {
                                         <label className="block text-xs font-bold text-accent uppercase tracking-widest mb-3 text-center">Punti vita</label>
                                         {/* Changed from grid-cols-3 to flex-col to allow buttons and values to be seen clearly */}
                                         <div className="grid grid-cols-1 gap-3">
-                                            <StatInput label="PV attuali" value={character.hp.current} onChange={(val) => handleHpChange('current', Number(val))} inputClassName="text-green-500" />
+                                            <StatInput label="PV attuali" value={character.hp.current} onChange={(val) => handleHpChange('current', Number(val))} inputClassName="text-success" />
                                             <StatInput label="PV massimi" value={character.hp.max} onChange={(val) => handleHpChange('max', Number(val))} />
-                                            <StatInput label="PV temporanei" value={character.hp.temporary} onChange={(val) => handleHpChange('temporary', Number(val))} inputClassName="text-blue-400" />
+                                            <StatInput label="PV temporanei" value={character.hp.temporary} onChange={(val) => handleHpChange('temporary', Number(val))} inputClassName="text-accent" />
                                         </div>
                                         <div className="mt-4 pt-4 border-t border-border/30">
                                             <StyledInput label="Dadi vita" subLabel="Tipo di dado" name="hitDice" value={character.hitDice.total} onChange={handleHitDiceChange} placeholder="Es. 1d8" className="w-1/2 mx-auto text-center" />

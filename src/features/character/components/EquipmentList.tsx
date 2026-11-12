@@ -179,24 +179,24 @@ const EquipmentForm = ({
         )}
 
         {/* Sintonizzazione (Attunement) & Cariche Attive */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 bg-purple-500/10 rounded-lg border border-purple-500/30">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 bg-accent/10 rounded-lg border border-accent/30">
           <div className="space-y-2">
-            <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-purple-300">
+            <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-accent">
               <input
                 type="checkbox"
                 checked={formData.requiresAttunement || false}
                 onChange={e => handleChange('requiresAttunement', e.target.checked)}
-                className="rounded border-purple-500/50 bg-background/60 text-purple-500 focus:ring-purple-500"
+                className="rounded border-accent/50 bg-background/60 text-accent focus:ring-accent"
               />
               <span>🔮 Richiede Sintonizzazione</span>
             </label>
             {formData.requiresAttunement && (
-              <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-purple-200 pl-4">
+              <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-accent pl-4">
                 <input
                   type="checkbox"
                   checked={formData.isAttuned || false}
                   onChange={e => handleChange('isAttuned', e.target.checked)}
-                  className="rounded border-purple-500/50 bg-background/60 text-purple-500"
+                  className="rounded border-accent/50 bg-background/60 text-accent"
                 />
                 <span>Sintonizzato Attualmente</span>
               </label>
@@ -363,11 +363,11 @@ const EquipmentForm = ({
 
         {/* Enchanted Artifact Details */}
         {formData.armorType === 'magic' && (
-          <div className="space-y-4 p-4 bg-purple-500/5 rounded-xl border border-purple-500/20 animate-in zoom-in-95 duration-300">
+          <div className="space-y-4 p-4 bg-accent/5 rounded-xl border border-accent/20 animate-in zoom-in-95 duration-300">
             <div className="flex items-center gap-2 mb-2">
-              <div className="h-px bg-purple-500/30 flex-1" />
-              <h4 className="text-[10px] font-black text-purple-400 uppercase tracking-widest">Potere dell'oggetto</h4>
-              <div className="h-px bg-purple-500/30 flex-1" />
+              <div className="h-px bg-accent/30 flex-1" />
+              <h4 className="text-[10px] font-black text-accent uppercase tracking-widest">Potere dell'oggetto</h4>
+              <div className="h-px bg-accent/30 flex-1" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
@@ -656,11 +656,11 @@ const EquipmentListContent = () => {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {[
-            { key: 'pp', label: 'MP (platino)', color: 'border-cyan-500/30 bg-cyan-500/5 text-cyan-300' },
-            { key: 'gp', label: 'MO (oro)', color: 'border-yellow-500/30 bg-yellow-500/5 text-yellow-400' },
-            { key: 'ep', label: 'ME (electrum)', color: 'border-indigo-500/30 bg-indigo-500/5 text-indigo-300' },
-            { key: 'sp', label: 'MA (argento)', color: 'border-slate-400/30 bg-slate-400/5 text-slate-200' },
-            { key: 'cp', label: 'MR (rame)', color: 'border-orange-600/30 bg-orange-600/5 text-orange-400' },
+            { key: 'pp', label: 'MP (platino)', color: 'border-accent/30 bg-accent/5 text-accent' },
+            { key: 'gp', label: 'MO (oro)', color: 'border-warning/30 bg-warning/5 text-warning' },
+            { key: 'ep', label: 'ME (electrum)', color: 'border-accent/30 bg-accent/5 text-accent' },
+            { key: 'sp', label: 'MA (argento)', color: 'border-text-muted/30 bg-text-muted/5 text-text-muted' },
+            { key: 'cp', label: 'MR (rame)', color: 'border-warning/30 bg-warning/5 text-warning' },
           ].map((coin) => {
             const val = character.currency[coin.key as keyof Currency] || 0;
             return (

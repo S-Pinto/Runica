@@ -46,27 +46,27 @@ export const CATEGORY_CONFIG = {
   },
   'racial': {
     label: 'Tratti di specie',
-    color: 'green-500',
+    color: 'accent',
     description: 'Tratti della razza o specie'
   },
   'feat-origin': {
     label: 'Talenti delle origini',
-    color: 'amber-500',
+    color: 'accent',
     description: 'Talenti scelti alla creazione'
   },
   'feat-general': {
     label: 'Talenti generali',
-    color: 'amber-500',
+    color: 'accent',
     description: 'Talenti al posto degli aumenti di caratteristica'
   },
   'feat-combat': {
     label: 'Talenti di combattimento',
-    color: 'amber-500',
+    color: 'accent',
     description: 'Talenti dedicati allo stile di combattimento'
   },
   'feat-epic': {
     label: 'Doni epici',
-    color: 'purple-500',
+    color: 'accent',
     description: 'Talenti di livello 19+'
   },
 } as const;

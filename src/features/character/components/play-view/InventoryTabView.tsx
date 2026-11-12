@@ -181,7 +181,7 @@ const InventoryTabViewContent = () => {
                         {item.name}
                       </p>
                       {item.isAttuned && (
-                        <span className="text-[10px] bg-purple-500/20 text-purple-300 font-bold px-1.5 py-0.5 rounded border border-purple-500/30">
+                        <span className="text-[10px] bg-accent/20 text-accent font-bold px-1.5 py-0.5 rounded border border-accent/30">
                           🔮 Sintonizzato
                         </span>
                       )}
@@ -190,7 +190,7 @@ const InventoryTabViewContent = () => {
                       <span className="bg-background/50 px-1.5 py-0.5 rounded border border-border/30 font-mono">Qtà: {item.quantity}</span>
                       {item.damage && <span className="text-accent font-bold bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">Danni: {item.damage}</span>}
                       {item.armorClass && <span className="text-accent font-bold bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">CA: {item.armorClass}</span>}
-                      {item.bonusAC && <span className="text-cyan-300 font-bold bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">+ {item.bonusAC} CA</span>}
+                      {item.bonusAC && <span className="text-accent font-bold bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">+ {item.bonusAC} CA</span>}
                     </div>
                   </div>
                 </div>
@@ -201,8 +201,8 @@ const InventoryTabViewContent = () => {
                       onClick={(e) => { e.stopPropagation(); handleToggleAttune(item.id); }}
                       className={`px-2.5 py-1.5 text-xs font-bold rounded-xl transition-all border ${
                         item.isAttuned
-                          ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
-                          : 'bg-background/40 text-muted-foreground border-border/40 hover:text-purple-300'
+                          ? 'bg-accent/20 text-accent border-accent/40'
+                          : 'bg-background/40 text-muted-foreground border-border/40 hover:text-accent'
                       }`}
                       title="Sintonizzazione Magica (Max 3)"
                     >
@@ -225,15 +225,15 @@ const InventoryTabViewContent = () => {
 
               {/* Charge Tracker Bar for Active Magic Items */}
               {item.charges && item.charges.max > 0 && (
-                <div className="px-3.5 py-2 bg-purple-500/10 border-t border-purple-500/20 flex items-center justify-between gap-2">
+                <div className="px-3.5 py-2 bg-accent/10 border-t border-accent/20 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-purple-300 flex items-center gap-1">
+                    <span className="text-xs font-bold text-accent flex items-center gap-1">
                       ⚡ Cariche:
                     </span>
-                    <span className="text-sm font-black font-mono text-white">
+                    <span className="text-sm font-black font-mono text-foreground">
                       {item.charges.current} / {item.charges.max}
                     </span>
-                    <span className="text-[10px] uppercase font-semibold text-purple-300/70">
+                    <span className="text-[10px] uppercase font-semibold text-accent/70">
                       ({item.charges.resetType === 'longRest' ? 'Riposo Lungo' : item.charges.resetType})
                     </span>
                   </div>
@@ -242,13 +242,13 @@ const InventoryTabViewContent = () => {
                     <button
                       onClick={(e) => { e.stopPropagation(); handleUseCharge(item.id); }}
                       disabled={item.charges.current <= 0}
-                      className="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs rounded-lg transition-all shadow-sm flex items-center gap-1"
+                      className="px-2.5 py-1 bg-accent hover:bg-accent-dark disabled:opacity-40 disabled:cursor-not-allowed text-accent-foreground font-bold text-xs rounded-lg transition-all shadow-sm flex items-center gap-1"
                     >
                       ⚡ Usa
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); handleResetCharge(item.id); }}
-                      className="p-1 bg-background/50 hover:bg-background border border-purple-500/30 text-purple-300 rounded-lg transition-colors text-xs"
+                      className="p-1 bg-background/50 hover:bg-background border border-accent/30 text-accent rounded-lg transition-colors text-xs"
                       title="Ricarica Manuale"
                     >
                       🔄
@@ -302,8 +302,8 @@ const InventoryTabViewContent = () => {
             <span>🪙</span> Monete
           </h3>
           <div className="flex flex-wrap items-center gap-3">
-            <div className="bg-purple-500/10 text-purple-300 px-3.5 py-1 rounded-xl border border-purple-500/30 text-xs font-bold">
-              🔮 Sintonizzazione: <span className="text-white text-sm font-black">{attunedCount} / 3</span>
+            <div className="bg-accent/10 text-accent px-3.5 py-1 rounded-xl border border-accent/30 text-xs font-bold">
+              🔮 Sintonizzazione: <span className="text-foreground text-sm font-black">{attunedCount} / 3</span>
             </div>
             <div className="bg-accent/10 text-accent px-3.5 py-1 rounded-xl border border-accent/20 text-xs font-bold font-mono">
               Valore totale stimato: <span className="text-foreground text-sm font-black">{totalGp} MO</span>
@@ -313,11 +313,11 @@ const InventoryTabViewContent = () => {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {[
-            { key: 'pp', label: 'MP (platino)', color: 'border-cyan-500/30 bg-cyan-500/5 text-cyan-300' },
-            { key: 'gp', label: 'MO (oro)', color: 'border-yellow-500/30 bg-yellow-500/5 text-yellow-400' },
-            { key: 'ep', label: 'ME (electrum)', color: 'border-indigo-500/30 bg-indigo-500/5 text-indigo-300' },
-            { key: 'sp', label: 'MA (argento)', color: 'border-slate-400/30 bg-slate-400/5 text-slate-200' },
-            { key: 'cp', label: 'MR (rame)', color: 'border-orange-600/30 bg-orange-600/5 text-orange-400' },
+            { key: 'pp', label: 'MP (platino)', color: 'border-accent/30 bg-accent/5 text-accent' },
+            { key: 'gp', label: 'MO (oro)', color: 'border-warning/30 bg-warning/5 text-warning' },
+            { key: 'ep', label: 'ME (electrum)', color: 'border-accent/30 bg-accent/5 text-accent' },
+            { key: 'sp', label: 'MA (argento)', color: 'border-text-muted/30 bg-text-muted/5 text-text-muted' },
+            { key: 'cp', label: 'MR (rame)', color: 'border-warning/30 bg-warning/5 text-warning' },
           ].map((coin) => {
             const val = character.currency[coin.key as keyof Currency] || 0;
             return (

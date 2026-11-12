@@ -49,7 +49,7 @@ export const CompanionHpManager: React.FC<CompanionHpManagerProps> = ({ hp, onHp
     };
 
     const hpPercentage = hp.max > 0 ? (hp.current / hp.max) * 100 : 100;
-    const hpColor = hpPercentage > 50 ? 'bg-green-500' : hpPercentage > 25 ? 'bg-yellow-500' : 'bg-red-500';
+    const hpColor = hpPercentage > 50 ? 'bg-success' : hpPercentage > 25 ? 'bg-warning' : 'bg-destructive';
 
     return (
         <div className="bg-muted/30 p-4 rounded-lg border border-border space-y-3">
@@ -57,7 +57,7 @@ export const CompanionHpManager: React.FC<CompanionHpManagerProps> = ({ hp, onHp
                 <span className="text-muted-foreground text-sm uppercase">Punti vita</span>
                 <div>
                     <span>{hp.current}</span>
-                    {hp.temporary > 0 && <span className="text-blue-400"> + {hp.temporary}</span>}
+                    {hp.temporary > 0 && <span className="text-accent"> + {hp.temporary}</span>}
                     <span className="text-muted-foreground"> / {hp.max || '??'}</span>
                 </div>
             </div>
@@ -73,13 +73,13 @@ export const CompanionHpManager: React.FC<CompanionHpManagerProps> = ({ hp, onHp
                     showModifier={false}
                 />
                 <div className="flex gap-2 w-full sm:w-auto">
-                    <button onClick={() => handleApply(-(Number(adjustment) || 0))} className="flex-1 sm:flex-auto flex items-center justify-center gap-2 px-3 py-2 bg-red-800/50 text-red-200 font-bold rounded-lg shadow-md hover:bg-red-700/60 transition-colors">
+                    <button onClick={() => handleApply(-(Number(adjustment) || 0))} className="flex-1 sm:flex-auto flex items-center justify-center gap-2 px-3 py-2 bg-destructive/15 text-destructive font-bold rounded-lg shadow-md hover:bg-destructive/25 transition-colors">
                         <MinusIcon className="w-5 h-5" /> Danno
                     </button>
-                    <button onClick={() => handleApply(Number(adjustment) || 0)} className="flex-1 sm:flex-auto flex items-center justify-center gap-2 px-3 py-2 bg-green-800/50 text-green-200 font-bold rounded-lg shadow-md hover:bg-green-700/60 transition-colors">
+                    <button onClick={() => handleApply(Number(adjustment) || 0)} className="flex-1 sm:flex-auto flex items-center justify-center gap-2 px-3 py-2 bg-success/15 text-success font-bold rounded-lg shadow-md hover:bg-success/25 transition-colors">
                         <PlusIcon className="w-5 h-5" /> Cura
                     </button>
-                    <button onClick={handleTempHp} className="flex-1 sm:flex-auto flex items-center justify-center gap-2 px-3 py-2 bg-blue-800/50 text-blue-200 font-bold rounded-lg shadow-md hover:bg-blue-700/60 transition-colors">
+                    <button onClick={handleTempHp} className="flex-1 sm:flex-auto flex items-center justify-center gap-2 px-3 py-2 bg-accent/15 text-accent font-bold rounded-lg shadow-md hover:bg-accent/25 transition-colors">
                         <HeartIcon className="w-5 h-5" /> Temp
                     </button>
                 </div>
