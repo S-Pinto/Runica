@@ -155,7 +155,7 @@ Ogni fase è indipendente: si può fare in qualsiasi ordine, con un branch e una
 - `CATEGORY_CONFIG` usa ora `accent` per tutte le categorie (le classi dinamiche `text-${color}` non venivano generate da Tailwind).
 - **Fatto quando**: nessun file inutilizzato e build invariata.
 
-### Fase D — Separazione del servizio personaggi
+### Fase D — Separazione del servizio personaggi — fatta
 - Dividere `characterService.ts` in: repository (Firestore/locale), calcoli (in `rules/`), e azioni UI (dialoghi spostati nei componenti o nel provider).
 - Eliminare la dipendenza `AuthProvider` → `characterService` (es. migrazione attivata da `CharacterProvider` al cambio utente).
 - Fatto: `characterService.ts` eliminato; `rules/combat.ts`, `rules/defaults.ts`, `rules/characterData.ts` (pure, con test), `characterRepository.ts` (I/O) e `migrationActions.ts` (UI). La migrazione parte da `CharacterProvider` al login (quindi sulle rotte personaggio), `AuthProvider` non importa più nulla dal dominio. Eliminati gli `any` del servizio.
