@@ -44,14 +44,14 @@ export const ResourceTracker: FC<ResourceTrackerProps> = ({ title, slots, onSlot
         : (entries as [string, { max: number; used: number; }][]).some(([, data]) => data.max > 0);
 
     return (
-        <div className="bg-card/30 backdrop-blur-sm p-6 rounded-2xl border border-border/50 shadow-lg shadow-accent/5">
-            <h3 className="text-xl font-cinzel text-accent mb-6 flex justify-between items-center">
+        <div className="bg-card p-6 rounded-2xl border border-border/60">
+            <h3 className="text-xl font-cinzel font-bold text-foreground mb-6 flex justify-between items-center">
                 <span>{title}</span>
-                {isCustom && <span className="text-[10px] font-sans font-bold uppercase tracking-widest text-muted-foreground/50">Custom</span>}
+                {isCustom && <span className="text-[10px] font-sans font-bold uppercase tracking-widest text-muted-foreground/50">Personalizzata</span>}
             </h3>
             {!hasSlots && (
                 <div className="bg-muted/10 rounded-xl border border-dashed border-border/50 py-8 px-4 text-center">
-                    <p className="text-muted-foreground text-sm italic">Nothing to track here yet.</p>
+                    <p className="text-muted-foreground text-sm italic">Ancora niente da tracciare.</p>
                 </div>
             )}
             <div className="space-y-5">
@@ -97,10 +97,10 @@ export const ResourceTracker: FC<ResourceTrackerProps> = ({ title, slots, onSlot
                                         key={i}
                                         onClick={() => toggleSlot(key, i)}
                                         className={`w-6 h-6 rounded-lg border-2 transition-all duration-300 relative overflow-hidden ${i < data.used
-                                            ? 'bg-accent border-accent shadow-[0_0_12px_rgba(var(--color-accent),0.4)] scale-105'
+                                            ? 'bg-accent border-accent shadow-[0_0_12px_rgb(var(--color-accent)/0.4)] scale-105'
                                             : 'bg-background/20 border-border/60 hover:border-accent/40 hover:bg-accent/5'
                                             }`}
-                                        aria-label={`Slot ${i + 1} for ${levelLabel}. ${i < data.used ? 'Used' : 'Available'}`}
+                                        aria-label={`${levelLabel}, slot ${i + 1}: ${i < data.used ? 'usato' : 'disponibile'}`}
                                     >
                                         {i < data.used && (
                                             <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent" />

@@ -6,6 +6,7 @@ import { WEAPON_MASTERIES, WEAPON_PROPERTIES } from '../../../data/weaponPropert
 import { ImageUploader } from './ImageUploader';
 import { useAuth } from '../../../providers/AuthProvider';
 import { uploadItemImage } from '../../../services/storageService';
+import { confirmDialog, toast } from '../../../components/ui/Dialogs';
 
 const DEFAULT_ITEM: Omit<EquipmentItem, 'id'> = {
   name: '',
@@ -63,7 +64,7 @@ const EquipmentForm = ({
       handleChange('imageUrl', downloadUrl);
     } catch (error) {
       console.error("Failed to upload item image:", error);
-      alert("Failed to upload image.");
+      toast.error('Caricamento immagine non riuscito.');
     }
   };
 
@@ -82,19 +83,19 @@ const EquipmentForm = ({
 
         <div className="flex justify-between items-center border-b border-border/40 pb-3">
           <h3 className="font-cinzel text-xl font-bold text-accent italic">
-            {formData.id ? 'Refine Artifact' : 'Forge New Entry'}
+            {formData.id ? 'Modifica oggetto' : 'Nuovo oggetto'}
           </h3>
           <div className="flex items-center gap-3">
             {formData.imageUrl && (
               <div className="w-12 h-12 rounded-lg overflow-hidden border-2 border-accent/30 shadow-inner">
-                <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                <img src={formData.imageUrl} alt="Anteprima" className="w-full h-full object-cover" />
               </div>
             )}
             <button
               type="button"
               onClick={() => setIsImageUploaderOpen(true)}
               className="p-2 bg-background/50 hover:bg-accent/10 border border-border/50 rounded-lg text-accent transition-all"
-              title="Upload Image"
+              title="Carica immagine"
             >
               <PhotoIcon className="w-5 h-5" />
             </button>
@@ -103,17 +104,17 @@ const EquipmentForm = ({
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
           <div className="md:col-span-8">
-            <label htmlFor="name" className={labelClass}>Item Name</label>
-            <input id="name" type="text" placeholder="e.g., Longsword, Plate Armor, Potion of Healing" value={formData.name} onChange={e => handleChange('name', e.target.value)} required className={inputClass} />
+            <label htmlFor="name" className={labelClass}>Nome dell'oggetto</label>
+            <input id="name" type="text" placeholder="Es. spada lunga, armatura a piastre, pozione di guarigione" value={formData.name} onChange={e => handleChange('name', e.target.value)} required className={inputClass} />
           </div>
           <div className="md:col-span-4">
-            <label htmlFor="quantity" className={labelClass}>Quantity</label>
+            <label htmlFor="quantity" className={labelClass}>Quantità</label>
             <input id="quantity" type="number" value={formData.quantity} onChange={e => handleChange('quantity', parseInt(e.target.value) || 1)} min="1" className={`${inputClass} text-center font-mono`} />
           </div>
         </div>
 
         <div>
-          <label htmlFor="itemType" className={labelClass}>Categoria Oggetto</label>
+          <label htmlFor="itemType" className={labelClass}>Categoria</label>
           <select
             id="itemType"
             value={formData.itemType || 'gear'}
@@ -121,7 +122,7 @@ const EquipmentForm = ({
             className={inputClass}
           >
             <option value="weapon">⚔️ Arma</option>
-            <option value="armor">🛡️ Armatura Body</option>
+            <option value="armor">🛡️ Armatura</option>
             <option value="shield">🛡️ Scudo</option>
             <option value="wondrous">✨ Oggetto Prodigioso / Magico</option>
             <option value="ring">💍 Anello Magico</option>
@@ -145,7 +146,7 @@ const EquipmentForm = ({
               <input id="damageType" type="text" placeholder="es. Tagliente, Perforante" value={formData.damageType || ''} onChange={e => handleChange('damageType', e.target.value)} className={inputClass} />
             </div>
             <div>
-              <label htmlFor="attackBonus" className={labelClass}>Bonus Magico / Hit</label>
+              <label htmlFor="attackBonus" className={labelClass}>Bonus magico al colpire</label>
               <input id="attackBonus" type="text" placeholder="es. +1" value={formData.attackBonus || ''} onChange={e => handleChange('attackBonus', e.target.value)} className={inputClass} />
             </div>
           </div>
@@ -257,56 +258,56 @@ const EquipmentForm = ({
           <div className="space-y-4 p-4 bg-accent/5 rounded-xl border border-accent/20 animate-in zoom-in-95 duration-300">
             <div className="flex items-center gap-2 mb-2">
               <div className="h-px bg-accent/30 flex-1" />
-              <h4 className="text-[10px] font-black text-accent uppercase tracking-widest">Weapon Combat Stats</h4>
+              <h4 className="text-[10px] font-black text-accent uppercase tracking-widest">Statistiche dell'arma</h4>
               <div className="h-px bg-accent/30 flex-1" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
               <div className="md:col-span-4 space-y-1">
-                <label className={labelClass}>Hit Ability</label>
+                <label className={labelClass}>Caratteristica per colpire</label>
                 <select value={formData.attackAbility || ''} onChange={e => handleChange('attackAbility', e.target.value)} className={inputClass}>
-                  <option value="">None (Flat)</option>
+                  <option value="">Nessuna (valore fisso)</option>
                   {['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'].map(a => <option key={a} value={a}>{a.toUpperCase()}</option>)}
                 </select>
               </div>
               <div className="md:col-span-4 flex items-center justify-center pt-5">
                 <label className="flex items-center gap-2 cursor-pointer text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground">
                   <input type="checkbox" checked={formData.isProficient || false} onChange={e => handleChange('isProficient', e.target.checked)} className="accent-accent w-4 h-4" />
-                  Proficiency Bonus
+                  Bonus di competenza
                 </label>
               </div>
               <div className="md:col-span-4 space-y-1">
-                <label className={labelClass}>Mastery</label>
+                <label className={labelClass}>Maestria</label>
                 <select value={formData.mastery || ''} onChange={e => handleChange('mastery', e.target.value)} className={inputClass}>
-                  <option value="">None</option>
-                  {Object.keys(WEAPON_MASTERIES).map(m => <option key={m} value={m}>{m}</option>)}
+                  <option value="">Nessuna</option>
+                  {Object.entries(WEAPON_MASTERIES).map(([key, m]) => <option key={key} value={key}>{m.name}</option>)}
                 </select>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
               <div className="md:col-span-5 space-y-1">
-                <label className={labelClass}>Base Damage</label>
+                <label className={labelClass}>Danno base</label>
                 <input type="text" placeholder="1d8" value={formData.damage || ''} onChange={e => handleChange('damage', e.target.value)} className={`${inputClass} font-mono font-bold text-center`} />
               </div>
               <div className="md:col-span-3 space-y-1">
-                <label className={labelClass}>Dmg Add</label>
+                <label className={labelClass}>Danno extra</label>
                 <select value={formData.damageAbility || ''} onChange={e => handleChange('damageAbility', e.target.value)} className={inputClass}>
-                  <option value="">None</option>
+                  <option value="">Nessuna</option>
                   {['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'].map(a => <option key={a} value={a}>+{a.substring(0, 3).toUpperCase()}</option>)}
                 </select>
               </div>
               <div className="md:col-span-4 space-y-1">
-                <label className={labelClass}>Dmg Type</label>
+                <label className={labelClass}>Tipo</label>
                 <select value={formData.damageType || ''} onChange={e => handleChange('damageType', e.target.value)} className={inputClass}>
-                  <option value="">-- Type --</option>
+                  <option value="">-- Tipo --</option>
                   {DAMAGE_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
                 </select>
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className={labelClass}>Properties</label>
+              <label className={labelClass}>Proprietà</label>
               <div className="flex flex-wrap gap-2 p-3 bg-background/30 rounded-xl border border-border/30 min-h-[3rem]">
                 {Object.keys(WEAPON_PROPERTIES).map(prop => {
                   const isActive = formData.properties?.includes(prop);
@@ -323,12 +324,12 @@ const EquipmentForm = ({
                       }}
                       className={`text-[10px] px-2.5 py-1 rounded-md border transition-all duration-200 font-semibold uppercase tracking-wide
                         ${isActive
-                          ? 'bg-accent text-accent-foreground border-accent shadow-[0_0_10px_-4px_rgba(var(--color-accent),0.5)]'
+                          ? 'bg-accent text-accent-foreground border-accent shadow-[0_0_10px_-4px_rgb(var(--color-accent)/0.5)]'
                           : 'bg-background/50 text-muted-foreground border-border/50 hover:border-accent/50 hover:text-foreground'
                         }`}
                       title={WEAPON_PROPERTIES[prop].description}
                     >
-                      {prop}
+                      {WEAPON_PROPERTIES[prop].name}
                     </button>
                   );
                 })}
@@ -338,7 +339,7 @@ const EquipmentForm = ({
             <div className="space-y-2">
               {formData.additionalDamage?.map((extra, idx) => (
                 <div key={idx} className="flex gap-2 animate-in slide-in-from-left-2">
-                  <input type="text" placeholder="Extra (e.g. 1d6)" value={extra.formula} onChange={e => {
+                  <input type="text" placeholder="Extra (es. 1d6)" value={extra.formula} onChange={e => {
                     const newExtras = [...(formData.additionalDamage || [])];
                     newExtras[idx] = { ...newExtras[idx], formula: e.target.value };
                     handleChange('additionalDamage', newExtras);
@@ -354,7 +355,7 @@ const EquipmentForm = ({
                 </div>
               ))}
               <button type="button" onClick={() => handleChange('additionalDamage', [...(formData.additionalDamage || []), { formula: '', type: '' }])} className="text-[10px] font-black uppercase text-accent/70 hover:text-accent flex items-center gap-1 ml-1 tracking-widest">
-                <PlusCircleIcon className="w-3.5 h-3.5" /> Append Mixed Damage
+                <PlusCircleIcon className="w-3.5 h-3.5" /> Aggiungi danno di altro tipo
               </button>
             </div>
           </div>
@@ -365,19 +366,19 @@ const EquipmentForm = ({
           <div className="space-y-4 p-4 bg-purple-500/5 rounded-xl border border-purple-500/20 animate-in zoom-in-95 duration-300">
             <div className="flex items-center gap-2 mb-2">
               <div className="h-px bg-purple-500/30 flex-1" />
-              <h4 className="text-[10px] font-black text-purple-400 uppercase tracking-widest">Artifact Power</h4>
+              <h4 className="text-[10px] font-black text-purple-400 uppercase tracking-widest">Potere dell'oggetto</h4>
               <div className="h-px bg-purple-500/30 flex-1" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
               <div className="md:col-span-8 space-y-1">
-                <label className={labelClass}>Special Ability / Spell</label>
-                <input type="text" placeholder="e.g. Fireball" value={formData.grantsSpellName || ''} onChange={e => handleChange('grantsSpellName', e.target.value)} className={inputClass} />
+                <label className={labelClass}>Capacità speciale o incantesimo</label>
+                <input type="text" placeholder="Es. Palla di fuoco" value={formData.grantsSpellName || ''} onChange={e => handleChange('grantsSpellName', e.target.value)} className={inputClass} />
               </div>
               <div className="md:col-span-4 space-y-1">
-                <label className={labelClass}>Save Attribute</label>
+                <label className={labelClass}>Tiro salvezza su</label>
                 <select value={formData.saveAbility || ''} onChange={e => handleChange('saveAbility', e.target.value)} className={inputClass}>
-                  <option value="">None (Attack Roll)</option>
+                  <option value="">Nessuno (tiro per colpire)</option>
                   {['str', 'dex', 'con', 'int', 'wis', 'cha'].map(a => <option key={a} value={a}>{a.toUpperCase()}</option>)}
                 </select>
               </div>
@@ -385,13 +386,13 @@ const EquipmentForm = ({
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
               <div className="md:col-span-7 space-y-1">
-                <label className={labelClass}>Power Effect / Damage</label>
+                <label className={labelClass}>Effetto o danni</label>
                 <input type="text" placeholder="8d6" value={formData.damage || ''} onChange={e => handleChange('damage', e.target.value)} className={`${inputClass} font-mono`} />
               </div>
               <div className="md:col-span-5 space-y-1">
-                <label className={labelClass}>Effect Type</label>
+                <label className={labelClass}>Tipo di effetto</label>
                 <select value={formData.damageType || ''} onChange={e => handleChange('damageType', e.target.value)} className={inputClass}>
-                  <option value="">-- Type --</option>
+                  <option value="">-- Tipo --</option>
                   {DAMAGE_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
                 </select>
               </div>
@@ -401,29 +402,29 @@ const EquipmentForm = ({
 
         {/* Limited Resource/Charge Tracking */}
         {(formData.armorType === 'magic' || formData.armorType === 'weapon' || formData.uses?.max) && (
-          <div className="p-4 bg-amber-500/5 rounded-xl border border-amber-500/20 space-y-3">
-            <h4 className="text-[10px] font-black text-amber-500/70 uppercase tracking-widest mb-2 flex items-center gap-2">
-              <span className="w-1 h-1 rounded-full bg-amber-500 animate-pulse" />
-              Resource & Charge Capacity
+          <div className="p-4 bg-accent/5 rounded-xl border border-accent/20 space-y-3">
+            <h4 className="text-[10px] font-black text-accent/70 uppercase tracking-widest mb-2 flex items-center gap-2">
+              <span className="w-1 h-1 rounded-full bg-accent animate-pulse" />
+              Cariche
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
               <div className="md:col-span-4 space-y-1">
-                <label className={labelClass}>Max Charges</label>
+                <label className={labelClass}>Cariche massime</label>
                 <input type="number" value={formData.uses?.max || ''} onChange={e => {
                   const max = parseInt(e.target.value) || 0;
                   handleChange('uses', { max, current: formData.uses?.current ?? max });
                 }} className={`${inputClass} text-center font-mono`} />
               </div>
               <div className="md:col-span-4 space-y-1">
-                <label className={labelClass}>Current</label>
+                <label className={labelClass}>Attuali</label>
                 <input type="number" value={formData.uses?.current ?? ''} onChange={e => handleChange('uses', { ...formData.uses, current: parseInt(e.target.value) || 0 })} className={`${inputClass} text-center font-mono`} />
               </div>
               <div className="md:col-span-4 space-y-1">
-                <label className={labelClass}>Recovery Cycle</label>
+                <label className={labelClass}>Si ricarica con</label>
                 <select value={formData.recovery || 'none'} onChange={e => handleChange('recovery', e.target.value)} className={inputClass}>
-                  <option value="none">Irreplaceable</option>
-                  <option value="short">Short Rest</option>
-                  <option value="long">Long Rest</option>
+                  <option value="none">Non si ricarica</option>
+                  <option value="short">Riposo breve</option>
+                  <option value="long">Riposo lungo</option>
                 </select>
               </div>
             </div>
@@ -431,8 +432,8 @@ const EquipmentForm = ({
         )}
 
         <div className="flex justify-end gap-3 pt-3 border-t border-border/30">
-          <button type="button" onClick={onCancel} className="bg-muted/40 hover:bg-muted/60 text-foreground font-bold py-2 px-6 rounded-lg transition-all text-sm uppercase tracking-wider">Dismiss</button>
-          <button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2 px-8 rounded-lg transition-all text-sm shadow-md hover:shadow-primary/20 uppercase tracking-widest">Enchant & Save</button>
+          <button type="button" onClick={onCancel} className="bg-muted/40 hover:bg-muted/60 text-foreground font-bold py-2 px-6 rounded-lg transition-all text-sm uppercase tracking-wider">Annulla</button>
+          <button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2 px-8 rounded-lg transition-all text-sm shadow-md hover:shadow-primary/20 uppercase tracking-widest">Salva oggetto</button>
         </div>
       </form>
       <ImageUploader
@@ -467,7 +468,7 @@ const ItemDisplayList = ({
       <span className="text-xs bg-muted/40 px-2 py-0.5 rounded text-muted-foreground">{items.length}</span>
     </h4>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-      {items.length === 0 && <p className="text-center text-muted-foreground text-xs py-4 border border-dashed border-border/30 rounded-lg">No items in {title.toLowerCase()}.</p>}
+      {items.length === 0 && <p className="text-center text-muted-foreground text-xs py-4 border border-dashed border-border/30 rounded-lg">Nessun oggetto in {title.toLowerCase()}.</p>}
       {items.map(item => (
         <div key={item.id} className="bg-card/40 backdrop-blur-sm rounded-lg text-sm border border-border/30 hover:border-accent/30 transition-all">
           <div className="p-3 flex items-center justify-between gap-3">
@@ -490,10 +491,10 @@ const ItemDisplayList = ({
               <div className="flex flex-col min-w-0">
                 <p className="font-semibold text-accent truncate" title={item.name}>
                   {item.name}
-                  {item.equipped && <span className="ml-2 text-[10px] bg-primary/20 text-primary font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">Equipped</span>}
+                  {item.equipped && <span className="ml-2 text-[10px] bg-primary/20 text-primary font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">Equipaggiato</span>}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Qty: {item.quantity} {item.damage && `• Dmg: ${item.damage}`} {item.armorClass ? `• AC: ${item.armorClass}` : ''}
+                  Q.tà: {item.quantity} {item.damage && `• Dmg: ${item.damage}`} {item.armorClass ? `• AC: ${item.armorClass}` : ''}
                 </p>
               </div>
             </div>
@@ -507,7 +508,7 @@ const ItemDisplayList = ({
                     : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/50'
                 }`}
               >
-                {item.equipped ? 'Equipped' : 'Equip'}
+                {item.equipped ? 'Equipaggiato' : 'Equipaggia'}
               </button>
               <button onClick={() => onEdit(item)} className="text-muted-foreground hover:text-accent p-1.5 hover:bg-accent/10 rounded transition-colors"><EditIcon className="w-4 h-4" /></button>
               <button onClick={() => onDelete(item.id)} className="text-muted-foreground hover:text-destructive p-1.5 hover:bg-destructive/10 rounded transition-colors"><TrashIcon className="w-4 h-4" /></button>
@@ -518,19 +519,19 @@ const ItemDisplayList = ({
               <div className="flex flex-wrap gap-2 text-xs">
                 {item.armorType && (
                   <div className="bg-background/50 px-2 py-1 rounded border border-border/50">
-                    <span className="text-muted-foreground capitalize mr-1">Armor:</span>
+                    <span className="text-muted-foreground capitalize mr-1">Armatura:</span>
                     <span className="font-medium">{item.armorType}</span>
                   </div>
                 )}
                 {item.armorClass && (
                   <div className="bg-background/50 px-2 py-1 rounded border border-border/50">
-                    <span className="text-muted-foreground capitalize mr-1">AC:</span>
+                    <span className="text-muted-foreground capitalize mr-1">CA:</span>
                     <span className="font-medium">{item.armorClass}</span>
                   </div>
                 )}
                 {item.damage && (
                   <div className="bg-background/50 px-2 py-1 rounded border border-border/50">
-                    <span className="text-muted-foreground capitalize mr-1">Damage:</span>
+                    <span className="text-muted-foreground capitalize mr-1">Danni:</span>
                     <span className="font-medium">{item.damage} {item.damageType}</span>
                   </div>
                 )}
@@ -544,12 +545,12 @@ const ItemDisplayList = ({
   </div>
 );
 
-export const EquipmentList = () => {
-  const { character, updateCharacter } = useCharacter();
+const EquipmentListContent = () => {
+  const { character: maybeCharacter, updateCharacter } = useCharacter();
+  const character = maybeCharacter!;
   const [editingItem, setEditingItem] = useState<EquipmentItem | 'new' | null>(null);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
-  if (!character) return null;
 
   const handleSave = (itemData: Omit<EquipmentItem, 'id'> | EquipmentItem) => {
     let updatedEquipment: EquipmentItem[];
@@ -574,8 +575,8 @@ export const EquipmentList = () => {
     setEditingItem(null);
   };
 
-  const handleDelete = (itemId: string) => {
-    if (window.confirm('Are you sure you want to delete this item?')) {
+  const handleDelete = async (itemId: string) => {
+    if (await confirmDialog({ title: 'Eliminare questo oggetto?', confirmLabel: 'Elimina', destructive: true })) {
       const updatedEquipment = (character.equipment || []).filter(item => item.id !== itemId);
       updateCharacter({ equipment: updatedEquipment });
     }
@@ -646,20 +647,20 @@ export const EquipmentList = () => {
       <div className="bg-card/40 backdrop-blur-md p-6 rounded-2xl border border-border/50 shadow-md space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/40 pb-3">
           <h3 className="text-xl font-cinzel text-accent flex items-center gap-2">
-            <span>🪙</span> Monete & Portamonete
+            <span>🪙</span> Monete
           </h3>
           <div className="bg-accent/10 text-accent px-3.5 py-1 rounded-xl border border-accent/20 text-xs font-bold font-mono">
-            Valore Totale Stimato: <span className="text-white text-sm font-black">{totalGp} GP</span>
+            Valore totale stimato: <span className="text-foreground text-sm font-black">{totalGp} MO</span>
           </div>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {[
-            { key: 'pp', label: 'PP (Platino)', color: 'border-cyan-500/30 bg-cyan-500/5 text-cyan-300' },
-            { key: 'gp', label: 'GP (Oro)', color: 'border-yellow-500/30 bg-yellow-500/5 text-yellow-400' },
-            { key: 'ep', label: 'EP (Elettro)', color: 'border-indigo-500/30 bg-indigo-500/5 text-indigo-300' },
-            { key: 'sp', label: 'SP (Argento)', color: 'border-slate-400/30 bg-slate-400/5 text-slate-200' },
-            { key: 'cp', label: 'CP (Rame)', color: 'border-orange-600/30 bg-orange-600/5 text-orange-400' },
+            { key: 'pp', label: 'MP (platino)', color: 'border-cyan-500/30 bg-cyan-500/5 text-cyan-300' },
+            { key: 'gp', label: 'MO (oro)', color: 'border-yellow-500/30 bg-yellow-500/5 text-yellow-400' },
+            { key: 'ep', label: 'ME (electrum)', color: 'border-indigo-500/30 bg-indigo-500/5 text-indigo-300' },
+            { key: 'sp', label: 'MA (argento)', color: 'border-slate-400/30 bg-slate-400/5 text-slate-200' },
+            { key: 'cp', label: 'MR (rame)', color: 'border-orange-600/30 bg-orange-600/5 text-orange-400' },
           ].map((coin) => {
             const val = character.currency[coin.key as keyof Currency] || 0;
             return (
@@ -697,15 +698,15 @@ export const EquipmentList = () => {
       <div className="bg-card/20 backdrop-blur-md p-6 rounded-2xl border border-border/50 space-y-6">
         <div className="flex justify-between items-center border-b border-border/40 pb-4">
           <div>
-            <h3 className="text-xl font-cinzel text-accent">Zaino ed Equipaggiamento</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Gestisci tutti i tuoi oggetti, armi, armature e consumabili</p>
+            <h3 className="text-xl font-cinzel text-accent">Zaino ed equipaggiamento</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Armi, armature, oggetti e consumabili</p>
           </div>
           <button
             onClick={() => setEditingItem('new')}
             className="flex items-center gap-2 text-sm bg-accent hover:bg-accent/90 text-accent-foreground font-bold px-4 py-2.5 rounded-xl transition-all shadow-md hover:shadow-lg"
           >
             <PlusCircleIcon className="w-5 h-5" />
-            <span>Aggiungi Oggetto</span>
+            <span>Aggiungi oggetto</span>
           </button>
         </div>
 
@@ -719,7 +720,7 @@ export const EquipmentList = () => {
 
         <div className="space-y-8">
           <ItemDisplayList
-            title="🛡️ Armi, Armature & Oggetti Equipaggiati"
+            title="🛡️ Equipaggiati"
             items={equippableItems}
             expandedItem={expandedItem}
             onToggleExpand={handleToggleExpand}
@@ -728,7 +729,7 @@ export const EquipmentList = () => {
             onDelete={handleDelete}
           />
           <ItemDisplayList
-            title="🎒 Zaino & Oggetti da Avventura"
+            title="🎒 Zaino"
             items={backpackItems}
             expandedItem={expandedItem}
             onToggleExpand={handleToggleExpand}
@@ -740,4 +741,10 @@ export const EquipmentList = () => {
       </div>
     </div>
   );
+};
+
+/** Renders EquipmentListContent only once the character is loaded, so its hooks never run conditionally. */
+export const EquipmentList = () => {
+    const { character } = useCharacter();
+    return character ? <EquipmentListContent /> : null;
 };

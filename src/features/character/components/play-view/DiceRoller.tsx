@@ -85,7 +85,7 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({ mode = 'dock', isOpen = 
               onClick={() => setSelectedDice(dice)}
               className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
                 selectedDice === dice
-                  ? 'bg-accent text-accent-foreground shadow-[0_0_10px_rgba(var(--color-accent),0.4)] scale-105'
+                  ? 'bg-accent text-accent-foreground shadow-[0_0_10px_rgb(var(--color-accent)/0.4)] scale-105'
                   : 'bg-muted/40 hover:bg-muted text-muted-foreground'
               }`}
             >
@@ -178,7 +178,7 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({ mode = 'dock', isOpen = 
       {lastRoll && (
         <div className="p-4 bg-background/80 rounded-xl border border-accent/40 text-center space-y-1 animate-fadeIn">
           <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Risultato</div>
-          <div className="text-4xl font-black font-mono text-accent drop-shadow-[0_0_12px_rgba(var(--color-accent),0.6)]">
+          <div className="text-4xl font-black font-mono text-accent drop-shadow-[0_0_12px_rgb(var(--color-accent)/0.6)]">
             {lastRoll.total}
           </div>
           <div className="text-xs text-muted-foreground">
@@ -202,7 +202,7 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({ mode = 'dock', isOpen = 
         <div className="bg-card border border-border rounded-2xl shadow-2xl p-6 w-full max-w-sm relative">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-cinzel font-bold text-accent flex items-center gap-2">
-              <SparklesIcon className="w-5 h-5" /> Dice Roller
+              <SparklesIcon className="w-5 h-5" /> Dadiera
             </h3>
             {onClose && (
               <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted">
@@ -225,7 +225,7 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({ mode = 'dock', isOpen = 
           className="w-full px-4 py-3 bg-accent/15 hover:bg-accent/25 flex items-center justify-between text-accent font-bold text-sm transition-all"
         >
           <div className="flex items-center gap-2 font-cinzel">
-            <SparklesIcon className="w-4 h-4" /> Dice Roller
+            <SparklesIcon className="w-4 h-4" /> Dadiera
           </div>
           {isExpanded ? <ChevronDownIcon className="w-5 h-5" /> : <ChevronUpIcon className="w-5 h-5" />}
         </button>

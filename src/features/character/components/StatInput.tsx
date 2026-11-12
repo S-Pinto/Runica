@@ -39,7 +39,7 @@ export const StatInput: React.FC<StatInputProps> = ({ label, value, onChange, pl
       )}
 
       <div className="relative flex items-center justify-between w-full bg-background/50 backdrop-blur-sm border border-border/70 rounded-xl p-1 shadow-sm group focus-within:border-accent/60 focus-within:ring-2 focus-within:ring-accent/20 transition-all duration-200 hover:bg-background/70">
-        <button type="button" onClick={handleDecrement} className={buttonClasses} aria-label="Decrement value">
+        <button type="button" onClick={handleDecrement} className={buttonClasses} aria-label="Diminuisci">
           <MinusIcon className="w-4 h-4" />
         </button>
         <input
@@ -53,7 +53,7 @@ export const StatInput: React.FC<StatInputProps> = ({ label, value, onChange, pl
           placeholder={placeholder}
           className={`no-spinner flex-1 min-w-0 bg-transparent border-0 text-center text-xl sm:text-2xl font-bold text-foreground focus:ring-0 focus:outline-none placeholder:text-muted-foreground/30 ${inputClassName}`}
         />
-        <button type="button" onClick={handleIncrement} className={buttonClasses} aria-label="Increment value">
+        <button type="button" onClick={handleIncrement} className={buttonClasses} aria-label="Aumenta">
           <PlusIcon className="w-4 h-4" />
         </button>
       </div>

@@ -5,6 +5,7 @@ import { useAuth } from '../../providers/AuthProvider';
 import { updateProfile } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import imageCompression from 'browser-image-compression';
+import { toast } from '../../components/ui/Dialogs';
 
 export const AccountPage: React.FC = () => {
   const { currentUser } = useAuth();
@@ -58,7 +59,7 @@ export const AccountPage: React.FC = () => {
         photoURL: photoURL,
       });
 
-      alert('Profile updated successfully!');
+      toast.success('Profilo aggiornato.');
       setNewImageFile(null);
     } catch (err) {
       console.error("Error updating profile:", err);
@@ -76,21 +77,21 @@ export const AccountPage: React.FC = () => {
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-100px)] p-4 text-center">
       <div className="bg-card p-8 rounded-lg shadow-lg max-w-md w-full border border-border">
         <h1 className="text-3xl font-cinzel text-accent mb-4">
-          Welcome, {currentUser.displayName || 'Adventurer'}
+          Benvenuto, {currentUser.displayName || 'Avventuriero'}
         </h1>
         <p className="text-muted-foreground mb-8">
-          Manage your account details below.
+          Gestisci qui i dati del tuo account.
         </p>
         <div className="flex flex-col space-y-4 w-full">
           <div className="flex flex-col items-center gap-4 mb-4">
             <label htmlFor="profile-image-upload" className="cursor-pointer group relative">
               <img
                 src={previewImageUrl || `https://api.dicebear.com/8.x/lorelei/svg?seed=${currentUser.uid}`}
-                alt="Profile"
+                alt="Profilo"
                 className="w-24 h-24 rounded-full object-cover border-2 border-accent/50 group-hover:opacity-75 transition-opacity"
               />
               <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="text-white text-sm">Change</span>
+                <span className="text-white text-sm">Cambia</span>
               </div>
             </label>
             <input
@@ -102,19 +103,19 @@ export const AccountPage: React.FC = () => {
             />
           </div>
           <div>
-            <label htmlFor="nickname" className="block text-sm font-medium text-muted-foreground text-left mb-1">Nickname</label>
+            <label htmlFor="nickname" className="block text-sm font-medium text-muted-foreground text-left mb-1">Nome visualizzato</label>
             <input
               id="nickname"
               type="text"
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
-              placeholder="Enter your nickname"
+              placeholder="Il tuo nome visualizzato"
               className="mt-1 block w-full bg-input border border-border rounded-md shadow-sm py-2 px-3 text-foreground focus:outline-none focus:ring-ring focus:border-accent sm:text-sm"
             />
           </div>
 
           <button onClick={handleProfileUpdate} disabled={isSaving} className="px-6 py-3 bg-primary text-primary-foreground font-bold rounded-lg shadow-md hover:bg-primary/90 transition-colors disabled:bg-muted disabled:text-muted-foreground">
-            {isSaving ? 'Saving...' : 'Save Profile'}
+            {isSaving ? 'Salvataggio…' : 'Salva profilo'}
           </button>
 
           {error && <p className="text-destructive text-sm">{error}</p>}

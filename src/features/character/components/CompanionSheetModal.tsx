@@ -8,7 +8,7 @@ import { ImageModal } from '../../../components/ui/ImageModal';
 import { CompanionAttackEditor } from './CompanionAttackEditor';
 import { CompanionSpellEditor } from './CompanionSpellEditor';
 import { CompanionHpManager, HpData } from './CompanionHpManager';
-import { debounce } from 'lodash';
+import { debounce } from '../../../lib/debounce';
 import { StatInput } from './StatInput';
 import { StyledInput, StyledTextArea } from './ui/StyledInputs';
 import { getModifier, formatModifier } from '../utils/characterUtils';
@@ -37,7 +37,7 @@ const StatDisplay = ({ label, value }: { label: string, value: number }) => {
   const modifier = formatModifier(getModifier(value));
   return (
     <div className="flex flex-col items-center gap-1 bg-background/40 p-2 rounded-xl border border-border/50 shadow-inner">
-      <div className="text-xl font-bold text-accent h-7 flex items-center drop-shadow-[0_0_8px_rgba(var(--color-accent),0.3)]">{modifier}</div>
+      <div className="text-xl font-bold text-accent h-7 flex items-center drop-shadow-[0_0_8px_rgb(var(--color-accent)/0.3)]">{modifier}</div>
       <div className="text-3xl font-bold text-foreground font-mono">
         {value}
       </div>
@@ -147,19 +147,19 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
     <dialog ref={dialogRef} onClose={onClose} className="bg-card text-foreground p-0 sm:rounded-lg shadow-2xl w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-3xl border border-border backdrop-filter backdrop-blur-sm backdrop:bg-black/80 flex flex-col focus:outline-none">
       {/* Header con Flexbox per allineare il titolo a sinistra e i pulsanti a destra */}
       <header className="flex items-center justify-between p-4 border-b border-border sticky top-0 bg-card z-10 flex-shrink-0">
-        <h3 className="text-xl font-cinzel font-bold text-accent truncate min-w-0 pr-4">{readOnly ? data.name : 'Edit Companion'}</h3>
+        <h3 className="text-xl font-cinzel font-bold text-accent truncate min-w-0 pr-4">{readOnly ? data.name : 'Modifica compagno'}</h3>
         <div className="flex items-center gap-2 flex-shrink-0">
           {readOnly && onSetReadOnly && (
             <button onClick={handleEdit} className="flex items-center gap-2 p-2 sm:px-4 sm:py-2 bg-secondary text-secondary-foreground font-bold rounded-lg shadow-md hover:bg-secondary/90 transition-colors">
               <EditIcon className="w-5 h-5" />
-              <span className="hidden sm:inline">Edit</span>
+              <span className="hidden sm:inline">Modifica</span>
             </button>
           )}
           {!readOnly && (
             // Pulsante adattivo: icona su mobile, icona + testo su schermi più grandi
             <button onClick={handleSave} className="flex items-center gap-2 p-2 sm:px-4 sm:py-2 bg-primary text-primary-foreground font-bold rounded-lg shadow-md hover:bg-primary/90 transition-colors">
               <SaveIcon className="w-5 h-5" />
-              <span className="hidden sm:inline">Save</span>
+              <span className="hidden sm:inline">Salva</span>
             </button>
           )}
           <button onClick={onClose} className="p-2 rounded-full hover:bg-muted transition-colors"><XMarkIcon className="w-6 h-6" /></button>
@@ -169,16 +169,16 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
       {/* flex-1 e overflow-y-auto per far sì che il contenuto occupi lo spazio rimanente e sia scrollabile */}
       <div className="p-4 sm:p-6 overflow-y-auto flex-1">
         <div className="flex items-center gap-2 mb-6 border-b border-border pb-4">
-          <ModalTabButton label="Overview" isActive={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
-          <ModalTabButton label="Combat" isActive={activeTab === 'combat'} onClick={() => setActiveTab('combat')} />
-          <ModalTabButton label="Traits & Notes" isActive={activeTab === 'notes'} onClick={() => setActiveTab('notes')} />
+          <ModalTabButton label="Panoramica" isActive={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
+          <ModalTabButton label="Combattimento" isActive={activeTab === 'combat'} onClick={() => setActiveTab('combat')} />
+          <ModalTabButton label="Tratti e note" isActive={activeTab === 'notes'} onClick={() => setActiveTab('notes')} />
         </div>
 
         <div hidden={activeTab !== 'overview'} className="space-y-6">
           {/* Sezione superiore riorganizzata per centrare ritratto e nome */}
           <div className="flex flex-col items-center gap-4 text-center">
             <div className="flex-shrink-0 group relative">
-              <label className="block text-sm font-medium text-muted-foreground mb-1">Portrait</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-1">Ritratto</label>
               <div
                 onClick={() => {
                   if (readOnly && data.imageUrl) setIsImageModalOpen(true);
@@ -193,7 +193,7 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
                 )}
                 {!readOnly && (
                   <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
-                    <span className="text-white text-xs">Change</span>
+                    <span className="text-white text-xs">Cambia</span>
                   </div>
                 )}
               </div>
@@ -202,12 +202,12 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
               {readOnly ? (
                 <>
                   {/* Rimosso il DisplayField per il nome in modalità read-only per evitare duplicati con il titolo */}
-                  <DisplayField label="Type" value={data.type} className="justify-center" />
+                  <DisplayField label="Tipo" value={data.type} className="justify-center" />
                 </>
               ) : (
                 <>
-                  <StyledInput label="Name" name="name" value={data.name} onChange={handleChange} className="text-2xl font-bold text-center" />
-                  <StyledInput label="Type" name="type" value={data.type} onChange={handleChange} placeholder="e.g., Familiar, Beast" />
+                  <StyledInput label="Nome" name="name" value={data.name} onChange={handleChange} className="text-2xl font-bold text-center" />
+                  <StyledInput label="Tipo" name="type" value={data.type} onChange={handleChange} placeholder="Es. famiglio, bestia" />
                 </>
               )}
             </div>
@@ -216,14 +216,14 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
           <CompanionHpManager hp={data.hp} onHpChange={handleHpManagerChange} />
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {readOnly ? <DisplayField label="Armor Class" value={data.armorClass} /> : <StyledInput label="Armor Class" name="armorClass" type="number" value={data.armorClass} onChange={handleChange} />}
-            {readOnly ? <DisplayField label="Speed" value={data.speed} /> : <StyledInput label="Speed" name="speed" value={data.speed} onChange={handleChange} />}
-            <DisplayField label="Initiative" value={formatModifier(dexModifier)} />
-            {readOnly ? <DisplayField label="Max HP" value={data.hp.max} /> : <StyledInput label="Max HP" type="number" value={data.hp.max} onChange={(e: any) => handleHpFieldChange('max', parseInt(e.target.value) || 0)} />}
+            {readOnly ? <DisplayField label="Classe Armatura" value={data.armorClass} /> : <StyledInput label="Classe Armatura" name="armorClass" type="number" value={data.armorClass} onChange={handleChange} />}
+            {readOnly ? <DisplayField label="Velocità" value={data.speed} /> : <StyledInput label="Velocità" name="speed" value={data.speed} onChange={handleChange} />}
+            <DisplayField label="Iniziativa" value={formatModifier(dexModifier)} />
+            {readOnly ? <DisplayField label="PV massimi" value={data.hp.max} /> : <StyledInput label="PV massimi" type="number" value={data.hp.max} onChange={(e: any) => handleHpFieldChange('max', parseInt(e.target.value) || 0)} />}
           </div>
 
           <div>
-            <h4 className="text-md font-semibold text-zinc-400 mb-2">Ability Scores</h4>
+            <h4 className="text-md font-semibold text-muted-foreground mb-2">Caratteristiche</h4>
             {/* Griglia reattiva per le statistiche per evitare sovrapposizioni su mobile */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-y-4 gap-x-2 sm:gap-4">
               {readOnly ? (
@@ -248,7 +248,7 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
           </div>
 
           <div>
-            <h4 className="text-md font-semibold text-zinc-400 mb-2">Skills</h4>
+            <h4 className="text-md font-semibold text-muted-foreground mb-2">Abilità</h4>
             <CompanionSkillSelector companion={data} onChange={handleSkillChange} readOnly={readOnly} />
           </div>
         </div>
@@ -261,17 +261,17 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
         <div hidden={activeTab !== 'notes'} className="space-y-6">
           <CompanionFeatureEditor companion={data} setCompanion={setData} readOnly={readOnly} />
           <div>
-            <label className="block text-sm font-medium text-muted-foreground">Additional Notes</label>
+            <label className="block text-sm font-medium text-muted-foreground">Note aggiuntive</label>
             {readOnly ? (
-              <div className="mt-1 p-3 bg-input/50 rounded-md min-h-[200px] text-foreground/80 whitespace-pre-wrap">{data.notes || <span className="text-muted-foreground/50">No notes.</span>}</div>
+              <div className="mt-1 p-3 bg-input/50 rounded-md min-h-[200px] text-foreground/80 whitespace-pre-wrap">{data.notes || <span className="text-muted-foreground/50">Nessuna nota.</span>}</div>
             ) : (
               <StyledTextArea
-                label="Notes (Background, specifics...)"
+                label="Note (storia, dettagli…)"
                 name="notes"
                 value={data.notes}
                 onChange={handleChange}
                 rows={12}
-                placeholder="Special abilities, background, resistances, immunities, etc."
+                placeholder="Capacità speciali, storia, resistenze, immunità…"
               />
             )}
           </div>

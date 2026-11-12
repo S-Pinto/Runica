@@ -92,7 +92,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ isOpen, onClose, o
     return (
         <dialog ref={dialogRef} onClose={handleClose} className="bg-card text-foreground p-0 rounded-lg shadow-2xl w-full max-w-md border border-border backdrop:bg-black/50">
             <header className="flex items-center justify-between p-4 border-b border-border">
-                <h3 className="text-lg font-cinzel text-accent">Upload Portrait</h3>
+                <h3 className="text-lg font-cinzel text-accent">Carica ritratto</h3>
                 <button onClick={handleClose} className="p-1 rounded-full hover:bg-muted transition-colors">
                     <XMarkIcon className="w-5 h-5" />
                 </button>
@@ -102,11 +102,11 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ isOpen, onClose, o
                     <div className="flex flex-col items-center justify-center border-2 border-dashed border-input rounded-lg p-8 text-center">
                         <PhotoIcon className="w-12 h-12 text-muted-foreground mb-2" />
                         <label htmlFor="image-upload-input" className="cursor-pointer bg-accent hover:bg-accent-dark text-accent-foreground font-bold py-2 px-4 rounded transition-colors duration-200">
-                            Select an Image
+                            Scegli un'immagine
                         </label>
                         <input id="image-upload-input" type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-                        <p className="text-xs text-muted-foreground mt-2">PNG, JPG, WEBP up to 1MB.</p>
-                        {isProcessing && <p className="mt-2 text-muted-foreground animate-pulse">Processing...</p>}
+                        <p className="text-xs text-muted-foreground mt-2">PNG, JPG o WEBP fino a 1 MB.</p>
+                        {isProcessing && <p className="mt-2 text-muted-foreground animate-pulse">Elaborazione…</p>}
                     </div>
                 ) : (
                     <div>
@@ -133,7 +133,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ isOpen, onClose, o
                     disabled={isProcessing}
                     className="bg-secondary hover:bg-secondary/80 text-secondary-foreground font-bold py-2 px-4 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    Cancel
+                    Annulla
                 </button>
                 <button
                     onClick={handleCrop}
@@ -141,7 +141,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ isOpen, onClose, o
                     className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <UploadIcon className="w-5 h-5" />
-                    {isProcessing ? 'Saving...' : 'Save Cropped Image'}
+                    {isProcessing ? 'Saving...' : 'Salva immagine ritagliata'}
                 </button>
             </footer>
         </dialog>

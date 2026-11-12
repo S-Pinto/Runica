@@ -3,13 +3,14 @@ import { useCharacter } from '../../CharacterProvider';
 import { EquipmentItem, Currency } from '../../characterTypes';
 import { ChevronDownIcon } from '../../../../components/ui/icons';
 import { ImageModal } from '../../../../components/ui/ImageModal';
+import { toast } from '../../../../components/ui/Dialogs';
 
-const InventoryTabView = () => {
-  const { character, updateCharacter } = useCharacter();
+const InventoryTabViewContent = () => {
+  const { character: maybeCharacter, updateCharacter } = useCharacter();
+  const character = maybeCharacter!;
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<{ url: string; alt: string } | null>(null);
 
-  if (!character) return null;
 
   const handleToggleEquip = (itemId: string) => {
     const clickedItem = character.equipment.find(item => item.id === itemId);
@@ -50,7 +51,7 @@ const InventoryTabView = () => {
 
     const currentAttuned = (character.equipment || []).filter(i => i.isAttuned).length;
     if (!item.isAttuned && currentAttuned >= 3) {
-      alert("Hai già sintonizzato il massimo di 3 Oggetti Magici (Regola D&D 5e/2024)!");
+      toast.info('Puoi essere in sintonia con al massimo 3 oggetti magici.');
       return;
     }
 
@@ -134,9 +135,9 @@ const InventoryTabView = () => {
   };
 
   const ItemList = ({ title, items }: { title: string; items: EquipmentItem[] }) => (
-    <div className="bg-card/20 backdrop-blur-md p-6 rounded-2xl border border-border/40 space-y-4">
+    <div className="bg-card p-6 rounded-2xl border border-border/40 space-y-4">
       <div className="flex items-center justify-between border-b border-border/40 pb-3">
-        <h3 className="text-xl font-cinzel text-accent flex items-center gap-2">
+        <h3 className="text-xl font-cinzel font-bold text-foreground flex items-center gap-2">
           {title}
         </h3>
         <span className="text-xs font-mono font-bold bg-accent/10 text-accent px-2.5 py-1 rounded-lg border border-accent/20">
@@ -187,8 +188,8 @@ const InventoryTabView = () => {
                     </div>
                     <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-xs text-muted-foreground">
                       <span className="bg-background/50 px-1.5 py-0.5 rounded border border-border/30 font-mono">Qtà: {item.quantity}</span>
-                      {item.damage && <span className="text-accent font-bold bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">Dmg: {item.damage}</span>}
-                      {item.armorClass && <span className="text-amber-300 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">CA: {item.armorClass}</span>}
+                      {item.damage && <span className="text-accent font-bold bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">Danni: {item.damage}</span>}
+                      {item.armorClass && <span className="text-accent font-bold bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">CA: {item.armorClass}</span>}
                       {item.bonusAC && <span className="text-cyan-300 font-bold bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">+ {item.bonusAC} CA</span>}
                     </div>
                   </div>
@@ -217,7 +218,7 @@ const InventoryTabView = () => {
                         : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/50'
                     }`}
                   >
-                    {item.equipped ? 'Equipped' : 'Equip'}
+                    {item.equipped ? 'Equipaggiato' : 'Equipaggia'}
                   </button>
                 </div>
               </div>
@@ -295,28 +296,28 @@ const InventoryTabView = () => {
       />
 
       {/* Top Currency & Attunement Banner */}
-      <div className="bg-card/40 backdrop-blur-md p-6 rounded-2xl border border-border/50 shadow-md space-y-4">
+      <div className="bg-card p-6 rounded-2xl border border-border/50 shadow-md space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/40 pb-3">
-          <h3 className="text-xl font-cinzel text-accent flex items-center gap-2">
-            <span>🪙</span> Monete & Portamonete
+          <h3 className="text-xl font-cinzel font-bold text-foreground flex items-center gap-2">
+            <span>🪙</span> Monete
           </h3>
           <div className="flex flex-wrap items-center gap-3">
             <div className="bg-purple-500/10 text-purple-300 px-3.5 py-1 rounded-xl border border-purple-500/30 text-xs font-bold">
               🔮 Sintonizzazione: <span className="text-white text-sm font-black">{attunedCount} / 3</span>
             </div>
             <div className="bg-accent/10 text-accent px-3.5 py-1 rounded-xl border border-accent/20 text-xs font-bold font-mono">
-              Valore Totale Stimato: <span className="text-white text-sm font-black">{totalGp} GP</span>
+              Valore totale stimato: <span className="text-foreground text-sm font-black">{totalGp} MO</span>
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {[
-            { key: 'pp', label: 'PP (Platino)', color: 'border-cyan-500/30 bg-cyan-500/5 text-cyan-300' },
-            { key: 'gp', label: 'GP (Oro)', color: 'border-yellow-500/30 bg-yellow-500/5 text-yellow-400' },
-            { key: 'ep', label: 'EP (Elettro)', color: 'border-indigo-500/30 bg-indigo-500/5 text-indigo-300' },
-            { key: 'sp', label: 'SP (Argento)', color: 'border-slate-400/30 bg-slate-400/5 text-slate-200' },
-            { key: 'cp', label: 'CP (Rame)', color: 'border-orange-600/30 bg-orange-600/5 text-orange-400' },
+            { key: 'pp', label: 'MP (platino)', color: 'border-cyan-500/30 bg-cyan-500/5 text-cyan-300' },
+            { key: 'gp', label: 'MO (oro)', color: 'border-yellow-500/30 bg-yellow-500/5 text-yellow-400' },
+            { key: 'ep', label: 'ME (electrum)', color: 'border-indigo-500/30 bg-indigo-500/5 text-indigo-300' },
+            { key: 'sp', label: 'MA (argento)', color: 'border-slate-400/30 bg-slate-400/5 text-slate-200' },
+            { key: 'cp', label: 'MR (rame)', color: 'border-orange-600/30 bg-orange-600/5 text-orange-400' },
           ].map((coin) => {
             const val = character.currency[coin.key as keyof Currency] || 0;
             return (
@@ -352,11 +353,17 @@ const InventoryTabView = () => {
 
       {/* Main Full-Width Inventory Lists */}
       <div className="space-y-6">
-        <ItemList title="🛡️ Armi, Armature & Oggetti Equipaggiati" items={equippableItems} />
-        <ItemList title="🎒 Zaino & Oggetti da Avventura" items={backpackItems} />
+        <ItemList title="🛡️ Equipaggiati" items={equippableItems} />
+        <ItemList title="🎒 Zaino" items={backpackItems} />
       </div>
     </div>
   );
+};
+
+/** Renders InventoryTabViewContent only once the character is loaded, so its hooks never run conditionally. */
+const InventoryTabView = () => {
+    const { character } = useCharacter();
+    return character ? <InventoryTabViewContent /> : null;
 };
 
 export default InventoryTabView;

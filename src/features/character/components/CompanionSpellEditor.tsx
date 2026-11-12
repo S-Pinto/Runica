@@ -56,26 +56,26 @@ export const CompanionSpellEditor: React.FC<CompanionSpellEditorProps> = ({ comp
         return (
             <div className="space-y-2">
                 <div className="flex justify-between items-center mb-2">
-                    <h4 className="text-md font-semibold text-muted-foreground">Spells & Special Abilities</h4>
+                    <h4 className="text-md font-semibold text-muted-foreground">Incantesimi e capacità speciali</h4>
                     <div className="flex gap-1">
-                        <SortButton label="Level" onClick={() => setSortOrder('level')} isActive={sortOrder === 'level'} />
-                        <SortButton label="Alphabetical" onClick={() => setSortOrder('alpha')} isActive={sortOrder === 'alpha'} />
+                        <SortButton label="Livello" onClick={() => setSortOrder('level')} isActive={sortOrder === 'level'} />
+                        <SortButton label="Alfabetico" onClick={() => setSortOrder('alpha')} isActive={sortOrder === 'alpha'} />
                     </div>
                 </div>
                 <div className="space-y-4">
                     {sortedSpells.length === 0 ? (
-                        <p className="text-muted-foreground text-sm text-center italic">No special abilities defined.</p>
+                        <p className="text-muted-foreground text-sm text-center italic">Nessuna capacità speciale.</p>
                     ) : (
                         sortedSpells.map((spell) => (
                             <div key={spell.id} className="text-sm p-3 bg-background rounded-lg border border-border">
                                 <p className="font-bold text-foreground">{spell.name}</p>
                                 <div className="text-xs text-muted-foreground/80 mt-1">
-                                    {(spell.level > 0) ? `Level ${spell.level} ${spell.school}` : spell.school || 'Special Ability'}
+                                    {(spell.level > 0) ? `Level ${spell.level} ${spell.school}` : spell.school || 'Capacità speciale'}
                                 </div>
                                 <div className="text-xs text-muted-foreground/80 mt-1 space-x-2">
-                                    {spell.castingTime && <span><span className="font-semibold">Cast:</span> {spell.castingTime}</span>}
-                                    {spell.range && <span>| <span className="font-semibold">Range:</span> {spell.range}</span>}
-                                    {spell.duration && <span>| <span className="font-semibold">Duration:</span> {spell.duration}</span>}
+                                    {spell.castingTime && <span><span className="font-semibold">Lancio:</span> {spell.castingTime}</span>}
+                                    {spell.range && <span>| <span className="font-semibold">Gittata:</span> {spell.range}</span>}
+                                    {spell.duration && <span>| <span className="font-semibold">Durata:</span> {spell.duration}</span>}
                                 </div>
                                 <p className="text-sm text-foreground/90 whitespace-pre-wrap mt-2">{spell.description}</p>
                             </div>
@@ -121,15 +121,15 @@ export const CompanionSpellEditor: React.FC<CompanionSpellEditorProps> = ({ comp
     return (
         <div className="space-y-2">
             <div className="flex justify-between items-center mb-2">
-                <h4 className="text-md font-semibold text-muted-foreground">Spells & Special Abilities</h4>
+                <h4 className="text-md font-semibold text-muted-foreground">Incantesimi e capacità speciali</h4>
                 <div className="flex gap-1">
-                    <SortButton label="Level" onClick={() => setSortOrder('level')} isActive={sortOrder === 'level'} />
-                    <SortButton label="Alphabetical" onClick={() => setSortOrder('alpha')} isActive={sortOrder === 'alpha'} />
+                    <SortButton label="Livello" onClick={() => setSortOrder('level')} isActive={sortOrder === 'level'} />
+                    <SortButton label="Alfabetico" onClick={() => setSortOrder('alpha')} isActive={sortOrder === 'alpha'} />
                 </div>
             </div>
             <div className="space-y-4">
                 {companion.spells.length === 0 ? (
-                    <p className="text-muted-foreground text-sm text-center italic">No special abilities defined.</p>
+                    <p className="text-muted-foreground text-sm text-center italic">Nessuna capacità speciale.</p>
                 ) : (
                     <>
                         {/* Renderizza prima gli incantesimi esistenti e ordinati */}
@@ -158,7 +158,7 @@ export const CompanionSpellEditor: React.FC<CompanionSpellEditorProps> = ({ comp
                     </>
                 )}
                 <button onClick={addSpell} className="w-full flex items-center justify-center gap-1 text-sm text-accent hover:text-primary transition-colors py-1 border border-dashed border-border rounded-md">
-                    <PlusIcon className="w-4 h-4" /> Add Spell/Ability
+                    <PlusIcon className="w-4 h-4" /> Aggiungi incantesimo o capacità
                 </button>
             </div>
         </div>
@@ -175,19 +175,19 @@ interface SpellFormProps {
 const SpellForm: React.FC<SpellFormProps> = ({ spell, onSpellChange, onDelete, inputClass }) => (
     <div className="p-3 bg-background rounded-lg border border-border space-y-2">
         <div className="flex justify-between items-start gap-2">
-            <input type="text" placeholder="Spell or Ability Name" value={spell.name} onChange={(e) => onSpellChange(spell.id, 'name', e.target.value)} className={`${inputClass} font-bold`} />
+            <input type="text" placeholder="Nome dell'incantesimo o capacità" value={spell.name} onChange={(e) => onSpellChange(spell.id, 'name', e.target.value)} className={`${inputClass} font-bold`} />
             <button onClick={() => onDelete(spell.id)} className="p-1.5 text-muted-foreground hover:text-destructive transition-colors flex-shrink-0"><TrashIcon className="w-4 h-4" /></button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-            <input type="number" placeholder="Level (0 for cantrip)" value={spell.level} onChange={(e) => onSpellChange(spell.id, 'level', e.target.value)} className={`${inputClass} no-spinner`} />
-            <input type="text" placeholder="School (e.g. Evocation)" value={spell.school} onChange={(e) => onSpellChange(spell.id, 'school', e.target.value)} className={inputClass} />
-            <input type="text" placeholder="Casting Time" value={spell.castingTime} onChange={(e) => onSpellChange(spell.id, 'castingTime', e.target.value)} className={inputClass} />
-            <input type="text" placeholder="Range" value={spell.range} onChange={(e) => onSpellChange(spell.id, 'range', e.target.value)} className={inputClass} />
-            <input type="text" placeholder="Components (V, S, M)" value={spell.components} onChange={(e) => onSpellChange(spell.id, 'components', e.target.value)} className={inputClass} />
-            <input type="text" placeholder="Duration" value={spell.duration} onChange={(e) => onSpellChange(spell.id, 'duration', e.target.value)} className={inputClass} />
+            <input type="number" placeholder="Livello (0 per i trucchetti)" value={spell.level} onChange={(e) => onSpellChange(spell.id, 'level', e.target.value)} className={`${inputClass} no-spinner`} />
+            <input type="text" placeholder="Scuola (es. Invocazione)" value={spell.school} onChange={(e) => onSpellChange(spell.id, 'school', e.target.value)} className={inputClass} />
+            <input type="text" placeholder="Tempo di lancio" value={spell.castingTime} onChange={(e) => onSpellChange(spell.id, 'castingTime', e.target.value)} className={inputClass} />
+            <input type="text" placeholder="Gittata" value={spell.range} onChange={(e) => onSpellChange(spell.id, 'range', e.target.value)} className={inputClass} />
+            <input type="text" placeholder="Componenti (V, S, M)" value={spell.components} onChange={(e) => onSpellChange(spell.id, 'components', e.target.value)} className={inputClass} />
+            <input type="text" placeholder="Durata" value={spell.duration} onChange={(e) => onSpellChange(spell.id, 'duration', e.target.value)} className={inputClass} />
         </div>
         <textarea
-            placeholder="Description, effects, damage, etc."
+            placeholder="Descrizione, effetti, danni…"
             value={spell.description}
             onChange={(e) => onSpellChange(spell.id, 'description', e.target.value)}
             rows={3}

@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useCharacter } from '../../CharacterProvider';
 import { Attack, Feature, FeatureCategory, CATEGORY_CONFIG, EquipmentItem } from '../../characterTypes';
-import { rollDiceExpression } from '../../utils/characterUtils';
-import { AttackRow } from '../AttackRow';
+import { rollDiceExpression, doubleDice } from '../../utils/characterUtils';
+import { AttackRow, getAttackSummary } from '../AttackRow';
 import { ChevronDownIcon, ChevronUpIcon, TrashIcon, SwordIcon, BoltIcon, FireIcon } from '../../../../components/ui/icons';
 import { WEAPON_MASTERIES, WEAPON_PROPERTIES } from '../../../../data/weaponProperties';
 
@@ -25,6 +25,7 @@ const ABILITY_MAP: Record<string, string> = {
 const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items: Attack[], abilityScores: any, proficiencyBonus: number }) => {
     const [results, setResults] = useState<Record<string, { atk: RollResult[], dmg: RollResult[] }>>({});
     const [expandedAttackId, setExpandedAttackId] = useState<string | null>(null);
+    const [rollMode, setRollMode] = useState<'normal' | 'advantage' | 'disadvantage'>('normal');
     const { character } = useCharacter();
 
     if (!character) return null;
@@ -32,9 +33,12 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
     const handleAttackRoll = (e: React.MouseEvent, attack: Attack) => {
         e.stopPropagation();
 
-        const d20Roll = Math.floor(Math.random() * 20) + 1;
+        // Advantage/disadvantage: roll two d20 and keep the higher/lower one.
+        const first = Math.floor(Math.random() * 20) + 1;
+        const second = rollMode === 'normal' ? first : Math.floor(Math.random() * 20) + 1;
+        const d20Roll = rollMode === 'advantage' ? Math.max(first, second) : rollMode === 'disadvantage' ? Math.min(first, second) : first;
         let total = d20Roll;
-        let breakdownParts = [`d20(${d20Roll})`];
+        let breakdownParts = [rollMode === 'normal' ? `d20(${d20Roll})` : `d20 ${rollMode === 'advantage' ? 'vantaggio' : 'svantaggio'}(${first}|${second} → ${d20Roll})`];
 
         // 1. Ability Modifier
         if (attack.attackAbility && abilityScores) {
@@ -51,7 +55,7 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
         // 2. Proficiency
         if (attack.isProficient) {
             total += proficiencyBonus;
-            breakdownParts.push(`+${proficiencyBonus}(PB)`);
+            breakdownParts.push(`+${proficiencyBonus}(comp.)`);
         }
 
         // 3. Custom/Magic Bonus
@@ -65,7 +69,7 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
         if (magicBonus !== 0) {
             total += magicBonus;
             const sign = magicBonus >= 0 ? '+' : '';
-            breakdownParts.push(`${sign}${magicBonus}(Misc)`);
+            breakdownParts.push(`${sign}${magicBonus}(magico)`);
         }
 
         const breakdown = breakdownParts.join(' + ').replace(/\+ \+/g, '+ ').replace(/\+ -/g, '- '); // Clean up signs
@@ -82,33 +86,26 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
     const handleDamageRoll = (e: React.MouseEvent, attack: Attack) => {
         e.stopPropagation();
 
-        // Roll Main Damage
-        const mainResult = rollDiceExpression(attack.damage);
-        let totalDamage = mainResult.total;
-        let details = [`${mainResult.total} ${attack.damageType || ''}`.trim()];
-        let breakdownParts = [`${mainResult.pretty} ${attack.damageType ? `(${attack.damageType})` : ''}`];
+        // Same formula the card shows (dice + ability modifier + magic bonus), so display and roll agree.
+        const summary = getAttackSummary(attack, abilityScores, proficiencyBonus);
+        const baseFormula: string = (summary.isSave ? attack.damage : summary.damageFormula) || attack.damage || '';
 
-        // Add Modifier from Ability
-        if (attack.damageAbility && abilityScores) {
-            const abilityKey = ABILITY_MAP[attack.damageAbility.toLowerCase()] || attack.damageAbility;
-            const score = abilityScores[abilityKey] || 10;
-            const modifier = Math.floor((score - 10) / 2);
-            if (modifier !== 0) {
-                totalDamage += modifier;
-                const sign = modifier >= 0 ? '+' : '-';
-                breakdownParts.push(`${sign}${Math.abs(modifier)} (${attack.damageAbility.toUpperCase()})`);
-            }
-        }
+        // A natural 20 on the latest attack roll doubles every damage die.
+        const lastAttack = results[attack.id]?.atk?.slice(-1)[0];
+        const isCrit = !summary.isSave && !!lastAttack?.isCrit;
+        const formula = isCrit ? doubleDice(baseFormula) : baseFormula;
 
-        // Roll Additional Damages
-        if (attack.additionalDamage) {
-            attack.additionalDamage.forEach(extra => {
-                const extraResult = rollDiceExpression(extra.formula);
-                totalDamage += extraResult.total;
-                details.push(`${extraResult.total} ${extra.type}`);
-                breakdownParts.push(`${extraResult.pretty} (${extra.type})`);
-            });
-        }
+        const main = rollDiceExpression(formula);
+        let totalDamage = main.total;
+        const details = [`${main.total} ${attack.damageType || ''}`.trim()];
+        const breakdownParts = [`${main.pretty}${attack.damageType ? ` (${attack.damageType})` : ''}`];
+
+        (attack.additionalDamage || []).forEach(extra => {
+            const extraResult = rollDiceExpression(isCrit ? doubleDice(extra.formula) : extra.formula);
+            totalDamage += extraResult.total;
+            details.push(`${extraResult.total} ${extra.type}`);
+            breakdownParts.push(`${extraResult.pretty} (${extra.type})`);
+        });
 
         const valueString = details.length > 1
             ? `${totalDamage} (${details.join(' + ')})`
@@ -116,9 +113,9 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
 
         const newRoll: RollResult = {
             value: valueString,
-            breakdown: breakdownParts.join(' + '),
-            isCrit: false,
-            isFail: false
+            breakdown: (isCrit ? 'Critico, dadi raddoppiati: ' : '') + breakdownParts.join(' + '),
+            isCrit,
+            isFail: false,
         };
         setResults(prev => ({ ...prev, [attack.id]: { ...prev[attack.id], dmg: [...(prev[attack.id]?.dmg || []), newRoll] } }));
     };
@@ -136,13 +133,37 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
     };
 
     return (
-        <div className="bg-card/30 backdrop-blur-sm p-6 rounded-2xl border border-border/50 flex flex-col h-full">
-            <h3 className="text-xl font-cinzel text-accent mb-6 flex items-center gap-2">
-                <SwordIcon className="w-5 h-5" />
-                Attacks & Cantrips
-            </h3>
+        <div className="bg-card p-6 rounded-2xl border border-border/50 flex flex-col h-full">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+                <h3 className="text-xl font-cinzel font-bold text-foreground flex items-center gap-2">
+                    <SwordIcon className="w-5 h-5" />
+                    Attacchi e trucchetti
+                </h3>
+                <div role="radiogroup" aria-label="Modalità del tiro per colpire" className="flex rounded-xl border border-border bg-background/40 p-0.5 text-xs font-semibold">
+                    {([
+                        ['normal', 'Normale'],
+                        ['advantage', 'Vantaggio'],
+                        ['disadvantage', 'Svantaggio'],
+                    ] as const).map(([mode, label]) => (
+                        <button
+                            key={mode}
+                            type="button"
+                            role="radio"
+                            aria-checked={rollMode === mode}
+                            onClick={() => setRollMode(mode)}
+                            className={`rounded-lg px-2.5 py-1.5 transition-colors ${
+                                rollMode === mode
+                                    ? mode === 'advantage' ? 'bg-success/20 text-success' : mode === 'disadvantage' ? 'bg-destructive/20 text-destructive' : 'bg-accent/20 text-accent'
+                                    : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                        >
+                            {label}
+                        </button>
+                    ))}
+                </div>
+            </div>
             <div className="space-y-3 flex-grow overflow-y-auto pr-2 -mr-2">
-                {items.length === 0 && <p className="text-muted-foreground text-sm text-center py-8 bg-muted/20 rounded-xl border border-dashed border-border/50">No attacks or cantrips added.</p>}
+                {items.length === 0 && <p className="text-muted-foreground text-sm text-center py-8 bg-muted/20 rounded-xl border border-dashed border-border/50">Nessun attacco o trucchetto.</p>}
                 {items.map(item => {
                     const isExpanded = expandedAttackId === item.id;
                     const hasMastery = item.mastery && WEAPON_MASTERIES[item.mastery as keyof typeof WEAPON_MASTERIES];
@@ -156,24 +177,24 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
                                 onClick={() => toggleExpand(item.id)}
                                 variant="card"
                                 actions={
-                                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                                    <div className="flex w-full items-center gap-2">
                                         {!item.saveAbility && (
                                             <button
                                                 onClick={(e) => handleAttackRoll(e, item)}
                                                 className="flex-1 sm:flex-initial h-10 px-3.5 bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1.5"
-                                                title="Lancia Attacco per Colpire"
+                                                title="Tira per colpire"
                                             >
                                                 <SwordIcon className="w-4 h-4" />
-                                                Lancia Hit
+                                                Colpire
                                             </button>
                                         )}
                                         <button
                                             onClick={(e) => handleDamageRoll(e, item)}
                                             className="flex-1 sm:flex-initial h-10 px-3.5 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1.5"
-                                            title="Lancia Danni"
+                                            title="Danni"
                                         >
                                             <FireIcon className="w-4 h-4" />
-                                            Lancia Danni
+                                            Danni
                                         </button>
                                     </div>
                                 }
@@ -185,7 +206,7 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
                                         {/* Weapon Properties Detailed View */}
                                         {(item.properties && item.properties.length > 0) && (
                                             <div className="space-y-2">
-                                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Properties</span>
+                                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Proprietà</span>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                     {item.properties.map(propKey => {
                                                         const propData = WEAPON_PROPERTIES[propKey as keyof typeof WEAPON_PROPERTIES];
@@ -206,7 +227,7 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
                                                 <div className="flex items-center gap-2 mb-1.5">
                                                     <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
                                                         <SwordIcon className="w-3 h-3" />
-                                                        Mastery: {hasMastery.name}
+                                                        Maestria: {hasMastery.name}
                                                     </span>
                                                 </div>
                                                 <p className="text-xs text-muted-foreground leading-relaxed">{hasMastery.description}</p>
@@ -219,8 +240,8 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
                                 {results[item.id] && (
                                     <div className="mt-3 pt-3 border-t border-border/20 animate-in slide-in-from-top-2 fade-in duration-300">
                                         <div className="flex items-center justify-between mb-2">
-                                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Results</span>
-                                            <button onClick={() => clearResults(item.id)} className="text-muted-foreground hover:text-destructive transition-colors p-1" title="Clear Results">
+                                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Risultati</span>
+                                            <button onClick={() => clearResults(item.id)} className="text-muted-foreground hover:text-destructive transition-colors p-1" title="Cancella risultati">
                                                 <TrashIcon className="w-3.5 h-3.5" />
                                             </button>
                                         </div>
@@ -237,10 +258,10 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
                                                         }`}
                                                 >
                                                     <div className="flex items-center justify-between">
-                                                        <span className="font-bold tracking-wider opacity-70">HIT:</span>
+                                                        <span className="font-bold tracking-wider opacity-70">COLPIRE:</span>
                                                         <span className="font-bold text-sm">
-                                                            {roll.isCrit && 'CRIT! '}
-                                                            {roll.isFail && 'FAIL! '}
+                                                            {roll.isCrit && 'CRITICO! '}
+                                                            {roll.isFail && '1 NATURALE! '}
                                                             {roll.value}
                                                         </span>
                                                     </div>
@@ -254,7 +275,7 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
                                             {results[item.id].dmg?.map((roll, i) => (
                                                 <div key={`dmg-${i}`} className="flex flex-col p-2 rounded-lg border border-border/30 bg-background/40 text-xs font-mono shadow-sm animate-in slide-in-from-top-1 fade-in duration-200">
                                                     <div className="flex items-center justify-between">
-                                                        <span className="font-bold tracking-wider text-destructive/80">DMG:</span>
+                                                        <span className="font-bold tracking-wider text-destructive/80">DANNI:</span>
                                                         <span className="font-bold text-sm text-destructive">{roll.value}</span>
                                                     </div>
                                                     {roll.breakdown && (
@@ -368,10 +389,10 @@ const FeaturesList = ({ items }: { items: Feature[] }) => {
     }, [items]);
 
     return (
-        <div className="bg-card/30 backdrop-blur-sm p-6 rounded-2xl border border-border/50 flex flex-col h-full">
-            <h3 className="text-xl font-cinzel text-accent mb-6 flex items-center gap-2">
+        <div className="bg-card p-6 rounded-2xl border border-border/50 flex flex-col h-full">
+            <h3 className="text-xl font-cinzel font-bold text-foreground mb-6 flex items-center gap-2">
                 <BoltIcon className="w-5 h-5" />
-                Features & Traits
+                Privilegi e tratti
             </h3>
             <div className="space-y-4 flex-grow overflow-y-auto pr-2 -mr-2">
                 <CategorySectionDisplay category="class" features={featuresByCategory['class']} />
@@ -384,9 +405,9 @@ const FeaturesList = ({ items }: { items: Feature[] }) => {
                         featuresByCategory['feat-combat'].length > 0 ||
                         featuresByCategory['feat-epic'].length > 0) && (
                             <div className="flex items-center gap-2 px-1 pb-2 pt-2">
-                                <span className="w-1 h-1 rounded-full bg-amber-500/50" />
-                                <h4 className="text-xs font-bold text-amber-500/80 uppercase tracking-widest">Feats</h4>
-                                <div className="h-px bg-amber-500/20 flex-1" />
+                                <span className="w-1 h-1 rounded-full bg-accent/50" />
+                                <h4 className="text-xs font-bold text-accent/80 uppercase tracking-widest">Talenti</h4>
+                                <div className="h-px bg-accent/20 flex-1" />
                             </div>
                         )}
 
@@ -424,7 +445,7 @@ const ActiveMagicItems = ({ equipment, onUpdate }: { equipment: EquipmentItem[];
     return (
         <div className="bg-purple-500/10 backdrop-blur-sm p-4 rounded-2xl border border-purple-500/30 space-y-3">
             <h4 className="text-sm font-bold text-purple-300 uppercase tracking-wider flex items-center gap-2">
-                <span>⚡</span> Oggetti Magici Equipaggiati & Capacità
+                <span>⚡</span> Oggetti magici equipaggiati
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {activeItems.map(item => (
@@ -443,7 +464,7 @@ const ActiveMagicItems = ({ equipment, onUpdate }: { equipment: EquipmentItem[];
                             disabled={(item.charges?.current || 0) <= 0}
                             className="w-full py-1 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs rounded-lg transition-all flex items-center justify-center gap-1 shadow-sm"
                         >
-                            ⚡ Usa Capacità Magica
+                            ⚡ Usa capacità
                         </button>
                     </div>
                 ))}
@@ -452,10 +473,10 @@ const ActiveMagicItems = ({ equipment, onUpdate }: { equipment: EquipmentItem[];
     );
 };
 
-const CombatTabView = () => {
-    const { character, updateCharacter } = useCharacter();
+const CombatTabViewContent = () => {
+    const { character: maybeCharacter, updateCharacter } = useCharacter();
+    const character = maybeCharacter!;
 
-    if (!character) return null;
 
     const attacks = useMemo(() => {
         const customAttacks = character.attacks || [];
@@ -504,6 +525,12 @@ const CombatTabView = () => {
             </div>
         </div>
     );
+};
+
+/** Renders CombatTabViewContent only once the character is loaded, so its hooks never run conditionally. */
+const CombatTabView = () => {
+    const { character } = useCharacter();
+    return character ? <CombatTabViewContent /> : null;
 };
 
 export default CombatTabView;

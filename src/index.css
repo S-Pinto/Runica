@@ -29,6 +29,13 @@
 @tailwind utilities;
 
 @layer base {
+  /* Semantic status colors, shared by every theme. */
+  :root {
+    --color-destructive: 239 68 68;          /* red-500 */
+    --color-destructive-foreground: 255 255 255;
+    --color-success: 34 197 94;              /* green-500 */
+    --color-warning: 245 158 11;             /* amber-500 */
+  }
   :root, .theme-amber {
     --color-background: 24 24 27; /* zinc-900 */
     --color-foreground: 250 250 250; /* zinc-50 */
@@ -289,17 +296,17 @@ input[type="number"],
   }
 
   .glass-panel {
-    background: rgba(var(--color-card), 0.65);
+    background: rgb(var(--color-card)/0.65);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .glass-panel-accent {
-    background: linear-gradient(135deg, rgba(var(--color-accent), 0.12) 0%, rgba(var(--color-card), 0.75) 100%);
+    background: linear-gradient(135deg, rgb(var(--color-accent)/0.12) 0%, rgb(var(--color-card)/0.75) 100%);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(var(--color-accent), 0.3);
+    border: 1px solid rgb(var(--color-accent)/0.3);
   }
 
   .hero-glow-bg {
@@ -313,7 +320,7 @@ input[type="number"],
     left: 20%;
     width: 60%;
     height: 160%;
-    background: radial-gradient(circle, rgba(var(--color-accent), 0.18) 0%, rgba(var(--color-accent), 0) 70%);
+    background: radial-gradient(circle, rgb(var(--color-accent)/0.18) 0%, rgb(var(--color-accent)/0) 70%);
     pointer-events: none;
     z-index: 0;
   }
@@ -322,8 +329,17 @@ input[type="number"],
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .glow-on-hover:hover {
-    box-shadow: 0 0 25px -3px rgba(var(--color-accent), 0.35);
-    border-color: rgba(var(--color-accent), 0.6);
+    box-shadow: 0 0 25px -3px rgb(var(--color-accent)/0.35);
+    border-color: rgb(var(--color-accent)/0.6);
     transform: translateY(-2px);
+  }
+}
+@layer utilities {
+  /* Horizontal scrollers (chip rows) without a visible scrollbar. */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }

@@ -40,34 +40,34 @@ export type FeatureCategory = 'class' | 'racial' | 'feat-origin' | 'feat-general
 
 export const CATEGORY_CONFIG = {
   'class': {
-    label: 'Class Features',
+    label: 'Privilegi di classe',
     color: 'accent',
-    description: 'Abilities from your class levels'
+    description: 'Capacità ottenute dai livelli di classe'
   },
   'racial': {
-    label: 'Racial Traits',
+    label: 'Tratti di specie',
     color: 'green-500',
-    description: 'Traits from your race/species'
+    description: 'Tratti della razza o specie'
   },
   'feat-origin': {
-    label: 'Origin Feats',
+    label: 'Talenti delle origini',
     color: 'amber-500',
-    description: 'Feats from character creation'
+    description: 'Talenti scelti alla creazione'
   },
   'feat-general': {
-    label: 'General Feats',
+    label: 'Talenti generali',
     color: 'amber-500',
-    description: 'Feats from ASI choices'
+    description: 'Talenti al posto degli aumenti di caratteristica'
   },
   'feat-combat': {
-    label: 'Combat Feats',
+    label: 'Talenti di combattimento',
     color: 'amber-500',
-    description: 'Fighting-focused feats'
+    description: 'Talenti dedicati allo stile di combattimento'
   },
   'feat-epic': {
-    label: 'Epic Feats',
+    label: 'Doni epici',
     color: 'purple-500',
-    description: 'High-level (20+) feats'
+    description: 'Talenti di livello 19+'
   },
 } as const;
 

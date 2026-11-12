@@ -4,6 +4,7 @@ import { ICompanion } from '../../characterTypes';
 import { PlusCircleIcon, SparklesIcon } from '../../../../components/ui/icons';
 import { CompanionCard } from '../CompanionCard';
 import { CompanionSheetModal } from '../CompanionSheetModal';
+import { confirmDialog } from '../../../../components/ui/Dialogs';
 
 interface CompanionTabProps {
   readOnly?: boolean;
@@ -45,8 +46,8 @@ export const CompanionTab: React.FC<CompanionTabProps> = ({ readOnly = false }) 
     setIsModalReadOnly(true);
   };
 
-  const handleDeleteCompanion = (companionId: string) => {
-    if (window.confirm('Are you sure you want to delete this companion?')) {
+  const handleDeleteCompanion = async (companionId: string) => {
+    if (await confirmDialog({ title: 'Eliminare questo compagno?', confirmLabel: 'Elimina', destructive: true })) {
       setCharacter(prev => {
         if (!prev) return null;
         return {
@@ -119,11 +120,11 @@ export const CompanionTab: React.FC<CompanionTabProps> = ({ readOnly = false }) 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-cinzel text-accent">Companions & Summons</h2>
+        <h2 className="text-2xl font-cinzel font-bold text-foreground">Compagni ed evocazioni</h2>
         {!readOnly && (
           <button onClick={handleAddCompanion} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-bold rounded-lg shadow-md hover:bg-primary/90 transition-colors">
             <PlusCircleIcon className="w-5 h-5" />
-            Add Companion
+            Aggiungi compagno
           </button>
         )}
       </div>
@@ -145,12 +146,12 @@ export const CompanionTab: React.FC<CompanionTabProps> = ({ readOnly = false }) 
       ) : (
         <div className="text-center py-16 px-6 bg-muted/20 rounded-lg border-2 border-dashed border-border">
             <SparklesIcon className="mx-auto h-12 w-12 text-muted-foreground/50" />
-            <h3 className="mt-2 text-lg font-medium text-zinc-300">No Companions Yet</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Your familiars, animal companions, and summons will appear here.</p>
+            <h3 className="mt-2 text-lg font-medium text-text">Nessun compagno</h3>
+            <p className="mt-1 text-sm text-muted-foreground">Famigli, compagni animali ed evocazioni appariranno qui.</p>
             {!readOnly && (
               <div className="mt-6">
                   <button onClick={handleAddCompanion} className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-bold rounded-lg shadow-md hover:bg-primary/90 transition-colors">
-                      <PlusCircleIcon className="w-5 h-5" /> Add your first companion
+                      <PlusCircleIcon className="w-5 h-5" /> Aggiungi il primo compagno
                   </button>
               </div>
             )}

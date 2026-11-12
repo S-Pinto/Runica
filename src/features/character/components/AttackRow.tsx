@@ -1,5 +1,6 @@
 import React from 'react';
 import { Attack, AbilityScores } from '../characterTypes';
+import { WEAPON_MASTERIES } from '../../../data/weaponProperties';
 
 type AttackRowVariant = 'card' | 'list';
 
@@ -24,7 +25,7 @@ const ABILITY_MAP: Record<string, keyof AbilityScores> = {
 
 const ABILITY_LABELS: Record<string, string> = {
   strength: 'FOR',
-  dexterity: 'DEX',
+  dexterity: 'DES',
   constitution: 'COS',
   intelligence: 'INT',
   wisdom: 'SAG',
@@ -59,8 +60,8 @@ export function getAttackSummary(
   if (attack.saveAbility) {
     return {
       isSave: true,
-      dcText: `CD ${attack.bonus || 10} ${attack.saveAbility.toUpperCase()}`,
-      damageText: attack.damage ? `${attack.damage} ${attack.damageType || ''}`.trim() : 'N/A',
+      dcText: `CD ${attack.bonus || 10} ${ABILITY_LABELS[ABILITY_MAP[attack.saveAbility.toLowerCase()] || attack.saveAbility] || attack.saveAbility.toUpperCase()}`,
+      damageText: attack.damage ? `${attack.damage} ${attack.damageType || ''}`.trim() : '–',
       additionalDamage: attack.additionalDamage,
       hitBreakdownParts: [],
       damageBreakdownParts: [],
@@ -83,7 +84,7 @@ export function getAttackSummary(
 
   if (attack.isProficient && proficiencyBonus) {
     hitBonus += proficiencyBonus;
-    hitParts.push(`+${proficiencyBonus} PB`);
+    hitParts.push(`+${proficiencyBonus} Comp.`);
   }
 
   if (attack.bonus) {
@@ -159,29 +160,29 @@ export const AttackRow: React.FC<AttackRowProps> = ({
 
       <div className="p-4 sm:p-5 flex flex-col gap-4">
         {/* Top Header: Name and Action Buttons */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h4 className="font-cinzel text-lg sm:text-xl font-bold text-accent tracking-wide truncate">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h4 className="min-w-0 flex-1 basis-40 break-words font-cinzel text-lg font-bold leading-tight text-foreground sm:text-xl">
             {attack.name}
           </h4>
 
           {actions && (
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex grow items-center gap-2 sm:grow-0">
               {actions}
             </div>
           )}
         </div>
 
         {/* Stats Grid Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(13rem,1fr))] gap-3">
           {summary.isSave ? (
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-center justify-between shadow-sm">
-              <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">🛡️ Tiro Salvezza</span>
+            <div className="bg-accent/10 border border-accent/30 rounded-xl p-3 flex items-center justify-between shadow-sm">
+              <span className="text-xs font-bold text-accent uppercase tracking-wider">🛡️ Tiro Salvezza</span>
               <span className="text-sm font-black text-foreground">{summary.dcText}</span>
             </div>
           ) : (
             <div className="bg-primary/10 border border-primary/30 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2 shadow-sm">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-primary uppercase tracking-wider">🎯 Hit:</span>
+                <span className="text-xs font-bold text-primary uppercase tracking-wider">🎯 Colpire:</span>
                 <span className="text-sm sm:text-base font-black text-accent">{summary.rollToHitDice}</span>
               </div>
               {summary.hitBreakdownParts.length > 0 && (
@@ -224,7 +225,7 @@ export const AttackRow: React.FC<AttackRowProps> = ({
         {summary.additionalDamage && summary.additionalDamage.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {summary.additionalDamage.map((extra, idx) => (
-              <div key={idx} className="bg-amber-500/10 border border-amber-500/30 text-amber-300 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5">
+              <div key={idx} className="bg-accent/10 border border-accent/30 text-accent px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5">
                 <span>🔥 Extra:</span>
                 <span>+{extra.formula}</span>
                 <span className="text-[10px] uppercase">{extra.type}</span>
@@ -238,7 +239,7 @@ export const AttackRow: React.FC<AttackRowProps> = ({
           <div className="flex flex-wrap gap-2 items-center pt-1 border-t border-border/30">
             {attack.mastery && (
               <span className="bg-purple-500/15 text-purple-300 px-2.5 py-1 rounded-lg border border-purple-500/30 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1 shadow-sm">
-                ✨ {attack.mastery}
+                ✨ {WEAPON_MASTERIES[attack.mastery]?.name ?? attack.mastery}
               </span>
             )}
             {attack.properties && attack.properties.map(p => (

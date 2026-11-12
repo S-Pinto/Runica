@@ -4,123 +4,115 @@ export interface ConditionDef {
     bullets: string[];
 }
 
+/**
+ * Condition summaries (5e, 2024 rules). Keys stay in English because they are
+ * stored on characters (character.conditions); `name` is the Italian label.
+ */
 export const CONDITIONS: Record<string, ConditionDef> = {
     'Blinded': {
-        name: 'Blinded',
-        description: 'You can’t see and automatically fail any ability check that requires sight.',
+        name: 'Accecato',
+        description: 'Non vedi e fallisci automaticamente le prove che richiedono la vista.',
         bullets: [
-            'Attack rolls against you have advantage.',
-            'Your attack rolls have disadvantage.'
-        ]
+            'I tiri per colpire contro di te hanno vantaggio.',
+            'I tuoi tiri per colpire hanno svantaggio.',
+        ],
     },
     'Charmed': {
-        name: 'Charmed',
-        description: 'You can’t attack the charmer or target them with harmful effects.',
-        bullets: [
-            'The charmer has advantage on any ability check to interact socially with you.'
-        ]
+        name: 'Affascinato',
+        description: 'Non puoi attaccare chi ti ha affascinato né bersagliarlo con effetti dannosi.',
+        bullets: ['Chi ti ha affascinato ha vantaggio alle prove per interagire socialmente con te.'],
     },
     'Deafened': {
-        name: 'Deafened',
-        description: 'You can’t hear.',
-        bullets: [
-            'You automatically fail any ability check that requires hearing.'
-        ]
+        name: 'Assordato',
+        description: 'Non senti.',
+        bullets: ['Fallisci automaticamente le prove che richiedono l\'udito.'],
     },
     'Exhaustion': {
-        name: 'Exhaustion',
-        description: 'Conditions are cumulative. Finishing a Long Rest reduces level by 1.',
+        name: 'Indebolimento',
+        description: 'Si accumula a livelli (da 1 a 6). Un riposo lungo lo riduce di 1 livello.',
         bullets: [
-            'Lv 1: Disadvantage on ability checks',
-            'Lv 2: Speed halved',
-            'Lv 3: Disadv. on attack rolls and saving throws',
-            'Lv 4: Hit point maximum halved',
-            'Lv 5: Speed reduced to 0',
-            'Lv 6: Death'
-        ]
+            'I tiri di d20 subiscono −2 per ogni livello.',
+            'La velocità si riduce di 1,5 m (5 ft) per ogni livello.',
+            'Al livello 6 muori.',
+        ],
     },
     'Frightened': {
-        name: 'Frightened',
-        description: 'You have disadvantage on ability checks and attack rolls while the source of your fear is in line of sight.',
-        bullets: [
-            'You can’t willingly move closer to the source of your fear.'
-        ]
+        name: 'Spaventato',
+        description: 'Hai svantaggio alle prove e ai tiri per colpire finché vedi la fonte della paura.',
+        bullets: ['Non puoi avvicinarti volontariamente alla fonte della paura.'],
     },
     'Grappled': {
-        name: 'Grappled',
-        description: 'Your speed becomes 0, and you can’t benefit from any bonus to speed.',
+        name: 'Afferrato',
+        description: 'La tua velocità è 0 e non può aumentare.',
         bullets: [
-            'Ends if grappler is incapacitated or you are moved out of reach.'
-        ]
+            'Hai svantaggio ai tiri per colpire contro chiunque non sia chi ti afferra.',
+            'Finisce se chi ti afferra è incapacitato o se vieni allontanato dalla sua portata.',
+        ],
     },
     'Incapacitated': {
-        name: 'Incapacitated',
-        description: 'You can’t take actions or reactions.',
-        bullets: []
+        name: 'Incapacitato',
+        description: 'Non puoi effettuare azioni, azioni bonus né reazioni.',
+        bullets: ['Non puoi parlare e perdi la concentrazione.'],
     },
     'Invisible': {
-        name: 'Invisible',
-        description: 'You can’t be seen without magic or special senses. You are heavily obscured.',
+        name: 'Invisibile',
+        description: 'Non puoi essere visto senza magia o sensi speciali.',
         bullets: [
-            'Attack rolls against you have disadvantage.',
-            'Your attack rolls have advantage.'
-        ]
+            'I tiri per colpire contro di te hanno svantaggio.',
+            'I tuoi tiri per colpire hanno vantaggio.',
+        ],
     },
     'Paralyzed': {
-        name: 'Paralyzed',
-        description: 'You are incapacitated, can’t move or speak. You automatically fail Str/Dex saves.',
+        name: 'Paralizzato',
+        description: 'Sei incapacitato e non puoi muoverti. Fallisci i tiri salvezza su Forza e Destrezza.',
         bullets: [
-            'Attack rolls against you have advantage.',
-            'Any hit within 5 feet is a critical hit.'
-        ]
+            'I tiri per colpire contro di te hanno vantaggio.',
+            'Ogni colpo da entro 1,5 m è un colpo critico.',
+        ],
     },
     'Petrified': {
-        name: 'Petrified',
-        description: 'Transformed into substance (usually stone). Incapacitated, unaware, can’t move/speak.',
+        name: 'Pietrificato',
+        description: 'Sei trasformato in una sostanza inanimata (di solito pietra). Sei incapacitato e non puoi muoverti né parlare.',
         bullets: [
-            'Attack rolls against you have advantage.',
-            'Fail all Str/Dex saves.',
-            'Resistance to all damage.',
-            'Immune to poison/disease.'
-        ]
+            'I tiri per colpire contro di te hanno vantaggio.',
+            'Fallisci i tiri salvezza su Forza e Destrezza.',
+            'Hai resistenza a tutti i danni.',
+            'Sei immune alla condizione avvelenato.',
+        ],
     },
     'Poisoned': {
-        name: 'Poisoned',
-        description: 'You feel sick/intoxicated.',
-        bullets: [
-            'Disadvantage on attack rolls and ability checks.'
-        ]
+        name: 'Avvelenato',
+        description: 'Ti senti male.',
+        bullets: ['Hai svantaggio ai tiri per colpire e alle prove di caratteristica.'],
     },
     'Prone': {
-        name: 'Prone',
-        description: 'Combat movement is crawling only.',
+        name: 'Prono',
+        description: 'Puoi solo strisciare, o rialzarti spendendo metà della velocità.',
         bullets: [
-            'You have disadvantage on attack rolls.',
-            'Enemies have Advantage if within 5ft, otherwise Disadvantage.'
-        ]
+            'I tuoi tiri per colpire hanno svantaggio.',
+            'Gli attacchi contro di te hanno vantaggio entro 1,5 m, svantaggio oltre.',
+        ],
     },
     'Restrained': {
-        name: 'Restrained',
-        description: 'Speed 0. Disadvantage on Dex saves.',
+        name: 'Trattenuto',
+        description: 'La tua velocità è 0. Hai svantaggio ai tiri salvezza su Destrezza.',
         bullets: [
-            'Attack rolls against you have advantage.',
-            'Your attack rolls have disadvantage.'
-        ]
+            'I tiri per colpire contro di te hanno vantaggio.',
+            'I tuoi tiri per colpire hanno svantaggio.',
+        ],
     },
     'Stunned': {
-        name: 'Stunned',
-        description: 'Incapacitated, can’t move, speak falteringly. Fail Str/Dex saves.',
-        bullets: [
-            'Attack rolls against you have advantage.'
-        ]
+        name: 'Stordito',
+        description: 'Sei incapacitato. Fallisci i tiri salvezza su Forza e Destrezza.',
+        bullets: ['I tiri per colpire contro di te hanno vantaggio.'],
     },
     'Unconscious': {
-        name: 'Unconscious',
-        description: 'Incapacitated, can’t move/speak, unaware. Drop items, fall prone.',
+        name: 'Privo di sensi',
+        description: 'Sei incapacitato, prono e ignaro di ciò che ti circonda. Lasci cadere ciò che tieni.',
         bullets: [
-            'Fail all Str/Dex saves.',
-            'Attack rolls against you have advantage.',
-            'Hits from 5ft are criticals.'
-        ]
-    }
+            'Fallisci i tiri salvezza su Forza e Destrezza.',
+            'I tiri per colpire contro di te hanno vantaggio.',
+            'Ogni colpo da entro 1,5 m è un colpo critico.',
+        ],
+    },
 };

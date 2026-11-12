@@ -2,7 +2,7 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { CharacterCard } from './CharacterCard';
-import { ICharacter } from '../characterTypes'; // Assicurati che il percorso sia corretto
+import { ICharacter } from '../characterTypes';
 
 interface SortableCharacterCardProps {
   id: string;
@@ -12,33 +12,27 @@ interface SortableCharacterCardProps {
   onEdit: (e: React.MouseEvent) => void;
   onDuplicate?: (e: React.MouseEvent) => void;
   onExport?: (e: React.MouseEvent) => void;
-  activeCardId: string | null;
 }
 
-export const SortableCharacterCard: React.FC<SortableCharacterCardProps> = (props) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: props.id });
+export const SortableCharacterCard: React.FC<SortableCharacterCardProps> = ({ id, ...cardProps }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
-    zIndex: isDragging ? 10 : 'auto', // Assicura che la card trascinata sia in primo piano
+    opacity: isDragging ? 0.4 : 1,
+    zIndex: isDragging ? 10 : undefined,
   };
 
   return (
     <CharacterCard
       ref={setNodeRef}
       style={style}
-      {...props}
+      {...cardProps}
       {...attributes}
       {...listeners}
+      // dnd-kit's attributes set role="button" too; keep our label/tabIndex semantics.
+      role="button"
     />
   );
 };

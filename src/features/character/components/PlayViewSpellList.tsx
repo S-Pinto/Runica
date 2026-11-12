@@ -56,9 +56,9 @@ export const PlayViewSpellList = () => {
   if (!character) return null;
 
   return (
-    <div className="bg-card/20 backdrop-blur-md p-6 rounded-2xl border border-border/40 flex flex-col h-auto">
+    <div className="bg-card p-6 rounded-2xl border border-border/40 flex flex-col h-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h3 className="text-2xl font-cinzel text-accent drop-shadow-sm">Spellbook</h3>
+        <h3 className="text-2xl font-cinzel font-bold text-foreground">Libro degli incantesimi</h3>
 
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-2">
@@ -67,13 +67,13 @@ export const PlayViewSpellList = () => {
               onClick={() => setCastingTimeFilter('all')}
               className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${castingTimeFilter === 'all' ? 'bg-accent text-accent-foreground shadow-sm' : 'text-muted-foreground hover:bg-background/50 hover:text-foreground'}`}
             >
-              All
+              Tutti
             </button>
             <button
               onClick={() => setCastingTimeFilter('action')}
               className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${castingTimeFilter === 'action' ? 'bg-blue-500/20 text-blue-400 shadow-sm border border-blue-500/30' : 'text-muted-foreground hover:bg-background/50 hover:text-blue-400'}`}
             >
-              Action
+              Azione
             </button>
             <button
               onClick={() => setCastingTimeFilter('bonus')}
@@ -85,7 +85,7 @@ export const PlayViewSpellList = () => {
               onClick={() => setCastingTimeFilter('reaction')}
               className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${castingTimeFilter === 'reaction' ? 'bg-yellow-500/20 text-yellow-400 shadow-sm border border-yellow-500/30' : 'text-muted-foreground hover:bg-background/50 hover:text-yellow-400'}`}
             >
-              Reaction
+              Reazione
             </button>
           </div>
 
@@ -96,7 +96,7 @@ export const PlayViewSpellList = () => {
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
               <path fillRule="evenodd" d="M6.32 2.577a49.255 49.255 0 0 1 11.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 0 1-1.085.67L12 18.089l-7.165 3.583A.75.75 0 0 1 3.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93Z" clipRule="evenodd" />
             </svg>
-            Prepared Only
+            Solo preparati
           </button>
         </div>
       </div>
@@ -107,7 +107,7 @@ export const PlayViewSpellList = () => {
         </div>
         <input
           type="text"
-          placeholder="Search spells..."
+          placeholder="Cerca incantesimi..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full bg-background/50 backdrop-blur-sm p-3 pl-12 pr-12 rounded-xl border border-border/50 text-base focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none transition-all shadow-inner"
@@ -125,16 +125,16 @@ export const PlayViewSpellList = () => {
       <div className="space-y-10">
         {character.spells.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <p className="text-center text-muted-foreground text-sm py-8">This character knows no spells.</p>
+            <p className="text-center text-muted-foreground text-sm py-8">Questo personaggio non conosce incantesimi.</p>
           </div>
         ) : sortedLevels.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <p className="text-center text-muted-foreground text-sm py-8">No spells match your search or filters.</p>
+            <p className="text-center text-muted-foreground text-sm py-8">Nessun incantesimo corrisponde alla ricerca.</p>
           </div>
         ) : (
           sortedLevels.map(level => (
             <div key={level}>
-              <h4 className="text-xl font-serif text-foreground border-b border-border pb-1 mb-3">{level === 0 ? 'Cantrips' : `Level ${level}`}</h4>
+              <h4 className="mb-3 border-b border-border pb-2 font-cinzel text-lg font-bold text-foreground">{level === 0 ? 'Trucchetti' : `Livello ${level}`}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {spellsByLevel[level].map(spell => (
                   <SpellCard

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ICharacter, CustomResource } from '../characterTypes';
 import { TrashIcon, EditIcon, PlusCircleIcon } from '../../../components/ui/icons';
+import { confirmDialog } from '../../../components/ui/Dialogs';
 
 const DEFAULT_RESOURCE: Omit<CustomResource, 'id' | 'used'> = {
   name: '',
@@ -30,14 +31,14 @@ const ResourceForm = ({
 
   return (
     <form onSubmit={handleSubmit} className="bg-card/80 p-4 rounded-lg border border-accent/30 space-y-4 mb-4">
-      <h3 className="font-cinzel text-lg text-accent">{'id' in initialData ? 'Edit Resource' : 'Add New Resource'}</h3>
+      <h3 className="font-cinzel text-lg text-accent">{'id' in initialData ? 'Modifica risorsa' : 'Nuova risorsa'}</h3>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <input type="text" placeholder="Resource Name" value={formData.name} onChange={e => handleChange('name', e.target.value)} required className="w-full bg-input p-2 rounded border border-border focus:ring-ring focus:border-accent sm:col-span-2" />
+        <input type="text" placeholder="Nome della risorsa" value={formData.name} onChange={e => handleChange('name', e.target.value)} required className="w-full bg-input p-2 rounded border border-border focus:ring-ring focus:border-accent sm:col-span-2" />
         <input type="number" placeholder="Max" value={formData.max} onChange={e => handleChange('max', parseInt(e.target.value) || 1)} min="1" className="w-full bg-input p-2 rounded border border-border focus:ring-ring focus:border-accent text-center" />
       </div>
       <div className="flex justify-end gap-2">
-        <button type="button" onClick={onCancel} className="bg-secondary hover:bg-secondary/80 text-secondary-foreground font-bold py-2 px-4 rounded transition">Cancel</button>
-        <button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2 px-4 rounded transition">Save</button>
+        <button type="button" onClick={onCancel} className="bg-secondary hover:bg-secondary/80 text-secondary-foreground font-bold py-2 px-4 rounded transition">Annulla</button>
+        <button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2 px-4 rounded transition">Salva</button>
       </div>
     </form>
   );
@@ -58,8 +59,8 @@ export const CustomResourceEditor = ({ character, onUpdateCharacter }: { charact
     setEditingResource(null);
   };
 
-  const handleDelete = (resourceId: string) => {
-    if (window.confirm('Are you sure you want to delete this resource?')) {
+  const handleDelete = async (resourceId: string) => {
+    if (await confirmDialog({ title: 'Eliminare questa risorsa?', confirmLabel: 'Elimina', destructive: true })) {
       const updatedResources = (character.customResources || []).filter(r => r.id !== resourceId);
       onUpdateCharacter({ customResources: updatedResources });
     }
@@ -68,9 +69,9 @@ export const CustomResourceEditor = ({ character, onUpdateCharacter }: { charact
   return (
     <div className="bg-muted/50 p-4 rounded-lg">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-cinzel text-accent">Other Resources</h3>
+        <h3 className="text-lg font-cinzel text-accent">Altre risorse</h3>
         <button onClick={() => setEditingResource('new')} className="flex items-center gap-2 text-sm bg-primary hover:bg-primary/90 px-3 py-2 rounded-md text-primary-foreground transition">
-          <PlusCircleIcon className="w-5 h-5" /> Add Resource
+          <PlusCircleIcon className="w-5 h-5" /> Aggiungi risorsa
         </button>
       </div>
 
@@ -84,7 +85,7 @@ export const CustomResourceEditor = ({ character, onUpdateCharacter }: { charact
 
       <div className="space-y-2">
         {(character.customResources || []).length === 0 && !editingResource && (
-            <p className="text-center text-muted-foreground text-sm py-4">No custom resources defined.</p>
+            <p className="text-center text-muted-foreground text-sm py-4">Nessuna risorsa personalizzata.</p>
         )}
         {(character.customResources || []).map(resource => (
           <div key={resource.id} className="bg-card/50 rounded-lg text-sm p-3 flex items-center justify-between">

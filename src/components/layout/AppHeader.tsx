@@ -101,7 +101,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onSettingsClick }) => {
         onClick={() => navigate('/')} 
         className="group cursor-pointer flex items-center gap-3 transition-transform duration-300 hover:scale-105"
       >
-        <div className="w-10 h-10 rounded-xl bg-accent/15 border border-accent/40 flex items-center justify-center text-accent shadow-[0_0_15px_rgba(var(--color-accent),0.3)] group-hover:border-accent group-hover:shadow-[0_0_25px_rgba(var(--color-accent),0.5)] transition-all">
+        <div className="w-10 h-10 rounded-xl bg-accent/15 border border-accent/40 flex items-center justify-center text-accent shadow-[0_0_15px_rgb(var(--color-accent)/0.3)] group-hover:border-accent group-hover:shadow-[0_0_25px_rgb(var(--color-accent)/0.5)] transition-all">
           <span className="font-norse text-2xl font-bold">ᚱ</span>
         </div>
         <h1 
@@ -122,7 +122,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onSettingsClick }) => {
               ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
               : 'bg-rose-500/10 text-rose-400 border-rose-500/30 animate-pulse'
           }`}
-          title={isOnline ? 'Connesso (Online)' : 'Modalità Offline attiva'}
+          title={isOnline ? 'Online' : 'Offline: i dati restano su questo dispositivo'}
         >
           <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400 shadow-[0_0_10px_#34d399]' : 'bg-rose-500 shadow-[0_0_10px_#f43f5e]'}`} />
           <span className="hidden sm:inline font-mono uppercase text-[11px]">{isOnline ? 'Online' : 'Offline'}</span>
@@ -135,7 +135,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onSettingsClick }) => {
             title="Installa Runica sul tuo dispositivo"
           >
             <DownloadIcon className="w-4 h-4" />
-            <span className="hidden sm:inline">Installa App</span>
+            <span className="hidden sm:inline">Installa app</span>
           </button>
         )}
         {isIos && !canInstall && !isStandalone && (
@@ -144,7 +144,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onSettingsClick }) => {
              title="Per installare: tocca l'icona Condividi e poi 'Aggiungi a Home'"
            >
              <ShareIosIcon className="w-4 h-4" />
-             <span className="hidden sm:inline">Installa App</span>
+             <span className="hidden sm:inline">Installa app</span>
            </div>
         )}
 
@@ -152,11 +152,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onSettingsClick }) => {
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => setIsUserMenuOpen(prev => !prev)}
-              className="flex items-center gap-2.5 p-1 rounded-full border border-accent/30 bg-background/50 hover:border-accent hover:shadow-[0_0_15px_rgba(var(--color-accent),0.3)] transition-all duration-300 group"
+              className="flex items-center gap-2.5 p-1 rounded-full border border-accent/30 bg-background/50 hover:border-accent hover:shadow-[0_0_15px_rgb(var(--color-accent)/0.3)] transition-all duration-300 group"
             >
               <img 
                 src={currentUser.photoURL || `https://api.dicebear.com/8.x/lorelei/svg?seed=${currentUser.uid}`} 
-                alt={currentUser.displayName || 'User Avatar'}
+                alt={currentUser.displayName || 'Avatar'}
                 className="w-10 h-10 rounded-full object-cover group-hover:scale-105 transition-transform"
               />
             </button>
@@ -176,7 +176,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onSettingsClick }) => {
                   role="menuitem"
                 >
                   <UserCircleIcon className="w-4 h-4 text-accent" />
-                  Impostazioni Account
+                  Account
                 </button>
                 <button
                   onClick={handleLogout}
@@ -202,7 +202,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onSettingsClick }) => {
         <button 
           onClick={onSettingsClick} 
           className="w-11 h-11 flex items-center justify-center rounded-xl text-accent bg-accent/10 border border-accent/30 hover:bg-accent/20 hover:border-accent/70 transition-all duration-300 shadow-sm" 
-          aria-label="Open settings"
+          aria-label="Apri impostazioni"
         >
           <SettingsIcon className="w-5 h-5" />
         </button>

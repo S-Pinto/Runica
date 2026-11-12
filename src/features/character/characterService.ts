@@ -2,20 +2,12 @@ import { ICharacter, AbilityScores, Skill, Attack } from './characterTypes';
 import { getFirebase } from '../../lib/getFirebase';
 import { collection, doc, getDocs, setDoc, deleteDoc, writeBatch, onSnapshot, query, CollectionReference, getDoc } from 'firebase/firestore';
 import * as storageService from '../../services/storageService';
+import { confirmDialog, toast } from '../../components/ui/Dialogs';
+import { WEAPON_MASTERIES } from '../../data/weaponProperties';
 
 const getProficiencyBonus = (level: number): number => Math.ceil(level / 4) + 1;
 const getModifier = (score: number) => Math.floor((score - 10) / 2);
 
-export const WEAPON_MASTERIES_DATA: any = {
-    "Vex": { name: "Vex", description: "Advantage on next attack roll if hit." },
-    "Sap": { name: "Sap", description: "Disadvantage on target's next attack roll if hit." },
-    "Nick": { name: "Nick", description: "Extra attack of Light property part of Attack action." },
-    "Cleave": { name: "Cleave", description: "Hit second creature within 5ft for ability mod damage." },
-    "Graze": { name: "Graze", description: "Deal ability mod damage on miss." },
-    "Push": { name: "Push", description: "Push creature up to 10 feet away." },
-    "Slow": { name: "Slow", description: "Reduce target's Speed by 10 feet." },
-    "Topple": { name: "Topple", description: "Force Con save or target falls Prone." },
-};
 
 const getDefaultSkills = (): Skill[] => {
     return [
@@ -172,8 +164,8 @@ export const getAllActions = (character: ICharacter): (Attack & { sourceName?: s
         const totalHit = (weapon.attackAbility || weapon.isProficient) ? (abilityMod + profBonus + bonus) : bonus;
 
         let notes = weapon.mastery ? weapon.mastery : '';
-        if (weapon.mastery && WEAPON_MASTERIES_DATA[weapon.mastery]) {
-            notes = `${weapon.mastery}: ${WEAPON_MASTERIES_DATA[weapon.mastery].description}`;
+        if (weapon.mastery && WEAPON_MASTERIES[weapon.mastery]) {
+            notes = `${WEAPON_MASTERIES[weapon.mastery].name}: ${WEAPON_MASTERIES[weapon.mastery].description}`;
         }
 
         actions.push({
@@ -450,7 +442,7 @@ export const migrateLocalDataToFirestore = async () => {
         return;
     }
 
-    if (!window.confirm("You have local characters saved on this device. Do you want to move them to your account? This will merge them with any existing characters on your account.")) {
+    if (!(await confirmDialog({ title: 'Spostare i personaggi sul tuo account?', message: 'Su questo dispositivo ci sono personaggi salvati in locale. Verranno uniti a quelli già presenti sul tuo account.', confirmLabel: 'Sposta' }))) {
         return;
     }
 
@@ -493,15 +485,15 @@ export const migrateLocalDataToFirestore = async () => {
     if (migratedCount > 0) {
         try {
             await batch.commit();
-            alert(`${migratedCount} character(s) migrated to your account.`);
+            toast.success(`${migratedCount} personaggi spostati sul tuo account.`);
             // On successful migration, clear local storage.
             saveLocalCharacters([]);
         } catch (error) {
             console.error("Failed to migrate characters:", error);
-            alert("There was an error migrating your characters. They remain on this device for now.");
+            toast.error('Spostamento non riuscito: i personaggi restano su questo dispositivo.');
         }
     } else {
-        alert("No characters needed to be migrated. Your cloud data is up to date.");
+        toast.info('Nessun personaggio da spostare: il cloud è già aggiornato.');
         saveLocalCharacters([]); // Also clear if everything is already up-to-date.
     }
 };
