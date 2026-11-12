@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            functions/package-lock.json
+
+      - name: Install dependencies (frontend)
+        run: npm ci
+
+      - name: Install dependencies (functions)
+        run: npm ci --prefix functions
+
+      - name: Type check (frontend)
+        run: npx tsc --noEmit -p .
+
+      - name: Type check (functions)
+        run: npx tsc --noEmit -p functions
+
+      - name: Test
+        run: npm test
+
+      # Verifica solo che la build compili, senza pubblicare nulla. Le icone PWA
+      # sono obbligatorie per vite-plugin-pwa; la config Firebase non serve.
+      - name: Build
+        run: npm run build
+        env:
+          VITE_APP_NAME: Runica
+          VITE_APP_SHORT_NAME: Runica
+          VITE_PWA_ICON_192: /icons/icon-192.png
+          VITE_PWA_ICON_512: /icons/icon-512.png

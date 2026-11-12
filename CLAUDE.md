@@ -10,10 +10,13 @@ npm run dev              # Vite in locale
 npm run build            # build (mode di default)
 npm run build:staging    # build con .env.staging
 npm run build:live       # build con .env.production
-npx tsc --noEmit         # type-check (non è nella CI: lanciarlo a mano)
+npm run typecheck        # type-check di frontend e functions/
+npm test                 # Vitest (una esecuzione); npm run test:watch per il watch
 ```
 
-Deploy: GitHub Actions su merge (`.github/workflows/`), oppure `npm run deploy:live` / `deploy:staging`. Dettagli in `DEPLOYMENT_GUIDE.md`. Non ci sono test automatici.
+CI: `.github/workflows/ci.yml` (su PR e push su `main`) esegue type-check frontend + `functions/`, test Vitest e build. I workflow `firebase-hosting-*` si occupano solo di build e deploy.
+
+Deploy: GitHub Actions su merge (`.github/workflows/`), oppure `npm run deploy:live` / `deploy:staging`. Dettagli in `DEPLOYMENT_GUIDE.md`. I test (Vitest, ambiente `node`, file `*.test.ts` accanto al codice) coprono per ora `rules/progression.ts` e `rules/rest.ts`.
 
 ## Stack
 
@@ -127,7 +130,7 @@ functions/src/
 6. `characterService` mescola I/O, regole e UI (importa `Dialogs`); `AuthProvider` dipende da `characterService`.
 7. File molto grandi: `CharacterSheet` (~850 righe), `EquipmentList` (~750), `PrintableCharacterSheet` (~660), `CombatTabView` (~535).
 8. Residui: `firebaseConfig.ts` + `getFirebase.ts` duplicati, `public/odl.service-worker.js`, `public/old.manifest.json`, `netlify.toml`, `metadata.json`, `src/components/ui/label` senza estensione, refuso `onAuthSateChangedListener`, classe `text-text-main` non definita in `App.tsx`, README di AI Studio non aggiornato.
-9. Nessun test e nessun type-check in CI.
+9. Copertura test limitata a `rules/progression.ts` e `rules/rest.ts`; i calcoli di `characterService` non sono testabili finché restano mescolati a Firebase e UI (Fase D). Nessun ESLint.
 
 ## Roadmap del refactor
 
@@ -139,9 +142,10 @@ Ogni fase è indipendente: si può fare in qualsiasi ordine, con un branch e una
 - Rivedere la lettura pubblica in `storage.rules` (almeno ritratti e oggetti).
 - **Fatto quando**: una chiamata non autenticata al PDF riceve `unauthenticated`.
 
-### Fase B — Rete di sicurezza (CI e qualità)
-- Aggiungere `tsc --noEmit` ai workflow GitHub.
-- Introdurre Vitest con i primi test su `rules/progression.ts`, `rules/rest.ts` e i calcoli di `characterService`.
+### Fase B — Rete di sicurezza (CI e qualità) — fatta
+- `ci.yml` con `tsc --noEmit` (frontend e `functions/`), Vitest e build.
+- Primi test su `rules/progression.ts` e `rules/rest.ts`.
+- Rimasto: test dei calcoli di `characterService` (dopo la Fase D), ESLint (rimandato), branch protection su `main` con `ci` come check obbligatorio (impostazione GitHub).
 - **Fatto quando**: la CI fallisce su errori di tipo o test rotti.
 
 ### Fase C — Pulizia

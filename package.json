@@ -9,6 +9,9 @@
     "build:live": "vite build --mode production",
     "build:staging": "vite build --mode staging",
     "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p . && tsc --noEmit -p functions",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "deploy:live": "firebase deploy --only hosting:live",
     "deploy:staging": "firebase deploy --only hosting:staging"
   },
@@ -34,6 +37,7 @@
     "tailwindcss": "^3.4.4",
     "typescript": "^5.4.5",
     "vite": "^5.2.13",
-    "vite-plugin-pwa": "^0.20.0"
+    "vite-plugin-pwa": "^0.20.0",
+    "vitest": "^2.1.9"
   }
 }
