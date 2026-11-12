@@ -51,7 +51,7 @@ export const StatInput: React.FC<StatInputProps> = ({ label, value, onChange, pl
             onChange(rawValue === '' ? '' : parseInt(rawValue, 10));
           }}
           placeholder={placeholder}
-          className={`no-spinner flex-1 min-w-0 bg-transparent border-0 text-center text-xl sm:text-2xl font-bold text-foreground focus:ring-0 focus:outline-none placeholder:text-muted-foreground/30 ${inputClassName}`}
+          className={`no-spinner flex-1 min-w-0 w-full bg-transparent border-0 px-0 py-1 text-center tabular-nums text-xl sm:text-2xl font-bold text-foreground focus:ring-0 focus:outline-none placeholder:text-muted-foreground/30 ${inputClassName}`}
         />
         <button type="button" onClick={handleIncrement} className={buttonClasses} aria-label="Aumenta">
           <PlusIcon className="w-4 h-4" />
