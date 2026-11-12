@@ -1,6 +1,8 @@
 import { initializeApp, FirebaseApp } from "firebase/app";
 import { getAuth, Auth } from "firebase/auth";
-import { getFirestore, Firestore } from "firebase/firestore";
+import {
+  getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, Firestore,
+} from "firebase/firestore";
 import { getStorage, FirebaseStorage } from "firebase/storage";
 
 // Firebase configuration is loaded from Vite's environment variables.
@@ -29,7 +31,19 @@ if (firebaseConfig.apiKey && firebaseConfig.projectId) {
     auth = getAuth(app);
     // Specify the non-default database ID. This is crucial for all Firestore
     // operations to target the correct database.
-    db = getFirestore(app, 'runica-db');
+    // Cache persistente (IndexedDB, condivisa tra schede): letture e scritture
+    // funzionano offline e si sincronizzano al ritorno della rete.
+    try {
+      db = initializeFirestore(
+        app,
+        { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) },
+        'runica-db',
+      );
+    } catch (cacheError) {
+      // IndexedDB non disponibile (es. navigazione privata) o Firestore già inizializzato.
+      console.warn("Firestore persistent cache unavailable, falling back to memory cache.", cacheError);
+      db = getFirestore(app, 'runica-db');
+    }
     storage = getStorage(app);
     console.log("Firebase initialized successfully.");
   } catch (error) {

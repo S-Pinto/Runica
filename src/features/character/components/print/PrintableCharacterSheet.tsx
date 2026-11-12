@@ -268,7 +268,10 @@ export const PrintableCharacterSheet = () => {
 
     useEffect(() => {
         if (characterId) {
-            getCharacter(characterId).then(setCharacter);
+            getCharacter(characterId).then(setCharacter).catch((error) => {
+                console.error('Failed to load character for print', error);
+                setCharacter(null);
+            });
         }
     }, [characterId]);
 

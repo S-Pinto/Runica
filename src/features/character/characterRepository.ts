@@ -8,9 +8,16 @@ import type { ICharacter } from './characterTypes';
 import { getFirebase } from '../../lib/getFirebase';
 import * as storageService from '../../services/storageService';
 import { createNewCharacter, mergeWithDefaults } from './rules/defaults';
+import { settleOrQueue } from '../../lib/async';
 import { cleanUndefinedValues, buildDuplicate, selectCharactersToMigrate } from './rules/characterData';
 
 const LOCAL_STORAGE_KEY = 'runica-characters';
+
+// Offline una scrittura Firestore si risolve solo al riscontro del server, ma il dato è
+// già nella cache locale e viene sincronizzato al ritorno della rete: non blocchiamo la UI.
+const WRITE_TIMEOUT_MS = 6000;
+const queueWrite = <T>(write: Promise<T>) =>
+    settleOrQueue(write, WRITE_TIMEOUT_MS, (error) => console.error('Scrittura Firestore fallita dopo il timeout', error));
 
 const getLocalCharacters = (): ICharacter[] => {
     try {
@@ -48,12 +55,22 @@ const getCharacterDocRef = (id: string) => {
     return coll ? doc(coll, id) : null;
 };
 
-export const onCharactersSnapshot = (callback: (characters: ICharacter[]) => void): (() => void) => {
+export const onCharactersSnapshot = (
+    callback: (characters: ICharacter[]) => void,
+    onError?: (error: unknown) => void,
+): (() => void) => {
     const coll = getCharactersCollection();
     if (coll) {
-        return onSnapshot(query(coll), (snapshot) => {
-            callback(snapshot.docs.map(d => mergeWithDefaults(d.data() as Partial<ICharacter>)));
-        });
+        return onSnapshot(
+            query(coll),
+            (snapshot) => {
+                callback(snapshot.docs.map(d => mergeWithDefaults(d.data() as Partial<ICharacter>)));
+            },
+            (error) => {
+                console.error('Character snapshot listener error', error);
+                onError?.(error);
+            },
+        );
     }
     callback(getLocalCharacters());
     return () => { };
@@ -75,7 +92,7 @@ export const saveCharacter = async (character: ICharacter): Promise<ICharacter> 
     const charToSave = cleanUndefinedValues({ ...character, lastUpdated: Date.now() });
     const docRef = getCharacterDocRef(charToSave.id);
     if (docRef) {
-        await setDoc(docRef, charToSave);
+        await queueWrite(setDoc(docRef, charToSave));
     } else {
         const characters = getLocalCharacters();
         const index = characters.findIndex(c => c.id === charToSave.id);
@@ -92,7 +109,7 @@ export const saveCharacter = async (character: ICharacter): Promise<ICharacter> 
 export const deleteCharacter = async (id: string): Promise<void> => {
     const docRef = getCharacterDocRef(id);
     if (docRef) {
-        await deleteDoc(docRef);
+        await queueWrite(deleteDoc(docRef));
     } else {
         saveLocalCharacters(getLocalCharacters().filter(c => c.id !== id));
     }
@@ -107,7 +124,7 @@ export const saveCharacterOrder = async (characters: ICharacter[]): Promise<void
         characters.forEach((char, index) => {
             batch.update(doc(coll, char.id), { order: index });
         });
-        await batch.commit();
+        await queueWrite(batch.commit());
     } else {
         saveLocalCharacters(characters.map((c, index) => ({ ...c, order: index })));
     }
@@ -118,7 +135,7 @@ export const getAllCharacters = async (): Promise<ICharacter[]> => {
     const coll = getCharactersCollection();
     if (coll) {
         const snapshot = await getDocs(coll);
-        return snapshot.docs.map(d => d.data() as ICharacter);
+        return snapshot.docs.map(d => mergeWithDefaults(d.data() as Partial<ICharacter>));
     }
     return getLocalCharacters();
 };
@@ -191,8 +208,15 @@ export const migrateLocalCharactersToCloud = async (): Promise<MigrationResult> 
     if (!coll || !user) return { status: 'unavailable' };
 
     const localCharacters = getLocalCharacters();
-    const cloudSnapshot = await getDocs(coll);
-    const cloudCharacters = cloudSnapshot.docs.map(d => d.data() as ICharacter);
+    let cloudCharacters: ICharacter[];
+    try {
+        const cloudSnapshot = await getDocs(coll);
+        cloudCharacters = cloudSnapshot.docs.map(d => d.data() as ICharacter);
+    } catch (error) {
+        // Offline: non si può confrontare col cloud, i dati locali restano intatti.
+        console.error('Failed to read cloud characters for migration:', error);
+        return { status: 'failed' };
+    }
     const toMigrate = selectCharactersToMigrate(localCharacters, cloudCharacters);
 
     if (toMigrate.length === 0) {
