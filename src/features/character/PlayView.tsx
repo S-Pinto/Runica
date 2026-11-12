@@ -1,8 +1,10 @@
-import { useState, useEffect, useRef, Suspense, lazy, FC, useCallback, createElement } from 'react';
+import { useState, useEffect, useRef, Suspense, lazy, FC, createElement } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import * as characterService from './characterService';
 import { useCharacter } from './CharacterProvider';
-import { BackIcon, EditIcon, ChevronLeftIcon, ChevronRightIcon, SparklesIcon, MoonIcon, PrinterIcon } from '../../components/ui/icons';
+import { BackIcon, EditIcon, SparklesIcon, MoonIcon, PrinterIcon, EllipsisVerticalIcon, UserGroupIcon, HeartIcon, StarIcon, SwordIcon, UserCircleIcon, ShieldIcon } from '../../components/ui/icons';
+import { Button } from '../../components/ui/Button';
+import { Menu, MenuItem } from '../../components/ui/Menu';
 import { AbilitiesDisplay } from './components/AbilitiesDisplay';
 import { ImageModal } from '../../components/ui/ImageModal';
 import { CompanionTab } from './components/play-view/CompanionTab';
@@ -21,14 +23,14 @@ const BioTabView = lazy(() => import('./components/play-view/InfoTabView'));
 const TabLoadingSpinner = () => <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-accent"></div></div>;
 
 
-const PLAY_TABS: { key: PlayTab; label: string }[] = [
-    { key: 'main', label: 'Main' },
-    { key: 'stats', label: 'Stats & Skills' },
-    { key: 'combat', label: 'Combat & Features' },
-    { key: 'bio', label: 'Biography & Notes' },
-    { key: 'inventory', label: 'Inventory' },
-    { key: 'spells', label: 'Spells' },
-    { key: 'companions', label: 'Companions' },
+const PLAY_TABS: { key: PlayTab; label: string; icon: FC<{ className?: string }> }[] = [
+    { key: 'main', label: 'Panoramica', icon: HeartIcon },
+    { key: 'stats', label: 'Caratteristiche', icon: StarIcon },
+    { key: 'combat', label: 'Combattimento', icon: SwordIcon },
+    { key: 'spells', label: 'Incantesimi', icon: SparklesIcon },
+    { key: 'inventory', label: 'Inventario', icon: ShieldIcon },
+    { key: 'bio', label: 'Biografia', icon: UserCircleIcon },
+    { key: 'companions', label: 'Compagni', icon: UserGroupIcon },
 ];
 
 const tabComponents: Record<PlayTab, React.ComponentType<any>> = {
@@ -48,11 +50,10 @@ export const PlayView: FC = () => {
     const { character, setCharacter, updateCharacter } = useCharacter();
     const [error, setError] = useState<string | null>(null);
     
-    const initialTab = (searchParams.get('tab') as PlayTab) || 'main';
+    const tabParam = searchParams.get('tab') as PlayTab | null;
+    const initialTab: PlayTab = tabParam && tabParam in tabComponents ? tabParam : 'main';
     const [activeTab, setActiveTab] = useState<PlayTab>(initialTab);
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
-    const [showLeftArrow, setShowLeftArrow] = useState(false);
-    const [showRightArrow, setShowRightArrow] = useState(false);
     const [isDiceModalOpen, setIsDiceModalOpen] = useState(false);
     const [diceMode, setDiceMode] = useState<'dock' | 'modal'>('dock');
     const isInitialMount = useRef(true);
@@ -82,11 +83,11 @@ export const PlayView: FC = () => {
                 if (charData) {
                     setCharacter(charData);
                 } else {
-                    setError('Character not found');
+                    setError('Personaggio non trovato');
                 }
             } catch (err) {
                 console.error("Failed to load character:", err);
-                setError('Failed to load character');
+                setError('Impossibile caricare il personaggio');
             }
         };
         loadCharacter();
@@ -109,28 +110,10 @@ export const PlayView: FC = () => {
 
     const tabContainerRef = useRef<HTMLDivElement>(null);
 
-    const checkScroll = useCallback(() => {
-        const container = tabContainerRef.current;
-        if (!container) return;
-
-        const isScrollable = container.scrollWidth > container.clientWidth;
-        setShowLeftArrow(isScrollable && container.scrollLeft > 0);
-        setShowRightArrow(isScrollable && container.scrollLeft < container.scrollWidth - container.clientWidth - 1);
-    }, []);
-
     useEffect(() => {
-        const container = tabContainerRef.current;
-        if (!container) return;
-
-        checkScroll();
-        window.addEventListener('resize', checkScroll);
-        container.addEventListener('scroll', checkScroll);
-
-        return () => {
-            window.removeEventListener('resize', checkScroll);
-            container.removeEventListener('scroll', checkScroll);
-        };
-    }, [character, checkScroll]);
+        const el = tabContainerRef.current?.querySelector<HTMLElement>('[aria-selected="true"]');
+        el?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+    }, [activeTab, character?.id]);
 
     const handleLongRest = async () => {
         if (!character) return;
@@ -164,144 +147,135 @@ export const PlayView: FC = () => {
 
     if (error) {
         return (
-            <div className="flex flex-col justify-center items-center h-screen gap-4">
-                <div className="text-destructive text-xl font-bold">{error}</div>
-                <button
-                    onClick={() => navigate('/')}
-                    className="flex items-center gap-2 px-4 py-2 bg-accent/20 hover:bg-accent/30 text-accent rounded-lg transition-colors border border-accent/20"
-                >
-                    <BackIcon className="w-5 h-5" />
-                    Back to List
-                </button>
+            <div className="mx-auto flex max-w-md flex-col items-center gap-4 px-4 py-24 text-center">
+                <p className="font-cinzel text-2xl font-bold text-foreground">{error}</p>
+                <p className="text-sm text-muted-foreground">Il personaggio potrebbe essere stato eliminato o non essere ancora sincronizzato.</p>
+                <Button variant="secondary" onClick={() => navigate('/')}>
+                    <BackIcon className="h-4 w-4" /> Torna ai tuoi eroi
+                </Button>
             </div>
         );
     }
 
     if (!character) {
-        return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-accent"></div></div>;
+        return (
+            <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6" aria-busy="true" aria-label="Caricamento personaggio">
+                <div className="h-28 animate-pulse rounded-2xl bg-muted/30" />
+                <div className="h-12 animate-pulse rounded-xl bg-muted/20" />
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                        <div key={i} className="h-24 animate-pulse rounded-2xl bg-muted/20" />
+                    ))}
+                </div>
+            </div>
+        );
     }
 
+    const subtitle = [
+        character.race,
+        character.class && (character.subclass ? `${character.class} (${character.subclass})` : character.class),
+        `Livello ${character.level || 1}`,
+    ].filter(Boolean).join(' · ');
+
+    const menuItems: MenuItem[] = [
+        { label: 'Stampa scheda', icon: <PrinterIcon />, onSelect: () => window.open(`/character/${characterId}/print`, '_blank') },
+        ...(diceMode === 'modal' ? [{ label: 'Apri dadiera', icon: <SparklesIcon />, onSelect: () => setIsDiceModalOpen(true) }] : []),
+    ];
+
     return (
-        <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:pt-6 space-y-6 pb-24">
-            {/* Top Interactive Session Header */}
-            <header className="bg-card/40 backdrop-blur-md p-4 sm:p-6 rounded-2xl border border-border/60 shadow-xl space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
+        <div className="mx-auto max-w-7xl space-y-6 p-4 pb-28 sm:p-6 sm:pb-28">
+            {/* Identity header */}
+            <header className="relative overflow-hidden rounded-2xl border border-border/60 bg-card p-4 sm:p-5">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_0%_0%,rgb(var(--color-accent)/0.14),transparent_55%)]" />
+                <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center">
+                    <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
                         <button
+                            type="button"
                             onClick={() => navigate('/')}
-                            className="p-2 rounded-xl bg-secondary/60 hover:bg-accent hover:text-accent-foreground transition-all"
-                            title="Torna alla Lista"
+                            aria-label="Torna ai tuoi eroi"
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         >
-                            <BackIcon className="w-5 h-5" />
+                            <BackIcon className="h-5 w-5" />
                         </button>
-                        {character.imageUrl && (
-                            <img
-                                src={character.imageUrl}
-                                alt={character.name}
-                                className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-accent shadow-md cursor-pointer hover:scale-105 transition-transform"
+                        {character.imageUrl ? (
+                            <button
+                                type="button"
                                 onClick={() => setIsImageModalOpen(true)}
-                            />
-                        )}
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <h1 className="text-2xl sm:text-3xl font-cinzel font-bold text-accent">{character.name}</h1>
-                                {character.campaignName && (
-                                    <span className="text-[10px] bg-accent/20 text-accent font-bold px-2 py-0.5 rounded-full border border-accent/30">
-                                        {character.campaignName}
-                                    </span>
-                                )}
+                                aria-label="Ingrandisci ritratto"
+                                className="shrink-0 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            >
+                                <img
+                                    src={character.imageUrl}
+                                    alt=""
+                                    className="h-14 w-14 rounded-2xl border border-accent/50 object-cover shadow-[0_0_20px_rgb(var(--color-accent)/0.25)] transition-transform hover:scale-105 sm:h-16 sm:w-16"
+                                />
+                            </button>
+                        ) : (
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-accent/40 bg-accent/10 font-cinzel text-xl font-bold text-accent sm:h-16 sm:w-16 sm:text-2xl">
+                                {(character.name || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase()).join('')}
                             </div>
-                            <p className="text-muted-foreground capitalize text-xs sm:text-sm mt-1">
-                                {character.race} &bull; {character.class} {character.subclass && `(${character.subclass})`} &bull; Livello {character.level || 1}
-                            </p>
+                        )}
+                        <div className="min-w-0">
+                            <h1 className="truncate font-cinzel text-2xl font-bold text-foreground sm:text-3xl">{character.name || 'Senza nome'}</h1>
+                            <p className="truncate text-sm capitalize text-muted-foreground">{subtitle}</p>
+                            {character.campaignName && (
+                                <span className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent">
+                                    <UserGroupIcon className="h-3.5 w-3.5" />
+                                    {character.campaignName}
+                                </span>
+                            )}
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 self-end sm:self-center">
-                        {diceMode === 'modal' && (
-                            <button
-                                onClick={() => setIsDiceModalOpen(true)}
-                                className="flex items-center gap-1.5 px-3 py-2 bg-accent/20 border border-accent/40 text-accent font-bold text-xs rounded-xl hover:bg-accent/30 transition-all"
-                            >
-                                <SparklesIcon className="w-4 h-4" /> Dadiere
-                            </button>
-                        )}
-                        <button
-                            onClick={handleLongRest}
-                            className="flex items-center gap-1.5 px-3 py-2 bg-indigo-950/60 border border-indigo-500/40 text-indigo-300 font-bold text-xs rounded-xl hover:bg-indigo-900/60 transition-all"
-                            title="Riposo Lungo (Reset HP e Slot)"
-                        >
-                            <MoonIcon className="w-4 h-4" /> Riposo Lungo
-                        </button>
-                        <button
-                            onClick={() => window.open(`/character/${characterId}/print`, '_blank')}
-                            className="flex items-center gap-1.5 px-3 py-2 bg-secondary/60 hover:bg-secondary border border-border/50 text-foreground font-bold text-xs rounded-xl transition-all"
-                            title="Stampa Scheda"
-                        >
-                            <PrinterIcon className="w-4 h-4" /> Stampa
-                        </button>
-                        <button
-                            onClick={() => navigate(`/character/${characterId}/edit?tab=${activeTab}`)}
-                            className="flex items-center gap-1.5 px-3.5 py-2 bg-accent text-accent-foreground font-bold text-xs rounded-xl shadow-md hover:bg-accent-light transition-all"
-                        >
-                            <EditIcon className="w-4 h-4" /> Modifica
-                        </button>
+                    <div className="flex items-center gap-2">
+                        <Button variant="secondary" onClick={handleLongRest} className="flex-1 sm:flex-none" title="Ripristina PV, slot e cariche">
+                            <MoonIcon className="h-4 w-4" /> <span>Riposo<span className="hidden sm:inline"> lungo</span></span>
+                        </Button>
+                        <Button onClick={() => navigate(`/character/${characterId}/edit?tab=${activeTab}`)} className="flex-1 sm:flex-none">
+                            <EditIcon className="h-4 w-4" /> Modifica
+                        </Button>
+                        <Menu
+                            label="Altre azioni"
+                            trigger={<EllipsisVerticalIcon className="h-5 w-5" />}
+                            items={menuItems}
+                            triggerClassName="flex h-10 w-10 items-center justify-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-accent/60 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        />
                     </div>
                 </div>
             </header>
 
-            {/* Navigation Tabs Bar */}
-            <div className="relative">
-                <div
-                    ref={tabContainerRef}
-                    role="tablist"
-                    className="flex space-x-1 border-b border-border overflow-x-auto no-scrollbar"
-                >
+            {/* Sticky section navigation (sits under the 5rem app header) */}
+            <nav className="sticky top-20 z-40 -mx-4 border-b border-border bg-background/85 px-2 backdrop-blur-xl sm:mx-0 sm:rounded-xl sm:border sm:px-1">
+                <div ref={tabContainerRef} role="tablist" aria-label="Sezioni della scheda" className="no-scrollbar flex overflow-x-auto">
                     {PLAY_TABS.map(tab => (
                         <TabButton
                             key={tab.key}
                             id={`play-tab-${tab.key}`}
                             controls={`play-panel-${tab.key}`}
                             label={tab.label}
+                            icon={tab.icon}
                             isActive={activeTab === tab.key}
                             onClick={() => handleTabChange(tab.key)}
                         />
                     ))}
                 </div>
-                {showLeftArrow && (
-                    <div className="absolute left-0 top-0 bottom-0 flex items-center bg-gradient-to-r from-background to-transparent pr-8 pointer-events-none">
-                        <button onClick={() => tabContainerRef.current?.scrollBy({ left: -200, behavior: 'smooth' })} className="p-1 rounded-full bg-card/50 hover:bg-accent text-foreground hover:text-accent-foreground transition-colors pointer-events-auto"><ChevronLeftIcon className="w-5 h-5" /></button>
-                    </div>
-                )}
-                {showRightArrow && (
-                    <div className="absolute right-0 top-0 bottom-0 flex items-center bg-gradient-to-l from-background to-transparent pl-8 pointer-events-none">
-                        <button onClick={() => tabContainerRef.current?.scrollBy({ left: 200, behavior: 'smooth' })} className="p-1 rounded-full bg-card/50 hover:bg-accent text-foreground hover:text-accent-foreground transition-colors pointer-events-auto"><ChevronRightIcon className="w-5 h-5" /></button>
-                    </div>
-                )}
-            </div>
+            </nav>
 
-            {/* Active Tab View Panel */}
-            <main id={`play-panel-${activeTab}`} role="tabpanel" className="py-2">
+            <main id={`play-panel-${activeTab}`} role="tabpanel" aria-labelledby={`play-tab-${activeTab}`} key={activeTab} className="animate-fadeIn">
                 <Suspense fallback={<TabLoadingSpinner />}>
                     {createElement(tabComponents[activeTab], { readOnly: true })}
                 </Suspense>
             </main>
 
-            {/* Dice Roller Integration */}
             {diceMode === 'dock' && <DiceRoller mode="dock" />}
             {diceMode === 'modal' && (
-                <DiceRoller
-                    mode="modal"
-                    isOpen={isDiceModalOpen}
-                    onClose={() => setIsDiceModalOpen(false)}
-                />
+                <DiceRoller mode="modal" isOpen={isDiceModalOpen} onClose={() => setIsDiceModalOpen(false)} />
             )}
 
-            {/* Image Modal */}
             {isImageModalOpen && character.imageUrl && (
                 <ImageModal
                     imageUrl={character.imageUrl}
-                    altText={`Profile image for ${character.name}`}
+                    altText={`Ritratto di ${character.name}`}
                     onClose={() => setIsImageModalOpen(false)}
                 />
             )}
