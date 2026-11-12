@@ -13,8 +13,13 @@ import { ICharacter } from '../features/character/characterTypes';
 // Interfaccia per definire cosa ci aspettiamo dalla Cloud Function
 interface GeminiFunctionResponse {
     success: boolean;
-    response: string; // Questa sarà la stringa JSON restituita da Gemini
+    // Oggetto JSON già analizzato dal server (non una stringa).
+    response: Partial<Record<keyof PersonalityFields, unknown>> | null;
 }
+
+// Lunghezza massima dei testi liberi inseriti nel prompt (il server limita a 2000 caratteri totali).
+const MAX_FIELD_LENGTH = 200;
+const clip = (value: unknown): string => String(value ?? '').slice(0, MAX_FIELD_LENGTH);
 
 interface PersonalityFields {
     personalityTraits: string;
@@ -50,12 +55,12 @@ export const generatePersonality = async (character: ICharacter, customPrompt?: 
     const prompt = `
      Generate personality aspects for a Dungeons & Dragons character.
      Based on the following details:
-     - Name: ${name}
-     - Race: ${race}
-     - Class: ${characterClass}
-     - Background: ${background}
-     - Alignment: ${alignment}
-     ${customPrompt ? `\n- Additional Theme: "${customPrompt}"` : ''}
+     - Name: ${clip(name)}
+     - Race: ${clip(race)}
+     - Class: ${clip(characterClass)}
+     - Background: ${clip(background)}
+     - Alignment: ${clip(alignment)}
+     ${customPrompt ? `\n- Additional Theme: "${clip(customPrompt)}"` : ''}
 
      Return a JSON object with four keys: "personalityTraits", "ideals", "bonds", and "flaws".
      - "personalityTraits": A short paragraph describing the character's general demeanor.
@@ -70,20 +75,18 @@ export const generatePersonality = async (character: ICharacter, customPrompt?: 
         const callGeminiFunction = getCallable();
         const result: HttpsCallableResult<GeminiFunctionResponse> = await callGeminiFunction(prompt);
 
-        if (!result.data.success || !result.data.response) {
-            throw new Error("La Cloud Function ha riportato un errore: " + result.data.response);
+        const parsedData = result.data.response;
+        if (!result.data.success || !parsedData || typeof parsedData !== 'object') {
+            throw new Error("La Cloud Function ha restituito una risposta non valida.");
         }
 
-        // La tua logica di parsing JSON è perfetta e la riutilizziamo qui.
-        // La Cloud Function ci restituisce una stringa JSON, che noi parsifichiamo.
-        const jsonStr = result.data.response.trim();
-        const parsedData = JSON.parse(jsonStr);
-
+        // Il server restituisce già l'oggetto JSON: nessun JSON.parse lato client.
+        const asText = (v: unknown) => (typeof v === 'string' ? v : "");
         return {
-            personalityTraits: parsedData.personalityTraits || "",
-            ideals: parsedData.ideals || "",
-            bonds: parsedData.bonds || "",
-            flaws: parsedData.flaws || "",
+            personalityTraits: asText(parsedData.personalityTraits),
+            ideals: asText(parsedData.ideals),
+            bonds: asText(parsedData.bonds),
+            flaws: asText(parsedData.flaws),
         };
 
     } catch (error) {
