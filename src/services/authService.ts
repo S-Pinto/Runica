@@ -29,7 +29,7 @@ export const signOutUser = (): Promise<void> => {
     }
 };
 
-export const onAuthSateChangedListener = (callback: (user: User | null) => void) => {
+export const onAuthStateChangedListener = (callback: (user: User | null) => void) => {
     try {
         const { auth } = getFirebase();
         return onAuthStateChanged(auth, callback);

@@ -7,7 +7,7 @@ import { AuthProvider } from './providers/AuthProvider';
 import { ThemeProvider } from './providers/ThemeProvider';
 import { router } from './routes/index';
 import { DialogHost } from './components/ui/Dialogs';
-import './lib/firebaseConfig'; // Importa per l'effetto di inizializzazione di Firebase
+import './lib/getFirebase'; // Importa per l'effetto di inizializzazione di Firebase
 import './index.css';
 
 

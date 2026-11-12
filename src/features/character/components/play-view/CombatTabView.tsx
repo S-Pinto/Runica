@@ -223,9 +223,9 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
 
                                         {/* Mastery Description */}
                                         {hasMastery && (
-                                            <div className="bg-purple-500/5 border border-purple-500/20 rounded-lg p-3 mt-2">
+                                            <div className="bg-accent/5 border border-accent/20 rounded-lg p-3 mt-2">
                                                 <div className="flex items-center gap-2 mb-1.5">
-                                                    <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                                                    <span className="text-[10px] font-bold text-accent uppercase tracking-wider flex items-center gap-1.5">
                                                         <SwordIcon className="w-3 h-3" />
                                                         Maestria: {hasMastery.name}
                                                     </span>
@@ -251,7 +251,7 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
                                                     key={`atk-${i}`}
                                                     className={`flex flex-col p-2 rounded-lg border text-xs font-mono shadow-sm animate-in slide-in-from-left-2 fade-in duration-300
                                                         ${roll.isCrit
-                                                            ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-500'
+                                                            ? 'bg-warning/20 border-warning/50 text-warning'
                                                             : roll.isFail
                                                                 ? 'bg-destructive/10 border-destructive/30 text-destructive'
                                                                 : 'bg-background/40 border-border/30 text-foreground'
@@ -443,16 +443,16 @@ const ActiveMagicItems = ({ equipment, onUpdate }: { equipment: EquipmentItem[];
     };
 
     return (
-        <div className="bg-purple-500/10 backdrop-blur-sm p-4 rounded-2xl border border-purple-500/30 space-y-3">
-            <h4 className="text-sm font-bold text-purple-300 uppercase tracking-wider flex items-center gap-2">
+        <div className="bg-accent/10 backdrop-blur-sm p-4 rounded-2xl border border-accent/30 space-y-3">
+            <h4 className="text-sm font-bold text-accent uppercase tracking-wider flex items-center gap-2">
                 <span>⚡</span> Oggetti magici equipaggiati
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {activeItems.map(item => (
-                    <div key={item.id} className="bg-card/60 p-3 rounded-xl border border-purple-500/20 flex flex-col justify-between gap-2 shadow-sm">
+                    <div key={item.id} className="bg-card/60 p-3 rounded-xl border border-accent/20 flex flex-col justify-between gap-2 shadow-sm">
                         <div className="flex items-center justify-between gap-2">
                             <span className="font-bold text-foreground text-xs truncate">{item.name}</span>
-                            <span className="text-[11px] font-mono font-bold text-purple-300 bg-purple-500/20 px-2 py-0.5 rounded">
+                            <span className="text-[11px] font-mono font-bold text-accent bg-accent/20 px-2 py-0.5 rounded">
                                 {item.charges?.current} / {item.charges?.max} Usi
                             </span>
                         </div>
@@ -462,7 +462,7 @@ const ActiveMagicItems = ({ equipment, onUpdate }: { equipment: EquipmentItem[];
                         <button
                             onClick={() => handleUse(item.id)}
                             disabled={(item.charges?.current || 0) <= 0}
-                            className="w-full py-1 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs rounded-lg transition-all flex items-center justify-center gap-1 shadow-sm"
+                            className="w-full py-1 bg-accent hover:bg-accent-dark disabled:opacity-40 disabled:cursor-not-allowed text-accent-foreground font-bold text-xs rounded-lg transition-all flex items-center justify-center gap-1 shadow-sm"
                         >
                             ⚡ Usa capacità
                         </button>

@@ -169,7 +169,7 @@ Palette scura e neutra con un unico accento caldo che cambia per tema; i ruoli s
 ### Named Rules
 **The One Ink Rule.** Ogni tema ha un solo accento. Nuovi colori di ruolo non si aggiungono nei componenti: se serve un significato nuovo, diventa un token in `src/index.css` per tutti i temi.
 
-**The Token-Only Rule.** Nessun colore Tailwind fisso (`purple-500`, `zinc-800`, `#hex`) nei componenti: oggi ce ne sono ~150 e ognuno rompe almeno un tema. Si usa sempre un ruolo (`bg-card`, `text-accent`, `border-border/50`).
+**The Token-Only Rule.** Nessun colore Tailwind fisso (`purple-500`, `zinc-800`, `#hex`) nei componenti: rimossi nella Fase C; solo eccezioni documentate. Si usa sempre un ruolo (`bg-card`, `text-accent`, `border-border/50`).
 
 ## Typography
 

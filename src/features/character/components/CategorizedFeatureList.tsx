@@ -169,7 +169,7 @@ const CategorySection = ({
                 <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); onAdd(category); }}
-                    className={`flex items-center gap-1.5 text-xs bg-${config.color}/10 hover:bg-${config.color} text-${config.color} hover:text-white border border-${config.color}/20 rounded-lg px-3 py-1.5 transition-all font-bold uppercase tracking-wide`}
+                    className={`flex items-center gap-1.5 text-xs bg-${config.color}/10 hover:bg-${config.color} text-${config.color} hover:text-accent-foreground border border-${config.color}/20 rounded-lg px-3 py-1.5 transition-all font-bold uppercase tracking-wide`}
                 >
                     <PlusCircleIcon className="w-4 h-4" />
                     Aggiungi

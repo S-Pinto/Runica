@@ -119,12 +119,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onSettingsClick }) => {
         <div
           className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold tracking-wide transition-all shadow-sm ${
             isOnline
-              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-              : 'bg-rose-500/10 text-rose-400 border-rose-500/30 animate-pulse'
+              ? 'bg-success/10 text-success border-success/30'
+              : 'bg-destructive/10 text-destructive border-destructive/30 animate-pulse'
           }`}
           title={isOnline ? 'Online' : 'Offline: i dati restano su questo dispositivo'}
         >
-          <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400 shadow-[0_0_10px_#34d399]' : 'bg-rose-500 shadow-[0_0_10px_#f43f5e]'}`} />
+          <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-success shadow-[0_0_10px_rgb(var(--color-success))]' : 'bg-destructive shadow-[0_0_10px_rgb(var(--color-destructive))]'}`} />
           <span className="hidden sm:inline font-mono uppercase text-[11px]">{isOnline ? 'Online' : 'Offline'}</span>
         </div>
 

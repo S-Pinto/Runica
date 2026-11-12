@@ -44,7 +44,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(false);
     };
 
-    const unsubscribe = authService.onAuthSateChangedListener(handleUserLogin);
+    const unsubscribe = authService.onAuthStateChangedListener(handleUserLogin);
 
     return unsubscribe; // Cleanup subscription on unmount
   }, []);

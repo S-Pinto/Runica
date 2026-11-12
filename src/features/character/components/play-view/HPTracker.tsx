@@ -128,7 +128,7 @@ export const HPTracker = () => {
                         type="button"
                         onClick={applyHeal}
                         disabled={value <= 0 || hp.current >= hp.max}
-                        className="flex h-12 items-center justify-center gap-1.5 rounded-xl bg-success/15 text-sm font-semibold text-success transition-all hover:bg-success hover:text-white active:scale-[0.97] disabled:opacity-40 disabled:hover:bg-success/15 disabled:hover:text-success"
+                        className="flex h-12 items-center justify-center gap-1.5 rounded-xl bg-success/15 text-sm font-semibold text-success transition-all hover:bg-success hover:text-background active:scale-[0.97] disabled:opacity-40 disabled:hover:bg-success/15 disabled:hover:text-success"
                     >
                         <PlusIcon className="h-4 w-4" /> Cura
                     </button>

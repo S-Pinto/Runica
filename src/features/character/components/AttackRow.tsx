@@ -238,7 +238,7 @@ export const AttackRow: React.FC<AttackRowProps> = ({
         {(attack.mastery || (attack.properties && attack.properties.length > 0)) && (
           <div className="flex flex-wrap gap-2 items-center pt-1 border-t border-border/30">
             {attack.mastery && (
-              <span className="bg-purple-500/15 text-purple-300 px-2.5 py-1 rounded-lg border border-purple-500/30 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1 shadow-sm">
+              <span className="bg-accent/15 text-accent px-2.5 py-1 rounded-lg border border-accent/30 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1 shadow-sm">
                 ✨ {WEAPON_MASTERIES[attack.mastery]?.name ?? attack.mastery}
               </span>
             )}

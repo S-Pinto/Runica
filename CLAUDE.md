@@ -81,7 +81,7 @@ src/
   services/          authService, storageService, geminiService, campaignService
   api/               characterApi (chiamata PDF)
   data/              tabelle statiche (condizioni, proprietà armi)
-  lib/               firebaseConfig, getFirebase, labels, debounce
+  lib/               getFirebase (init + accesso), labels, debounce
   hooks/             useFirebase, useIsTouchDevice
 functions/src/
   index.ts           esporta callGemini, generateCharacterPDF
@@ -129,7 +129,7 @@ functions/src/
 5. Immagini Storage leggibili da chiunque.
 6. `characterService` mescola I/O, regole e UI (importa `Dialogs`); `AuthProvider` dipende da `characterService`.
 7. File molto grandi: `CharacterSheet` (~850 righe), `EquipmentList` (~750), `PrintableCharacterSheet` (~660), `CombatTabView` (~535).
-8. Residui: `firebaseConfig.ts` + `getFirebase.ts` duplicati, `public/odl.service-worker.js`, `public/old.manifest.json`, `netlify.toml`, `metadata.json`, `src/components/ui/label` senza estensione, refuso `onAuthSateChangedListener`, classe `text-text-main` non definita in `App.tsx`, README di AI Studio non aggiornato.
+8. ~~Residui~~ — risolti nella Fase C (file inutilizzati rimossi, `firebaseConfig` unito in `getFirebase`, refuso e classe mancante corretti, README riscritto).
 9. Copertura test limitata a `rules/progression.ts` e `rules/rest.ts`; i calcoli di `characterService` non sono testabili finché restano mescolati a Firebase e UI (Fase D). Nessun ESLint.
 
 ## Roadmap del refactor
@@ -148,8 +148,10 @@ Ogni fase è indipendente: si può fare in qualsiasi ordine, con un branch e una
 - Rimasto: test dei calcoli di `characterService` (dopo la Fase D), ESLint (rimandato), branch protection su `main` con `ci` come check obbligatorio (impostazione GitHub).
 - **Fatto quando**: la CI fallisce su errori di tipo o test rotti.
 
-### Fase C — Pulizia
-- Rimuovere i residui elencati al punto 8, unificare `firebaseConfig`/`getFirebase`, correggere il refuso e la classe mancante, riscrivere il README.
+### Fase C — Pulizia — fatta
+- Rimossi i residui del punto 8, unificati `firebaseConfig`/`getFirebase`, corretti refuso e classe mancante, riscritto il README.
+- Sostituiti i colori Tailwind fissi nei componenti con i token del tema (viola/blu/ciano/indaco → `accent`, giallo/arancio → `warning`, verde → `success`, rosso/rosa → `destructive`). Restano volutamente: i riquadri colore di `SettingsModal` (anteprime dei temi), gli overlay `bg-black/*` dei dialoghi e le icone SVG di Google.
+- `CATEGORY_CONFIG` usa ora `accent` per tutte le categorie (le classi dinamiche `text-${color}` non venivano generate da Tailwind).
 - **Fatto quando**: nessun file inutilizzato e build invariata.
 
 ### Fase D — Separazione del servizio personaggi

@@ -32,7 +32,7 @@ export const LoginPage: React.FC = () => {
         <p className="text-muted-foreground mb-8">
           Accedi con Google per sincronizzare i personaggi tra i tuoi dispositivi.
         </p>
-        <button onClick={handleSignIn} className="flex items-center justify-center gap-3 w-full px-6 py-3 bg-white text-background font-bold rounded-lg shadow-md hover:bg-foreground transition-colors">
+        <button onClick={handleSignIn} className="flex items-center justify-center gap-3 w-full px-6 py-3 bg-foreground text-background font-bold rounded-lg shadow-md hover:bg-foreground/90 transition-colors">
           <GoogleIcon className="w-6 h-6" />
           Accedi con Google
         </button>

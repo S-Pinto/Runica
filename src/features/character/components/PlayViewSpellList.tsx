@@ -71,19 +71,19 @@ export const PlayViewSpellList = () => {
             </button>
             <button
               onClick={() => setCastingTimeFilter('action')}
-              className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${castingTimeFilter === 'action' ? 'bg-blue-500/20 text-blue-400 shadow-sm border border-blue-500/30' : 'text-muted-foreground hover:bg-background/50 hover:text-blue-400'}`}
+              className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${castingTimeFilter === 'action' ? 'bg-accent/20 text-accent shadow-sm border border-accent/30' : 'text-muted-foreground hover:bg-background/50 hover:text-accent'}`}
             >
               Azione
             </button>
             <button
               onClick={() => setCastingTimeFilter('bonus')}
-              className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${castingTimeFilter === 'bonus' ? 'bg-orange-500/20 text-orange-400 shadow-sm border border-orange-500/30' : 'text-muted-foreground hover:bg-background/50 hover:text-orange-400'}`}
+              className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${castingTimeFilter === 'bonus' ? 'bg-warning/20 text-warning shadow-sm border border-warning/30' : 'text-muted-foreground hover:bg-background/50 hover:text-warning'}`}
             >
               Bonus
             </button>
             <button
               onClick={() => setCastingTimeFilter('reaction')}
-              className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${castingTimeFilter === 'reaction' ? 'bg-yellow-500/20 text-yellow-400 shadow-sm border border-yellow-500/30' : 'text-muted-foreground hover:bg-background/50 hover:text-yellow-400'}`}
+              className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${castingTimeFilter === 'reaction' ? 'bg-warning/20 text-warning shadow-sm border border-warning/30' : 'text-muted-foreground hover:bg-background/50 hover:text-warning'}`}
             >
               Reazione
             </button>
