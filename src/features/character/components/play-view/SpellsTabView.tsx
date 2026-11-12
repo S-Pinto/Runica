@@ -1,64 +1,68 @@
 import { useCharacter } from '../../CharacterProvider';
 import { getModifier, formatModifier } from '../../utils/characterUtils';
-import { StatBox } from '../ui/StatBox';
 import { ResourceTracker } from './ResourceTracker';
 import { PlayViewSpellList } from '../PlayViewSpellList';
 import { SparklesIcon } from '../../../../components/ui/icons';
+import { abilityLabel } from '../../../../lib/labels';
 
 const SpellsTabView = () => {
     const { character, updateCharacter } = useCharacter();
     if (!character) return null;
-    const spellcastingAbility = character.spellcastingAbility;
-    const spellcastingModifier = spellcastingAbility ? getModifier(character.abilityScores[spellcastingAbility]) : 0;
-    const spellSaveDC = spellcastingAbility ? 8 + character.proficiencyBonus + spellcastingModifier : '-';
-    const spellAttackBonus = spellcastingAbility ? character.proficiencyBonus + spellcastingModifier : 0;
+
+    const ability = character.spellcastingAbility;
+    const mod = ability ? getModifier(character.abilityScores[ability]) : 0;
+    const saveDC = ability ? 8 + character.proficiencyBonus + mod : '–';
+    const attackBonus = ability ? formatModifier(character.proficiencyBonus + mod) : '–';
 
     return (
-        <div className="flex flex-col gap-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="bg-card/30 backdrop-blur-sm p-6 rounded-2xl border border-border/50 shadow-lg shadow-accent/5 flex flex-col justify-between relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <SparklesIcon className="w-24 h-24 text-accent" />
-                    </div>
-
-                    <h3 className="text-xl font-cinzel text-accent mb-6 text-center flex items-center justify-center gap-2 relative z-10">
-                        <SparklesIcon className="w-5 h-5 text-accent" />
-                        Spellcasting
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+            <aside className="space-y-6 lg:sticky lg:top-40">
+                <section aria-labelledby="spellcasting-title" className="rounded-2xl border border-border/60 bg-card p-5">
+                    <h3 id="spellcasting-title" className="mb-4 flex items-center gap-2 font-cinzel text-lg font-bold text-foreground">
+                        <SparklesIcon className="h-5 w-5 text-accent" /> Capacità magiche
                     </h3>
+                    {ability ? (
+                        <>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="rounded-xl border border-accent/30 bg-accent/10 p-3 text-center">
+                                    <p className="font-mono text-3xl font-bold text-accent">{saveDC}</p>
+                                    <p className="mt-1 text-xs text-muted-foreground">CD tiro salvezza</p>
+                                </div>
+                                <div className="rounded-xl border border-accent/30 bg-accent/10 p-3 text-center">
+                                    <p className="font-mono text-3xl font-bold text-accent">{attackBonus}</p>
+                                    <p className="mt-1 text-xs text-muted-foreground">Bonus d'attacco</p>
+                                </div>
+                            </div>
+                            <p className="mt-3 text-center text-sm text-muted-foreground">
+                                Caratteristica: <span className="font-semibold text-foreground">{abilityLabel(ability)}</span>{' '}
+                                <span className="font-mono text-accent">({formatModifier(mod)})</span>
+                            </p>
+                        </>
+                    ) : (
+                        <p className="rounded-xl bg-background/40 py-4 text-center text-sm italic text-muted-foreground">
+                            Nessuna caratteristica da incantatore. Impostala in Modifica.
+                        </p>
+                    )}
+                </section>
 
-                    <div className="space-y-6 relative z-10">
-                        <div className="grid grid-cols-2 gap-4">
-                            <StatBox
-                                label="Save DC"
-                                value={spellSaveDC}
-                                className="bg-background/40 border-border/40 hover:border-accent/30 transition-colors"
-                            />
-                            <StatBox
-                                label="Attack Bonus"
-                                value={formatModifier(spellAttackBonus)}
-                                className="bg-background/40 border-border/40 hover:border-accent/30 transition-colors"
-                            />
-                        </div>
-
-                        <div className="bg-background/40 rounded-xl p-3 border border-border/40 text-center relative overflow-hidden">
-                            {spellcastingAbility ? (
-                                <>
-                                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Spellcasting Ability</p>
-                                    <p className="text-2xl font-cinzel font-bold text-foreground capitalize">{spellcastingAbility}</p>
-                                    <p className="text-sm font-mono text-accent font-bold mt-1">({formatModifier(spellcastingModifier)})</p>
-                                </>
-                            ) : (
-                                <p className="text-muted-foreground text-sm italic py-2">No spellcasting ability set</p>
-                            )}
-                        </div>
-                    </div>
-                </div>
-                <ResourceTracker title="Spell Slots" slots={character.spellSlots} onSlotChange={(newSlots) => updateCharacter({ spellSlots: newSlots })} />
+                <ResourceTracker
+                    title="Slot incantesimo"
+                    slots={character.spellSlots}
+                    onSlotChange={(newSlots) => updateCharacter({ spellSlots: newSlots })}
+                />
                 {character.customResources && character.customResources.length > 0 && (
-                    <ResourceTracker title="Other Resources" slots={character.customResources} onSlotChange={(newResources) => updateCharacter({ customResources: newResources })} isCustom />
+                    <ResourceTracker
+                        title="Altre risorse"
+                        slots={character.customResources}
+                        onSlotChange={(newResources) => updateCharacter({ customResources: newResources })}
+                        isCustom
+                    />
                 )}
+            </aside>
+
+            <div className="lg:col-span-2">
+                <PlayViewSpellList />
             </div>
-            <PlayViewSpellList />
         </div>
     );
 };

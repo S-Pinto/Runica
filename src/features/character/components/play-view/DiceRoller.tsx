@@ -202,7 +202,7 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({ mode = 'dock', isOpen = 
         <div className="bg-card border border-border rounded-2xl shadow-2xl p-6 w-full max-w-sm relative">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-cinzel font-bold text-accent flex items-center gap-2">
-              <SparklesIcon className="w-5 h-5" /> Dice Roller
+              <SparklesIcon className="w-5 h-5" /> Dadiera
             </h3>
             {onClose && (
               <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted">
@@ -225,7 +225,7 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({ mode = 'dock', isOpen = 
           className="w-full px-4 py-3 bg-accent/15 hover:bg-accent/25 flex items-center justify-between text-accent font-bold text-sm transition-all"
         >
           <div className="flex items-center gap-2 font-cinzel">
-            <SparklesIcon className="w-4 h-4" /> Dice Roller
+            <SparklesIcon className="w-4 h-4" /> Dadiera
           </div>
           {isExpanded ? <ChevronDownIcon className="w-5 h-5" /> : <ChevronUpIcon className="w-5 h-5" />}
         </button>

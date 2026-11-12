@@ -1,0 +1,60 @@
+/**
+ * Italian display labels for D&D 5e terms.
+ * Stored data keeps the English keys (e.g. skill.name === 'Perception');
+ * use these maps only when rendering.
+ */
+import type { AbilityScores } from '../features/character/characterTypes';
+
+export const ABILITY_LABELS: Record<keyof AbilityScores, string> = {
+  strength: 'Forza',
+  dexterity: 'Destrezza',
+  constitution: 'Costituzione',
+  intelligence: 'Intelligenza',
+  wisdom: 'Saggezza',
+  charisma: 'Carisma',
+};
+
+export const ABILITY_SHORT: Record<keyof AbilityScores, string> = {
+  strength: 'FOR',
+  dexterity: 'DES',
+  constitution: 'COS',
+  intelligence: 'INT',
+  wisdom: 'SAG',
+  charisma: 'CAR',
+};
+
+export const SKILL_LABELS: Record<string, string> = {
+  Acrobatics: 'Acrobazia',
+  'Animal Handling': 'Addestrare animali',
+  Arcana: 'Arcano',
+  Athletics: 'Atletica',
+  Deception: 'Inganno',
+  History: 'Storia',
+  Insight: 'Intuizione',
+  Intimidation: 'Intimidire',
+  Investigation: 'Indagare',
+  Medicine: 'Medicina',
+  Nature: 'Natura',
+  Perception: 'Percezione',
+  Performance: 'Intrattenere',
+  Persuasion: 'Persuasione',
+  Religion: 'Religione',
+  'Sleight of Hand': 'Rapidità di mano',
+  Stealth: 'Furtività',
+  Survival: 'Sopravvivenza',
+};
+
+export const SPELL_SCHOOL_LABELS: Record<string, string> = {
+  Abjuration: 'Abiurazione',
+  Conjuration: 'Evocazione',
+  Divination: 'Divinazione',
+  Enchantment: 'Ammaliamento',
+  Evocation: 'Invocazione',
+  Illusion: 'Illusione',
+  Necromancy: 'Necromanzia',
+  Transmutation: 'Trasmutazione',
+};
+
+export const abilityLabel = (key: string) => ABILITY_LABELS[key as keyof AbilityScores] ?? key;
+export const skillLabel = (name: string) => SKILL_LABELS[name] ?? name;
+export const schoolLabel = (name: string) => SPELL_SCHOOL_LABELS[name] ?? name;

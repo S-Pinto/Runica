@@ -135,9 +135,9 @@ const InventoryTabView = () => {
   };
 
   const ItemList = ({ title, items }: { title: string; items: EquipmentItem[] }) => (
-    <div className="bg-card/20 backdrop-blur-md p-6 rounded-2xl border border-border/40 space-y-4">
+    <div className="bg-card p-6 rounded-2xl border border-border/40 space-y-4">
       <div className="flex items-center justify-between border-b border-border/40 pb-3">
-        <h3 className="text-xl font-cinzel text-accent flex items-center gap-2">
+        <h3 className="text-xl font-cinzel font-bold text-foreground flex items-center gap-2">
           {title}
         </h3>
         <span className="text-xs font-mono font-bold bg-accent/10 text-accent px-2.5 py-1 rounded-lg border border-accent/20">
@@ -188,7 +188,7 @@ const InventoryTabView = () => {
                     </div>
                     <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-xs text-muted-foreground">
                       <span className="bg-background/50 px-1.5 py-0.5 rounded border border-border/30 font-mono">Qtà: {item.quantity}</span>
-                      {item.damage && <span className="text-accent font-bold bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">Dmg: {item.damage}</span>}
+                      {item.damage && <span className="text-accent font-bold bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">Danni: {item.damage}</span>}
                       {item.armorClass && <span className="text-accent font-bold bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">CA: {item.armorClass}</span>}
                       {item.bonusAC && <span className="text-cyan-300 font-bold bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">+ {item.bonusAC} CA</span>}
                     </div>
@@ -218,7 +218,7 @@ const InventoryTabView = () => {
                         : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/50'
                     }`}
                   >
-                    {item.equipped ? 'Equipped' : 'Equip'}
+                    {item.equipped ? 'Equipaggiato' : 'Equipaggia'}
                   </button>
                 </div>
               </div>
@@ -296,9 +296,9 @@ const InventoryTabView = () => {
       />
 
       {/* Top Currency & Attunement Banner */}
-      <div className="bg-card/40 backdrop-blur-md p-6 rounded-2xl border border-border/50 shadow-md space-y-4">
+      <div className="bg-card p-6 rounded-2xl border border-border/50 shadow-md space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/40 pb-3">
-          <h3 className="text-xl font-cinzel text-accent flex items-center gap-2">
+          <h3 className="text-xl font-cinzel font-bold text-foreground flex items-center gap-2">
             <span>🪙</span> Monete & Portamonete
           </h3>
           <div className="flex flex-wrap items-center gap-3">

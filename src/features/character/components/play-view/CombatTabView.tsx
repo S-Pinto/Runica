@@ -136,13 +136,13 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
     };
 
     return (
-        <div className="bg-card/30 backdrop-blur-sm p-6 rounded-2xl border border-border/50 flex flex-col h-full">
-            <h3 className="text-xl font-cinzel text-accent mb-6 flex items-center gap-2">
+        <div className="bg-card p-6 rounded-2xl border border-border/50 flex flex-col h-full">
+            <h3 className="text-xl font-cinzel font-bold text-foreground mb-6 flex items-center gap-2">
                 <SwordIcon className="w-5 h-5" />
-                Attacks & Cantrips
+                Attacchi e trucchetti
             </h3>
             <div className="space-y-3 flex-grow overflow-y-auto pr-2 -mr-2">
-                {items.length === 0 && <p className="text-muted-foreground text-sm text-center py-8 bg-muted/20 rounded-xl border border-dashed border-border/50">No attacks or cantrips added.</p>}
+                {items.length === 0 && <p className="text-muted-foreground text-sm text-center py-8 bg-muted/20 rounded-xl border border-dashed border-border/50">Nessun attacco o trucchetto.</p>}
                 {items.map(item => {
                     const isExpanded = expandedAttackId === item.id;
                     const hasMastery = item.mastery && WEAPON_MASTERIES[item.mastery as keyof typeof WEAPON_MASTERIES];
@@ -156,24 +156,24 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
                                 onClick={() => toggleExpand(item.id)}
                                 variant="card"
                                 actions={
-                                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                                    <div className="flex w-full items-center gap-2">
                                         {!item.saveAbility && (
                                             <button
                                                 onClick={(e) => handleAttackRoll(e, item)}
                                                 className="flex-1 sm:flex-initial h-10 px-3.5 bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1.5"
-                                                title="Lancia Attacco per Colpire"
+                                                title="Tira per colpire"
                                             >
                                                 <SwordIcon className="w-4 h-4" />
-                                                Lancia Hit
+                                                Colpire
                                             </button>
                                         )}
                                         <button
                                             onClick={(e) => handleDamageRoll(e, item)}
                                             className="flex-1 sm:flex-initial h-10 px-3.5 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1.5"
-                                            title="Lancia Danni"
+                                            title="Danni"
                                         >
                                             <FireIcon className="w-4 h-4" />
-                                            Lancia Danni
+                                            Danni
                                         </button>
                                     </div>
                                 }
@@ -185,7 +185,7 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
                                         {/* Weapon Properties Detailed View */}
                                         {(item.properties && item.properties.length > 0) && (
                                             <div className="space-y-2">
-                                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Properties</span>
+                                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Proprietà</span>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                     {item.properties.map(propKey => {
                                                         const propData = WEAPON_PROPERTIES[propKey as keyof typeof WEAPON_PROPERTIES];
@@ -206,7 +206,7 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
                                                 <div className="flex items-center gap-2 mb-1.5">
                                                     <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
                                                         <SwordIcon className="w-3 h-3" />
-                                                        Mastery: {hasMastery.name}
+                                                        Maestria: {hasMastery.name}
                                                     </span>
                                                 </div>
                                                 <p className="text-xs text-muted-foreground leading-relaxed">{hasMastery.description}</p>
@@ -219,8 +219,8 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
                                 {results[item.id] && (
                                     <div className="mt-3 pt-3 border-t border-border/20 animate-in slide-in-from-top-2 fade-in duration-300">
                                         <div className="flex items-center justify-between mb-2">
-                                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Results</span>
-                                            <button onClick={() => clearResults(item.id)} className="text-muted-foreground hover:text-destructive transition-colors p-1" title="Clear Results">
+                                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Risultati</span>
+                                            <button onClick={() => clearResults(item.id)} className="text-muted-foreground hover:text-destructive transition-colors p-1" title="Cancella risultati">
                                                 <TrashIcon className="w-3.5 h-3.5" />
                                             </button>
                                         </div>
@@ -237,10 +237,10 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
                                                         }`}
                                                 >
                                                     <div className="flex items-center justify-between">
-                                                        <span className="font-bold tracking-wider opacity-70">HIT:</span>
+                                                        <span className="font-bold tracking-wider opacity-70">COLPIRE:</span>
                                                         <span className="font-bold text-sm">
-                                                            {roll.isCrit && 'CRIT! '}
-                                                            {roll.isFail && 'FAIL! '}
+                                                            {roll.isCrit && 'CRITICO! '}
+                                                            {roll.isFail && '1 NATURALE! '}
                                                             {roll.value}
                                                         </span>
                                                     </div>
@@ -254,7 +254,7 @@ const AttacksAndCantrips = ({ items, abilityScores, proficiencyBonus }: { items:
                                             {results[item.id].dmg?.map((roll, i) => (
                                                 <div key={`dmg-${i}`} className="flex flex-col p-2 rounded-lg border border-border/30 bg-background/40 text-xs font-mono shadow-sm animate-in slide-in-from-top-1 fade-in duration-200">
                                                     <div className="flex items-center justify-between">
-                                                        <span className="font-bold tracking-wider text-destructive/80">DMG:</span>
+                                                        <span className="font-bold tracking-wider text-destructive/80">DANNI:</span>
                                                         <span className="font-bold text-sm text-destructive">{roll.value}</span>
                                                     </div>
                                                     {roll.breakdown && (
@@ -368,10 +368,10 @@ const FeaturesList = ({ items }: { items: Feature[] }) => {
     }, [items]);
 
     return (
-        <div className="bg-card/30 backdrop-blur-sm p-6 rounded-2xl border border-border/50 flex flex-col h-full">
-            <h3 className="text-xl font-cinzel text-accent mb-6 flex items-center gap-2">
+        <div className="bg-card p-6 rounded-2xl border border-border/50 flex flex-col h-full">
+            <h3 className="text-xl font-cinzel font-bold text-foreground mb-6 flex items-center gap-2">
                 <BoltIcon className="w-5 h-5" />
-                Features & Traits
+                Privilegi e tratti
             </h3>
             <div className="space-y-4 flex-grow overflow-y-auto pr-2 -mr-2">
                 <CategorySectionDisplay category="class" features={featuresByCategory['class']} />
@@ -385,7 +385,7 @@ const FeaturesList = ({ items }: { items: Feature[] }) => {
                         featuresByCategory['feat-epic'].length > 0) && (
                             <div className="flex items-center gap-2 px-1 pb-2 pt-2">
                                 <span className="w-1 h-1 rounded-full bg-accent/50" />
-                                <h4 className="text-xs font-bold text-accent/80 uppercase tracking-widest">Feats</h4>
+                                <h4 className="text-xs font-bold text-accent/80 uppercase tracking-widest">Talenti</h4>
                                 <div className="h-px bg-accent/20 flex-1" />
                             </div>
                         )}
@@ -424,7 +424,7 @@ const ActiveMagicItems = ({ equipment, onUpdate }: { equipment: EquipmentItem[];
     return (
         <div className="bg-purple-500/10 backdrop-blur-sm p-4 rounded-2xl border border-purple-500/30 space-y-3">
             <h4 className="text-sm font-bold text-purple-300 uppercase tracking-wider flex items-center gap-2">
-                <span>⚡</span> Oggetti Magici Equipaggiati & Capacità
+                <span>⚡</span> Oggetti magici equipaggiati
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {activeItems.map(item => (
@@ -443,7 +443,7 @@ const ActiveMagicItems = ({ equipment, onUpdate }: { equipment: EquipmentItem[];
                             disabled={(item.charges?.current || 0) <= 0}
                             className="w-full py-1 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs rounded-lg transition-all flex items-center justify-center gap-1 shadow-sm"
                         >
-                            ⚡ Usa Capacità Magica
+                            ⚡ Usa capacità
                         </button>
                     </div>
                 ))}

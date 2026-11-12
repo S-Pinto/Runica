@@ -159,20 +159,20 @@ export const AttackRow: React.FC<AttackRowProps> = ({
 
       <div className="p-4 sm:p-5 flex flex-col gap-4">
         {/* Top Header: Name and Action Buttons */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h4 className="font-cinzel text-lg sm:text-xl font-bold text-accent tracking-wide truncate">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h4 className="min-w-0 flex-1 basis-40 break-words font-cinzel text-lg font-bold leading-tight text-foreground sm:text-xl">
             {attack.name}
           </h4>
 
           {actions && (
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex grow items-center gap-2 sm:grow-0">
               {actions}
             </div>
           )}
         </div>
 
         {/* Stats Grid Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(13rem,1fr))] gap-3">
           {summary.isSave ? (
             <div className="bg-accent/10 border border-accent/30 rounded-xl p-3 flex items-center justify-between shadow-sm">
               <span className="text-xs font-bold text-accent uppercase tracking-wider">🛡️ Tiro Salvezza</span>
@@ -181,7 +181,7 @@ export const AttackRow: React.FC<AttackRowProps> = ({
           ) : (
             <div className="bg-primary/10 border border-primary/30 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2 shadow-sm">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-primary uppercase tracking-wider">🎯 Hit:</span>
+                <span className="text-xs font-bold text-primary uppercase tracking-wider">🎯 Colpire:</span>
                 <span className="text-sm sm:text-base font-black text-accent">{summary.rollToHitDice}</span>
               </div>
               {summary.hitBreakdownParts.length > 0 && (

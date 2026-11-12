@@ -61,28 +61,28 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, onEdit,
         </div>
         <div className="p-4">
           <h3 className="text-xl font-cinzel font-bold text-accent truncate">{companion.name}</h3>
-          <p className="text-sm text-muted-foreground capitalize">{companion.type || 'Companion'}</p>
+          <p className="text-sm text-muted-foreground capitalize">{companion.type || 'Compagno'}</p>
 
           <div className="mt-4 grid grid-cols-2 gap-4 text-center">
-            <div title="Hit Points">
+            <div title="Punti vita">
               <HeartIcon className="w-6 h-6 mx-auto text-destructive/80 mb-1" />
               <div className="font-bold text-xl sm:text-2xl text-foreground">{companion.hp.current} / {companion.hp.max}</div>
-              <div className="text-xs text-muted-foreground uppercase tracking-wider">HP</div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wider">PV</div>
             </div>
-            <div title="Armor Class">
+            <div title="Classe Armatura">
               <ShieldCheckIcon className="w-6 h-6 mx-auto text-accent/80 mb-1" />
               <div className="font-bold text-2xl text-foreground">{companion.armorClass}</div>
-              <div className="text-xs text-muted-foreground uppercase tracking-wider">AC</div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wider">CA</div>
             </div>
-            <div title="Speed">
+            <div title="Velocità">
               <ArrowTrendingUpIcon className="w-6 h-6 mx-auto text-primary/80 mb-1" />
               <div className="font-bold text-xl sm:text-2xl text-foreground">{companion.speed}{speedInMeters && <span className="text-base font-normal"> ({speedInMeters})</span>}</div>
-              <div className="text-xs text-muted-foreground uppercase tracking-wider">Speed</div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wider">Velocità</div>
             </div>
-            <div title="Initiative">
+            <div title="Iniziativa">
               <BoltIcon className="w-6 h-6 mx-auto text-yellow-400/80 mb-1" />
               <div className="font-bold text-2xl text-foreground">{formatModifier(initiative)}</div>
-              <div className="text-xs text-muted-foreground uppercase tracking-wider">Initiative</div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wider">Iniziativa</div>
             </div>
           </div>
 
@@ -123,13 +123,13 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, onEdit,
             {isMenuOpen && (
               <div className="absolute right-0 mt-1 w-32 bg-card border border-border rounded-md shadow-xl z-10">
                 <button onClick={() => { onEdit(); setIsMenuOpen(false); }} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm hover:bg-input">
-                  <EditIcon className="w-4 h-4" /> Edit
+                  <EditIcon className="w-4 h-4" /> Modifica
                 </button>
                 <button onClick={() => { onDuplicate(); setIsMenuOpen(false); }} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm hover:bg-input">
-                  <DocumentDuplicateIcon className="w-4 h-4" /> Duplicate
+                  <DocumentDuplicateIcon className="w-4 h-4" /> Duplica
                 </button>
                 <button onClick={() => { onDelete(); setIsMenuOpen(false); }} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-input">
-                  <TrashIcon className="w-4 h-4" /> Delete
+                  <TrashIcon className="w-4 h-4" /> Elimina
                 </button>
               </div>
             )}
@@ -137,15 +137,15 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, onEdit,
         )}
       </div>
       <div className="grid grid-cols-4 gap-2 text-center">
-        <div><div className="font-bold text-lg">{companion.hp.current} / {companion.hp.max}</div><div className="text-xs text-muted-foreground">HP</div></div>
-        <div><div className="font-bold text-lg">{companion.armorClass}</div><div className="text-xs text-muted-foreground">AC</div></div>
+        <div><div className="font-bold text-lg">{companion.hp.current} / {companion.hp.max}</div><div className="text-xs text-muted-foreground">PV</div></div>
+        <div><div className="font-bold text-lg">{companion.armorClass}</div><div className="text-xs text-muted-foreground">CA</div></div>
         <div>
           <div className="font-bold text-lg">{companion.speed}</div>
-          <div className="text-xs text-muted-foreground">Speed {speedInMeters && `(${speedInMeters})`}</div>
+          <div className="text-xs text-muted-foreground">Velocità {speedInMeters && `(${speedInMeters})`}</div>
         </div>
         <div>
           <div className="font-bold text-lg">{formatModifier(initiative)}</div>
-          <div className="text-xs text-muted-foreground">Init</div>
+          <div className="text-xs text-muted-foreground">Iniz.</div>
         </div>
       </div>
       <div className="w-full bg-muted rounded-full h-1.5 mt-1">
