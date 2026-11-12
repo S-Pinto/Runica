@@ -25,9 +25,9 @@ jobs:
       VITE_PWA_ICON_192: /icons/icon-staging-192.png
       VITE_PWA_ICON_512: /icons/icon-staging-512.png
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
