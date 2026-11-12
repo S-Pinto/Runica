@@ -6,7 +6,7 @@ Ci sono due siti, definiti in `.firebaserc` e `firebase.json`:
 | Target | Sito | Quando si aggiorna |
 |---|---|---|
 | `live` | runica-heros-folio.web.app | a ogni merge in `main` |
-| `staging` | runica-heros-folio-staging | anteprime delle Pull Request (canali temporanei) |
+| `staging` | runica-heros-folio-staging | a ogni push in `feature` (canale live del sito) e anteprime delle Pull Request (canali temporanei) |
 
 ## Configurazione: le variabili `VITE_*`
 
@@ -47,8 +47,11 @@ Crea un file `.env.local` con le variabili qui sopra per usare il cloud; senza, 
 - **Pull Request** → `.github/workflows/firebase-hosting-pull-request.yml`
   installa le dipendenze, controlla TypeScript, esegue `npm run build:staging` e pubblica un'**anteprima di 7 giorni** sul sito `staging`.
   Il link compare come commento nella PR. Senza i secret Firebase il controllo passa ma l'anteprima viene saltata.
-- **Merge in `main`** → `.github/workflows/firebase-hosting-merge.yml`
-  esegue `npm run build:live` e pubblica sul sito **live**. Se mancano i secret Firebase si ferma con un errore chiaro, senza pubblicare.
+- **Push (merge) in `feature`** → `.github/workflows/firebase-hosting-merge.yml`, job `deploy_staging`:
+  esegue `npm run build:staging` e pubblica sul canale live del sito **staging**.
+- **Push (merge) in `main`** → stesso file, job `deploy_live`:
+  esegue `npm run build:live` e pubblica sul sito **live**.
+  In entrambi i casi, se mancano i secret Firebase il job si ferma con un errore chiaro, senza pubblicare.
 
 Configurazione necessaria su GitHub (Settings → Secrets and variables → Actions):
 
