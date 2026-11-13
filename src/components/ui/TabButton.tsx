@@ -8,7 +8,7 @@ interface TabButtonProps {
   isActive: boolean;
   onClick: () => void;
   icon?: FC<{ className?: string }>;
-  /** `underline`: barra sotto la voce attiva; `pill`: segmento in un contenitore (`SegmentedTabs`). */
+  /** `underline`: barra sotto la voce attiva; `pill`: segmento in un contenitore con `.tab-indicator` scorrevole (lo posiziona il genitore). */
   variant?: 'underline' | 'pill';
 }
 
@@ -22,9 +22,9 @@ export const TabButton = ({ id, controls, label, isActive, onClick, icon: Icon, 
         aria-selected={isActive}
         aria-controls={controls}
         onClick={onClick}
-        className={`flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3.5 text-sm font-semibold whitespace-nowrap transition-[background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+        className={`relative z-10 flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3.5 text-sm font-semibold whitespace-nowrap transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
           isActive
-            ? 'bg-accent/15 text-accent shadow-[inset_0_0_0_1px_rgb(var(--color-accent)/0.35),0_0_18px_-6px_rgb(var(--color-accent)/0.6)]'
+            ? 'text-accent'
             : 'text-muted-foreground hover:text-foreground'
         }`}
       >

@@ -16,6 +16,7 @@ import { confirmDialog, toast } from '../../components/ui/Dialogs';
 import { longRestUpdate, shortRestUpdate } from './rules/rest';
 import { usePlayViewAutosave } from './hooks/usePlayViewAutosave';
 import { useDiceMode } from './hooks/useDiceMode';
+import { AstrolabeRing } from '../../components/ui/RuneOrnaments';
 import { TabButton } from '../../components/ui/TabButton';
 
 type PlayTab = 'main' | 'stats' | 'combat' | 'bio' | 'inventory' | 'spells' | 'companions';
@@ -92,6 +93,18 @@ export const PlayView: FC = () => {
 
     const tabContainerRef = useRef<HTMLDivElement>(null);
 
+    // Indicatore scorrevole: segue la tab attiva (posizione e larghezza misurate).
+    const [indicator, setIndicator] = useState<{ x: number; w: number } | null>(null);
+    useEffect(() => {
+        const measure = () => {
+            const el = tabContainerRef.current?.querySelector<HTMLElement>('[aria-selected="true"]');
+            if (el) setIndicator({ x: el.offsetLeft, w: el.offsetWidth });
+        };
+        measure();
+        window.addEventListener('resize', measure);
+        return () => window.removeEventListener('resize', measure);
+    }, [activeTab, character?.id]);
+
     useEffect(() => {
         const el = tabContainerRef.current?.querySelector<HTMLElement>('[aria-selected="true"]');
         el?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
@@ -163,8 +176,10 @@ export const PlayView: FC = () => {
     return (
         <div className="mx-auto max-w-7xl space-y-3 p-3 pb-28 sm:space-y-4 sm:p-6 sm:pb-28">
             {/* Identity header */}
-            <header className="tile hero-glow p-3 sm:p-5">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+            <header className="tile hero-glow relative overflow-hidden p-3 sm:p-5">
+                <AstrolabeRing className="absolute -right-16 -top-24 h-72 w-72 text-accent/[0.18] sm:-right-6 sm:-top-28 sm:h-80 sm:w-80" />
+                <span aria-hidden className="absolute inset-x-6 bottom-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
+                <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                     <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
                         <Button variant="ghost" size="icon-lg" onClick={() => navigate('/')} aria-label="Torna ai tuoi eroi" className="-ml-1 sm:ml-0">
                             <BackIcon className="h-5 w-5" />
@@ -183,7 +198,7 @@ export const PlayView: FC = () => {
                                 />
                             </button>
                         ) : (
-                            <div className="portrait-rune monogram flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-border-strong/40 text-xl sm:h-16 sm:w-16 sm:text-2xl">
+                            <div className="portrait-rune monogram relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-border-strong/40 text-xl sm:h-16 sm:w-16 sm:text-2xl">
                                 {(character.name || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase()).join('')}
                             </div>
                         )}
@@ -199,7 +214,7 @@ export const PlayView: FC = () => {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 sm:gap-2">
                         <Button variant="secondary" onClick={() => handleTabChange('combat')} className="flex-1 sm:flex-none" title="Vai al combattimento">
                             <SwordIcon className="h-4 w-4" /> <span className="hidden sm:inline">Combatti</span>
                         </Button>
@@ -213,7 +228,7 @@ export const PlayView: FC = () => {
                             label="Altre azioni"
                             trigger={<EllipsisVerticalIcon className="h-5 w-5" />}
                             items={menuItems}
-                            triggerClassName="flex h-10 w-11 shrink-0 items-center justify-center rounded-xl bg-foreground/10 text-muted-foreground transition-colors duration-150 hover:bg-accent/20 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            triggerClassName="flex h-10 w-10 shrink-0 sm:w-11 items-center justify-center rounded-xl bg-foreground/10 text-muted-foreground transition-colors duration-150 hover:bg-accent/20 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         />
                     </div>
                 </div>
@@ -221,7 +236,8 @@ export const PlayView: FC = () => {
 
             {/* Sticky section navigation (sits under the app header: --header-offset) */}
             <nav className="sticky top-header z-40 py-2">
-                <div ref={tabContainerRef} role="tablist" aria-label="Sezioni della scheda" className="no-scrollbar flex gap-1 overflow-x-auto rounded-full bg-card/80 p-1 shadow-raised backdrop-blur-xl sm:inline-flex sm:max-w-full">
+                <div ref={tabContainerRef} role="tablist" aria-label="Sezioni della scheda" className="no-scrollbar relative flex gap-1 overflow-x-auto rounded-full bg-card/70 p-1 shadow-raised backdrop-blur-xl backdrop-saturate-150 sm:inline-flex sm:max-w-full">
+                    {indicator && <span aria-hidden className="tab-indicator" style={{ transform: `translateX(${indicator.x}px)`, width: indicator.w }} />}
                     {PLAY_TABS.map(tab => (
                         <TabButton
                             key={tab.key}

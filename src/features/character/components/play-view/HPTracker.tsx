@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useCharacter } from '../../CharacterProvider';
 import { HeartIcon, PlusIcon, MinusIcon, ShieldIcon } from '../../../../components/ui/icons';
+import { hpTone } from '../../utils/characterDisplay';
 import { toast } from '../../../../components/ui/Dialogs';
 
 const QUICK_AMOUNTS = [1, 5, 10];
@@ -55,11 +56,7 @@ export const HPTracker = () => {
 
     const pct = hp.max > 0 ? Math.min(100, (hp.current / hp.max) * 100) : 100;
     const tempPct = hp.max > 0 ? Math.min(100 - pct, (hp.temporary / hp.max) * 100) : 0;
-    const tone = pct > 50
-        ? 'bg-success shadow-[0_0_16px_rgb(var(--color-success)/0.6)]'
-        : pct > 25
-            ? 'bg-warning shadow-[0_0_16px_rgb(var(--color-warning)/0.6)]'
-            : 'bg-destructive shadow-[0_0_16px_rgb(var(--color-destructive)/0.6)]';
+    const tone = hpTone(pct);
     const isDown = hp.current === 0;
 
     return (
@@ -81,14 +78,16 @@ export const HPTracker = () => {
                 </div>
                 {isDown && <p className="mt-2 text-sm font-semibold text-destructive">A terra: effettua i tiri salvezza contro la morte</p>}
                 <div
-                    className="relative mt-4 flex h-3 overflow-hidden rounded-full bg-background/60"
+                    className="relative mt-4 flex h-4 overflow-hidden rounded-full bg-background/60 shadow-[inset_0_2px_4px_rgb(var(--color-shadow)/0.45)]"
                     role="progressbar"
                     aria-label="Punti vita"
                     aria-valuemin={0}
                     aria-valuemax={hp.max}
                     aria-valuenow={hp.current}
                 >
-                    <div className={`${tone} h-full transition-[width] duration-300 ease-soft`} style={{ width: `${pct}%` }} />
+                    <div className="hp-fill relative h-full overflow-hidden rounded-full" data-tone={tone} style={{ width: `${pct}%` }}>
+                        <span key={hp.current} aria-hidden className="hp-sheen" />
+                    </div>
                     {tempPct > 0 && <div className="h-full bg-accent/70 transition-[width] duration-300 ease-soft" style={{ width: `${tempPct}%` }} />}
                     {/* Tacche: dieci segmenti, come le incisioni di un righello. */}
                     <div

@@ -89,7 +89,7 @@ export const Modal = ({ open, onClose, title, icon, children, toolbar, footer, s
         aria-labelledby={titleId}
         tabIndex={-1}
         onKeyDown={onKeyDown}
-        className={`pb-safe flex max-h-[88dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-border bg-card text-text shadow-floating outline-none animate-sheetIn sm:rounded-2xl sm:animate-popIn ${SIZES[size]}`}
+        className={`pb-safe flex max-h-[88dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-border/70 bg-card/90 text-text shadow-floating backdrop-blur-xl backdrop-saturate-150 outline-none animate-sheetIn sm:rounded-2xl sm:animate-popIn ${SIZES[size]}`}
       >
         <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border py-2 pl-5 pr-2">
           <h2 id={titleId} className="flex min-w-0 items-center gap-2.5 font-cinzel text-headline text-foreground">

@@ -11,6 +11,10 @@ export const initials = (name: string): string =>
 export const hpPercent = (current: number, max: number): number =>
   max > 0 ? Math.min(100, Math.max(0, (current / max) * 100)) : 100;
 
+/** Stato della barra dei punti vita (`data-tone` di `.hp-fill`). */
+export const hpTone = (percent: number): 'success' | 'warning' | 'destructive' =>
+  percent > 50 ? 'success' : percent > 25 ? 'warning' : 'destructive';
+
 /** Colore della barra dei punti vita: verde sopra metà, arancio fino a un quarto, rosso sotto. */
 export const hpBarTone = (percent: number): string =>
   percent > 50 ? 'bg-success' : percent > 25 ? 'bg-warning' : 'bg-destructive';
