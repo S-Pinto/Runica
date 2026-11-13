@@ -43,10 +43,10 @@ export const CharacterGrid = ({
           <button
             type="button"
             onClick={() => onSelect('new')}
-            className="flex min-h-[4.5rem] items-center justify-center gap-3 rounded-2xl border border-dashed border-border-strong/70 text-muted-foreground transition-colors duration-150 hover:border-accent/70 hover:bg-accent/5 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-[16rem] sm:flex-col"
+            className="group surface flex min-h-[4rem] items-center justify-center gap-3 rounded-2xl text-muted-foreground transition-[border-color,color,transform] duration-200 ease-soft hover:border-accent/60 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-[7rem] sm:self-start"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-current sm:h-12 sm:w-12">
-              <PlusIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+            <span aria-hidden className="flex h-8 w-8 rotate-45 items-center justify-center rounded-lg border border-accent/40 bg-accent/10 text-accent transition-colors duration-150 group-hover:bg-accent group-hover:text-accent-foreground">
+              <PlusIcon className="-rotate-45 h-4 w-4" />
             </span>
             <span className="text-sm font-semibold">Nuovo eroe</span>
           </button>

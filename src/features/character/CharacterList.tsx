@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../providers/AuthProvider';
 import { UserPlusIcon, UserGroupIcon } from '../../components/ui/icons';
+import { RuneDivider } from '../../components/ui/RuneDivider';
 import { Button } from '../../components/ui/Button';
 import { useCharacter } from './CharacterProvider';
 import { useCampaigns } from '../../providers/CampaignProvider';
@@ -97,6 +98,8 @@ export const CharacterList: React.FC = () => {
           )}
         </div>
       </header>
+
+      <RuneDivider />
 
       {hasCharacters && (
         <CharacterListToolbar

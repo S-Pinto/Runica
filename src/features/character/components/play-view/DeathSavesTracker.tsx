@@ -5,9 +5,9 @@ import { PlaySection } from './PlaySection';
 
 type SaveType = 'successes' | 'failures';
 
-const ROWS: { type: SaveType; label: string; filled: string; empty: string; text: string; border: string }[] = [
-    { type: 'successes', label: 'Successi', filled: 'bg-success border-success', empty: 'hover:border-success/70', text: 'text-success', border: 'border-success/40' },
-    { type: 'failures', label: 'Fallimenti', filled: 'bg-destructive border-destructive', empty: 'hover:border-destructive/70', text: 'text-destructive', border: 'border-destructive/40' },
+const ROWS: { type: SaveType; label: string; text: string; border: string }[] = [
+    { type: 'successes', label: 'Successi', text: 'text-success', border: 'border-success/40' },
+    { type: 'failures', label: 'Fallimenti', text: 'text-destructive', border: 'border-destructive/40' },
 ];
 
 export const DeathSavesTracker = () => {
@@ -82,14 +82,16 @@ export const DeathSavesTracker = () => {
                             {[0, 1, 2].map((i) => {
                                 const on = i < saves[row.type];
                                 return (
-                                    <button
+                                    <input
                                         key={i}
-                                        type="button"
-                                        onClick={() => setSaves(row.type, on && i + 1 === saves[row.type] ? i : i + 1)}
+                                        type="checkbox"
+                                        className="check-rune"
+                                        data-size="lg"
+                                        data-tone={row.type === 'successes' ? 'success' : 'destructive'}
+                                        checked={on}
+                                        onChange={() => setSaves(row.type, on && i + 1 === saves[row.type] ? i : i + 1)}
                                         disabled={isComplete}
                                         aria-label={`${row.label}: ${i + 1}`}
-                                        aria-pressed={on}
-                                        className={`h-11 flex-1 rounded-xl border-2 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card ${on ? row.filled : `border-border-strong/60 bg-background/40 ${row.empty}`}`}
                                     />
                                 );
                             })}

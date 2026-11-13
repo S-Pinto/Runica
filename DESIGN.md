@@ -134,7 +134,7 @@ components:
 
 Runica è un libro di rune aperto sul tavolo: pagine scure e quiete, titoli incisi in caratteri antichi, e un solo inchiostro luminoso (l'accento) che indica ciò che conta adesso. Il fantasy vive nei titoli, nella runa del marchio e nell'accento; la struttura resta quella di uno strumento: numeri grandi, etichette brevi, sezioni ben separate.
 
-La superficie è piatta e calma a riposo. Vetro smerigliato e bagliori esistono nel sistema, ma sono una risposta a uno stato (attivo, hover, focus, azione primaria), non decorazione di fondo. I controlli sono tattili e generosi, pensati per un pollice durante la partita: bersagli ampi, feedback di pressione visibile, valori leggibili a colpo d'occhio.
+La superficie è calma a riposo ma non piatta: una luce d'accento morbida cade dall'alto della pagina, le superfici si separano per tono e per un filo di luce sul bordo alto, e la grana dà tatto. Bagliori e bordi animati restano una risposta a uno stato (attivo, hover, focus, azione primaria), non decorazione di fondo. I controlli sono tattili e generosi, pensati per un pollice durante la partita: bersagli ampi, feedback di pressione visibile, valori leggibili a colpo d'occhio.
 
 Il sistema è multi-tema: tutti i colori passano da variabili CSS e ogni tema (`theme-*`) ridefinisce la stessa serie di ruoli. I valori nel frontmatter sono quelli del tema predefinito **Ambra**.
 
@@ -232,7 +232,14 @@ I ruoli con una classe (`text-headline`, `text-title`, `text-label`, `text-numer
 
 ## Elevation & Depth
 
-Profondità tonale a strati: fondo → card → campo, con bordi semitrasparenti. Le ombre sono deboli e servono a separare i livelli; la luce colorata (bagliore dell'accento) è un segnale di stato.
+Profondità tonale a strati: fondo → card → campo. Ogni superficie porta un filo di luce sul bordo alto (`--highlight`, `inset 0 1px 0 rgb(255 255 255 / 0.06)`; 0.55 in Pergamena) e un bordo semitrasparente al 55%, invece di bordi pesanti. Le ombre sono deboli e servono a separare i livelli; la luce colorata (bagliore dell'accento) è un segnale di stato.
+
+### Atmosfera
+- **Luce ambientale** (`body::before`): due ellissi radiali dell'accento del tema in alto (`--ambient-strength`: 9% nei temi scuri, 7% in Pergamena), fisse dietro il contenuto. Cambia con il tema.
+- **Grana** (`body::after`): velo di rumore fisso, già descritto in `index.css`.
+- **`.surface`**: card tonale con gradiente di 3.5% dall'alto, filo di luce e ombra `rest`; è la superficie di pannelli, header dell'eroe, card dei personaggi e "Nuovo eroe".
+- **`.hero-glow`**: velo caldo d'accento dall'angolo alto sinistro, solo dietro l'header dell'eroe.
+- **`.glass-pill`**: vetro (sfocatura 16px, fondo card all'82%, bordo marcato) per i controlli che galleggiano.
 
 ### Shadow Vocabulary
 Le ombre sono token (`src/index.css`, classi in `tailwind.config.js`) con il colore del tema: nere nei temi scuri, brune e più leggere in Pergamena. Hanno sempre scostamento e sfocatura.
@@ -246,7 +253,7 @@ Le ombre sono token (`src/index.css`, classi in `tailwind.config.js`) con il col
 `z-header` 50 · `z-modal` 100 (finestre) · `z-dialog` 105 (conferme, sopra la finestra che le apre) · `z-toast` 110.
 
 ### Named Rules
-**The Glow-Means-State Rule.** La luce dell'accento, il vetro e il bordo animato (`animated-border-card`) compaiono solo su elementi attivi o in hover/focus. A riposo nessun elemento brilla: l'azione primaria si distingue per il fondo pieno in accento.
+**The Glow-Means-State Rule.** Il bagliore dell'accento e il bordo animato (`animated-border-card`) compaiono solo su elementi attivi o in hover/focus. A riposo nessun elemento brilla: l'azione primaria si distingue per il fondo pieno in accento. Le eccezioni sono l'atmosfera fissa (luce ambientale, `.hero-glow`) e la dadiera, unico controllo flottante, in vetro.
 
 **The One Elevation Rule.** Un livello si dichiara con il bordo o con l'ombra. A riposo basta il bordo; l'ombra ampia è per ciò che galleggia sopra un velo.
 
@@ -286,7 +293,7 @@ Tattili e decisi: si abbassano leggermente alla pressione (scala 0.97).
 
 ### Navigation
 - **Header:** fisso, fondo all'85% con sfocatura (l'unico vetro a riposo, perché il contenuto vi scorre sotto), bordo inferiore `border`, nessuna ombra. Marchio Norse in accento con la runa in un riquadro, come link alla lista. Controlli: `Button` ghost o secondary, mai l'accento pieno (quello resta all'azione principale della pagina). Online non mostra nulla; offline compare una pillola `warning` calma, senza pulsazione. Avatar circolare con `Menu`; senza foto mostra l'iniziale.
-- **Tab (vista di gioco):** testo 14px semibold muted, attiva in accento con una barra di 2px sotto che si allarga e brilla; in hover la barra cresce dal centro. Ruoli ARIA `tab` / `tabpanel`.
+- **Tab (vista di gioco):** controllo segmentato (`TabButton variant="pill"`): contenitore incavato (`bg-input/60`, ombra interna) che scorre in orizzontale, voci da 40px; la voce attiva è una pillola `card` con testo accento e filo di luce. Altrove (editor, finestra Campagne) resta la variante con barra di 2px sotto. Ruoli ARIA `tab` / `tabpanel`.
 
 ### Dialogs & Toasts
 - **Modal** (`components/ui/Modal`): guscio unico delle finestre. Velo `scrim` al 70% sfocato; pannello card con bordo, ancorato in basso a tutta larghezza su mobile (entrata `sheetIn`, 240ms) e centrato da `sm` (`popIn`, 180ms); titolo Cinzel, chiusura da 44px, barra opzionale sotto il titolo (le tab della finestra Campagne), corpo scorrevole, piede opzionale per le azioni. Chiude con Esc, con il pulsante e toccando il velo; tiene il focus nel pannello e lo restituisce a chi l'ha aperto. Le finestre nuove usano questo guscio, non un `<dialog>` né un overlay scritto a mano.
@@ -298,24 +305,30 @@ Tattili e decisi: si abbassano leggermente alla pressione (scala 0.97).
 `CharacterCard` e `SharedCharacterCard` hanno la stessa forma. Su telefono sono righe compatte (miniatura da 88px a sinistra, nome, punti vita, classe armatura) per vedere più eroi senza scorrere; da `sm` diventano card con il ritratto 16:10 in alto. Il nome sta sotto il ritratto, mai sovrapposto all'immagine.
 - Tutta la scheda apre il personaggio. Su telefono resta visibile solo il menu; da `sm` c'è anche "Gioca", secondario a riposo, che prende l'accento quando si punta la card.
 - Hover (solo con puntatore): la card sale di 2px, bordo in accento, `shadow-raised`; il ritratto scala a 1.03. Nessuna inclinazione, nemmeno durante il trascinamento.
-- Segnaposto del ritratto: fondo `input` piatto con le iniziali in Cinzel, senza sfumature né bagliori.
+- Segnaposto del ritratto (`.portrait-rune` + `.monogram`): reticolo a rombi sottilissimo, luce calda d'accento in alto a sinistra e monogramma Cinzel inciso (ombra chiara sotto, scura sopra). Stesso segnaposto nell'header della vista di gioco.
+- "Nuovo eroe" in griglia è una carta compatta (`.surface`, rombo con il più) che non si allunga alla riga; l'intestazione "I tuoi eroi" è seguita da un `RuneDivider`.
 - Barra dei punti vita: verde sopra metà, arancio fino a un quarto, rosso sotto (`hpBarTone`). L'etichetta è "Punti vita" ("PV" su telefono).
 - In una pagina con più schede l'unico fondo pieno in accento è l'azione della pagina ("Nuovo eroe"); a lista vuota passa all'invito al centro.
 
 ### Vista di gioco
-- **Pannello** (`play-view/PlaySection`): guscio unico delle schede. Card piatta con bordo, padding 16px (20px da `sm`), titolo `text-title` in Cinzel accento con icona muted, azione o valore a destra. Dentro un pannello non si annidano altre card: righe e riquadri interni usano `playInsetClass` (bordo e fondo `background` al 40%), le etichette `playLabelClass` (`text-label` maiuscolo), i dati secondari `playChipClass`.
+- **Header dell'eroe**: `.surface` con `.hero-glow`, ritratto o segnaposto inciso, azioni a destra.
+- **Emblemi** (`ui/StatBox`, `.frame-rune`): CA, Iniziativa, Velocità, Competenza, Percezione. Icona discreta in alto, numero monospace 30–36px centrato, etichetta `text-label` sotto; la cornice ha filo di luce e gradiente tonale.
+- **Punti vita**: barra da 16px incavata con dieci tacche (segmenti) e PV temporanei in accento; numero da 60px.
+- **Tiri contro la morte**: tre `.check-rune` grandi (`data-size="lg"`) per riga, `data-tone` `success` / `destructive`.
+- **Sigilli** (`.seal`): dadi vita, slot incantesimo, risorse e usi dei privilegi; rombo pieno = disponibile, vuoto = speso.
+- **Pannello** (`play-view/PlaySection`): guscio unico delle schede. Superficie `.surface` con padding, padding 16px (20px da `sm`), titolo `text-title` in Cinzel accento con icona muted, azione o valore a destra. Dentro un pannello non si annidano altre card: righe e riquadri interni usano `playInsetClass` (bordo e fondo `background` al 40%), le etichette `playLabelClass` (`text-label` maiuscolo), i dati secondari `playChipClass`.
 - **Scelta esclusiva** (`components/ui/SegmentedControl`): modalità del tiro (normale, vantaggio, svantaggio) e filtri degli incantesimi; `radiogroup` con voci da 36px in un contenitore da 40px.
-- **Risorse a segni** (dadi vita, slot incantesimo, risorse personalizzate): il segno pieno in accento è una risorsa disponibile, quello vuoto è spesa; ogni segno ha un bersaglio di 40–44px.
+- **Risorse a segni** (dadi vita, slot incantesimo, risorse personalizzate): il sigillo pieno in accento è una risorsa disponibile, quello vuoto è spesa; ogni sigillo ha un bersaglio di 40–44px.
 - **Valori**: monospace bold con cifre tabellari; l'etichetta sta sotto o sopra in `text-label`. Negli attacchi "Colpire" e "Danno" sono due colonne con il dettaglio del calcolo in piccolo sotto.
 - **Stati di gioco**: verde per successi e colpo critico, rosso per fallimenti, 1 naturale e condizioni attive. Nessun bagliore: basta il fondo pieno o tenue del colore di stato.
-- **Dadiera**: finestra `Modal` oppure pannello fisso in basso (a tutta larghezza su telefono, 320px da `sm`), secondo l'impostazione. Il risultato sta in alto, il pulsante "Lancia" in basso, vicino al pollice.
+- **Dadiera**: finestra `Modal` oppure pillola flottante in vetro (`.glass-pill`, 56px) in basso a destra con il d20 su un disco accento; aperta, il pannello si apre sopra la pillola (a tutta larghezza su telefono, 320px da `sm`). Il risultato sta in alto, il pulsante "Lancia" in basso, vicino al pollice.
 - **Icone**: niente emoji; il tipo di oggetto usa `SwordIcon`, `ShieldIcon`, `SparklesIcon`, `BackpackIcon`.
 
 ### Campi fuori dall'editor
 Ricerca e form delle campagne usano le classi di `components/ui/field.ts`: etichetta `text-label` maiuscola, campo con bordo `border-strong`, testo a 16px (sotto, iOS ingrandisce la pagina al focus), focus con bordo e anello in accento.
 
 ### Stat Box (firma)
-Il valore di gioco come protagonista: numero monospace grande in `foreground`, sotto-valore piccolo accanto, etichetta in muted sotto, icona opzionale in un riquadro accento al 10%. Bordo che si accende in hover.
+Il valore di gioco come emblema: icona muted discreta in alto, numero monospace grande in `foreground` al centro, sotto-valore piccolo, etichetta maiuscola in muted sotto. In hover il filo interno e il rombo della cornice prendono l'accento.
 
 ## Do's and Don'ts
 

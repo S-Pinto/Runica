@@ -60,12 +60,7 @@ export const HitDiceTracker = () => {
                             aria-label={`Dado vita ${i + 1}: ${isUsed ? 'usato' : 'disponibile'}`}
                             className="group flex h-11 w-11 items-center justify-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         >
-                            <span
-                                aria-hidden
-                                className={`h-6 w-6 rotate-45 rounded-md border-2 transition-colors duration-150 ${
-                                    isUsed ? 'border-border-strong/50 bg-transparent' : 'border-accent bg-accent/20 group-hover:bg-accent/40'
-                                }`}
-                            />
+                            <span aria-hidden className="seal" data-on={!isUsed} />
                         </button>
                     );
                 })}

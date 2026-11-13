@@ -1,45 +1,343 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-13T12:00:00Z",
+  "generatedAt": "2026-11-13T11:36:58Z",
   "title": "Design System: Runica",
   "extensions": {
     "colorMeta": {
-      "background": { "role": "neutral", "displayName": "Notte di Pergamena", "canonical": "rgb(var(--color-background))", "tonalRamp": ["oklch(16% 0.006 70)", "oklch(24% 0.008 70)", "oklch(30% 0.01 70)", "oklch(34% 0.01 70)", "oklch(53% 0.012 70)", "oklch(71% 0.012 75)", "oklch(90% 0.01 80)", "oklch(97% 0.006 85)"] },
-      "foreground": { "role": "neutral", "displayName": "Bianco Inciso", "canonical": "rgb(var(--color-foreground))", "tonalRamp": ["oklch(16% 0.006 70)", "oklch(30% 0.01 70)", "oklch(44% 0.012 70)", "oklch(58% 0.012 72)", "oklch(71% 0.012 75)", "oklch(82% 0.011 78)", "oklch(90% 0.01 80)", "oklch(97% 0.006 85)"] },
-      "card": { "role": "neutral", "displayName": "Pagina Scura", "canonical": "rgb(var(--color-card))", "tonalRamp": ["oklch(16% 0.006 70)", "oklch(24% 0.008 70)", "oklch(30% 0.01 70)", "oklch(34% 0.01 70)", "oklch(53% 0.012 70)", "oklch(71% 0.012 75)", "oklch(90% 0.01 80)", "oklch(97% 0.006 85)"] },
-      "border": { "role": "neutral", "displayName": "Filo d'Ardesia", "canonical": "rgb(var(--color-border))", "tonalRamp": ["oklch(16% 0.006 70)", "oklch(24% 0.008 70)", "oklch(30% 0.01 70)", "oklch(34% 0.01 70)", "oklch(53% 0.012 70)", "oklch(71% 0.012 75)", "oklch(90% 0.01 80)", "oklch(97% 0.006 85)"] },
-      "border-strong": { "role": "neutral", "displayName": "Filo Marcato", "canonical": "rgb(var(--color-border-strong))", "tonalRamp": ["oklch(16% 0.006 70)", "oklch(24% 0.008 70)", "oklch(30% 0.01 70)", "oklch(34% 0.01 70)", "oklch(53% 0.012 70)", "oklch(71% 0.012 75)", "oklch(90% 0.01 80)", "oklch(97% 0.006 85)"] },
-      "input": { "role": "neutral", "displayName": "Pietra Levigata", "canonical": "rgb(var(--color-input))", "tonalRamp": ["oklch(16% 0.006 70)", "oklch(24% 0.008 70)", "oklch(30% 0.01 70)", "oklch(34% 0.01 70)", "oklch(53% 0.012 70)", "oklch(71% 0.012 75)", "oklch(90% 0.01 80)", "oklch(97% 0.006 85)"] },
-      "text": { "role": "neutral", "displayName": "Avorio Spento", "canonical": "rgb(var(--color-text))", "tonalRamp": ["oklch(16% 0.006 70)", "oklch(30% 0.01 70)", "oklch(44% 0.012 70)", "oklch(58% 0.012 72)", "oklch(71% 0.012 75)", "oklch(82% 0.011 78)", "oklch(90% 0.01 80)", "oklch(97% 0.006 85)"] },
-      "text-muted": { "role": "neutral", "displayName": "Cenere", "canonical": "rgb(var(--color-text-muted))", "tonalRamp": ["oklch(16% 0.006 70)", "oklch(30% 0.01 70)", "oklch(44% 0.012 70)", "oklch(58% 0.012 72)", "oklch(71% 0.012 75)", "oklch(82% 0.011 78)", "oklch(90% 0.01 80)", "oklch(97% 0.006 85)"] },
-      "accent": { "role": "primary", "displayName": "Oro Runico", "canonical": "rgb(var(--color-accent))", "tonalRamp": ["oklch(20% 0.03 70)", "oklch(34% 0.07 68)", "oklch(48% 0.11 68)", "oklch(62% 0.14 70)", "oklch(73% 0.15 72)", "oklch(81% 0.155 78)", "oklch(90% 0.1 85)", "oklch(97% 0.04 90)"] },
-      "accent-dark": { "role": "primary", "displayName": "Oro Brunito", "canonical": "rgb(var(--color-accent-dark))", "tonalRamp": ["oklch(20% 0.03 70)", "oklch(34% 0.07 68)", "oklch(48% 0.11 68)", "oklch(62% 0.14 70)", "oklch(73% 0.15 72)", "oklch(81% 0.155 78)", "oklch(90% 0.1 85)", "oklch(97% 0.04 90)"] },
-      "accent-foreground": { "role": "primary", "displayName": "Inchiostro sull'Oro", "canonical": "rgb(var(--color-accent-foreground))", "tonalRamp": ["oklch(20% 0.03 70)", "oklch(34% 0.07 68)", "oklch(48% 0.11 68)", "oklch(62% 0.14 70)", "oklch(73% 0.15 72)", "oklch(81% 0.155 78)", "oklch(90% 0.1 85)", "oklch(97% 0.04 90)"] },
-      "destructive": { "role": "status", "displayName": "Rosso Sangue", "canonical": "rgb(var(--color-destructive))", "tonalRamp": ["oklch(20% 0.05 22)", "oklch(34% 0.11 25)", "oklch(48% 0.18 27)", "oklch(60% 0.19 25)", "oklch(71% 0.165 22)", "oklch(80% 0.11 20)", "oklch(90% 0.05 18)", "oklch(96% 0.02 17)"] },
-      "destructive-foreground": { "role": "status", "displayName": "Inchiostro sul Rosso", "canonical": "rgb(var(--color-destructive-foreground))", "tonalRamp": ["oklch(20% 0.05 22)", "oklch(34% 0.11 25)", "oklch(48% 0.18 27)", "oklch(60% 0.19 25)", "oklch(71% 0.165 22)", "oklch(80% 0.11 20)", "oklch(90% 0.05 18)", "oklch(96% 0.02 17)"] },
-      "success": { "role": "status", "displayName": "Verde Vita", "canonical": "rgb(var(--color-success))", "tonalRamp": ["oklch(22% 0.05 152)", "oklch(34% 0.09 150)", "oklch(46% 0.12 150)", "oklch(60% 0.15 150)", "oklch(77% 0.17 150)", "oklch(85% 0.13 152)", "oklch(92% 0.07 155)", "oklch(97% 0.03 156)"] },
-      "warning": { "role": "status", "displayName": "Arancio d'Allarme", "canonical": "rgb(var(--color-warning))", "tonalRamp": ["oklch(24% 0.05 50)", "oklch(38% 0.09 52)", "oklch(50% 0.125 55)", "oklch(63% 0.15 50)", "oklch(75% 0.165 48)", "oklch(84% 0.12 55)", "oklch(92% 0.06 60)", "oklch(97% 0.025 65)"] }
+      "background": {
+        "role": "neutral",
+        "displayName": "Notte di Pergamena",
+        "canonical": "rgb(var(--color-background))",
+        "tonalRamp": [
+          "oklch(16% 0.006 70)",
+          "oklch(24% 0.008 70)",
+          "oklch(30% 0.01 70)",
+          "oklch(34% 0.01 70)",
+          "oklch(53% 0.012 70)",
+          "oklch(71% 0.012 75)",
+          "oklch(90% 0.01 80)",
+          "oklch(97% 0.006 85)"
+        ]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Bianco Inciso",
+        "canonical": "rgb(var(--color-foreground))",
+        "tonalRamp": [
+          "oklch(16% 0.006 70)",
+          "oklch(30% 0.01 70)",
+          "oklch(44% 0.012 70)",
+          "oklch(58% 0.012 72)",
+          "oklch(71% 0.012 75)",
+          "oklch(82% 0.011 78)",
+          "oklch(90% 0.01 80)",
+          "oklch(97% 0.006 85)"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Pagina Scura",
+        "canonical": "rgb(var(--color-card))",
+        "tonalRamp": [
+          "oklch(16% 0.006 70)",
+          "oklch(24% 0.008 70)",
+          "oklch(30% 0.01 70)",
+          "oklch(34% 0.01 70)",
+          "oklch(53% 0.012 70)",
+          "oklch(71% 0.012 75)",
+          "oklch(90% 0.01 80)",
+          "oklch(97% 0.006 85)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Filo d'Ardesia",
+        "canonical": "rgb(var(--color-border))",
+        "tonalRamp": [
+          "oklch(16% 0.006 70)",
+          "oklch(24% 0.008 70)",
+          "oklch(30% 0.01 70)",
+          "oklch(34% 0.01 70)",
+          "oklch(53% 0.012 70)",
+          "oklch(71% 0.012 75)",
+          "oklch(90% 0.01 80)",
+          "oklch(97% 0.006 85)"
+        ]
+      },
+      "border-strong": {
+        "role": "neutral",
+        "displayName": "Filo Marcato",
+        "canonical": "rgb(var(--color-border-strong))",
+        "tonalRamp": [
+          "oklch(16% 0.006 70)",
+          "oklch(24% 0.008 70)",
+          "oklch(30% 0.01 70)",
+          "oklch(34% 0.01 70)",
+          "oklch(53% 0.012 70)",
+          "oklch(71% 0.012 75)",
+          "oklch(90% 0.01 80)",
+          "oklch(97% 0.006 85)"
+        ]
+      },
+      "input": {
+        "role": "neutral",
+        "displayName": "Pietra Levigata",
+        "canonical": "rgb(var(--color-input))",
+        "tonalRamp": [
+          "oklch(16% 0.006 70)",
+          "oklch(24% 0.008 70)",
+          "oklch(30% 0.01 70)",
+          "oklch(34% 0.01 70)",
+          "oklch(53% 0.012 70)",
+          "oklch(71% 0.012 75)",
+          "oklch(90% 0.01 80)",
+          "oklch(97% 0.006 85)"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Avorio Spento",
+        "canonical": "rgb(var(--color-text))",
+        "tonalRamp": [
+          "oklch(16% 0.006 70)",
+          "oklch(30% 0.01 70)",
+          "oklch(44% 0.012 70)",
+          "oklch(58% 0.012 72)",
+          "oklch(71% 0.012 75)",
+          "oklch(82% 0.011 78)",
+          "oklch(90% 0.01 80)",
+          "oklch(97% 0.006 85)"
+        ]
+      },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Cenere",
+        "canonical": "rgb(var(--color-text-muted))",
+        "tonalRamp": [
+          "oklch(16% 0.006 70)",
+          "oklch(30% 0.01 70)",
+          "oklch(44% 0.012 70)",
+          "oklch(58% 0.012 72)",
+          "oklch(71% 0.012 75)",
+          "oklch(82% 0.011 78)",
+          "oklch(90% 0.01 80)",
+          "oklch(97% 0.006 85)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Oro Runico",
+        "canonical": "rgb(var(--color-accent))",
+        "tonalRamp": [
+          "oklch(20% 0.03 70)",
+          "oklch(34% 0.07 68)",
+          "oklch(48% 0.11 68)",
+          "oklch(62% 0.14 70)",
+          "oklch(73% 0.15 72)",
+          "oklch(81% 0.155 78)",
+          "oklch(90% 0.1 85)",
+          "oklch(97% 0.04 90)"
+        ]
+      },
+      "accent-dark": {
+        "role": "primary",
+        "displayName": "Oro Brunito",
+        "canonical": "rgb(var(--color-accent-dark))",
+        "tonalRamp": [
+          "oklch(20% 0.03 70)",
+          "oklch(34% 0.07 68)",
+          "oklch(48% 0.11 68)",
+          "oklch(62% 0.14 70)",
+          "oklch(73% 0.15 72)",
+          "oklch(81% 0.155 78)",
+          "oklch(90% 0.1 85)",
+          "oklch(97% 0.04 90)"
+        ]
+      },
+      "accent-foreground": {
+        "role": "primary",
+        "displayName": "Inchiostro sull'Oro",
+        "canonical": "rgb(var(--color-accent-foreground))",
+        "tonalRamp": [
+          "oklch(20% 0.03 70)",
+          "oklch(34% 0.07 68)",
+          "oklch(48% 0.11 68)",
+          "oklch(62% 0.14 70)",
+          "oklch(73% 0.15 72)",
+          "oklch(81% 0.155 78)",
+          "oklch(90% 0.1 85)",
+          "oklch(97% 0.04 90)"
+        ]
+      },
+      "destructive": {
+        "role": "status",
+        "displayName": "Rosso Sangue",
+        "canonical": "rgb(var(--color-destructive))",
+        "tonalRamp": [
+          "oklch(20% 0.05 22)",
+          "oklch(34% 0.11 25)",
+          "oklch(48% 0.18 27)",
+          "oklch(60% 0.19 25)",
+          "oklch(71% 0.165 22)",
+          "oklch(80% 0.11 20)",
+          "oklch(90% 0.05 18)",
+          "oklch(96% 0.02 17)"
+        ]
+      },
+      "destructive-foreground": {
+        "role": "status",
+        "displayName": "Inchiostro sul Rosso",
+        "canonical": "rgb(var(--color-destructive-foreground))",
+        "tonalRamp": [
+          "oklch(20% 0.05 22)",
+          "oklch(34% 0.11 25)",
+          "oklch(48% 0.18 27)",
+          "oklch(60% 0.19 25)",
+          "oklch(71% 0.165 22)",
+          "oklch(80% 0.11 20)",
+          "oklch(90% 0.05 18)",
+          "oklch(96% 0.02 17)"
+        ]
+      },
+      "success": {
+        "role": "status",
+        "displayName": "Verde Vita",
+        "canonical": "rgb(var(--color-success))",
+        "tonalRamp": [
+          "oklch(22% 0.05 152)",
+          "oklch(34% 0.09 150)",
+          "oklch(46% 0.12 150)",
+          "oklch(60% 0.15 150)",
+          "oklch(77% 0.17 150)",
+          "oklch(85% 0.13 152)",
+          "oklch(92% 0.07 155)",
+          "oklch(97% 0.03 156)"
+        ]
+      },
+      "warning": {
+        "role": "status",
+        "displayName": "Arancio d'Allarme",
+        "canonical": "rgb(var(--color-warning))",
+        "tonalRamp": [
+          "oklch(24% 0.05 50)",
+          "oklch(38% 0.09 52)",
+          "oklch(50% 0.125 55)",
+          "oklch(63% 0.15 50)",
+          "oklch(75% 0.165 48)",
+          "oklch(84% 0.12 55)",
+          "oklch(92% 0.06 60)",
+          "oklch(97% 0.025 65)"
+        ]
+      }
     },
     "typographyMeta": {
-      "display": { "displayName": "Display (Norse)", "purpose": "Solo il marchio RUNICA nell'header: 36px/24px su mobile, 48px/30px da sm." },
-      "headline": { "displayName": "Headline (Cinzel)", "purpose": "Titoli di finestre e di pagina. Classe text-headline." },
-      "title": { "displayName": "Title (Cinzel)", "purpose": "Titoli di sezione e di voce. Classe text-title." },
-      "body": { "displayName": "Body", "purpose": "Testo corrente e campi di input (16px, per evitare lo zoom di iOS)." },
-      "body-sm": { "displayName": "Body small", "purpose": "Pulsanti, tab, liste, toast." },
-      "label": { "displayName": "Label", "purpose": "Etichette dei campi, maiuscolo spaziato, Inter 600. Classe text-label." },
-      "numeric": { "displayName": "Numeric", "purpose": "Valori di gioco (HP, CA, bonus) in monospace con cifre tabellari. Classe text-numeric." }
+      "display": {
+        "displayName": "Display (Norse)",
+        "purpose": "Solo il marchio RUNICA nell'header: 36px/24px su mobile, 48px/30px da sm."
+      },
+      "headline": {
+        "displayName": "Headline (Cinzel)",
+        "purpose": "Titoli di finestre e di pagina. Classe text-headline."
+      },
+      "title": {
+        "displayName": "Title (Cinzel)",
+        "purpose": "Titoli di sezione e di voce. Classe text-title."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Testo corrente e campi di input (16px, per evitare lo zoom di iOS)."
+      },
+      "body-sm": {
+        "displayName": "Body small",
+        "purpose": "Pulsanti, tab, liste, toast."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Etichette dei campi, maiuscolo spaziato, Inter 600. Classe text-label."
+      },
+      "numeric": {
+        "displayName": "Numeric",
+        "purpose": "Valori di gioco (HP, CA, bonus) in monospace con cifre tabellari. Classe text-numeric."
+      }
     },
     "themes": {
       "note": "Sei temi, elencati in src/lib/themes.ts e definiti in src/index.css. Ognuno ridefinisce gli stessi ruoli; il frontmatter di DESIGN.md riporta Ambra (predefinito). I temi rimossi vengono convertiti da resolveTheme.",
       "default": "theme-amber",
-      "ids": ["theme-amber", "theme-parchment", "theme-obsidian", "theme-sapphire", "theme-evergreen", "theme-twilight"],
+      "ids": [
+        "theme-amber",
+        "theme-parchment",
+        "theme-obsidian",
+        "theme-sapphire",
+        "theme-evergreen",
+        "theme-twilight"
+      ],
       "items": [
-        { "id": "theme-amber", "name": "Ambra", "scheme": "dark", "background": "rgb(15 13 11)", "card": "rgb(34 31 27)", "text": "rgb(225 221 215)", "accent": "rgb(247 179 50)", "accentForeground": "rgb(31 19 6)", "purpose": "Predefinito: carbone caldo e oro runico." },
-        { "id": "theme-parchment", "name": "Pergamena", "scheme": "light", "background": "rgb(238 229 211)", "card": "rgb(250 245 234)", "text": "rgb(58 45 36)", "accent": "rgb(30 71 152)", "accentForeground": "rgb(251 248 241)", "purpose": "Unico tema chiaro: luce forte, lettura lunga. Ridefinisce anche stato, velo e ombre." },
-        { "id": "theme-obsidian", "name": "Ossidiana", "scheme": "dark", "background": "rgb(0 0 0)", "card": "rgb(21 22 24)", "text": "rgb(220 222 225)", "accent": "rgb(226 233 240)", "accentForeground": "rgb(10 11 13)", "purpose": "Nero puro per schermi OLED e tavoli al buio." },
-        { "id": "theme-sapphire", "name": "Zaffiro", "scheme": "dark", "background": "rgb(6 14 29)", "card": "rgb(20 32 54)", "text": "rgb(212 223 235)", "accent": "rgb(89 216 239)", "accentForeground": "rgb(9 22 40)", "purpose": "Blu d'abisso con accento ghiaccio." },
-        { "id": "theme-evergreen", "name": "Foresta", "scheme": "dark", "background": "rgb(5 16 12)", "card": "rgb(18 35 29)", "text": "rgb(219 228 220)", "accent": "rgb(179 225 95)", "accentForeground": "rgb(9 26 13)", "purpose": "Verde profondo; accento foglia nuova, distinto dal verde di esito." },
-        { "id": "theme-twilight", "name": "Crepuscolo", "scheme": "dark", "background": "rgb(14 11 25)", "card": "rgb(32 28 49)", "text": "rgb(222 220 232)", "accent": "rgb(199 163 252)", "accentForeground": "rgb(23 17 42)", "purpose": "Indaco notturno con accento lilla." }
+        {
+          "id": "theme-amber",
+          "name": "Ambra",
+          "scheme": "dark",
+          "background": "rgb(15 13 11)",
+          "card": "rgb(34 31 27)",
+          "text": "rgb(225 221 215)",
+          "accent": "rgb(247 179 50)",
+          "accentForeground": "rgb(31 19 6)",
+          "purpose": "Predefinito: carbone caldo e oro runico."
+        },
+        {
+          "id": "theme-parchment",
+          "name": "Pergamena",
+          "scheme": "light",
+          "background": "rgb(238 229 211)",
+          "card": "rgb(250 245 234)",
+          "text": "rgb(58 45 36)",
+          "accent": "rgb(30 71 152)",
+          "accentForeground": "rgb(251 248 241)",
+          "purpose": "Unico tema chiaro: luce forte, lettura lunga. Ridefinisce anche stato, velo e ombre."
+        },
+        {
+          "id": "theme-obsidian",
+          "name": "Ossidiana",
+          "scheme": "dark",
+          "background": "rgb(0 0 0)",
+          "card": "rgb(21 22 24)",
+          "text": "rgb(220 222 225)",
+          "accent": "rgb(226 233 240)",
+          "accentForeground": "rgb(10 11 13)",
+          "purpose": "Nero puro per schermi OLED e tavoli al buio."
+        },
+        {
+          "id": "theme-sapphire",
+          "name": "Zaffiro",
+          "scheme": "dark",
+          "background": "rgb(6 14 29)",
+          "card": "rgb(20 32 54)",
+          "text": "rgb(212 223 235)",
+          "accent": "rgb(89 216 239)",
+          "accentForeground": "rgb(9 22 40)",
+          "purpose": "Blu d'abisso con accento ghiaccio."
+        },
+        {
+          "id": "theme-evergreen",
+          "name": "Foresta",
+          "scheme": "dark",
+          "background": "rgb(5 16 12)",
+          "card": "rgb(18 35 29)",
+          "text": "rgb(219 228 220)",
+          "accent": "rgb(179 225 95)",
+          "accentForeground": "rgb(9 26 13)",
+          "purpose": "Verde profondo; accento foglia nuova, distinto dal verde di esito."
+        },
+        {
+          "id": "theme-twilight",
+          "name": "Crepuscolo",
+          "scheme": "dark",
+          "background": "rgb(14 11 25)",
+          "card": "rgb(32 28 49)",
+          "text": "rgb(222 220 232)",
+          "accent": "rgb(199 163 252)",
+          "accentForeground": "rgb(23 17 42)",
+          "purpose": "Indaco notturno con accento lilla."
+        }
       ],
       "legacy": {
         "theme-solaris": "theme-amber",
@@ -59,34 +357,119 @@
       ]
     },
     "shadows": [
-      { "name": "rest", "value": "0 1px 2px rgb(var(--color-shadow) / 0.4)", "purpose": "Pulsanti pieni, campi e card a riposo." },
-      { "name": "raised", "value": "0 12px 28px -12px rgb(var(--color-shadow) / 0.7)", "purpose": "Menu, toast e card in hover." },
-      { "name": "floating", "value": "0 28px 64px -20px rgb(var(--color-shadow) / 0.85)", "purpose": "Finestre e conferme, sopra il velo." },
-      { "name": "glow", "value": "0 8px 24px -8px rgb(var(--color-accent) / 0.55)", "purpose": "Luce dell'accento: solo in hover/focus dell'azione primaria." },
-      { "name": "tab-indicator", "value": "0 0 8px rgb(var(--color-accent) / 0.6)", "purpose": "Barra sotto la tab attiva." }
+      {
+        "name": "rest",
+        "value": "0 1px 2px rgb(var(--color-shadow) / 0.4)",
+        "purpose": "Pulsanti pieni, campi e card a riposo."
+      },
+      {
+        "name": "raised",
+        "value": "0 12px 28px -12px rgb(var(--color-shadow) / 0.7)",
+        "purpose": "Menu, toast e card in hover."
+      },
+      {
+        "name": "floating",
+        "value": "0 28px 64px -20px rgb(var(--color-shadow) / 0.85)",
+        "purpose": "Finestre e conferme, sopra il velo."
+      },
+      {
+        "name": "glow",
+        "value": "0 8px 24px -8px rgb(var(--color-accent) / 0.55)",
+        "purpose": "Luce dell'accento: solo in hover/focus dell'azione primaria."
+      },
+      {
+        "name": "tab-indicator",
+        "value": "0 0 8px rgb(var(--color-accent) / 0.6)",
+        "purpose": "Barra sotto la tab attiva."
+      },
+      {
+        "name": "highlight",
+        "value": "inset 0 1px 0 rgb(255 255 255 / 0.06)",
+        "purpose": "Filo di luce sul bordo alto di pannelli, cornici e pillole: separa le superfici per tono, al posto di un bordo pesante (0.55 in Pergamena)."
+      }
     ],
     "motion": [
-      { "name": "ease-soft", "value": "cubic-bezier(0.2, 0.8, 0.2, 1)", "purpose": "L'unica curva dell'interfaccia: nessun rimbalzo." },
-      { "name": "press", "value": "90ms, scale(0.97)", "purpose": "Feedback di pressione dei pulsanti." },
-      { "name": "fast", "value": "120ms", "purpose": "Velo delle finestre (fadeIn), uscita dagli hover." },
-      { "name": "state", "value": "150ms", "purpose": "Colori, bordi e ombre di controlli in hover/focus." },
-      { "name": "base", "value": "180ms", "purpose": "Entrata di conferme, menu e toast (popIn: translateY 8px, scale 0.98)." },
-      { "name": "slow", "value": "240ms", "purpose": "Pannelli ancorati in basso (sheetIn) e cambio di tema." },
-      { "name": "card-hover", "value": "200ms, translateY(-2px)", "purpose": "Card cliccabili con puntatore; l'immagine scala a 1.03 in 500ms." },
-      { "name": "rotate-border", "value": "4s linear infinite", "purpose": "Bordo animato: solo elemento attivo o in evidenza." },
-      { "name": "reduced-motion", "value": "prefers-reduced-motion: reduce", "purpose": "Animazioni e transizioni ridotte a zero." }
+      {
+        "name": "ease-soft",
+        "value": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "purpose": "L'unica curva dell'interfaccia: nessun rimbalzo."
+      },
+      {
+        "name": "press",
+        "value": "90ms, scale(0.97)",
+        "purpose": "Feedback di pressione dei pulsanti."
+      },
+      {
+        "name": "fast",
+        "value": "120ms",
+        "purpose": "Velo delle finestre (fadeIn), uscita dagli hover."
+      },
+      {
+        "name": "state",
+        "value": "150ms",
+        "purpose": "Colori, bordi e ombre di controlli in hover/focus."
+      },
+      {
+        "name": "base",
+        "value": "180ms",
+        "purpose": "Entrata di conferme, menu e toast (popIn: translateY 8px, scale 0.98)."
+      },
+      {
+        "name": "slow",
+        "value": "240ms",
+        "purpose": "Pannelli ancorati in basso (sheetIn) e cambio di tema."
+      },
+      {
+        "name": "card-hover",
+        "value": "200ms, translateY(-2px)",
+        "purpose": "Card cliccabili con puntatore; l'immagine scala a 1.03 in 500ms."
+      },
+      {
+        "name": "rotate-border",
+        "value": "4s linear infinite",
+        "purpose": "Bordo animato: solo elemento attivo o in evidenza."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "prefers-reduced-motion: reduce",
+        "purpose": "Animazioni e transizioni ridotte a zero."
+      }
     ],
     "breakpoints": [
-      { "name": "sm", "value": "640px" },
-      { "name": "md", "value": "768px" },
-      { "name": "lg", "value": "1024px" },
-      { "name": "xl", "value": "1280px" }
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      }
     ],
     "zIndex": [
-      { "name": "header", "value": "50" },
-      { "name": "modal", "value": "100" },
-      { "name": "dialog", "value": "105" },
-      { "name": "toast", "value": "110" }
+      {
+        "name": "header",
+        "value": "50"
+      },
+      {
+        "name": "modal",
+        "value": "100"
+      },
+      {
+        "name": "dialog",
+        "value": "105"
+      },
+      {
+        "name": "toast",
+        "value": "110"
+      }
     ]
   },
   "components": [
@@ -142,7 +525,7 @@
       "name": "Tabs",
       "kind": "nav",
       "refersTo": "tab",
-      "description": "Tab della vista di gioco e della finestra Campagne, con barra luminosa sotto la voce attiva.",
+      "description": "Tab della vista di gioco e della finestra Campagne, con barra luminosa sotto la voce attiva. Nella vista di gioco le tab sono segmenti (`TabButton variant=\"pill\"`) in un contenitore incavato: la voce attiva è una pillola card in accento.",
       "html": "<div class=\"ds-tabs\" role=\"tablist\"><button class=\"ds-tab ds-tab-active\" role=\"tab\" aria-selected=\"true\">Principale</button><button class=\"ds-tab\" role=\"tab\" aria-selected=\"false\">Combattimento</button><button class=\"ds-tab\" role=\"tab\" aria-selected=\"false\">Incantesimi</button></div>",
       "css": ".ds-tabs { display: flex; overflow-x: auto; border-bottom: 1px solid rgb(var(--color-border)); } .ds-tab { position: relative; flex-shrink: 0; padding: 12px 16px; border: none; background: none; color: rgb(var(--color-text-muted)); font: 600 14px/20px Inter, sans-serif; white-space: nowrap; cursor: pointer; transition: color 200ms; } .ds-tab::after { content: ''; position: absolute; bottom: 0; left: 50%; right: 50%; height: 2px; border-radius: 9999px; background: rgb(var(--color-accent) / 0.3); transition: all 300ms; } .ds-tab:hover { color: rgb(var(--color-foreground)); } .ds-tab:hover::after { left: 8px; right: 8px; } .ds-tab:focus-visible { outline: none; color: rgb(var(--color-accent)); } .ds-tab-active { color: rgb(var(--color-accent)); } .ds-tab-active::after { left: 8px; right: 8px; background: rgb(var(--color-accent)); box-shadow: 0 0 8px rgb(var(--color-accent) / 0.6); }"
     },
@@ -158,7 +541,7 @@
       "name": "Stat Box",
       "kind": "custom",
       "refersTo": "stat-box",
-      "description": "Valore di gioco protagonista: numero mono grande, etichetta sotto.",
+      "description": "Emblema tattile (`frame-rune`): icona discreta in alto, numero monospace grande e centrato, etichetta maiuscola sotto.",
       "html": "<div class=\"ds-stat\"><div class=\"ds-stat-icon\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z\"/></svg></div><div><div class=\"ds-stat-row\"><span class=\"ds-stat-value\">17</span><span class=\"ds-stat-sub\">+ scudo</span></div><p class=\"ds-stat-label\">Classe Armatura</p></div></div>",
       "css": ".ds-stat { display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px solid rgb(var(--color-border)); border-radius: 16px; background: rgb(var(--color-card)); transition: border-color 200ms; } .ds-stat:hover { border-color: rgb(var(--color-accent) / 0.4); } .ds-stat-icon { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; background: rgb(var(--color-accent) / 0.1); color: rgb(var(--color-accent)); } .ds-stat-row { display: flex; align-items: baseline; gap: 6px; } .ds-stat-value { font: 700 30px/1 ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; color: rgb(var(--color-foreground)); } .ds-stat-sub { font: 400 12px/16px Inter, sans-serif; color: rgb(var(--color-text-muted)); } .ds-stat-label { margin: 4px 0 0; font: 500 12px/1.25 Inter, sans-serif; color: rgb(var(--color-text-muted)); }"
     },
@@ -180,15 +563,45 @@
       "Titoli incisi (Norse per il marchio, Cinzel per i titoli), testo e dati in Inter, valori numerici in monospace.",
       "Angoli morbidi (12–16px) su controlli e contenitori.",
       "La luce dell'accento solo come segnale di stato.",
-      "Sei temi, uno chiaro, con contrasto misurato."
+      "Sei temi, uno chiaro, con contrasto misurato.",
+      "Luce ambientale d'accento in alto, superfici tonali con filo di luce, emblemi e sigilli tattili nella vista di gioco."
     ],
     "rules": [
-      { "name": "The One Ink Rule", "body": "Ogni tema ha un solo accento, e non coincide mai con un colore di stato. Nuovi colori di ruolo non si aggiungono nei componenti: se serve un significato nuovo, diventa un token in `src/index.css` per tutti i temi.", "section": "colors" },
-      { "name": "The Token-Only Rule", "body": "Nessun colore Tailwind fisso (`purple-500`, `zinc-800`, `#hex`) nei componenti; solo eccezioni documentate (il fondo nero del visore immagini). Si usa sempre un ruolo (`bg-card`, `text-accent`, `border-border`).", "section": "colors" },
-      { "name": "The Engraved Titles Rule", "body": "Norse è riservato al marchio; Cinzel ai titoli. Mai Norse o Cinzel per testo corrente, valori o etichette.", "section": "typography" },
-      { "name": "The Readable Number Rule", "body": "Un valore di gioco si mostra in monospace bold, almeno 24px, con l'etichetta sotto in piccolo. Il numero viene prima della parola.", "section": "typography" },
-      { "name": "The Glow-Means-State Rule", "body": "La luce dell'accento, il vetro e il bordo animato (`animated-border-card`) compaiono solo su elementi attivi o in hover/focus. A riposo nessun elemento brilla: l'azione primaria si distingue per il fondo pieno in accento.", "section": "elevation" },
-      { "name": "The One Elevation Rule", "body": "Un livello si dichiara con il bordo o con l'ombra. A riposo basta il bordo; l'ombra ampia è per ciò che galleggia sopra un velo.", "section": "elevation" }
+      {
+        "name": "The One Ink Rule",
+        "body": "Ogni tema ha un solo accento, e non coincide mai con un colore di stato. Nuovi colori di ruolo non si aggiungono nei componenti: se serve un significato nuovo, diventa un token in `src/index.css` per tutti i temi.",
+        "section": "colors"
+      },
+      {
+        "name": "The Token-Only Rule",
+        "body": "Nessun colore Tailwind fisso (`purple-500`, `zinc-800`, `#hex`) nei componenti; solo eccezioni documentate (il fondo nero del visore immagini). Si usa sempre un ruolo (`bg-card`, `text-accent`, `border-border`).",
+        "section": "colors"
+      },
+      {
+        "name": "The Engraved Titles Rule",
+        "body": "Norse è riservato al marchio; Cinzel ai titoli. Mai Norse o Cinzel per testo corrente, valori o etichette.",
+        "section": "typography"
+      },
+      {
+        "name": "The Readable Number Rule",
+        "body": "Un valore di gioco si mostra in monospace bold, almeno 24px, con l'etichetta sotto in piccolo. Il numero viene prima della parola.",
+        "section": "typography"
+      },
+      {
+        "name": "The Glow-Means-State Rule",
+        "body": "La luce dell'accento, il vetro e il bordo animato (`animated-border-card`) compaiono solo su elementi attivi o in hover/focus. A riposo nessun elemento brilla: l'azione primaria si distingue per il fondo pieno in accento.",
+        "section": "elevation"
+      },
+      {
+        "name": "The One Elevation Rule",
+        "body": "Un livello si dichiara con il bordo o con l'ombra. A riposo basta il bordo; l'ombra ampia è per ciò che galleggia sopra un velo.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Tonal Light Rule",
+        "body": "Le superfici si separano per tono e per un filo di luce sul bordo alto (`.surface`, `--highlight`), non per bordi pesanti. In cima alla pagina c'è una luce ambientale d'accento al 7–9% (`body::before`) e sull'header dell'eroe un velo caldo (`.hero-glow`): sono atmosfera fissa, non segnale di stato.",
+        "section": "elevation"
+      }
     ],
     "dos": [
       "**Do** usare solo i ruoli colore (`bg-card`, `text-accent`, `border-border`…) perché ogni tema funzioni.",

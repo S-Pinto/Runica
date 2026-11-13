@@ -71,10 +71,10 @@ export const CharacterCard = forwardRef<HTMLDivElement, CharacterCardProps>(
         tabIndex={0}
         aria-label={`Apri ${character.name || 'personaggio'}`}
         data-character-id={character.id}
-        className={`group relative flex cursor-pointer touch-pan-y select-none gap-3 rounded-2xl border border-border bg-card p-2.5 transition-[transform,box-shadow,border-color] duration-200 ease-soft hover:border-accent/60 hover:shadow-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:flex-col sm:gap-0 sm:p-0 sm:hover:-translate-y-0.5 ${className}`}
+        className={`group relative flex cursor-pointer touch-pan-y select-none gap-3 surface rounded-2xl p-2.5 transition-[transform,box-shadow,border-color] duration-200 ease-soft hover:border-accent/60 hover:shadow-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:flex-col sm:gap-0 sm:p-0 sm:hover:-translate-y-0.5 ${className}`}
       >
         {/* Ritratto */}
-        <div className="relative h-[5.5rem] w-[5.5rem] shrink-0 overflow-hidden rounded-xl bg-input sm:aspect-[16/10] sm:h-auto sm:w-full sm:rounded-b-none sm:rounded-t-[15px]">
+        <div className="relative h-[5.5rem] w-[5.5rem] shrink-0 overflow-hidden rounded-xl bg-input shadow-[inset_0_0_0_1px_rgb(var(--color-border)/0.5)] sm:aspect-[16/10] sm:h-auto sm:w-full sm:rounded-b-none sm:rounded-t-[15px]">
           {character.imageUrl ? (
             <img
               src={character.imageUrl}
@@ -84,8 +84,8 @@ export const CharacterCard = forwardRef<HTMLDivElement, CharacterCardProps>(
               className="h-full w-full object-cover transition-transform duration-500 ease-soft group-hover:scale-[1.03]"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center">
-              <span className="font-cinzel text-3xl font-bold text-accent/60 sm:text-6xl">{initials(character.name || '')}</span>
+            <div className="portrait-rune flex h-full w-full items-center justify-center">
+              <span className="monogram text-3xl sm:text-6xl">{initials(character.name || '')}</span>
             </div>
           )}
 

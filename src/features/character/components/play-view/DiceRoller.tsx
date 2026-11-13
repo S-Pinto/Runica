@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DiceIcon, ChevronUpIcon, ChevronDownIcon, MinusIcon, PlusIcon } from '../../../../components/ui/icons';
+import { DiceIcon, ChevronDownIcon, MinusIcon, PlusIcon } from '../../../../components/ui/icons';
 import { Button } from '../../../../components/ui/Button';
 import { Modal } from '../../../../components/ui/Modal';
 import { SegmentedControl, SegmentedOption } from '../../../../components/ui/SegmentedControl';
@@ -161,26 +161,30 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({ mode = 'dock', isOpen = 
     );
   }
 
-  // Pannello fisso in basso: chiuso è una sola barra, aperto mostra la dadiera.
+  // Pillola flottante: chiusa è un solo pulsante, aperta mostra la dadiera sopra di lei.
   return (
-    <div className="fixed bottom-0 left-4 right-4 z-40 sm:left-auto sm:w-80">
-      <section aria-label="Dadiera" className="overflow-hidden rounded-t-2xl border border-b-0 border-border-strong/60 bg-card shadow-raised">
-        <button
-          type="button"
-          onClick={() => setIsExpanded((prev) => !prev)}
-          aria-expanded={isExpanded}
-          className="pb-safe flex w-full items-center justify-between gap-3 px-4 text-sm font-semibold text-text transition-colors duration-150 hover:text-accent focus-visible:outline-none focus-visible:text-accent"
-        >
-          <span className="flex h-12 items-center gap-2">
-            <DiceIcon className="h-5 w-5 text-accent" /> Dadiera
-            {!isExpanded && lastRoll && (
-              <span className="font-mono text-muted-foreground">· {lastRoll.dice} = <span className="font-bold text-foreground">{lastRoll.total}</span></span>
-            )}
-          </span>
-          {isExpanded ? <ChevronDownIcon className="h-5 w-5 text-muted-foreground" /> : <ChevronUpIcon className="h-5 w-5 text-muted-foreground" />}
-        </button>
-        {isExpanded && <div className="max-h-[70dvh] overflow-y-auto border-t border-border p-4 animate-fadeIn">{content}</div>}
-      </section>
+    <div className="pointer-events-none fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-4 right-4 z-40 flex flex-col items-end gap-2 sm:left-auto sm:right-6 sm:w-80">
+      {isExpanded && (
+        <section aria-label="Dadiera" className="glass-pill pointer-events-auto max-h-[70dvh] w-full overflow-y-auto rounded-2xl p-4 animate-popIn">
+          {content}
+        </section>
+      )}
+      <button
+        type="button"
+        onClick={() => setIsExpanded((prev) => !prev)}
+        aria-expanded={isExpanded}
+        aria-label="Dadiera"
+        className="glass-pill pointer-events-auto flex h-14 items-center gap-3 rounded-full py-1.5 pl-1.5 pr-5 text-sm font-semibold text-text transition-[transform,border-color,color] duration-150 ease-soft hover:border-accent/70 hover:text-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.35)]">
+          <DiceIcon className="h-6 w-6" />
+        </span>
+        <span>Dadiera</span>
+        {!isExpanded && lastRoll && (
+          <span className="font-mono text-muted-foreground">{lastRoll.dice} · <span className="font-bold text-foreground">{lastRoll.total}</span></span>
+        )}
+        {isExpanded && <ChevronDownIcon className="h-5 w-5 text-muted-foreground" />}
+      </button>
     </div>
   );
 };

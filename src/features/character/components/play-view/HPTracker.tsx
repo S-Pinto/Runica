@@ -76,7 +76,7 @@ export const HPTracker = () => {
                 </div>
                 {isDown && <p className="mt-2 text-center text-sm font-semibold text-destructive">A terra: effettua i tiri salvezza contro la morte</p>}
                 <div
-                    className="mt-4 flex h-2.5 overflow-hidden rounded-full bg-input"
+                    className="relative mt-4 flex h-4 overflow-hidden rounded-full bg-input shadow-[inset_0_1px_2px_rgb(var(--color-shadow)/0.5)]"
                     role="progressbar"
                     aria-label="Punti vita"
                     aria-valuemin={0}
@@ -85,6 +85,12 @@ export const HPTracker = () => {
                 >
                     <div className={`${tone} h-full transition-[width] duration-300 ease-soft`} style={{ width: `${pct}%` }} />
                     {tempPct > 0 && <div className="h-full bg-accent/70 transition-[width] duration-300 ease-soft" style={{ width: `${tempPct}%` }} />}
+                    {/* Tacche: dieci segmenti, come le incisioni di un righello. */}
+                    <div
+                        aria-hidden
+                        className="pointer-events-none absolute inset-0"
+                        style={{ backgroundImage: 'repeating-linear-gradient(90deg, transparent 0, transparent calc(10% - 2px), rgb(var(--color-card)) calc(10% - 2px), rgb(var(--color-card)) 10%)' }}
+                    />
                 </div>
             </div>
 

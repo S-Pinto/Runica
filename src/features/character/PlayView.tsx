@@ -163,7 +163,7 @@ export const PlayView: FC = () => {
     return (
         <div className="mx-auto max-w-7xl space-y-4 p-4 pb-28 sm:space-y-6 sm:p-6 sm:pb-28">
             {/* Identity header */}
-            <header className="rounded-2xl border border-border bg-card p-3 sm:p-5">
+            <header className="surface hero-glow rounded-2xl p-3 sm:p-5">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                     <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
                         <Button variant="ghost" size="icon-lg" onClick={() => navigate('/')} aria-label="Torna ai tuoi eroi" className="-ml-1 sm:ml-0">
@@ -183,7 +183,7 @@ export const PlayView: FC = () => {
                                 />
                             </button>
                         ) : (
-                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-border bg-input font-cinzel text-xl font-bold text-accent/70 sm:h-16 sm:w-16 sm:text-2xl">
+                            <div className="portrait-rune monogram flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-border-strong/40 text-xl sm:h-16 sm:w-16 sm:text-2xl">
                                 {(character.name || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase()).join('')}
                             </div>
                         )}
@@ -217,11 +217,12 @@ export const PlayView: FC = () => {
             </header>
 
             {/* Sticky section navigation (sits under the app header: --header-offset) */}
-            <nav className="sticky top-header z-40 -mx-4 border-b border-border bg-background/85 px-2 backdrop-blur-xl sm:mx-0 sm:rounded-xl sm:border sm:px-1">
-                <div ref={tabContainerRef} role="tablist" aria-label="Sezioni della scheda" className="no-scrollbar flex overflow-x-auto">
+            <nav className="sticky top-header z-40 -mx-4 bg-background/70 px-4 py-2 backdrop-blur-xl sm:mx-0 sm:bg-transparent sm:px-0 sm:backdrop-blur-none">
+                <div ref={tabContainerRef} role="tablist" aria-label="Sezioni della scheda" className="no-scrollbar flex gap-1 overflow-x-auto rounded-2xl bg-input/60 p-1 shadow-[inset_0_1px_2px_rgb(var(--color-shadow)/0.35)] sm:inline-flex sm:max-w-full">
                     {PLAY_TABS.map(tab => (
                         <TabButton
                             key={tab.key}
+                            variant="pill"
                             id={`play-tab-${tab.key}`}
                             controls={`play-panel-${tab.key}`}
                             label={tab.label}

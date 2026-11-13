@@ -66,12 +66,7 @@ export const ResourceTracker: FC<ResourceTrackerProps> = ({ title, slots, onSlot
                                             aria-label={`${row.label}, ${i + 1}: ${isUsed ? 'usato' : 'disponibile'}`}
                                             className="group flex h-10 w-10 items-center justify-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                         >
-                                            <span
-                                                aria-hidden
-                                                className={`h-6 w-6 rounded-lg border-2 transition-colors duration-150 ${
-                                                    isUsed ? 'border-border-strong/50 bg-transparent group-hover:border-accent/60' : 'border-accent bg-accent group-hover:bg-accent-dark'
-                                                }`}
-                                            />
+                                            <span aria-hidden className="seal" data-on={!isUsed} />
                                         </button>
                                     );
                                 })}

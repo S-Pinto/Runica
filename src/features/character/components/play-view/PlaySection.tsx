@@ -27,7 +27,7 @@ export const playChipClass = 'inline-flex items-center gap-1 rounded-md border b
  * un'eventuale azione a destra. Tutte le schede usano questo guscio.
  */
 export const PlaySection = ({ title, icon, aside, children, className = '' }: PlaySectionProps) => (
-    <section aria-label={title} className={`rounded-2xl border border-border bg-card p-4 sm:p-5 ${className}`}>
+    <section aria-label={title} className={`surface rounded-2xl p-4 sm:p-5 ${className}`}>
         <div className="mb-4 flex min-h-10 items-center justify-between gap-3">
             <h3 className="flex min-w-0 items-center gap-2 font-cinzel text-title text-accent">
                 {icon && <span className="shrink-0 [&_svg]:h-5 [&_svg]:w-5">{icon}</span>}

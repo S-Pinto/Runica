@@ -53,6 +53,10 @@
 
     /* Grana della pagina: opacità del velo di rumore (vedi body::after). */
     --grain-opacity: 0.02;
+
+    /* Luce: filo chiaro sul bordo alto di una superficie e velo d'accento in alto. */
+    --highlight: inset 0 1px 0 rgb(255 255 255 / 0.06);
+    --ambient-strength: 0.09;
   }
 
   @media (min-width: 640px) {
@@ -195,6 +199,8 @@
     --shadow-raised: 0 12px 28px -12px rgb(var(--color-shadow) / 0.28);
     --shadow-floating: 0 28px 64px -20px rgb(var(--color-shadow) / 0.4);
     --shadow-glow: 0 8px 24px -8px rgb(var(--color-accent) / 0.4);
+    --highlight: inset 0 1px 0 rgb(255 255 255 / 0.55);
+    --ambient-strength: 0.07;
   }
 
   html {
@@ -240,7 +246,23 @@
     --grain-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 3.2 0 0 0 -1.1'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
+  /*
+    Luce ambientale: un'ellisse d'accento molto morbida in alto, fissa dietro
+    il contenuto. Il colore è l'accento del tema, quindi cambia con lui.
+  */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(70% 38% at 50% -6%, rgb(var(--color-accent) / var(--ambient-strength)), transparent 72%),
+      radial-gradient(40% 30% at 100% 0%, rgb(var(--color-accent) / calc(var(--ambient-strength) * 0.45)), transparent 70%);
+  }
+
   @media print {
+    body::before,
     body::after {
       display: none;
     }
@@ -318,6 +340,8 @@ input[type="number"],
     border: 1px solid rgb(var(--color-border-strong) / 0.6);
     border-radius: 1rem;
     background-color: rgb(var(--color-card));
+    background-image: linear-gradient(180deg, rgb(var(--color-foreground) / 0.045), transparent 55%);
+    box-shadow: var(--highlight), var(--shadow-rest);
   }
   .frame-rune::before {
     content: '';
@@ -357,6 +381,55 @@ input[type="number"],
   .frame-rune[data-tone='destructive']::after {
     border-color: rgb(var(--color-destructive));
     background-color: rgb(var(--color-destructive));
+  }
+
+  /*
+    Superficie: un gradino tonale sopra il fondo, con un filo di luce sul bordo
+    alto al posto di un bordo pesante. Pannelli, header e card la usano.
+  */
+  .surface {
+    background-color: rgb(var(--color-card));
+    background-image: linear-gradient(180deg, rgb(var(--color-foreground) / 0.035), transparent 40%);
+    border: 1px solid rgb(var(--color-border) / 0.55);
+    box-shadow: var(--highlight), var(--shadow-rest);
+  }
+
+  /* Velo caldo dietro l'eroe: luce d'accento da un angolo, solo sull'header. */
+  .hero-glow {
+    background-image:
+      radial-gradient(90% 160% at 0% 0%, rgb(var(--color-accent) / 0.16), transparent 62%),
+      linear-gradient(180deg, rgb(var(--color-foreground) / 0.035), transparent 45%);
+  }
+
+  /*
+    Ritratto senza foto: reticolo a rombi sottile, luce calda in alto a
+    sinistra e un monogramma inciso (`.monogram`) sopra.
+  */
+  .portrait-rune {
+    background-color: rgb(var(--color-input));
+    background-image:
+      radial-gradient(120% 90% at 22% 12%, rgb(var(--color-accent) / 0.26), transparent 62%),
+      linear-gradient(45deg, rgb(var(--color-accent) / 0.08) 1px, transparent 1px),
+      linear-gradient(-45deg, rgb(var(--color-accent) / 0.08) 1px, transparent 1px),
+      linear-gradient(180deg, transparent 45%, rgb(var(--color-shadow) / 0.25));
+    background-size: 100% 100%, 22px 22px, 22px 22px, 100% 100%;
+    background-position: center;
+  }
+  .monogram {
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: rgb(var(--color-accent) / 0.5);
+    text-shadow: 0 1px 0 rgb(255 255 255 / 0.12), 0 -1px 0 rgb(var(--color-shadow) / 0.55);
+  }
+
+  /* Pillola di vetro: controlli che galleggiano (dadiera). */
+  .glass-pill {
+    background-color: rgb(var(--color-card) / 0.82);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    backdrop-filter: blur(16px) saturate(1.3);
+    border: 1px solid rgb(var(--color-border-strong) / 0.7);
+    box-shadow: var(--highlight), var(--shadow-raised);
   }
 
   /*
@@ -450,6 +523,34 @@ input[type="number"],
   .check-rune:focus {
     --tw-ring-offset-width: 0px;
     --tw-ring-color: rgb(var(--color-accent) / 0.35);
+  }
+  /* Variante grande e toni di esito (tiri contro la morte). */
+  .check-rune[data-size='lg'] {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 12px;
+  }
+  .check-rune[data-size='lg']::after {
+    width: 14px;
+    height: 14px;
+  }
+  .check-rune[data-tone='success']:checked,
+  .check-rune[data-tone='success']:checked:hover,
+  .check-rune[data-tone='success']:checked:focus {
+    border-color: rgb(var(--color-success));
+    background-color: rgb(var(--color-success));
+  }
+  .check-rune[data-tone='destructive']:checked,
+  .check-rune[data-tone='destructive']:checked:hover,
+  .check-rune[data-tone='destructive']:checked:focus {
+    border-color: rgb(var(--color-destructive));
+    background-color: rgb(var(--color-destructive));
+  }
+  .check-rune[data-tone='success']:checked::after {
+    background-color: rgb(var(--color-background));
+  }
+  .check-rune[data-tone='destructive']:checked::after {
+    background-color: rgb(var(--color-destructive-foreground));
   }
   .check-rune:disabled {
     opacity: 0.5;
