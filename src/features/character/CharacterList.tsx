@@ -75,7 +75,7 @@ export const CharacterList: React.FC = () => {
   const isFiltering = searchQuery !== '' || selectedCampaignFilter !== 'all';
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-8">
+    <div className="mx-auto max-w-7xl space-y-6 p-4 sm:px-6 sm:py-8">
       {/* Header */}
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>

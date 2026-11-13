@@ -1,6 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { SettingsIcon, DownloadIcon, ShareIosIcon, LogoutIcon, UserCircleIcon } from '../ui/icons';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { SettingsIcon, DownloadIcon, ShareIosIcon, LogoutIcon, UserCircleIcon, RuneMarkIcon, CloudOffIcon } from '../ui/icons';
+import { Button } from '../ui/Button';
+import { Menu } from '../ui/Menu';
+import { alertDialog } from '../ui/Dialogs';
 import { useAuth } from '../../providers/AuthProvider';
 
 // Custom hook to manage PWA installation state
@@ -58,6 +61,16 @@ const useOnlineStatus = () => {
   return isOnline;
 };
 
+/** Ritratto dell'utente; senza foto mostra l'iniziale (nessuna richiesta esterna). */
+const UserAvatar = ({ photoURL, name }: { photoURL: string | null; name: string }) =>
+  photoURL ? (
+    <img src={photoURL} alt="" referrerPolicy="no-referrer" className="h-9 w-9 rounded-full object-cover" />
+  ) : (
+    <span aria-hidden className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/15 text-sm font-semibold uppercase text-accent">
+      {name.trim().charAt(0) || '?'}
+    </span>
+  );
+
 interface AppHeaderProps {
   onSettingsClick: () => void;
 }
@@ -67,145 +80,93 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onSettingsClick }) => {
   const navigate = useNavigate();
   const { canInstall, isIos, isStandalone, promptInstall } = usePWAInstall();
   const isOnline = useOnlineStatus();
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const userMenuRef = useRef<HTMLDivElement>(null);
-
-  // Close user menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
-        setIsUserMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   const handleLogout = async () => {
-    setIsUserMenuOpen(false);
     await logout();
     navigate('/');
   };
 
-  const handleAccountClick = () => {
-    setIsUserMenuOpen(false);
-    navigate('/account');
-  };
+  const showIosInstallHelp = () =>
+    alertDialog('Installa Runica', 'In Safari tocca l\'icona Condividi, poi «Aggiungi alla schermata Home».');
+
+  const userName = currentUser?.displayName || currentUser?.email || 'Utente';
+  // Offline l'installazione non serve: lo spazio va all'avviso.
+  const showInstall = isOnline && canInstall;
+  const showIosInstall = isOnline && isIos && !canInstall && !isStandalone;
 
   return (
-    <header className="sticky top-0 z-50 flex justify-between items-center h-20 px-4 sm:px-8 bg-card/60 backdrop-blur-xl border-b border-accent/20 shadow-[0_8px_32px_rgba(0,0,0,0.37)] transition-all duration-300">
-      {/* Brand Title */}
-      <div 
-        onClick={() => navigate('/')} 
-        className="group cursor-pointer flex items-center gap-3 transition-transform duration-300 hover:scale-105"
-      >
-        <div className="w-10 h-10 rounded-xl bg-accent/15 border border-accent/40 flex items-center justify-center text-accent shadow-[0_0_15px_rgb(var(--color-accent)/0.3)] group-hover:border-accent group-hover:shadow-[0_0_25px_rgb(var(--color-accent)/0.5)] transition-all">
-          <span className="font-norse text-2xl font-bold">ᚱ</span>
-        </div>
-        <h1 
-          className="font-norse font-bold text-accent tracking-wider flex items-baseline"
-          style={{ textShadow: '0 0 12px rgb(var(--color-accent) / 0.6)' }}
+    <header className="sticky top-0 z-header border-b border-border bg-background/85 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
+      <div className="mx-auto flex h-[var(--header-h)] max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
+        {/* Marchio: unico uso di Norse nell'app */}
+        <Link
+          to="/"
+          aria-label="Runica, torna ai tuoi eroi"
+          className="group flex shrink-0 items-center gap-2.5 rounded-xl focus-visible:outline-offset-4"
         >
-          <span className="text-5xl">R</span>
-          <span className="text-3xl">UNICA</span>
-        </h1>
-      </div>
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-accent/30 bg-accent/10 text-accent transition-colors duration-150 group-hover:border-accent/70 group-hover:bg-accent/15">
+            <RuneMarkIcon className="h-5 w-5" />
+          </span>
+          <span aria-hidden className="hidden items-baseline font-norse font-bold leading-none tracking-wider text-accent min-[340px]:flex">
+            <span className="text-4xl sm:text-5xl">R</span>
+            <span className="text-2xl sm:text-3xl">UNICA</span>
+          </span>
+        </Link>
 
-      {/* Controls Header Right */}
-      <div className="flex items-center gap-2.5 sm:gap-4">
-        {/* Online / Offline Status Badge */}
-        <div
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold tracking-wide transition-all shadow-sm ${
-            isOnline
-              ? 'bg-success/10 text-success border-success/30'
-              : 'bg-destructive/10 text-destructive border-destructive/30 animate-pulse'
-          }`}
-          title={isOnline ? 'Online' : 'Offline: i dati restano su questo dispositivo'}
-        >
-          <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-success shadow-[0_0_10px_rgb(var(--color-success))]' : 'bg-destructive shadow-[0_0_10px_rgb(var(--color-destructive))]'}`} />
-          <span className="hidden sm:inline font-mono uppercase text-[11px]">{isOnline ? 'Online' : 'Offline'}</span>
-        </div>
-
-        {canInstall && (
-          <button
-            onClick={promptInstall}
-            className="px-3.5 py-2 flex items-center gap-2 font-bold text-xs uppercase tracking-wider text-accent bg-accent/10 rounded-xl border border-accent/30 hover:bg-accent/20 hover:border-accent/70 transition-all duration-300 shadow-sm hover:shadow-md"
-            title="Installa Runica sul tuo dispositivo"
-          >
-            <DownloadIcon className="w-4 h-4" />
-            <span className="hidden sm:inline">Installa app</span>
-          </button>
-        )}
-        {isIos && !canInstall && !isStandalone && (
-           <div
-             className="px-3.5 py-2 flex items-center gap-2 font-bold text-xs uppercase tracking-wider text-accent bg-accent/10 rounded-xl border border-accent/30 cursor-help"
-             title="Per installare: tocca l'icona Condividi e poi 'Aggiungi a Home'"
-           >
-             <ShareIosIcon className="w-4 h-4" />
-             <span className="hidden sm:inline">Installa app</span>
-           </div>
-        )}
-
-        {currentUser ? (
-          <div className="relative" ref={userMenuRef}>
-            <button
-              onClick={() => setIsUserMenuOpen(prev => !prev)}
-              className="flex items-center gap-2.5 p-1 rounded-full border border-accent/30 bg-background/50 hover:border-accent hover:shadow-[0_0_15px_rgb(var(--color-accent)/0.3)] transition-all duration-300 group"
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Offline è una modalità prevista: un avviso calmo, non un allarme. Online non mostra nulla. */}
+          {!isOnline && (
+            <span
+              role="status"
+              title="I dati restano su questo dispositivo"
+              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-warning/40 bg-warning/10 px-2.5 text-xs font-semibold text-warning"
             >
-              <img 
-                src={currentUser.photoURL || `https://api.dicebear.com/8.x/lorelei/svg?seed=${currentUser.uid}`} 
-                alt={currentUser.displayName || 'Avatar'}
-                className="w-10 h-10 rounded-full object-cover group-hover:scale-105 transition-transform"
-              />
-            </button>
-            {isUserMenuOpen && (
-              <div className="absolute right-0 mt-3 w-64 origin-top-right rounded-2xl bg-card/95 backdrop-blur-xl border border-accent/20 shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-2" role="menu">
-                <div className="px-4 py-3 border-b border-border/40 mb-1">
-                  <p className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider">
-                    Connesso come
-                  </p>
-                  <p className="text-sm font-bold text-accent truncate mt-0.5">
-                    {currentUser.displayName || currentUser.email}
-                  </p>
-                </div>
-                <button
-                  onClick={handleAccountClick}
-                  className="w-full text-left flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-foreground hover:bg-accent/15 hover:text-accent transition-all"
-                  role="menuitem"
-                >
-                  <UserCircleIcon className="w-4 h-4 text-accent" />
-                  Account
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/15 transition-all mt-1"
-                  role="menuitem"
-                >
-                  <LogoutIcon className="w-4 h-4" />
-                  Disconnetti
-                </button>
-              </div>
-            )}
-          </div>
-        ) : (
-          <button 
-            onClick={() => navigate('/login')} 
-            className="px-5 py-2 font-bold text-xs uppercase tracking-wider text-accent-foreground bg-accent hover:bg-accent/90 rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95"
-          >
-            Accedi
-          </button>
-        )}
+              <CloudOffIcon className="h-4 w-4" />
+              {/* Sotto i 375px resta solo l'icona: lo spazio va al marchio e ai controlli. */}
+              <span className="max-[374px]:sr-only">Offline</span>
+              <span className="sr-only">: i dati restano su questo dispositivo</span>
+            </span>
+          )}
 
-        {/* Pulsante Impostazioni con stile coerente */}
-        <button 
-          onClick={onSettingsClick} 
-          className="w-11 h-11 flex items-center justify-center rounded-xl text-accent bg-accent/10 border border-accent/30 hover:bg-accent/20 hover:border-accent/70 transition-all duration-300 shadow-sm" 
-          aria-label="Apri impostazioni"
-        >
-          <SettingsIcon className="w-5 h-5" />
-        </button>
+          {showInstall && (
+            <Button variant="secondary" onClick={promptInstall} aria-label="Installa Runica sul dispositivo" className="px-3">
+              <DownloadIcon className="h-4 w-4" />
+              <span className="hidden sm:inline">Installa</span>
+            </Button>
+          )}
+          {showIosInstall && (
+            <Button variant="secondary" onClick={showIosInstallHelp} aria-label="Come installare Runica" className="px-3">
+              <ShareIosIcon className="h-4 w-4" />
+              <span className="hidden sm:inline">Installa</span>
+            </Button>
+          )}
+
+          {currentUser ? (
+            <Menu
+              label={`Menu utente: ${userName}`}
+              triggerClassName="flex h-11 w-11 items-center justify-center rounded-full transition-colors duration-150 hover:bg-muted/60"
+              trigger={<UserAvatar photoURL={currentUser.photoURL} name={userName} />}
+              header={
+                <>
+                  <p className="text-xs text-muted-foreground">Connesso come</p>
+                  <p className="mt-0.5 max-w-56 truncate text-sm font-semibold text-foreground">{userName}</p>
+                </>
+              }
+              items={[
+                { label: 'Account', icon: <UserCircleIcon />, onSelect: () => navigate('/account') },
+                { label: 'Disconnetti', icon: <LogoutIcon />, onSelect: handleLogout },
+              ]}
+            />
+          ) : (
+            // Secondario: l'accento pieno resta all'azione principale della pagina.
+            <Button variant="secondary" onClick={() => navigate('/login')} className="px-3.5">
+              Accedi
+            </Button>
+          )}
+
+          <Button variant="ghost" size="icon-lg" onClick={onSettingsClick} aria-label="Apri impostazioni">
+            <SettingsIcon className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
     </header>
   );

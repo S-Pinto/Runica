@@ -20,7 +20,7 @@ export const EditorHeader = ({ character, isNewCharacter, isDirty, isSaving, onB
     ];
 
     return (
-        <header className="sticky top-20 z-40 -mx-4 flex items-center gap-2 border-b border-border bg-background/90 px-4 py-3 backdrop-blur-xl sm:mx-0 sm:rounded-2xl sm:border sm:px-4">
+        <header className="sticky top-header z-40 -mx-4 flex items-center gap-2 border-b border-border bg-background/90 px-4 py-3 backdrop-blur-xl sm:mx-0 sm:rounded-2xl sm:border sm:px-4">
             <button
                 type="button"
                 onClick={onBack}
