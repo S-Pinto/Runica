@@ -1,5 +1,6 @@
 import { ICharacter, Spell, Currency } from '../../characterTypes';
 import { calculateSpellAttackBonus, calculateSpellSaveDC } from '../../rules/combat';
+import { formatSense, getItemLanguages, getItemSenses } from '../../rules/itemEffects';
 import { ABILITY_LABELS, schoolLabel } from '../../../../lib/labels';
 import { SVGs } from './printStyles';
 import { Box } from './PrintBox';
@@ -130,7 +131,7 @@ export const PrintPageSpells = ({ character, filled, insertSpells, notesColumn }
                         <div className="lbl" style={{ marginTop: '1mm', borderBottom: '0.25mm solid var(--ink-soft)', paddingBottom: '0.6mm' }}>Allineamento: <span style={{ color: 'var(--ink)', fontSize: '6.4pt' }}>{character.alignment}</span></div>
                     </Box>
                     <Box title="Linguaggi" style={{ flex: '0.7 1 0' }}>
-                        <div className="box-body grid-paper" style={{ whiteSpace: 'pre-wrap', fontSize: '6.4pt' }}>{character.languages}</div>
+                        <div className="box-body grid-paper" style={{ whiteSpace: 'pre-wrap', fontSize: '6.4pt' }}>{[character.languages?.trim(), getItemLanguages(character).map(l => l.name).join(', '), getItemSenses(character).map(formatSense).join(', ')].filter(Boolean).join('\n')}</div>
                     </Box>
                     <Box title="Equipaggiamento" style={{ flex: '2.7 1 0' }}>
                         <div className="box-body grid-paper">

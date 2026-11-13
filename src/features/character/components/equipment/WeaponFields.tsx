@@ -1,5 +1,5 @@
 import { WEAPON_MASTERIES } from '../../../../data/weaponProperties';
-import { fieldCheckRowClass, fieldGroupClass, fieldGroupTitleClass, fieldNumericClass } from '../../../../components/ui/field';
+import { fieldCheckRowClass, fieldNumericClass } from '../../../../components/ui/field';
 import { ABILITY_LABELS, ABILITY_SHORT, damageTypeLabel } from '../../../../lib/labels';
 import { ABILITY_KEYS, NO_ABILITY, normalizeAbility } from '../../rules/attacks';
 import { hasProperty } from '../../rules/equipment';
@@ -26,8 +26,7 @@ export const WeaponFields = ({ formData, onChange, ammoCandidates }: WeaponField
   const legacyType = formData.damageType && !DAMAGE_TYPES.includes(formData.damageType) ? formData.damageType : null;
 
   return (
-    <div className={`${fieldGroupClass} space-y-4`}>
-      <h5 className={fieldGroupTitleClass}>Statistiche dell'arma</h5>
+    <div className="space-y-4">
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-12">
         <div className="sm:col-span-4">

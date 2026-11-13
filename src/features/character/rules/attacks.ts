@@ -1,14 +1,14 @@
 // Motore unico degli attacchi: armi equipaggiate, poteri degli oggetti, trucchetti, privilegi-azione
 // e attacchi manuali diventano `ResolvedAction` con totale per colpire, formula del danno e dettaglio.
 // Lo usano Combattimento, editor e Stampa, così mostrano gli stessi valori. Funzioni pure.
-import type { AbilityScores, Attack, EquipmentItem, ICharacter } from '../characterTypes';
+import type { AbilityScores, Attack, DamageBlock, EquipmentItem, ICharacter, ItemPower } from '../characterTypes';
 import { WEAPON_MASTERIES } from '../../../data/weaponProperties';
 import { ABILITY_SHORT, damageTypeLabel } from '../../../lib/labels';
 import { doubleDice, formatModifier, getModifier, rollDiceExpression, type Rng } from '../utils/characterUtils';
 import { getProficiencyBonus } from './combat';
 import {
-    adjustItemCharges, getItemCharges, hasActivePower, hasProperty, isAttunementSatisfied,
-    isShield, isWeapon, usesAmmunition,
+    adjustItemCharges, getItemCharges, getItemPowers, hasProperty, isAttunementSatisfied,
+    isShield, isWeapon, LEGACY_POWER_ID, usesAmmunition,
 } from './equipment';
 import { resolveOptionalRules } from './encumbrance';
 
@@ -114,10 +114,16 @@ export interface ResolvedAction {
     /** Vero se uno scudo impedisce l'impugnatura a due mani. */
     versatileBlocked?: boolean;
     damageType?: string;
-    additionalDamage: { formula: string; type: string }[];
+    additionalDamage: DamageBlock[];
     mastery?: string;
+    /** Potere dell'oggetto da cui nasce l'azione (`source: 'item'`). */
+    powerId?: string;
+    /** Cariche dell'oggetto spese a ogni uso (se l'azione usa le cariche dell'oggetto). */
+    chargeCost?: number;
     properties: string[];
     notes?: string;
+    /** Effetto del potere dell'oggetto, scritto dal giocatore. */
+    description?: string;
     uses?: { current: number; max: number };
     recovery?: 'short' | 'long' | 'none';
     /** Munizioni collegate (solo con la regola opzionale attiva). */
@@ -201,30 +207,63 @@ export const resolveWeaponAction = (c: ICharacter, item: EquipmentItem): Resolve
     };
 };
 
-const resolveItemPower = (c: ICharacter, item: EquipmentItem): ResolvedAction => {
-    const saveAbility = normalizeAbility(item.saveAbility);
-    const damage = item.damage?.trim() || '';
-    const hitParts = spellAttackParts(c);
-    const roll: ResolvedAction['roll'] = saveAbility ? 'save' : damage ? 'attack' : 'none';
-    const charges = getItemCharges(item);
+/** Id dell'azione di un potere: quello vecchio resta `magic-<id>` come prima. */
+export const powerActionId = (itemId: string, powerId: string) =>
+    powerId === LEGACY_POWER_ID ? `magic-${itemId}` : `power-${itemId}-${powerId}`;
+
+/**
+ * Potere di un oggetto (anche armature, elmi e armi). Caratteristica da incantatore (`spell`, come in passato)
+ * o una caratteristica a scelta (es. FOR, che va anche ai danni); CD = 8 + caratteristica + competenza se non è fissata.
+ * Usi propri del potere, oppure cariche dell'oggetto con `chargeCost`.
+ */
+export const resolveItemPower = (c: ICharacter, item: EquipmentItem, power: ItemPower): ResolvedAction => {
+    const scores = c.abilityScores;
+    const mode = power.attackAbility ?? 'spell';
+    const ability = mode === 'spell' ? normalizeAbility(c.spellcastingAbility || undefined) : mode === 'none' ? undefined : normalizeAbility(mode);
+    const proficient = power.isProficient ?? true;
+    const baseParts: ActionPart[] = [
+        ...abilityPart(scores, ability),
+        ...(proficient ? [{ label: 'Comp.', value: getProficiencyBonus(c) }] : []),
+    ];
+    const bonus = parseBonus(power.attackBonus);
+    const hitParts = power.roll === 'attack' ? [...baseParts, ...(bonus ? [{ label: 'Bonus', value: bonus }] : [])] : [];
+    const saveAbility = power.roll === 'save' ? normalizeAbility(power.saveAbility) : undefined;
+    const saveDC = power.roll === 'save'
+        ? (Number.isFinite(power.saveDC) && (power.saveDC as number) > 0 ? (power.saveDC as number) : 8 + sum(baseParts))
+        : undefined;
+
+    const damageAbility = power.damageAbility === 'none' ? undefined
+        : power.damageAbility ? normalizeAbility(power.damageAbility)
+            : mode === 'spell' ? undefined : ability;
+    const damageParts = nonZero(abilityPart(scores, damageAbility));
+    const damage = power.damage?.trim() ? addModifierToFormula(power.damage, sum(damageParts)) : '';
+
+    const ownUses = power.uses && power.uses.max > 0 ? power.uses : undefined;
+    const charges = !ownUses && power.chargeCost ? getItemCharges(item) : null;
+
     return {
-        id: `magic-${item.id}`,
-        name: item.grantsSpellName?.trim() || item.name,
+        id: powerActionId(item.id, power.id),
+        name: power.name,
         source: 'item',
         sourceId: item.id,
-        roll,
-        toHit: roll === 'attack' ? sum(hitParts) : 0,
-        hitParts: roll === 'attack' ? hitParts : [],
-        saveDC: saveAbility ? spellSaveDC(c) : undefined,
+        powerId: power.id,
+        roll: power.roll,
+        toHit: sum(hitParts),
+        hitParts,
+        saveDC,
         saveAbility,
+        attackAbility: power.roll === 'attack' ? ability : undefined,
+        damageAbility,
         damage,
-        damageParts: [],
-        damageType: item.damageType || undefined,
-        additionalDamage: [],
+        damageParts,
+        damageType: power.damageType || undefined,
+        additionalDamage: (power.additionalDamage || []).filter(e => e.formula?.trim()),
         properties: [],
-        notes: item.grantsSpellName?.trim() ? item.name : undefined,
-        uses: charges ? { current: charges.current, max: charges.max } : undefined,
-        recovery: mapRecovery(item.charges ? item.charges.resetType : item.recovery),
+        notes: power.name !== item.name ? item.name : undefined,
+        description: power.description?.trim() || undefined,
+        uses: ownUses ? { current: ownUses.current, max: ownUses.max } : charges ? { current: charges.current, max: charges.max } : undefined,
+        recovery: ownUses ? mapRecovery(ownUses.recovery) : charges ? mapRecovery(item.charges ? item.charges.resetType : item.recovery) : undefined,
+        chargeCost: charges ? Math.max(1, power.chargeCost || 1) : undefined,
         attunementMissing: !isAttunementSatisfied(item),
         editable: false,
     };
@@ -348,7 +387,9 @@ export const buildCharacterActions = (c: ICharacter, options: BuildActionsOption
             .forEach(i => actions.push(resolveWeaponAction(c, i)));
     }
     if (want('item')) {
-        equipment.filter(i => i.equipped && hasActivePower(i)).forEach(i => actions.push(resolveItemPower(c, i)));
+        equipment
+            .filter(i => i.equipped)
+            .forEach(i => getItemPowers(i).forEach(p => actions.push(resolveItemPower(c, i, p))));
     }
     if (want('spell')) {
         (c.spells || []).filter(s => s.level === 0 && s.damage?.trim()).forEach(s => actions.push(resolveCantrip(c, s)));
@@ -367,8 +408,20 @@ export const spendActionUse = (c: ICharacter, action: ResolvedAction, delta: num
     if (!action.uses) return {};
     const clampUses = (u: { current: number; max: number }) => ({ ...u, current: Math.max(0, Math.min(u.max, u.current + delta)) });
     switch (action.source) {
+        case 'item': {
+            const item = c.equipment?.find(i => i.id === action.sourceId);
+            const power = item?.powers?.find(p => p.id === action.powerId);
+            if (item && power?.uses && power.uses.max > 0) {
+                return {
+                    equipment: c.equipment.map(i => (i.id !== item.id ? i : {
+                        ...i,
+                        powers: (i.powers || []).map(p => (p.id === power.id && p.uses ? { ...p, uses: { ...p.uses, ...clampUses(p.uses) } } : p)),
+                    })),
+                };
+            }
+            return { equipment: adjustItemCharges(c.equipment || [], action.sourceId, delta * (action.chargeCost ?? 1)) };
+        }
         case 'weapon':
-        case 'item':
             return { equipment: adjustItemCharges(c.equipment || [], action.sourceId, delta) };
         case 'feat':
             return { featuresAndTraits: c.featuresAndTraits.map(f => (f.id === action.sourceId && f.uses ? { ...f, uses: clampUses(f.uses) } : f)) };
@@ -389,12 +442,28 @@ export const formatActionHit = (a: ResolvedAction) =>
         : a.roll === 'save' ? `CD ${a.saveDC}${a.saveAbility ? ` ${ABILITY_SHORT[a.saveAbility]}` : ''}`
             : '—';
 
-/** "1d8 + 3 Tagliente + 1d6 Fuoco". */
-export const formatActionDamage = (a: ResolvedAction, versatile = false) => {
-    const main = (versatile && a.versatileDamage) || a.damage;
-    if (!main) return '';
-    return [`${main} ${damageTypeLabel(a.damageType)}`.trim(), ...a.additionalDamage.map(e => `${e.formula} ${damageTypeLabel(e.type)}`.trim())].join(' + ');
+export interface ActionDamageBlock extends DamageBlock {
+    /** Il danno principale (con i modificatori); gli altri sono i danni extra. */
+    primary: boolean;
+}
+
+/** Blocchi di danno dell'azione: il principale (o quello a due mani) e gli extra compilati. */
+export const getDamageBlocks = (a: ResolvedAction, versatile = false): ActionDamageBlock[] => {
+    const main = ((versatile && a.versatileDamage) || a.damage || '').trim();
+    if (!main) return [];
+    return [
+        { formula: main, type: a.damageType || '', primary: true },
+        ...a.additionalDamage.filter(e => e.formula?.trim()).map(e => ({ formula: e.formula.trim(), type: e.type || '', primary: false })),
+    ];
 };
+
+const formatBlock = (b: DamageBlock) => `${b.formula} ${damageTypeLabel(b.type)}`.trim();
+
+/** Un blocco per riga: "2d6 + 5 Tagliente", "2d6 Fuoco". */
+export const formatActionDamageLines = (a: ResolvedAction, versatile = false) => getDamageBlocks(a, versatile).map(formatBlock);
+
+/** "2d6 + 5 Tagliente + 2d6 Fuoco". */
+export const formatActionDamage = (a: ResolvedAction, versatile = false) => formatActionDamageLines(a, versatile).join(' + ');
 
 // ---------- Tiri ----------
 
@@ -431,9 +500,23 @@ export const rollAttack = (action: ResolvedAction, mode: RollMode = 'normal', rn
     };
 };
 
+export interface DamageRollPart {
+    total: number;
+    type?: string;
+    /** Etichetta italiana del tipo ('' se manca). */
+    typeLabel: string;
+    /** Formula tirata (con i dadi già raddoppiati se critico). */
+    formula: string;
+    dice: number[];
+    modifier: number;
+    primary: boolean;
+    pretty: string;
+}
+
 export interface DamageRollResult {
     total: number;
-    parts: { total: number; type?: string; pretty: string }[];
+    /** Un parziale per blocco di danno, così si applicano resistenze e immunità tipo per tipo. */
+    parts: DamageRollPart[];
     isCrit: boolean;
     versatile: boolean;
     /** "12 (8 Tagliente + 4 Fuoco)" */
@@ -448,12 +531,20 @@ export const rollDamage = (
     rng: Rng = Math.random,
 ): DamageRollResult => {
     const useVersatile = versatile && !!action.versatileDamage;
-    const base = (useVersatile ? action.versatileDamage : action.damage) || '';
-    const entries = [{ formula: base, type: action.damageType }, ...action.additionalDamage.map(e => ({ formula: e.formula, type: e.type }))]
-        .filter(e => e.formula?.trim());
-    const parts = entries.map(e => {
-        const r = rollDiceExpression(crit ? doubleDice(e.formula) : e.formula, rng);
-        return { total: r.total, type: e.type, pretty: `${r.pretty}${e.type ? ` (${damageTypeLabel(e.type)})` : ''}` };
+    const parts: DamageRollPart[] = getDamageBlocks(action, useVersatile).map(e => {
+        const formula = crit ? doubleDice(e.formula) : e.formula;
+        const r = rollDiceExpression(formula, rng);
+        const typeLabel = damageTypeLabel(e.type);
+        return {
+            total: r.total,
+            type: e.type || undefined,
+            typeLabel,
+            formula,
+            dice: r.dice,
+            modifier: r.modifier,
+            primary: e.primary,
+            pretty: `${r.pretty}${typeLabel ? ` (${typeLabel})` : ''}`,
+        };
     });
     const total = parts.reduce((t, p) => t + p.total, 0);
     const labelled = parts.map(p => `${p.total} ${damageTypeLabel(p.type)}`.trim());

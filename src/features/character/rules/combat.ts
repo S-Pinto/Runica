@@ -5,6 +5,9 @@ import { ABILITY_SHORT } from '../../../lib/labels';
 import { getModifier } from '../utils/characterUtils';
 import { proficiencyForLevel } from './progression';
 import { armorWeight, isAttunementSatisfied, isBodyArmor, isShield } from './equipment';
+import {
+    itemInitiativeParts, itemSaveParts, itemSpeedParts, STRENGTH_SPEED_PENALTY, unmetStrengthRequirement, type ValuePart,
+} from './itemEffects';
 
 /**
  * Bonus di competenza del personaggio: quello salvato, che `withProgression` tiene allineato al livello
@@ -101,3 +104,36 @@ export const calculateSpellSaveDC = (character: ICharacter): number =>
 
 export const calculateSpellAttackBonus = (character: ICharacter): number =>
     getProficiencyBonus(character) + (character ? spellAbilityMod(character) : 0);
+
+// ---------- Velocità, iniziativa e tiri salvezza con i bonus degli oggetti ----------
+
+export interface ValueBreakdown {
+    total: number;
+    parts: ValuePart[];
+}
+
+/** Velocità (ft): base scritta nella scheda + bonus degli oggetti attivi − requisito di Forza non soddisfatto. */
+export const getSpeedBreakdown = (c: ICharacter): ValueBreakdown => {
+    const base = Number.isFinite(c?.speed) ? c.speed : 30;
+    const parts: ValuePart[] = [{ label: 'Base', value: base }, ...itemSpeedParts(c)];
+    const heavy = unmetStrengthRequirement(c);
+    if (heavy) parts.push({ label: `${heavy.name} (FOR ${heavy.strengthRequirement})`, value: STRENGTH_SPEED_PENALTY });
+    return { total: Math.max(0, sumParts(parts)), parts };
+};
+
+/** Iniziativa: modificatore di DES + bonus degli oggetti attivi. */
+export const getInitiativeBreakdown = (c: ICharacter): ValueBreakdown => {
+    const parts: ValuePart[] = [
+        { label: ABILITY_SHORT.dexterity, value: getModifier(c?.abilityScores?.dexterity ?? 10) },
+        ...itemInitiativeParts(c),
+    ];
+    return { total: sumParts(parts), parts };
+};
+
+/** Tiro salvezza: caratteristica + competenza (se c'è) + bonus degli oggetti attivi. */
+export const getSavingThrowBreakdown = (c: ICharacter, ability: keyof AbilityScores): ValueBreakdown => {
+    const parts: ValuePart[] = [{ label: ABILITY_SHORT[ability], value: getModifier(c?.abilityScores?.[ability] ?? 10) }];
+    if (c?.savingThrows?.[ability]?.proficient) parts.push({ label: 'Comp.', value: getProficiencyBonus(c) });
+    parts.push(...itemSaveParts(c, ability));
+    return { total: sumParts(parts), parts };
+};

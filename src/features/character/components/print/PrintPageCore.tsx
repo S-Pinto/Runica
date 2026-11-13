@@ -1,7 +1,8 @@
 import { ReactNode, useMemo } from 'react';
 import { ICharacter, Feature, CATEGORY_CONFIG } from '../../characterTypes';
-import { calculateArmorClass } from '../../rules/combat';
-import { buildCharacterActions, formatActionDamage, formatActionHit, type ResolvedAction } from '../../rules/attacks';
+import { calculateArmorClass, getInitiativeBreakdown, getSpeedBreakdown } from '../../rules/combat';
+import { itemSaveParts } from '../../rules/itemEffects';
+import { buildCharacterActions, formatActionDamageLines, formatActionHit, type ResolvedAction } from '../../rules/attacks';
 import { isShield } from '../../rules/equipment';
 import { weaponPropertyLabel } from '../../utils/itemLabels';
 import { WEAPON_MASTERIES } from '../../../../data/weaponProperties';
@@ -98,7 +99,7 @@ const AbilityCard = ({ character, ability, pb }: { character: ICharacter; abilit
             <div className="ab-name">{ABILITY_LABELS[ability]}</div>
             <AbilityEmblem mod={fmtMod(mod)} score={score} />
             <ul className="ab-rows">
-                <li className="save"><i className={`dot ${saveProf ? 'on' : ''}`} /><b>{fmtMod(mod + (saveProf ? pb : 0))}</b><span>Tiro salvezza</span></li>
+                <li className="save"><i className={`dot ${saveProf ? 'on' : ''}`} /><b>{fmtMod(mod + (saveProf ? pb : 0) + itemSaveParts(character, ability).reduce((t, p) => t + p.value, 0))}</b><span>Tiro salvezza</span></li>
                 {character.skills.filter((s) => s.ability === ability).map((s) => (
                     <li key={s.name}>
                         <i className={`dot ${s.proficient || s.expertise ? 'on' : ''}`} />
@@ -170,8 +171,8 @@ export const PrintPageCore = ({ character, filled }: { character: ICharacter; fi
                 </Box>
                 <div className="col col-c">
                     <div className="tiles4">
-                        <Stat label="Iniziativa" value={fmtMod(getMod(character.abilityScores.dexterity))} />
-                        <Stat label="Velocità" value={`${Math.round(character.speed * 0.3)} m`} />
+                        <Stat label="Iniziativa" value={fmtMod(getInitiativeBreakdown(character).total)} />
+                        <Stat label="Velocità" value={`${Math.round(getSpeedBreakdown(character).total * 0.3)} m`} />
                         <Stat label="Taglia" value="" />
                         <Stat label="Percezione passiva" value={passive} />
                     </div>
@@ -185,7 +186,7 @@ export const PrintPageCore = ({ character, filled }: { character: ICharacter; fi
                                         <tr key={i}>
                                             <td className="serif"><b>{a?.name}</b></td>
                                             <td>{a && (a.roll === 'none' ? '' : formatActionHit(a))}</td>
-                                            <td>{a && formatActionDamage(a)}</td>
+                                            <td className="dmg-cell">{a && formatActionDamageLines(a).map((l, j) => <span key={j}>{j > 0 ? `+ ${l}` : l}</span>)}</td>
                                             <td style={{ fontSize: '5.6pt' }}>{a && actionNotes(a)}</td>
                                         </tr>
                                     );

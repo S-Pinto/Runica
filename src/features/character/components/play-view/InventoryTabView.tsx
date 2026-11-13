@@ -1,32 +1,23 @@
 import { useState, useMemo } from 'react';
 import { useCharacter } from '../../CharacterProvider';
 import { Currency } from '../../characterTypes';
-import {
-  adjustItemCharges, adjustQuantity, countAttuned, getEquipWarning, MAX_ATTUNED_ITEMS,
-  splitEquipment, toggleAttunement, toggleEquippedItem,
-} from '../../rules/equipment';
+import { adjustItemCharges, adjustQuantity, countAttuned, splitEquipment } from '../../rules/equipment';
 import { getEncumbrance } from '../../rules/encumbrance';
 import { ImageModal } from '../../../../components/ui/ImageModal';
-import { toast } from '../../../../components/ui/Dialogs';
 import { ShieldIcon, BackpackIcon } from '../../../../components/ui/icons';
 import { InventoryItemList } from './inventory/InventoryItemList';
 import { InventoryCurrencyBanner } from './inventory/InventoryCurrencyBanner';
 import { EncumbranceMeter } from './inventory/EncumbranceMeter';
+import { ItemDetailSheet } from './inventory/ItemDetailSheet';
+import { useItemActions } from './inventory/useItemActions';
 
 const InventoryTabViewContent = () => {
   const { character: maybeCharacter, updateCharacter } = useCharacter();
   const character = maybeCharacter!;
-  const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [detailItemId, setDetailItemId] = useState<string | null>(null);
+  const { toggleEquip, toggleAttune } = useItemActions();
   const [selectedImage, setSelectedImage] = useState<{ url: string; alt: string } | null>(null);
   const equipment = character.equipment || [];
-
-  const handleToggleEquip = (itemId: string) => {
-    const newEquipment = toggleEquippedItem(equipment, itemId);
-    if (!newEquipment) return;
-    updateCharacter({ equipment: newEquipment });
-    const warning = getEquipWarning(newEquipment, itemId);
-    if (warning) toast.info(warning);
-  };
 
   const handleCurrencyChange = (type: keyof Currency, val: number) => {
     updateCharacter({
@@ -37,26 +28,16 @@ const InventoryTabViewContent = () => {
     });
   };
 
-  const handleToggleAttune = (itemId: string) => {
-    const result = toggleAttunement(equipment, itemId);
-    if (result.ok) {
-      updateCharacter({ equipment: result.equipment });
-    } else if (result.reason === 'limit') {
-      toast.info(`Puoi essere in sintonia con al massimo ${MAX_ATTUNED_ITEMS} oggetti magici.`);
-    }
-  };
-
   const attunedCount = useMemo(() => countAttuned(character.equipment), [character.equipment]);
   const encumbrance = useMemo(() => getEncumbrance(character), [character]);
 
   const { equippableItems, backpackItems } = useMemo(() => splitEquipment(character.equipment), [character.equipment]);
 
   const listProps = {
-    expandedItem,
     weightUnit: encumbrance.enabled ? encumbrance.unit : undefined,
-    onToggleExpand: (itemId: string) => setExpandedItem(prev => (prev === itemId ? null : itemId)),
-    onToggleEquip: handleToggleEquip,
-    onToggleAttune: handleToggleAttune,
+    onOpenDetails: setDetailItemId,
+    onToggleEquip: toggleEquip,
+    onToggleAttune: toggleAttune,
     onUseCharge: (itemId: string) => updateCharacter({ equipment: adjustItemCharges(equipment, itemId, -1) }),
     onResetCharge: (itemId: string) => updateCharacter({ equipment: adjustItemCharges(equipment, itemId, 'reset') }),
     onAdjustQuantity: (itemId: string, delta: number) => updateCharacter({ equipment: adjustQuantity(equipment, itemId, delta) }),
@@ -70,6 +51,8 @@ const InventoryTabViewContent = () => {
         altText={selectedImage?.alt || ''}
         onClose={() => setSelectedImage(null)}
       />
+
+      <ItemDetailSheet itemId={detailItemId} onClose={() => setDetailItemId(null)} />
 
       <InventoryCurrencyBanner currency={character.currency} attunedCount={attunedCount} onChange={handleCurrencyChange} />
 

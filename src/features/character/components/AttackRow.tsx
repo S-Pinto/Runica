@@ -83,6 +83,11 @@ export const AttackRow: React.FC<AttackRowProps> = ({ action, actions, children,
               <dt className={labelClass}>Danno</dt>
               <dd className={valueClass}>{action.damage || '–'}</dd>
               {damageSub && <dd className="mt-0.5 text-xs text-muted-foreground">{damageSub}</dd>}
+              {action.damage && action.additionalDamage.map((extra, idx) => (
+                <dd key={idx} className="mt-0.5 font-mono text-sm font-semibold tabular-nums text-accent">
+                  + {extra.formula} <span className="font-sans text-xs font-medium">{damageTypeLabel(extra.type)}</span>
+                </dd>
+              ))}
               {action.versatileDamage && (
                 <dd className="mt-0.5 text-xs text-muted-foreground">
                   A due mani <span className="font-mono text-foreground">{action.versatileDamage}</span>
@@ -92,7 +97,7 @@ export const AttackRow: React.FC<AttackRowProps> = ({ action, actions, children,
           </dl>
         )}
 
-        {(source || action.additionalDamage.length > 0 || action.mastery || action.properties.length > 0 || action.uses || action.ammo || action.attunementMissing) && (
+        {(source || action.mastery || action.properties.length > 0 || action.uses || action.ammo || action.attunementMissing) && (
           <div className="flex flex-wrap items-center gap-1.5">
             {source && <span className={chipClass}>{source}</span>}
             {action.attunementMissing && (
@@ -106,11 +111,6 @@ export const AttackRow: React.FC<AttackRowProps> = ({ action, actions, children,
                 {action.ammo.name} <span className="font-mono">×{action.ammo.quantity}</span>
               </span>
             )}
-            {action.additionalDamage.map((extra, idx) => (
-              <span key={idx} className={accentChipClass}>
-                Extra <span className="font-mono">+{extra.formula}</span> {damageTypeLabel(extra.type)}
-              </span>
-            ))}
             {action.mastery && (
               <span className={accentChipClass}>Maestria: {WEAPON_MASTERIES[action.mastery]?.name ?? action.mastery}</span>
             )}

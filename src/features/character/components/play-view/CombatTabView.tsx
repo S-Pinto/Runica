@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useCharacter } from '../../CharacterProvider';
 import { EquipmentItem } from '../../characterTypes';
 import { buildCharacterActions, spendActionUse, type ResolvedAction } from '../../rules/attacks';
@@ -7,6 +7,9 @@ import { toast } from '../../../../components/ui/Dialogs';
 import { AttacksAndCantrips } from './combat/AttacksAndCantrips';
 import { FeaturesList } from './combat/FeaturesList';
 import { ActiveMagicItems } from './combat/ActiveMagicItems';
+import { CombatNotes } from './combat/CombatNotes';
+import { ItemDetailSheet } from './inventory/ItemDetailSheet';
+import { getItemCombatNotes } from '../../rules/itemEffects';
 
 const CombatTabViewContent = () => {
     const { character: maybeCharacter, updateCharacter } = useCharacter();
@@ -18,6 +21,9 @@ const CombatTabViewContent = () => {
             .sort((a, b) => a.name.localeCompare(b.name)),
         [character],
     );
+
+    const [detailItemId, setDetailItemId] = useState<string | null>(null);
+    const notes = useMemo(() => getItemCombatNotes(character), [character]);
 
     const features = useMemo(() => [...(character.featuresAndTraits || [])].sort((a, b) => a.name.localeCompare(b.name)), [character.featuresAndTraits]);
 
@@ -44,11 +50,14 @@ const CombatTabViewContent = () => {
 
     return (
         <div className="space-y-6">
+            <ItemDetailSheet itemId={detailItemId} onClose={() => setDetailItemId(null)} />
+            <CombatNotes notes={notes} onOpenItem={setDetailItemId} />
+
             {/* Oggetti magici equipaggiati con cariche */}
             <ActiveMagicItems equipment={character.equipment || []} onUpdate={handleUpdateEquipment} />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <AttacksAndCantrips items={attacks} onAttackRolled={handleAttackRolled} onSpendUse={handleSpendUse} />
+                <AttacksAndCantrips items={attacks} onAttackRolled={handleAttackRolled} onSpendUse={handleSpendUse} onOpenItem={setDetailItemId} />
                 <FeaturesList items={features} />
             </div>
         </div>

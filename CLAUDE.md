@@ -74,7 +74,7 @@ src/
       characterTypes.ts     ICharacter e tipi collegati
       hooks/                useCharacterEditor, useFieldChange, useCharacterOrdering, useCharacterActions, usePlayViewAutosave, useDiceMode
       rules/                regole pure: progression, rest, combat (CA, competenza, CD), attacks (motore unico delle azioni e dei tiri),
-                            equipment (classificazione, sintonia, cariche, munizioni), encumbrance (carico), defaults, characterData
+                            equipment (classificazione, sintonia, cariche, munizioni, poteri degli oggetti), itemEffects (proprietà passive degli oggetti: difese, bonus, sensi, lingue, avvisi), encumbrance (carico), defaults, characterData
       utils/
       components/           editor e card (armi, equip., incantesimi, compagni…)
         editor/             sezioni dell'editor di CharacterSheet
@@ -124,7 +124,8 @@ functions/src/
 ### Logica e dati
 
 - Regole di gioco come **funzioni pure** in `features/character/rules/`; i valori derivati devono rispettare gli override manuali in `character.automation.*` (la CA ha `armorClassOverride`).
-- Attacchi: Combattimento, editor e Stampa passano tutti da `buildCharacterActions` (`rules/attacks.ts`); non ricostruire righe d'attacco a mano. Gli oggetti si classificano con `isWeapon`/`isBodyArmor`/`isShield` (`rules/equipment.ts`), che leggono anche i formati vecchi (`armorType: 'weapon' | 'magic'`, bonus magico delle armi in `armorClass`).
+- Attacchi: Combattimento, editor e Stampa passano tutti da `buildCharacterActions` (`rules/attacks.ts`); non ricostruire righe d'attacco a mano.
+- Oggetti complessi: danni extra in `additionalDamage` (un blocco per tipo, tutti raddoppiati col critico), poteri in `powers` (anche su armature ed elmi; il formato vecchio a un solo potere si legge con `getItemPowers` e diventa `powers` al salvataggio del form), proprietà passive in `effects` (attive con `isItemActive`; gli avvisi valgono appena equipaggiato). Il bonus magico alla CA resta in `bonusAC`. Gli oggetti si classificano con `isWeapon`/`isBodyArmor`/`isShield` (`rules/equipment.ts`), che leggono anche i formati vecchi (`armorType: 'weapon' | 'magic'`, bonus magico delle armi in `armorClass`).
 - Regole opzionali per personaggio (`optionalRules`: carico, munizioni), spente di default: spente, i relativi campi non compaiono.
 - Accesso a Firebase tramite `getFirebase()` / i service, non importando `firebaseConfig` nei componenti.
 - Testo mostrato all'utente: etichette italiane da `lib/labels.ts`; nei dati restano le chiavi inglesi.

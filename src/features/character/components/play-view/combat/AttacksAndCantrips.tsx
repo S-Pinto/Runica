@@ -21,11 +21,13 @@ interface AttacksAndCantripsProps {
     onAttackRolled?: (action: ResolvedAction) => void;
     /** Spende (−1) o recupera (+1) un uso dell'azione. */
     onSpendUse?: (action: ResolvedAction, delta: number) => void;
+    /** Apre la Scheda Oggetto della fonte (armi e poteri degli oggetti). */
+    onOpenItem?: (itemId: string) => void;
 }
 
-export const AttacksAndCantrips = ({ items, onAttackRolled, onSpendUse }: AttacksAndCantripsProps) => {
+export const AttacksAndCantrips = ({ items, onAttackRolled, onSpendUse, onOpenItem }: AttacksAndCantripsProps) => {
     const [expandedAttackId, setExpandedAttackId] = useState<string | null>(null);
-    const { results, rollMode, setRollMode, handleAttackRoll, handleDamageRoll, clearResults, pendingCrit } = useAttackRolls({ onAttackRolled });
+    const { results, rollMode, setRollMode, handleAttackRoll, handleDamageRoll, clearResults, pendingCrit, forceCrit, setForceCrit } = useAttackRolls({ onAttackRolled });
 
     const toggleExpand = (id: string) => {
         setExpandedAttackId(expandedAttackId === id ? null : id);
@@ -33,7 +35,18 @@ export const AttacksAndCantrips = ({ items, onAttackRolled, onSpendUse }: Attack
 
     return (
         <PlaySection title="Attacchi e trucchetti" icon={<SwordIcon className="text-muted-foreground" />}>
-            <SegmentedControl label="Modalità del tiro per colpire" options={ROLL_MODES} value={rollMode} onChange={setRollMode} className="mb-4" />
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+                <SegmentedControl label="Modalità del tiro per colpire" options={ROLL_MODES} value={rollMode} onChange={setRollMode} className="min-w-0 flex-1" />
+                <Button
+                    variant="secondary"
+                    onClick={() => setForceCrit(!forceCrit)}
+                    aria-pressed={forceCrit}
+                    title="Il prossimo tiro di danni raddoppia tutti i dadi"
+                    className={forceCrit ? 'border-success/60 bg-success/15 text-success' : ''}
+                >
+                    Critico
+                </Button>
+            </div>
 
             {items.length === 0 ? (
                 <p className={playEmptyClass}>Nessun attacco o trucchetto. Equipaggia un'arma nell'inventario o aggiungi un attacco nell'editor.</p>
@@ -57,10 +70,10 @@ export const AttacksAndCantrips = ({ items, onAttackRolled, onSpendUse }: Attack
                                         <Button
                                             variant="secondary"
                                             onClick={(e) => handleDamageRoll(e, item)}
-                                            className={`flex-1 sm:flex-initial ${pendingCrit[item.id] ? 'ring-2 ring-success' : ''}`}
-                                            title={pendingCrit[item.id] ? 'Tira i danni del colpo critico' : 'Tira i danni'}
+                                            className={`flex-1 sm:flex-initial ${pendingCrit[item.id] || forceCrit ? 'ring-2 ring-success' : ''}`}
+                                            title={pendingCrit[item.id] || forceCrit ? 'Tira i danni del colpo critico' : 'Tira i danni'}
                                         >
-                                            <FireIcon className="h-4 w-4" /> {pendingCrit[item.id] ? 'Critico' : 'Danni'}
+                                            <FireIcon className="h-4 w-4" /> {pendingCrit[item.id] || forceCrit ? 'Critico' : 'Danni'}
                                         </Button>
                                     )}
                                     {item.versatileDamage && (
@@ -78,7 +91,7 @@ export const AttacksAndCantrips = ({ items, onAttackRolled, onSpendUse }: Attack
                                         <Button
                                             variant="secondary"
                                             onClick={(e) => { e.stopPropagation(); onSpendUse(item, -1); }}
-                                            disabled={item.uses.current <= 0}
+                                            disabled={item.uses.current < (item.chargeCost ?? 1) || (item.source === 'item' && item.attunementMissing)}
                                             className="flex-1 sm:flex-initial"
                                             title="Spendi un uso"
                                         >
@@ -88,7 +101,7 @@ export const AttacksAndCantrips = ({ items, onAttackRolled, onSpendUse }: Attack
                                 </>
                             }
                         >
-                            {expandedAttackId === item.id && <AttackDetails action={item} />}
+                            {expandedAttackId === item.id && <AttackDetails action={item} onOpenItem={onOpenItem} />}
                             {results[item.id] && <AttackRollResults results={results[item.id]} onClear={() => clearResults(item.id)} />}
                         </AttackRow>
                     ))}

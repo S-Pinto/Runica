@@ -1,17 +1,16 @@
 import { FC, ReactNode } from 'react';
 import { EquipmentItem, ChargeResetType } from '../../../characterTypes';
-import { ChevronDownIcon, SwordIcon, ShieldIcon, SparklesIcon, BackpackIcon, RefreshIcon, CheckIcon, MinusIcon, PlusIcon } from '../../../../../components/ui/icons';
+import { ChevronRightIcon, SwordIcon, ShieldIcon, SparklesIcon, BackpackIcon, RefreshIcon, CheckIcon, MinusIcon, PlusIcon } from '../../../../../components/ui/icons';
 import { Button } from '../../../../../components/ui/Button';
-import { damageTypeLabel } from '../../../../../lib/labels';
-import { getItemCharges, isBodyArmor, isShield, isWeapon, MAGIC_POWER_TYPES } from '../../../rules/equipment';
+import { getItemCharges, getItemPowers, isBodyArmor, isShield, isWeapon, MAGIC_POWER_TYPES } from '../../../rules/equipment';
 import { formatWeight, itemTotalWeight, type WeightUnit } from '../../../rules/encumbrance';
-import { itemArmorValue, itemKindLabel, weaponPropertyLabel } from '../../../utils/itemLabels';
+import { itemArmorValue, RARITY_LABELS } from '../../../utils/itemLabels';
 import { PlaySection, playChipClass, playEmptyClass } from '../PlaySection';
 
 const getItemIcon = (item: EquipmentItem): FC<{ className?: string }> => {
   if (isWeapon(item)) return SwordIcon;
   if (isBodyArmor(item) || isShield(item)) return ShieldIcon;
-  if (item.itemType && MAGIC_POWER_TYPES.includes(item.itemType)) return SparklesIcon;
+  if ((item.itemType && MAGIC_POWER_TYPES.includes(item.itemType)) || item.rarity) return SparklesIcon;
   return BackpackIcon;
 };
 
@@ -34,10 +33,10 @@ interface InventoryItemListProps {
   title: string;
   icon?: ReactNode;
   items: EquipmentItem[];
-  expandedItem: string | null;
   /** Unità di peso se la regola del carico è attiva. */
   weightUnit?: WeightUnit;
-  onToggleExpand: (itemId: string) => void;
+  /** Apre la Scheda Oggetto. */
+  onOpenDetails: (itemId: string) => void;
   onToggleEquip: (itemId: string) => void;
   onToggleAttune: (itemId: string) => void;
   onUseCharge: (itemId: string) => void;
@@ -47,7 +46,7 @@ interface InventoryItemListProps {
 }
 
 export const InventoryItemList = ({
-  title, icon, items, expandedItem, weightUnit, onToggleExpand, onToggleEquip, onToggleAttune, onUseCharge, onResetCharge, onAdjustQuantity, onSelectImage,
+  title, icon, items, weightUnit, onOpenDetails, onToggleEquip, onToggleAttune, onUseCharge, onResetCharge, onAdjustQuantity, onSelectImage,
 }: InventoryItemListProps) => (
   <PlaySection
     title={title}
@@ -60,7 +59,6 @@ export const InventoryItemList = ({
       <ul className="grid grid-cols-1 items-start gap-3 md:grid-cols-2">
         {items.map(item => {
           const Icon = getItemIcon(item);
-          const isExpanded = expandedItem === item.id;
           const charges = getItemCharges(item);
           const resetLabel = item.charges ? RESET_LABELS[item.charges.resetType] ?? '' : '';
           const armorValue = itemArmorValue(item);
@@ -87,17 +85,19 @@ export const InventoryItemList = ({
                 <div className="min-w-0 flex-1">
                   <button
                     type="button"
-                    onClick={() => onToggleExpand(item.id)}
-                    aria-expanded={isExpanded}
+                    onClick={() => onOpenDetails(item.id)}
+                    aria-haspopup="dialog"
                     className="flex w-full items-center gap-1.5 rounded-lg py-0.5 text-left text-base font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <span className="truncate" title={item.name}>{item.name}</span>
-                    <ChevronDownIcon className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-150 ${isExpanded ? 'rotate-180' : ''}`} />
+                    <ChevronRightIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                   </button>
                   <div className="mt-1 flex flex-wrap items-center gap-1.5">
                     {!hasQuantityStepper(item) && <span className={`${playChipClass} font-mono`}>×{item.quantity}</span>}
                     {depleted && <span className="rounded-md bg-destructive/15 px-1.5 py-0.5 text-xs font-medium text-destructive">Esaurito</span>}
-                    {item.damage && <span className={playChipClass}>Danni <span className="font-mono text-foreground">{item.damage}</span></span>}
+                    {isWeapon(item) && item.damage && <span className={playChipClass}>Danni <span className="font-mono text-foreground">{[item.damage, ...(item.additionalDamage || []).map(d => d.formula).filter(Boolean)].join(' + ')}</span></span>}
+                    {item.rarity && <span className="rounded-md bg-accent/15 px-1.5 py-0.5 text-xs font-medium text-accent">{RARITY_LABELS[item.rarity]}</span>}
+                    {getItemPowers(item).length > 0 && <span className={playChipClass}>{getItemPowers(item).length === 1 ? '1 potere' : `${getItemPowers(item).length} poteri`}</span>}
                     {armorValue && <span className={playChipClass}>CA <span className="font-mono text-foreground">{armorValue}</span></span>}
                     {!!item.bonusAC && <span className={playChipClass}>CA <span className="font-mono text-foreground">+{item.bonusAC}</span></span>}
                     {weightUnit && weight > 0 && <span className={playChipClass}><span className="font-mono text-foreground">{formatWeight(weight, weightUnit)}</span></span>}
@@ -163,21 +163,6 @@ export const InventoryItemList = ({
                 </div>
               )}
 
-              {isExpanded && (
-                <div className="space-y-2 border-t border-foreground/10 px-3 py-3 animate-fadeIn">
-                  <p className="text-xs text-muted-foreground">
-                    {[
-                      itemKindLabel(item),
-                      item.damageType && `Danni ${damageTypeLabel(item.damageType)}`,
-                      ...(item.properties || []).map(weaponPropertyLabel),
-                      item.requiresAttunement && !item.isAttuned && 'Richiede sintonia',
-                    ].filter(Boolean).join(' · ')}
-                  </p>
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-text">
-                    {item.description || <span className="text-muted-foreground">Nessuna descrizione.</span>}
-                  </p>
-                </div>
-              )}
             </li>
           );
         })}

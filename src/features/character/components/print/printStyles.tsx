@@ -170,6 +170,10 @@ export const SharedStyles = () => (
     .sheet-table th:first-child, .sheet-table td:first-child { border-left: none; }
     .sheet-table td { border-top: 0.2mm solid var(--rule); border-left: 0.18mm solid var(--rule); height: 6mm; padding: 0 1mm; font-size: 6.8pt; vertical-align: middle; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .weapons-box { flex-shrink: 0; }
+    /* Danni con più tipi: un blocco per riga, mai troncati. */
+    .sheet-table td.dmg-cell { white-space: normal; text-overflow: clip; height: auto; min-height: 6mm; padding-top: 0.5mm; padding-bottom: 0.5mm; line-height: 1.15; }
+    .sheet-table td.dmg-cell > span { display: block; }
+    .sheet-table td.dmg-cell > span + span { font-size: 6pt; }
     .features-box { flex: 1 1 0; }
     .cols2 { column-count: 2; column-gap: 4mm; height: 100%; column-fill: auto; padding: 0 0.5mm; }
     .grid-split {

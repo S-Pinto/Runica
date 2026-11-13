@@ -57,9 +57,13 @@ describe('normalizeItemForSave', () => {
     it("un bonus già presente in attackBonus non viene sovrascritto", () => {
         expect(normalizeItemForSave(item({ armorType: 'weapon', armorClass: 1, attackBonus: '+2' })).attackBonus).toBe('+2');
     });
-    it('oggetto magico vecchio: resta `magic` con il suo potere', () => {
-        const saved = normalizeItemForSave(item({ armorType: 'magic', grantsSpellName: 'Palla di fuoco', damage: '8d6' }));
-        expect(saved).toMatchObject({ itemType: 'wondrous', armorType: 'magic', damage: '8d6' });
+    it('oggetto magico vecchio: al salvataggio il potere passa in `powers` e i campi vecchi spariscono', () => {
+        const saved = normalizeItemForSave(item({ armorType: 'magic', grantsSpellName: 'Palla di fuoco', damage: '8d6', saveAbility: 'dex' }));
+        expect(saved.itemType).toBe('wondrous');
+        expect(saved.powers).toEqual([{ id: 'legacy', name: 'Palla di fuoco', roll: 'save', attackAbility: 'spell', saveAbility: 'dex', damage: '8d6' }]);
+        expect(saved.armorType).toBeUndefined();
+        expect(saved.damage).toBeUndefined();
+        expect(saved.grantsSpellName).toBeUndefined();
     });
     it('armatura senza tipo diventa leggera; scudo ha sempre armorType shield; niente danni', () => {
         expect(normalizeItemForSave(item({ itemType: 'armor', damage: '1d4' }))).toMatchObject({ armorType: 'light' });

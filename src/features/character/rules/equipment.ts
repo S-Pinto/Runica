@@ -1,6 +1,6 @@
 // Regole pure dell'equipaggiamento: classificazione degli oggetti (anche nei formati salvati in passato),
 // equipaggia/rimuovi, sintonia, cariche, quantità e munizioni.
-import type { EquipmentItem, ItemCategory } from '../characterTypes';
+import type { EquipmentItem, ItemCategory, ItemEffects, ItemPower } from '../characterTypes';
 import { WEAPON_PROPERTIES } from '../../../data/weaponProperties';
 
 export type ArmorWeight = 'light' | 'medium' | 'heavy';
@@ -36,15 +36,46 @@ export const armorWeight = (item: EquipmentItem): ArmorWeight =>
 export const MAGIC_POWER_TYPES: readonly string[] = ['wondrous', 'ring', 'amulet', 'helmet', 'potion', 'scroll'];
 
 /**
- * Oggetto con un potere attivabile: formato vecchio `magic`, nome del potere,
- * oppure un oggetto magico con un effetto/danno compilato.
+ * Potere nel formato vecchio (un solo potere nei campi dell'oggetto): `magic`, nome del potere,
+ * oppure un oggetto magico con un effetto/danno compilato. Le armi non ne hanno: il loro danno è l'arma.
  */
-export const hasActivePower = (item: EquipmentItem) =>
+export const hasLegacyPower = (item: EquipmentItem) =>
     !isWeapon(item) && (
         item.armorType === 'magic' ||
         !!item.grantsSpellName?.trim() ||
         (MAGIC_POWER_TYPES.includes(item.itemType || '') && !!item.damage?.trim())
     );
+
+/** Id del potere ricavato dal formato vecchio. */
+export const LEGACY_POWER_ID = 'legacy';
+
+/** Converte il potere del formato vecchio; se l'oggetto ha cariche, ogni uso ne spende una come prima. */
+export const legacyPowerOf = (item: EquipmentItem): ItemPower => {
+    const saveAbility = item.saveAbility?.trim() || undefined;
+    const damage = item.damage?.trim() || '';
+    return {
+        id: LEGACY_POWER_ID,
+        name: item.grantsSpellName?.trim() || item.name,
+        roll: saveAbility ? 'save' : damage ? 'attack' : 'none',
+        attackAbility: 'spell',
+        ...(saveAbility ? { saveAbility: saveAbility as ItemPower['saveAbility'] } : {}),
+        ...(damage ? { damage } : {}),
+        ...(item.damageType ? { damageType: item.damageType } : {}),
+        ...(getItemCharges(item) ? { chargeCost: 1 } : {}),
+    };
+};
+
+/**
+ * Poteri dell'oggetto: `powers` se è stato salvato col form attuale (anche vuoto),
+ * altrimenti l'eventuale potere del formato vecchio. Vale per qualunque categoria, armi e armature comprese.
+ */
+export const getItemPowers = (item: EquipmentItem): ItemPower[] => {
+    if (Array.isArray(item.powers)) return item.powers.filter(p => p?.name?.trim());
+    return hasLegacyPower(item) ? [legacyPowerOf(item)] : [];
+};
+
+/** Oggetto con almeno un potere attivabile (incantesimo, capacità, attacco). */
+export const hasActivePower = (item: EquipmentItem) => getItemPowers(item).length > 0;
 
 /** Oggetti che si indossano (oltre ad armi, armature e scudi). */
 const WORN_TYPES = ['ring', 'amulet', 'helmet'];
@@ -71,6 +102,19 @@ export const normalizeItemForSave = <T extends Omit<EquipmentItem, 'id'>>(input:
     const item: T = { ...input, itemType: inferItemCategory(input) };
     const category = item.itemType;
 
+    // Potere del formato vecchio → `powers`; da qui in poi i campi vecchi non servono più.
+    if (category !== 'weapon') {
+        if (!Array.isArray(item.powers) && hasLegacyPower(item as unknown as EquipmentItem)) item.powers = [legacyPowerOf(item as unknown as EquipmentItem)];
+        if (Array.isArray(item.powers)) {
+            delete item.grantsSpellName;
+            delete item.saveAbility;
+            delete item.damage;
+            delete item.damageType;
+            delete item.additionalDamage;
+            if (item.armorType === 'magic') delete item.armorType;
+        }
+    }
+
     if (category === 'weapon') {
         if (item.armorType === 'weapon' && item.armorClass && !(item.attackBonus && String(item.attackBonus).trim())) {
             item.attackBonus = item.armorClass > 0 ? `+${item.armorClass}` : String(item.armorClass);
@@ -96,10 +140,56 @@ export const normalizeItemForSave = <T extends Omit<EquipmentItem, 'id'>>(input:
     }
 
     if (item.ammoItemId && !hasProperty(item.properties, 'Ammunition')) delete item.ammoItemId;
+    if (category !== 'armor' || !(Number(item.strengthRequirement) > 0)) delete item.strengthRequirement;
+    if (!item.subtype?.trim()) delete item.subtype;
+    if (!item.rarity) delete item.rarity;
+    if (item.powers) {
+        item.powers = item.powers.filter(p => p.name?.trim()).map(cleanPower);
+        if (item.powers.length === 0) delete item.powers;
+    }
+    if (item.traits) {
+        item.traits = item.traits.filter(t => t.name?.trim() || t.description?.trim());
+        if (item.traits.length === 0) delete item.traits;
+    }
+    const effects = cleanEffects(item.effects);
+    if (effects) item.effects = effects;
+    else delete item.effects;
     if (!item.requiresAttunement) delete item.isAttuned;
     if (!Number.isFinite(item.quantity) || item.quantity < 0) item.quantity = 1;
     if (item.weight !== undefined && (!Number.isFinite(item.weight) || item.weight <= 0)) delete item.weight;
     return item;
+};
+
+const cleanPower = (power: ItemPower): ItemPower => {
+    const p: ItemPower = { ...power, name: power.name.trim() };
+    if (p.additionalDamage) p.additionalDamage = p.additionalDamage.filter(d => d.formula?.trim());
+    if (!p.additionalDamage?.length) delete p.additionalDamage;
+    if (!p.damage?.trim()) { delete p.damage; delete p.damageType; delete p.damageAbility; }
+    if (p.roll !== 'save') { delete p.saveAbility; delete p.saveDC; }
+    if (p.roll !== 'attack') delete p.attackBonus;
+    if (!p.uses || !(p.uses.max > 0)) delete p.uses;
+    if (!(Number(p.chargeCost) > 0)) delete p.chargeCost;
+    if (!p.description?.trim()) delete p.description;
+    return p;
+};
+
+/** Toglie liste vuote e bonus a zero; `undefined` se non resta nulla. */
+export const cleanEffects = (effects: ItemEffects | undefined): ItemEffects | undefined => {
+    if (!effects) return undefined;
+    const e: ItemEffects = {};
+    const defenses = (effects.defenses || []).filter(d => d.damageType?.trim());
+    if (defenses.length) e.defenses = defenses;
+    if (effects.speedBonus) e.speedBonus = effects.speedBonus;
+    if (effects.initiativeBonus) e.initiativeBonus = effects.initiativeBonus;
+    const saves = (effects.saveBonuses || []).filter(b => b.value);
+    if (saves.length) e.saveBonuses = saves;
+    const senses = (effects.senses || []).filter(s => s.name?.trim());
+    if (senses.length) e.senses = senses;
+    const languages = (effects.languages || []).map(l => l.trim()).filter(Boolean);
+    if (languages.length) e.languages = languages;
+    const notes = (effects.notes || []).map(n => n.trim()).filter(Boolean);
+    if (notes.length) e.notes = notes;
+    return Object.keys(e).length ? e : undefined;
 };
 
 // ---------- Proprietà delle armi ----------
