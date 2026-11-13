@@ -1,5 +1,5 @@
 import { fieldGroupClass, fieldGroupTitleClass, fieldNumericClass } from '../../../../components/ui/field';
-import { ABILITY_SHORT } from '../../../../lib/labels';
+import { ABILITY_SHORT, damageTypeLabel } from '../../../../lib/labels';
 import { DAMAGE_TYPES, FormFieldsProps, inputClass, labelClass } from './formShared';
 
 const SAVE_OPTIONS = [
@@ -14,7 +14,8 @@ const SAVE_OPTIONS = [
 /** Potere dell'oggetto magico: capacità/incantesimo, tiro salvezza, effetto. */
 export const MagicPowerFields = ({ formData, onChange }: FormFieldsProps) => (
   <div className={`${fieldGroupClass} space-y-3`}>
-    <h5 className={fieldGroupTitleClass}>Potere dell'oggetto</h5>
+    <h5 className={fieldGroupTitleClass}>Potere attivabile (facoltativo)</h5>
+    <p className="text-xs text-muted-foreground">Con un nome o un effetto, l'oggetto equipaggiato compare tra gli attacchi in Combattimento, con CD e bonus da incantatore.</p>
 
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-12">
       <div className="sm:col-span-8">
@@ -39,7 +40,7 @@ export const MagicPowerFields = ({ formData, onChange }: FormFieldsProps) => (
         <label htmlFor="item-effect-type" className={labelClass}>Tipo di effetto</label>
         <select id="item-effect-type" value={formData.damageType || ''} onChange={e => onChange('damageType', e.target.value)} className={inputClass}>
           <option value="">Tipo di danno</option>
-          {DAMAGE_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
+          {DAMAGE_TYPES.map(type => <option key={type} value={type}>{damageTypeLabel(type)}</option>)}
         </select>
       </div>
     </div>

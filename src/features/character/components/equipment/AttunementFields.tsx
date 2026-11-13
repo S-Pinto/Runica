@@ -2,8 +2,11 @@ import { EquipmentItem } from '../../characterTypes';
 import { fieldCheckRowClass, fieldGroupClass, fieldGroupTitleClass, fieldNumericClass } from '../../../../components/ui/field';
 import { FormFieldsProps, inputClass, labelClass } from './formShared';
 
-/** Sintonizzazione e cariche attive (con tipo di reset). */
-export const AttunementFields = ({ formData, onChange }: FormFieldsProps) => (
+/**
+ * Sintonizzazione e cariche attive (con tipo di reset).
+ * `attunementFull`: già 3 altri oggetti in sintonia, quindi questo non si può sintonizzare.
+ */
+export const AttunementFields = ({ formData, onChange, attunementFull = false }: FormFieldsProps & { attunementFull?: boolean }) => (
   <div className={fieldGroupClass}>
     <h5 className={`${fieldGroupTitleClass} mb-2`}>Sintonizzazione e cariche</h5>
     <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
@@ -18,15 +21,21 @@ export const AttunementFields = ({ formData, onChange }: FormFieldsProps) => (
           Richiede sintonizzazione
         </label>
         {formData.requiresAttunement && (
-          <label className={`${fieldCheckRowClass} pl-7`}>
-            <input
-              type="checkbox"
-              className="check-rune"
-              checked={formData.isAttuned || false}
-              onChange={e => onChange('isAttuned', e.target.checked)}
-            />
-            Sintonizzato ora
-          </label>
+          <>
+            <label className={`${fieldCheckRowClass} pl-7 ${attunementFull && !formData.isAttuned ? 'cursor-not-allowed opacity-60' : ''}`}>
+              <input
+                type="checkbox"
+                className="check-rune"
+                checked={formData.isAttuned || false}
+                disabled={attunementFull && !formData.isAttuned}
+                onChange={e => onChange('isAttuned', e.target.checked)}
+              />
+              Sintonizzato ora
+            </label>
+            {attunementFull && !formData.isAttuned && (
+              <p className="pl-7 text-xs text-muted-foreground">Sei già in sintonia con 3 oggetti: rompi una sintonia per aggiungerne un'altra.</p>
+            )}
+          </>
         )}
       </div>
 

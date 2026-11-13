@@ -150,6 +150,14 @@ export interface EquipmentItem {
   uses?: { current: number; max: number };
   recovery?: 'short' | 'long' | 'shortRest' | 'longRest' | 'none';
   bonusAC?: number;
+
+  // --- Armi: danno a due mani e munizioni; peso ---
+  /** Danno impugnando a due mani un'arma Versatile (es. "1d10"). */
+  versatileDamage?: string;
+  /** Oggetto dell'inventario consumato a ogni tiro per colpire (regola opzionale delle munizioni). */
+  ammoItemId?: string;
+  /** Peso di un'unità, nell'unità di `optionalRules.weightUnit` (regola opzionale del carico). */
+  weight?: number;
 }
 
 export interface Currency {
@@ -165,6 +173,15 @@ export interface CustomResource {
   name: string;
   max: number;
   used: number;
+}
+
+/** Regole opzionali, spente di default: molte campagne non le usano. */
+export interface OptionalRules {
+  /** Peso degli oggetti e capacità di carico (FOR × 15 lb, cioè FOR × 7,5 kg). */
+  encumbrance?: boolean;
+  /** Le armi a munizioni consumano l'oggetto collegato a ogni tiro per colpire. */
+  ammunition?: boolean;
+  weightUnit?: 'kg' | 'lb';
 }
 
 export interface UnarmoredDefense {
@@ -192,6 +209,9 @@ export interface ICharacter {
   };
   skills: Skill[];
   unarmoredDefense: UnarmoredDefense;
+  /** CA impostata a mano: se è un numero sostituisce il calcolo (null o assente = automatica). */
+  armorClassOverride?: number | null;
+  optionalRules?: OptionalRules;
   initiative: number;
   speed: number;
   hp: {

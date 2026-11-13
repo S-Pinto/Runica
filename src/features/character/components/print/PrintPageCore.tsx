@@ -1,17 +1,26 @@
 import { ReactNode, useMemo } from 'react';
 import { ICharacter, Feature, CATEGORY_CONFIG } from '../../characterTypes';
-import { getAllActions, calculateArmorClass, CharacterAction } from '../../rules/combat';
+import { calculateArmorClass } from '../../rules/combat';
+import { buildCharacterActions, formatActionDamage, formatActionHit, type ResolvedAction } from '../../rules/attacks';
+import { isShield } from '../../rules/equipment';
+import { weaponPropertyLabel } from '../../utils/itemLabels';
+import { WEAPON_MASTERIES } from '../../../../data/weaponProperties';
 import { ABILITY_LABELS, skillLabel } from '../../../../lib/labels';
 import { SVGs } from './printStyles';
 import { Box } from './PrintBox';
 import { AbilityEmblem, InspirationStar, LevelMedallion, Pillars, RuleOrnament, ShieldFrame } from './PrintOrnaments';
 import { ABILITY_KEYS, fmtMod, getMod, getPrintLevel, getPrintProficiency } from './printUtils';
 
-const formatDamage = (character: ICharacter, atk: CharacterAction) => {
-    const mod = atk.damageAbility ? getMod(character.abilityScores[atk.damageAbility as keyof typeof character.abilityScores]) : 0;
-    const parts = [`${atk.damage}${mod !== 0 ? fmtMod(mod) : ''} ${atk.damageType || ''}`.trim()];
-    atk.additionalDamage?.forEach((e) => parts.push(`${e.formula} ${e.type}`));
-    return parts.join(' + ');
+/** Note della riga d'attacco: tipo di fonte, maestria, proprietà, danno a due mani. */
+const actionNotes = (a: ResolvedAction) => {
+    if (a.source === 'spell') return 'Trucchetto';
+    if (a.source === 'feat') return 'Privilegio';
+    return [
+        a.mastery && (WEAPON_MASTERIES[a.mastery]?.name ?? a.mastery),
+        ...a.properties.map(weaponPropertyLabel),
+        a.versatileDamage && `2 mani ${a.versatileDamage}`,
+        a.source === 'item' && a.notes,
+    ].filter(Boolean).join(', ');
 };
 
 const Field = ({ label, value, className = '' }: { label: string; value?: string | number; className?: string }) => (
@@ -117,10 +126,11 @@ const FeatureList = ({ list, filled }: { list: Feature[]; filled: boolean }) => 
 /** Pagina 1: intestazione, caratteristiche, parametri vitali, attacchi, privilegi, tratti e talenti.
  * `filled`: riporta i valori correnti (PF, dadi vita spesi, tiri contro la morte, usi spesi, ispirazione); altrimenti restano da compilare a matita. */
 export const PrintPageCore = ({ character, filled }: { character: ICharacter; filled: boolean }) => {
-    const actions = useMemo(() => getAllActions(character), [character]);
+    // Stesso motore della vista di gioco: totali per colpire, danni con modificatori, CD.
+    const actions = useMemo(() => buildCharacterActions(character), [character]);
     const pb = getPrintProficiency(character);
     const level = getPrintLevel(character);
-    const hasShield = !!character.equipment?.some((i) => i.equipped && i.armorType === 'shield');
+    const hasShield = !!character.equipment?.some((i) => i.equipped && isShield(i));
 
     const groups = useMemo(() => {
         const feats = (character.featuresAndTraits || []).filter((f) => !f.isAction);
@@ -174,9 +184,9 @@ export const PrintPageCore = ({ character, filled }: { character: ICharacter; fi
                                     return (
                                         <tr key={i}>
                                             <td className="serif"><b>{a?.name}</b></td>
-                                            <td>{a?.bonus}</td>
-                                            <td>{a && formatDamage(character, a)}</td>
-                                            <td style={{ fontSize: '5.6pt' }}>{a && (a.sourceType === 'spell' ? 'Trucchetto' : a.mastery || a.properties?.join(', '))}</td>
+                                            <td>{a && (a.roll === 'none' ? '' : formatActionHit(a))}</td>
+                                            <td>{a && formatActionDamage(a)}</td>
+                                            <td style={{ fontSize: '5.6pt' }}>{a && actionNotes(a)}</td>
                                         </tr>
                                     );
                                 })}

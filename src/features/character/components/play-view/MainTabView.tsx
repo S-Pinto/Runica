@@ -56,7 +56,7 @@ const BentoStat = ({ label, value, sub, icon: Icon, className = '', hero, small 
         </div>
         <div>
             <span className={`block font-mono font-black leading-none tracking-tighter tabular-nums ${hero ? 'text-accent' : 'text-foreground'} ${small ? 'text-3xl sm:text-4xl' : 'text-6xl sm:text-7xl'}`}>{value}</span>
-            {sub && <span className="mt-1 block text-xs text-muted-foreground">{sub}</span>}
+            {sub && <span className="mt-1 block line-clamp-3 text-xs text-muted-foreground" title={sub}>{sub}</span>}
         </div>
     </div>
 );
@@ -78,11 +78,16 @@ const MainTabView = () => {
         return 10 + wisdomMod + bonus;
     }, [character]);
 
-    const armorClass = useMemo(() => (character ? combat.calculateArmorClass(character) : 10), [character]);
+    const armorClass = useMemo(() => (character ? combat.getArmorClassBreakdown(character) : null), [character]);
 
-    const hasShield = useMemo(() => {
-        return character?.equipment?.some(item => item.equipped && item.armorType === 'shield');
-    }, [character]);
+    // Dettaglio sotto la CA: da dove viene il numero (o che è manuale), così si verifica al tavolo.
+    const armorClassSub = useMemo(() => {
+        if (!armorClass) return undefined;
+        if (armorClass.manual) return `Manuale · calcolata ${armorClass.computed}`;
+        const parts = armorClass.parts.map((p, i) => (i === 0 ? `${p.value} ${p.label}` : `${p.value >= 0 ? '+' : ''}${p.value} ${p.label}`));
+        const inactive = armorClass.inactiveBonuses.length > 0 ? ` · ${armorClass.inactiveBonuses.map(i => i.name).join(', ')}: serve la sintonia` : '';
+        return parts.join(' · ') + inactive;
+    }, [armorClass]);
 
     if (!character) return null;
 
@@ -105,7 +110,7 @@ const MainTabView = () => {
             {/* Bento: PV dominanti, poi CA e Iniziativa come tessere grandi, il resto compatto. */}
             <div className="grid grid-cols-6 gap-3 sm:gap-4 lg:grid-cols-12">
                 <div className="col-span-6 lg:row-span-2"><HPTracker /></div>
-                <BentoStat hero className="col-span-3 lg:col-span-3" label="Classe Armatura" value={armorClass} sub={hasShield ? 'con scudo' : undefined} icon={ShieldIcon} />
+                <BentoStat hero className="col-span-3 lg:col-span-3" label="Classe Armatura" value={armorClass?.total ?? 10} sub={armorClassSub} icon={ShieldIcon} />
                 <BentoStat className="col-span-3 lg:col-span-3" label="Iniziativa" value={formatModifier(getModifier(character.abilityScores.dexterity))} icon={BoltIcon} />
                 <BentoStat small className="col-span-2 lg:col-span-2" label="Velocità" value={character.speed} sub={`ft · ${speedMeters} m`} icon={ForwardIcon} />
                 <BentoStat small className="col-span-2 lg:col-span-2" label="Competenza" value={formatModifier(character.proficiencyBonus)} icon={StarIcon} />

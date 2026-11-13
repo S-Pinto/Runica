@@ -1,216 +1,103 @@
-// Calcoli di combattimento: CA, CD incantesimi, bonus di attacco, azioni. Funzioni pure.
-import type { ICharacter, AbilityScores, Attack } from '../characterTypes';
-import { WEAPON_MASTERIES } from '../../../data/weaponProperties';
-import { getModifier, formatModifier } from '../utils/characterUtils';
+// Calcoli di combattimento: competenza, CA (con dettaglio e override manuale), CD e bonus degli incantesimi.
+// Le azioni (armi, trucchetti, attacchi) sono in `attacks.ts`. Funzioni pure.
+import type { ICharacter, EquipmentItem, AbilityScores } from '../characterTypes';
+import { ABILITY_SHORT } from '../../../lib/labels';
+import { getModifier } from '../utils/characterUtils';
 import { proficiencyForLevel } from './progression';
+import { armorWeight, isAttunementSatisfied, isBodyArmor, isShield } from './equipment';
 
-export type CharacterAction = Attack & { sourceName?: string };
+/**
+ * Bonus di competenza del personaggio: quello salvato, che `withProgression` tiene allineato al livello
+ * quando è automatico e lascia com'è quando è manuale. Solo se manca si ricava dal livello.
+ */
+export const getProficiencyBonus = (c: Pick<ICharacter, 'proficiencyBonus' | 'level'>): number =>
+    Number.isFinite(c?.proficiencyBonus) ? c.proficiencyBonus : proficiencyForLevel(c?.level || 1);
 
-const isAbilityKey = (scores: AbilityScores, key: string | undefined): key is keyof AbilityScores =>
-    key !== undefined && Object.prototype.hasOwnProperty.call(scores, key);
+export interface ArmorClassPart {
+    label: string;
+    value: number;
+}
 
-export const calculateArmorClass = (character: ICharacter): number => {
-    if (!character) {
-        return 10;
-    }
+export interface ArmorClassBreakdown {
+    /** CA mostrata: quella manuale se impostata, altrimenti quella calcolata. */
+    total: number;
+    computed: number;
+    manual: boolean;
+    parts: ArmorClassPart[];
+    armor?: EquipmentItem;
+    shield?: EquipmentItem;
+    /** Oggetti con bonus alla CA esclusi perché richiedono una sintonia che manca. */
+    inactiveBonuses: EquipmentItem[];
+}
 
-    const dexModifier = getModifier(character.abilityScores.dexterity);
-    let calculatedAC = 0;
+const isAbilityKey = (scores: AbilityScores, key: string): key is keyof AbilityScores =>
+    Object.prototype.hasOwnProperty.call(scores, key);
 
-    const equippedArmor = character.equipment?.find(
-        (item) => item.equipped && ['light', 'medium', 'heavy'].includes(item.armorType || '')
-    );
+const BASE_ARMOR_WITHOUT_VALUE = 10;
 
-    const equippedShield = character.equipment?.find(
-        (item) => item.equipped && item.armorType === 'shield'
-    );
+/** Parti della CA con un'armatura indossata (leggera: + DES; media: + DES fino a +2; pesante: nessun DES). */
+const armorParts = (armor: EquipmentItem, dexMod: number): ArmorClassPart[] => {
+    const base = armor.armorClass && armor.armorClass > 0 ? armor.armorClass : BASE_ARMOR_WITHOUT_VALUE;
+    const parts: ArmorClassPart[] = [{ label: armor.name || 'Armatura', value: base }];
+    const weight = armorWeight(armor);
+    if (weight === 'light' && dexMod !== 0) parts.push({ label: ABILITY_SHORT.dexterity, value: dexMod });
+    if (weight === 'medium' && dexMod !== 0) parts.push({ label: `${ABILITY_SHORT.dexterity} (max +2)`, value: Math.min(2, dexMod) });
+    return parts;
+};
 
-    if (equippedArmor) {
-        const armorAC = equippedArmor.armorClass || 0;
-        switch (equippedArmor.armorType) {
-            case 'light':
-                calculatedAC = armorAC + dexModifier;
-                break;
-            case 'medium':
-                calculatedAC = armorAC + Math.min(2, dexModifier);
-                break;
-            case 'heavy':
-                calculatedAC = armorAC;
-                break;
-        }
+const sumParts = (parts: ArmorClassPart[]) => parts.reduce((t, p) => t + p.value, 0);
+
+export const getArmorClassBreakdown = (character: ICharacter): ArmorClassBreakdown => {
+    const equipment = character?.equipment || [];
+    const scores = character?.abilityScores;
+    const dexMod = getModifier(scores?.dexterity ?? 10);
+
+    // Con più armature equipaggiate (dati vecchi) vale quella che dà la CA più alta.
+    const armors = equipment.filter(i => i.equipped && isBodyArmor(i));
+    const armor = armors
+        .map(a => ({ a, ac: sumParts(armorParts(a, dexMod)) }))
+        .sort((x, y) => y.ac - x.ac)[0]?.a;
+
+    let parts: ArmorClassPart[];
+    if (armor) {
+        parts = armorParts(armor, dexMod);
     } else {
         // Senza armatura: base (10, o 13 per Armatura del Mago) + modificatori.
         // Copre anche Difesa Senza Armatura di Monaco/Barbaro.
-        const unarmoredDefense = character.unarmoredDefense || { base: 10, abilities: [] };
-        let unarmoredAC = unarmoredDefense.base;
-        unarmoredDefense.abilities.forEach(ability => {
-            unarmoredAC += getModifier(character.abilityScores[ability]);
+        const unarmored = character?.unarmoredDefense || { base: 10, abilities: [] };
+        parts = [{ label: 'Base', value: unarmored.base ?? 10 }];
+        (unarmored.abilities || []).forEach(ability => {
+            if (!scores || !isAbilityKey(scores, ability)) return;
+            const mod = getModifier(scores[ability]);
+            if (mod !== 0) parts.push({ label: ABILITY_SHORT[ability], value: mod });
         });
-        calculatedAC = unarmoredAC;
     }
 
-    if (equippedShield) {
-        calculatedAC += equippedShield.armorClass || 2; // +2 se lo scudo non specifica la CA
-    }
+    const shield = equipment.find(i => i.equipped && isShield(i));
+    if (shield) parts.push({ label: shield.name || 'Scudo', value: shield.armorClass && shield.armorClass > 0 ? shield.armorClass : 2 });
 
-    // Bonus CA di ogni oggetto magico equipaggiato (Anello di Protezione, elmo, ecc.)
-    (character.equipment || []).forEach(item => {
-        if (item.equipped && item.bonusAC && typeof item.bonusAC === 'number') {
-            calculatedAC += item.bonusAC;
-        }
+    // Bonus magici (Anello di Protezione, armatura +1…): solo se l'oggetto è attivo.
+    const inactiveBonuses: EquipmentItem[] = [];
+    equipment.forEach(item => {
+        if (!item.equipped || typeof item.bonusAC !== 'number' || !Number.isFinite(item.bonusAC) || item.bonusAC === 0) return;
+        if (isAttunementSatisfied(item)) parts.push({ label: `${item.name} (magico)`, value: item.bonusAC });
+        else inactiveBonuses.push(item);
     });
 
-    return calculatedAC;
+    const computed = sumParts(parts);
+    const override = character?.armorClassOverride;
+    const manual = typeof override === 'number' && Number.isFinite(override);
+    return { total: manual ? override : computed, computed, manual, parts, armor, shield, inactiveBonuses };
 };
 
-export const calculateSpellSaveDC = (character: ICharacter): number => {
-    if (!character || !character.spellcastingAbility) {
-        return 8 + proficiencyForLevel(character?.level || 1);
-    }
-    const abilityMod = getModifier(character.abilityScores[character.spellcastingAbility]);
-    return 8 + proficiencyForLevel(character.level) + abilityMod;
-};
+export const calculateArmorClass = (character: ICharacter): number =>
+    character ? getArmorClassBreakdown(character).total : 10;
 
-export const calculateSpellAttackBonus = (character: ICharacter): number => {
-    if (!character || !character.spellcastingAbility) {
-        return proficiencyForLevel(character?.level || 1);
-    }
-    const abilityMod = getModifier(character.abilityScores[character.spellcastingAbility]);
-    return proficiencyForLevel(character.level) + abilityMod;
-};
+const spellAbilityMod = (character: ICharacter) =>
+    character.spellcastingAbility ? getModifier(character.abilityScores[character.spellcastingAbility]) : 0;
 
-export const getAllActions = (character: ICharacter): CharacterAction[] => {
-    const actions: CharacterAction[] = [];
-    if (!character) return actions;
+export const calculateSpellSaveDC = (character: ICharacter): number =>
+    8 + getProficiencyBonus(character) + (character ? spellAbilityMod(character) : 0);
 
-    const getAbilityMod = (ability?: string) => {
-        const score = isAbilityKey(character.abilityScores, ability) ? character.abilityScores[ability] : undefined;
-        return getModifier(score || 10);
-    };
-
-    // 1. Armi equipaggiate
-    character.equipment?.filter(i => i.equipped && i.armorType === 'weapon').forEach(weapon => {
-        const bonus = (weapon.armorClass || 0); // armorClass è riusato come bonus magico
-        const abilityMod = getAbilityMod(weapon.attackAbility || 'strength');
-        const profBonus = weapon.isProficient ? character.proficiencyBonus : 0;
-        const totalHit = (weapon.attackAbility || weapon.isProficient) ? (abilityMod + profBonus + bonus) : bonus;
-
-        let notes = weapon.mastery ? weapon.mastery : '';
-        if (weapon.mastery && WEAPON_MASTERIES[weapon.mastery]) {
-            notes = `${WEAPON_MASTERIES[weapon.mastery].name}: ${WEAPON_MASTERIES[weapon.mastery].description}`;
-        }
-
-        actions.push({
-            id: weapon.id,
-            name: weapon.name,
-            bonus: formatModifier(totalHit),
-            damage: weapon.damage || '1d4',
-            damageType: weapon.damageType,
-            damageAbility: weapon.damageAbility,
-            attackAbility: weapon.attackAbility,
-            isProficient: weapon.isProficient,
-            additionalDamage: weapon.additionalDamage,
-            mastery: weapon.mastery,
-            properties: weapon.properties,
-            sourceType: 'weapon',
-            sourceId: weapon.id,
-            sourceName: 'Equipped',
-            notes: notes
-        });
-    });
-
-    // 2. Oggetti magici equipaggiati con azioni
-    character.equipment?.filter(i => i.equipped && i.armorType === 'magic').forEach(item => {
-        const dc = calculateSpellSaveDC(character);
-        const bonus = calculateSpellAttackBonus(character);
-
-        actions.push({
-            id: `magic-${item.id}`,
-            name: item.grantsSpellName || item.name,
-            bonus: item.saveAbility ? `${dc}` : formatModifier(bonus),
-            damage: item.damage || 'Item Effect',
-            damageType: item.damageType,
-            saveAbility: item.saveAbility,
-            sourceType: 'item',
-            sourceId: item.id,
-            sourceName: item.name,
-            uses: item.uses,
-            recovery: item.recovery === 'longRest' ? 'long' : item.recovery === 'shortRest' ? 'short' : item.recovery
-        });
-    });
-
-    // 3. Trucchetti (livello 0) con danno
-    character.spells?.filter(s => s.level === 0 && s.damage).forEach(spell => {
-        const bonus = calculateSpellAttackBonus(character);
-        const dc = calculateSpellSaveDC(character);
-
-        actions.push({
-            id: spell.id,
-            name: spell.name,
-            bonus: spell.saveAbility ? `${dc}` : formatModifier(bonus),
-            damage: spell.damage!,
-            damageType: spell.damageType,
-            saveAbility: spell.saveAbility,
-            sourceType: 'spell',
-            sourceId: spell.id,
-            sourceName: 'Cantrip'
-        });
-    });
-
-    // 4. Privilegi marcati come azioni
-    character.featuresAndTraits?.filter(f => f.isAction).forEach(feat => {
-        actions.push({
-            id: feat.id,
-            name: feat.name,
-            bonus: '---',
-            damage: 'See Description',
-            sourceType: 'feat',
-            sourceId: feat.id,
-            sourceName: 'Feature',
-            uses: feat.uses,
-            recovery: feat.recovery,
-            properties: [feat.recovery].filter(Boolean) as string[]
-        });
-    });
-
-    // 5. Attacchi manuali
-    character.attacks?.forEach(attack => {
-        actions.push({
-            ...attack,
-            sourceType: 'custom',
-            sourceName: 'Special'
-        });
-    });
-
-    return actions;
-};
-
-export const updateActionUsage = (character: ICharacter, action: Attack, delta: number): Partial<ICharacter> => {
-    if (!action.sourceId || !action.sourceType || !action.uses) return {};
-
-    switch (action.sourceType) {
-        case 'item':
-        case 'weapon': {
-            const updatedEquipment = character.equipment.map(item => {
-                if (item.id === action.sourceId) {
-                    const newCurrent = Math.max(0, Math.min(item.uses?.max || 0, (item.uses?.current || 0) + delta));
-                    return { ...item, uses: { ...item.uses!, current: newCurrent } };
-                }
-                return item;
-            });
-            return { equipment: updatedEquipment };
-        }
-        case 'feat': {
-            const updatedFeatures = character.featuresAndTraits.map(feat => {
-                if (feat.id === action.sourceId) {
-                    const newCurrent = Math.max(0, Math.min(feat.uses?.max || 0, (feat.uses?.current || 0) + delta));
-                    return { ...feat, uses: { ...feat.uses!, current: newCurrent } };
-                }
-                return feat;
-            });
-            return { featuresAndTraits: updatedFeatures };
-        }
-        default:
-            return {};
-    }
-};
+export const calculateSpellAttackBonus = (character: ICharacter): number =>
+    getProficiencyBonus(character) + (character ? spellAbilityMod(character) : 0);

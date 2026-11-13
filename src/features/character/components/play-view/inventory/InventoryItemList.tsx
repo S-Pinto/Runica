@@ -1,15 +1,17 @@
 import { FC, ReactNode } from 'react';
 import { EquipmentItem, ChargeResetType } from '../../../characterTypes';
-import { ChevronDownIcon, SwordIcon, ShieldIcon, SparklesIcon, BackpackIcon, RefreshIcon, CheckIcon } from '../../../../../components/ui/icons';
+import { ChevronDownIcon, SwordIcon, ShieldIcon, SparklesIcon, BackpackIcon, RefreshIcon, CheckIcon, MinusIcon, PlusIcon } from '../../../../../components/ui/icons';
 import { Button } from '../../../../../components/ui/Button';
+import { damageTypeLabel } from '../../../../../lib/labels';
+import { getItemCharges, isBodyArmor, isShield, isWeapon, MAGIC_POWER_TYPES } from '../../../rules/equipment';
+import { formatWeight, itemTotalWeight, type WeightUnit } from '../../../rules/encumbrance';
+import { itemArmorValue, itemKindLabel, weaponPropertyLabel } from '../../../utils/itemLabels';
 import { PlaySection, playChipClass, playEmptyClass } from '../PlaySection';
 
-const MAGIC_TYPES = ['ring', 'amulet', 'wondrous', 'potion', 'scroll'];
-
 const getItemIcon = (item: EquipmentItem): FC<{ className?: string }> => {
-  if (item.itemType === 'weapon' || item.damage) return SwordIcon;
-  if (item.itemType === 'armor' || item.itemType === 'shield' || item.armorType) return ShieldIcon;
-  if (item.itemType && MAGIC_TYPES.includes(item.itemType)) return SparklesIcon;
+  if (isWeapon(item)) return SwordIcon;
+  if (isBodyArmor(item) || isShield(item)) return ShieldIcon;
+  if (item.itemType && MAGIC_POWER_TYPES.includes(item.itemType)) return SparklesIcon;
   return BackpackIcon;
 };
 
@@ -20,21 +22,32 @@ const RESET_LABELS: Record<ChargeResetType, string> = {
   none: '',
 };
 
+const CONSUMABLE_TYPES = ['potion', 'scroll', 'gear'];
+
+/** La quantità si cambia al volo per consumabili, munizioni e oggetti generici, e per qualunque oggetto in più copie. */
+const hasQuantityStepper = (item: EquipmentItem) =>
+  item.quantity !== 1 ||
+  CONSUMABLE_TYPES.includes(item.itemType || '') ||
+  (!item.itemType && !item.armorType && !isWeapon(item) && !isBodyArmor(item) && !isShield(item));
+
 interface InventoryItemListProps {
   title: string;
   icon?: ReactNode;
   items: EquipmentItem[];
   expandedItem: string | null;
+  /** Unità di peso se la regola del carico è attiva. */
+  weightUnit?: WeightUnit;
   onToggleExpand: (itemId: string) => void;
   onToggleEquip: (itemId: string) => void;
   onToggleAttune: (itemId: string) => void;
   onUseCharge: (itemId: string) => void;
   onResetCharge: (itemId: string) => void;
+  onAdjustQuantity: (itemId: string, delta: number) => void;
   onSelectImage: (image: { url: string; alt: string }) => void;
 }
 
 export const InventoryItemList = ({
-  title, icon, items, expandedItem, onToggleExpand, onToggleEquip, onToggleAttune, onUseCharge, onResetCharge, onSelectImage,
+  title, icon, items, expandedItem, weightUnit, onToggleExpand, onToggleEquip, onToggleAttune, onUseCharge, onResetCharge, onAdjustQuantity, onSelectImage,
 }: InventoryItemListProps) => (
   <PlaySection
     title={title}
@@ -48,9 +61,13 @@ export const InventoryItemList = ({
         {items.map(item => {
           const Icon = getItemIcon(item);
           const isExpanded = expandedItem === item.id;
+          const charges = getItemCharges(item);
           const resetLabel = item.charges ? RESET_LABELS[item.charges.resetType] ?? '' : '';
+          const armorValue = itemArmorValue(item);
+          const weight = weightUnit ? itemTotalWeight(item) : 0;
+          const depleted = item.quantity <= 0;
           return (
-            <li key={item.id} className="overflow-hidden rounded-2xl bg-background/50 transition-colors duration-150 hover:bg-background/70">
+            <li key={item.id} className={`overflow-hidden rounded-2xl bg-background/50 transition-colors duration-150 hover:bg-background/70 ${depleted ? 'opacity-70' : ''}`}>
               <div className="flex items-start gap-3 p-3">
                 {item.imageUrl ? (
                   <button
@@ -78,11 +95,13 @@ export const InventoryItemList = ({
                     <ChevronDownIcon className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-150 ${isExpanded ? 'rotate-180' : ''}`} />
                   </button>
                   <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                    <span className={`${playChipClass} font-mono`}>×{item.quantity}</span>
+                    {!hasQuantityStepper(item) && <span className={`${playChipClass} font-mono`}>×{item.quantity}</span>}
+                    {depleted && <span className="rounded-md bg-destructive/15 px-1.5 py-0.5 text-xs font-medium text-destructive">Esaurito</span>}
                     {item.damage && <span className={playChipClass}>Danni <span className="font-mono text-foreground">{item.damage}</span></span>}
-                    {item.armorClass && <span className={playChipClass}>CA <span className="font-mono text-foreground">{item.armorClass}</span></span>}
-                    {item.bonusAC && <span className={playChipClass}>CA <span className="font-mono text-foreground">+{item.bonusAC}</span></span>}
-                    {item.isAttuned && <span className="rounded-md bg-accent/15 px-1.5 py-0.5 text-xs font-medium text-accent">In sintonia</span>}
+                    {armorValue && <span className={playChipClass}>CA <span className="font-mono text-foreground">{armorValue}</span></span>}
+                    {!!item.bonusAC && <span className={playChipClass}>CA <span className="font-mono text-foreground">+{item.bonusAC}</span></span>}
+                    {weightUnit && weight > 0 && <span className={playChipClass}><span className="font-mono text-foreground">{formatWeight(weight, weightUnit)}</span></span>}
+                    {item.requiresAttunement && item.isAttuned && <span className="rounded-md bg-accent/15 px-1.5 py-0.5 text-xs font-medium text-accent">In sintonia</span>}
                   </div>
                 </div>
               </div>
@@ -111,15 +130,30 @@ export const InventoryItemList = ({
                 )}
               </div>
 
-              {item.charges && item.charges.max > 0 && (
+              {hasQuantityStepper(item) && (
+                <div className="flex items-center justify-between gap-3 border-t border-foreground/10 px-3 py-2">
+                  <span className="text-xs text-muted-foreground">Quantità</span>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => onAdjustQuantity(item.id, -1)} disabled={item.quantity <= 0} aria-label={`Togli uno: ${item.name}`} title="Togli uno">
+                      <MinusIcon className="h-4 w-4" />
+                    </Button>
+                    <span className="min-w-[2.5rem] text-center font-mono text-base font-bold tabular-nums text-foreground" aria-live="polite">{item.quantity}</span>
+                    <Button variant="ghost" size="icon" onClick={() => onAdjustQuantity(item.id, 1)} aria-label={`Aggiungi uno: ${item.name}`} title="Aggiungi uno">
+                      <PlusIcon className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {charges && (
                 <div className="flex items-center justify-between gap-3 border-t border-foreground/10 px-3 py-2">
                   <p className="min-w-0 text-xs text-muted-foreground">
-                    <span className="font-mono text-base font-bold tabular-nums text-foreground">{item.charges.current}</span>
-                    <span className="font-mono">/{item.charges.max}</span> cariche
+                    <span className="font-mono text-base font-bold tabular-nums text-foreground">{charges.current}</span>
+                    <span className="font-mono">/{charges.max}</span> {charges.field === 'charges' ? 'cariche' : 'usi'}
                     {resetLabel && <span> · {resetLabel}</span>}
                   </p>
                   <div className="flex shrink-0 items-center gap-1">
-                    <Button variant="secondary" onClick={() => onUseCharge(item.id)} disabled={item.charges.current <= 0}>
+                    <Button variant="secondary" onClick={() => onUseCharge(item.id)} disabled={charges.current <= 0}>
                       Usa
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => onResetCharge(item.id)} aria-label={`Ricarica ${item.name}`} title="Ricarica tutte le cariche">
@@ -131,11 +165,14 @@ export const InventoryItemList = ({
 
               {isExpanded && (
                 <div className="space-y-2 border-t border-foreground/10 px-3 py-3 animate-fadeIn">
-                  {(item.armorType || item.damageType) && (
-                    <p className="text-xs text-muted-foreground">
-                      {[item.armorType && `Armatura: ${item.armorType}`, item.damageType && `Tipo di danno: ${item.damageType}`].filter(Boolean).join(' · ')}
-                    </p>
-                  )}
+                  <p className="text-xs text-muted-foreground">
+                    {[
+                      itemKindLabel(item),
+                      item.damageType && `Danni ${damageTypeLabel(item.damageType)}`,
+                      ...(item.properties || []).map(weaponPropertyLabel),
+                      item.requiresAttunement && !item.isAttuned && 'Richiede sintonia',
+                    ].filter(Boolean).join(' · ')}
+                  </p>
                   <p className="whitespace-pre-wrap text-sm leading-relaxed text-text">
                     {item.description || <span className="text-muted-foreground">Nessuna descrizione.</span>}
                   </p>

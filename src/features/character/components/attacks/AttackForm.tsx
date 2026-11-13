@@ -4,7 +4,7 @@ import { WEAPON_MASTERIES } from '../../../../data/weaponProperties';
 import { DAMAGE_TYPES, inputClass, labelClass } from './attackFormShared';
 import { SegmentedControl } from '../../../../components/ui/SegmentedControl';
 import { fieldCheckRowClass, fieldNumericClass } from '../../../../components/ui/field';
-import { ABILITY_SHORT } from '../../../../lib/labels';
+import { ABILITY_SHORT, damageTypeLabel } from '../../../../lib/labels';
 import { InlineForm } from '../ui/InlineForm';
 import { AdditionalDamageEditor } from './AdditionalDamageEditor';
 import { WeaponPropertiesPicker } from './WeaponPropertiesPicker';
@@ -30,20 +30,19 @@ export const AttackForm = ({
   onSave: (data: Attack | Omit<Attack, 'id'>) => void,
   onCancel: () => void
 }) => {
+  // Copia tutto l'attacco salvato: caratteristica, competenza, tipo di danno, danni extra, usi e note
+  // non devono andare persi modificando solo il nome o il bonus.
   const [formData, setFormData] = useState<Omit<Attack, 'id'> & { id?: string }>({
-    name: initialData.name,
-    bonus: initialData.bonus,
-    damage: initialData.damage,
+    ...initialData,
     mastery: initialData.mastery || '',
     properties: initialData.properties || [],
     saveAbility: initialData.saveAbility || '',
-    ...('id' in initialData ? { id: initialData.id } : {})
   });
 
   const [mode, setMode] = useState<'weapon' | 'spell'>(initialData.saveAbility || (!initialData.properties?.length && !initialData.mastery && initialData.damage && initialData.damage.includes('cantrip')) ? 'spell' : 'weapon');
   const [spellType, setSpellType] = useState<'attack' | 'save'>(initialData.saveAbility ? 'save' : 'attack');
 
-  const handleChange = (field: keyof Attack, value: any) => {
+  const handleChange = <K extends keyof Attack>(field: K, value: Attack[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -71,10 +70,14 @@ export const AttackForm = ({
     if (!formData.name.trim()) return;
 
     // Clean up based on mode
-    const cleanData: any = { ...formData };
+    const cleanData: Omit<Attack, 'id'> & { id?: string } = { ...formData };
     if (mode === 'spell') {
       cleanData.mastery = '';
       cleanData.properties = []; // Clear weapon props
+      // Per un incantesimo il bonus è già il totale (o la CD): niente caratteristica né competenza da sommare.
+      delete cleanData.attackAbility;
+      delete cleanData.damageAbility;
+      delete cleanData.isProficient;
       if (spellType === 'attack') {
         delete cleanData.saveAbility; // Delete instead of undefined
       }
@@ -190,8 +193,11 @@ export const AttackForm = ({
                 aria-label="Tipo di danno"
               >
                 <option value="">Tipo di danno</option>
+                {formData.damageType && !DAMAGE_TYPES.includes(formData.damageType) && (
+                  <option value={formData.damageType}>{formData.damageType}</option>
+                )}
                 {DAMAGE_TYPES.map(type => (
-                  <option key={type} value={type}>{type}</option>
+                  <option key={type} value={type}>{damageTypeLabel(type)}</option>
                 ))}
               </select>
             </div>

@@ -5,9 +5,10 @@ import { PlusIcon, ShieldIcon, BackpackIcon } from '../../../components/ui/icons
 import { Button } from '../../../components/ui/Button';
 import { RuneDivider } from '../../../components/ui/RuneDivider';
 import { StyledSection } from './ui/StyledInputs';
-import { toggleEquippedItem, splitEquipment } from '../rules/equipment';
-import { confirmDialog } from '../../../components/ui/Dialogs';
+import { toggleEquippedItem, splitEquipment, removeItem, getEquipWarning } from '../rules/equipment';
+import { confirmDialog, toast } from '../../../components/ui/Dialogs';
 import { EquipmentForm } from './equipment/EquipmentForm';
+import { OptionalRulesFields } from './equipment/OptionalRulesFields';
 import { ItemDisplayList } from './equipment/ItemDisplayList';
 import { CurrencyBanner } from './equipment/CurrencyBanner';
 
@@ -50,8 +51,7 @@ const EquipmentListContent = () => {
 
   const handleDelete = async (itemId: string) => {
     if (await confirmDialog({ title: 'Eliminare questo oggetto?', confirmLabel: 'Elimina', destructive: true })) {
-      const updatedEquipment = (character.equipment || []).filter(item => item.id !== itemId);
-      updateCharacter({ equipment: updatedEquipment });
+      updateCharacter({ equipment: removeItem(character.equipment || [], itemId) });
     }
   };
 
@@ -61,7 +61,10 @@ const EquipmentListContent = () => {
 
   const handleToggleEquip = (itemId: string) => {
     const newEquipment = toggleEquippedItem(character.equipment, itemId);
-    if (newEquipment) updateCharacter({ equipment: newEquipment });
+    if (!newEquipment) return;
+    updateCharacter({ equipment: newEquipment });
+    const warning = getEquipWarning(newEquipment, itemId);
+    if (warning) toast.info(warning);
   };
 
   const { equippableItems, backpackItems } = useMemo(() => splitEquipment(character.equipment), [character.equipment]);
@@ -89,6 +92,10 @@ const EquipmentListContent = () => {
           </Button>
         }
       >
+        <div className="mb-5">
+          <OptionalRulesFields character={character} onChange={optionalRules => updateCharacter({ optionalRules })} />
+        </div>
+
         {editingItem && (
           <EquipmentForm
             key={editingItem === 'new' ? 'new' : editingItem.id}
