@@ -1,21 +1,18 @@
-import type { CSSProperties, ReactNode } from 'react';
 import { ICharacter, Spell, Currency } from '../../characterTypes';
 import { calculateSpellAttackBonus, calculateSpellSaveDC } from '../../rules/combat';
 import { ABILITY_LABELS, schoolLabel } from '../../../../lib/labels';
 import { SVGs } from './printStyles';
+import { Box } from './PrintBox';
+import { RunicFrieze } from './PrintOrnaments';
 import {
     EQUIPMENT_ROWS_PAGE2, SPELL_ROWS_PAGE2, fmtMod, getAttunedItems, getMod, getPrintSpells, getStoryText,
     hasMaterialComponent, STORY_CHARS_PAGE2,
 } from './printUtils';
 
 const CURRENCY_KEYS: (keyof Currency)[] = ['cp', 'sp', 'ep', 'gp', 'pp'];
-
-const Box = ({ title, className = '', style, children }: { title?: string; className?: string; style?: CSSProperties; children: ReactNode }) => (
-    <div className={`box ${className}`} style={style}>
-        {title && <div className="box-title">{title}</div>}
-        {children}
-    </div>
-);
+const SLOT_COLUMNS = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+/** Caselle mostrate su una scheda senza slot (come nel modulo ufficiale). */
+const DEFAULT_SLOTS: Record<number, number> = { 1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 2, 8: 1, 9: 1 };
 
 const spellNote = (s: Spell) => [schoolLabel(s.school), s.damage && `${s.damage} ${s.damageType || ''}`.trim()].filter(Boolean).join(' · ');
 
@@ -56,7 +53,7 @@ export const PrintPageSpells = ({ character }: { character: ICharacter }) => {
     const attuned = getAttunedItems(character).slice(0, 3);
     const story = getStoryText(character);
     const storyFits = story.length <= STORY_CHARS_PAGE2;
-    const slotLevels = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    const hasSlots = Object.values(character.spellSlots || {}).some((s) => (s?.max || 0) > 0);
 
     return (
         <section className="page">
@@ -66,26 +63,37 @@ export const PrintPageSpells = ({ character }: { character: ICharacter }) => {
                         <Box className="sc-box">
                             <div className="sc-head">
                                 <div className="lbl">Caratteristica da incantatore</div>
-                                <div className="serif" style={{ fontWeight: 700, fontSize: '8pt' }}>{ability ? ABILITY_LABELS[ability] : ''}</div>
+                                <div className="nm">{ability ? ABILITY_LABELS[ability] : ''}</div>
                             </div>
-                            <div className="sc-row"><div className="num">{ability ? fmtMod(abilityMod) : ''}</div><div className="t">Modificatore</div></div>
-                            <div className="sc-row"><div className="num">{ability ? calculateSpellSaveDC(character) : ''}</div><div className="t">CD salvezza</div></div>
-                            <div className="sc-row"><div className="num">{ability ? fmtMod(calculateSpellAttackBonus(character)) : ''}</div><div className="t">Bonus attacco</div></div>
+                            <div className="sc-rows">
+                                <div className="sc-row"><div className="num">{ability ? fmtMod(abilityMod) : ''}</div><div className="t">Modificatore da incantatore</div></div>
+                                <div className="sc-row"><div className="num">{ability ? calculateSpellSaveDC(character) : ''}</div><div className="t">CD salvezza</div></div>
+                                <div className="sc-row"><div className="num">{ability ? fmtMod(calculateSpellAttackBonus(character)) : ''}</div><div className="t">Bonus attacco</div></div>
+                            </div>
                         </Box>
-                        <Box title="Slot incantesimo" className="slots-box">
-                            <div className="slots-grid">
-                                {slotLevels.map((lv) => {
-                                    const max = character.spellSlots?.[lv]?.max || 0;
-                                    return (
-                                        <div key={lv} className="slot-line">
-                                            <span className="lv">Liv. {lv}</span>
-                                            <span className="tot">{max || ''}</span>
-                                            {Array.from({ length: Math.min(max, 4) }).map((_, i) => <span key={i}>{SVGs.diamond}</span>)}
+                        <div className="p2-right">
+                            <RunicFrieze />
+                            <Box title="Slot incantesimo" className="slots-box">
+                                <div className="slots-cols">
+                                    {SLOT_COLUMNS.map((levels) => (
+                                        <div key={levels[0]} className="slots-col">
+                                            <div className="slots-hd"><span className="a" /><span className="b">Totale</span><span className="c">Spesi</span></div>
+                                            {levels.map((lv) => {
+                                                const max = character.spellSlots?.[lv]?.max || 0;
+                                                const diamonds = hasSlots ? Math.min(max, 6) : DEFAULT_SLOTS[lv];
+                                                return (
+                                                    <div key={lv} className="slot-line">
+                                                        <span className="lv">Liv. {lv}</span>
+                                                        <span className="tot">{max || ''}</span>
+                                                        <span className="dm">{Array.from({ length: diamonds }).map((_, i) => <span key={i}>{SVGs.diamond}</span>)}</span>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
-                                    );
-                                })}
-                            </div>
-                        </Box>
+                                    ))}
+                                </div>
+                            </Box>
+                        </div>
                     </div>
                     <SpellTable spells={spells} rows={SPELL_ROWS_PAGE2} title="Trucchetti e incantesimi preparati" />
                 </div>
@@ -118,7 +126,7 @@ export const PrintPageSpells = ({ character }: { character: ICharacter }) => {
                     </Box>
                     <Box title="Monete" className="coins">
                         <div className="coin-grid">
-                            {CURRENCY_KEYS.map((k) => <div key={k} className="coin"><div className="lbl">{k.toUpperCase()}</div><div className="c">{character.currency?.[k] || ''}</div></div>)}
+                            {CURRENCY_KEYS.map((k) => <div key={k} className="coin"><div className="lbl">{k.toUpperCase()}</div><div className="coin-c"><div>{character.currency?.[k] || ''}</div></div></div>)}
                         </div>
                     </Box>
                 </div>
