@@ -1,8 +1,8 @@
 // Filigrane e fregi SVG della scheda stampabile: tratto sottile, solo grigi/neri (stampa B/N).
 import type { CSSProperties } from 'react';
 
-const S = '#3a3a3a';
-const P = '#9a9a9a'; // grigio perla
+const S = '#151515';
+const P = '#5f5f5f'; // grigio perla scuro: resta nitido anche in stampa B/N
 
 const bg: CSSProperties = { position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' };
 
@@ -25,10 +25,10 @@ export const AbilityEmblem = ({ mod, score }: { mod: string; score: number | str
 /** Pilastri architettonici laterali dietro i valori (competenza, iniziativa, velocità…). */
 export const Pillars = () => (
     <svg viewBox="0 0 100 40" preserveAspectRatio="none" style={bg} fill="none" aria-hidden>
-        <path d="M5 0 C5 16 14 22 14 40" stroke={P} strokeWidth="0.9" vectorEffect="non-scaling-stroke" />
-        <path d="M95 0 C95 16 86 22 86 40" stroke={P} strokeWidth="0.9" vectorEffect="non-scaling-stroke" />
-        <path d="M10 0 C10 14 18 22 18 40" stroke={P} strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
-        <path d="M90 0 C90 14 82 22 82 40" stroke={P} strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
+        <path d="M5 0 C5 16 14 22 14 40" stroke={P} strokeWidth="1.1" vectorEffect="non-scaling-stroke" />
+        <path d="M95 0 C95 16 86 22 86 40" stroke={P} strokeWidth="1.1" vectorEffect="non-scaling-stroke" />
+        <path d="M10 0 C10 14 18 22 18 40" stroke={P} strokeWidth="0.7" vectorEffect="non-scaling-stroke" />
+        <path d="M90 0 C90 14 82 22 82 40" stroke={P} strokeWidth="0.7" vectorEffect="non-scaling-stroke" />
     </svg>
 );
 

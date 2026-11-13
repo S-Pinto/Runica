@@ -18,6 +18,7 @@ import { usePlayViewAutosave } from './hooks/usePlayViewAutosave';
 import { useDiceMode } from './hooks/useDiceMode';
 import { AstrolabeRing } from '../../components/ui/RuneOrnaments';
 import { TabButton } from '../../components/ui/TabButton';
+import { openPrintSheet } from './utils/printSheet';
 
 type PlayTab = 'main' | 'stats' | 'combat' | 'bio' | 'inventory' | 'spells' | 'companions';
 
@@ -169,7 +170,6 @@ export const PlayView: FC = () => {
 
     const menuItems: MenuItem[] = [
         { label: 'Riposo breve', icon: <SunIcon />, onSelect: handleShortRest },
-        { label: 'Stampa scheda', icon: <PrinterIcon />, onSelect: () => window.open(`/character/${characterId}/print`, '_blank') },
         ...(diceMode === 'modal' ? [{ label: 'Apri dadiera', icon: <DiceIcon />, onSelect: () => setIsDiceModalOpen(true) }] : []),
     ];
 
@@ -221,8 +221,18 @@ export const PlayView: FC = () => {
                         <Button variant="secondary" onClick={() => handleTabChange('combat')} className="flex-1 sm:flex-none" title="Vai al combattimento">
                             <SwordIcon className="h-4 w-4" /> <span className="hidden sm:inline">Combatti</span>
                         </Button>
-                        <Button variant="secondary" onClick={handleLongRest} className="flex-1 sm:flex-none" title="Ripristina PV, slot e cariche">
-                            <MoonIcon className="h-4 w-4" /> <span>Riposo<span className="hidden sm:inline"> lungo</span></span>
+                        <Button variant="secondary" onClick={handleLongRest} className="flex-1 sm:flex-none" title="Riposo lungo: ripristina PV, slot e cariche" aria-label="Riposo lungo">
+                            {/* Su telefono solo icona: lascia spazio al tasto Stampa senza spingere fuori il menu. */}
+                            <MoonIcon className="h-4 w-4" /> <span className="hidden sm:inline">Riposo lungo</span>
+                        </Button>
+                        <Button
+                            variant="secondary"
+                            size="icon"
+                            onClick={() => characterId && openPrintSheet(characterId, navigate)}
+                            aria-label="Stampa scheda o salva PDF"
+                            title="Stampa scheda / PDF"
+                        >
+                            <PrinterIcon className="h-4 w-4" />
                         </Button>
                         <Button onClick={() => navigate(`/character/${characterId}/edit?tab=${activeTab}`)} className="flex-1 sm:flex-none">
                             <EditIcon className="h-4 w-4" /> Modifica
