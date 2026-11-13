@@ -48,7 +48,7 @@ export const HitDiceTracker = () => {
                 </span>
             }
         >
-            <div className="flex flex-wrap gap-1" role="group" aria-label="Dadi vita usati">
+            <div className="flex flex-wrap justify-center gap-1.5 py-2" role="group" aria-label="Dadi vita usati">
                 {Array.from({ length: total }).map((_, i) => {
                     const isUsed = i < used;
                     return (
@@ -60,7 +60,7 @@ export const HitDiceTracker = () => {
                             aria-label={`Dado vita ${i + 1}: ${isUsed ? 'usato' : 'disponibile'}`}
                             className="group flex h-11 w-11 items-center justify-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         >
-                            <span aria-hidden className="seal" data-on={!isUsed} />
+                            <span aria-hidden className="seal" data-size="lg" data-on={!isUsed} />
                         </button>
                     );
                 })}

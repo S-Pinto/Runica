@@ -56,7 +56,11 @@ export const HPTracker = () => {
 
     const pct = hp.max > 0 ? Math.min(100, (hp.current / hp.max) * 100) : 100;
     const tempPct = hp.max > 0 ? Math.min(100 - pct, (hp.temporary / hp.max) * 100) : 0;
-    const tone = pct > 50 ? 'bg-success' : pct > 25 ? 'bg-warning' : 'bg-destructive';
+    const tone = pct > 50
+        ? 'bg-success shadow-[0_0_16px_rgb(var(--color-success)/0.6)]'
+        : pct > 25
+            ? 'bg-warning shadow-[0_0_16px_rgb(var(--color-warning)/0.6)]'
+            : 'bg-destructive shadow-[0_0_16px_rgb(var(--color-destructive)/0.6)]';
     const isDown = hp.current === 0;
 
     return (
@@ -71,7 +75,7 @@ export const HPTracker = () => {
         >
             <div>
                 <div className="flex items-baseline justify-center gap-2" aria-live="polite">
-                    <span className={`font-mono text-6xl font-bold leading-none tabular-nums ${isDown ? 'text-destructive' : 'text-foreground'}`}>{hp.current}</span>
+                    <span className={`font-mono text-7xl font-bold leading-none tabular-nums ${isDown ? 'text-destructive' : 'text-foreground'}`}>{hp.current}</span>
                     <span className="font-mono text-2xl tabular-nums text-muted-foreground">/ {hp.max}</span>
                 </div>
                 {isDown && <p className="mt-2 text-center text-sm font-semibold text-destructive">A terra: effettua i tiri salvezza contro la morte</p>}

@@ -217,8 +217,8 @@ export const PlayView: FC = () => {
             </header>
 
             {/* Sticky section navigation (sits under the app header: --header-offset) */}
-            <nav className="sticky top-header z-40 -mx-4 bg-background/70 px-4 py-2 backdrop-blur-xl sm:mx-0 sm:bg-transparent sm:px-0 sm:backdrop-blur-none">
-                <div ref={tabContainerRef} role="tablist" aria-label="Sezioni della scheda" className="no-scrollbar flex gap-1 overflow-x-auto rounded-2xl bg-input/60 p-1 shadow-[inset_0_1px_2px_rgb(var(--color-shadow)/0.35)] sm:inline-flex sm:max-w-full">
+            <nav className="sticky top-header z-40 py-2">
+                <div ref={tabContainerRef} role="tablist" aria-label="Sezioni della scheda" className="no-scrollbar flex gap-1 overflow-x-auto rounded-2xl border border-foreground/10 bg-card/95 p-1 shadow-raised backdrop-blur-xl sm:inline-flex sm:max-w-full">
                     {PLAY_TABS.map(tab => (
                         <TabButton
                             key={tab.key}

@@ -235,9 +235,9 @@ I ruoli con una classe (`text-headline`, `text-title`, `text-label`, `text-numer
 Profondità tonale a strati: fondo → card → campo. Ogni superficie porta un filo di luce sul bordo alto (`--highlight`, `inset 0 1px 0 rgb(255 255 255 / 0.06)`; 0.55 in Pergamena) e un bordo semitrasparente al 55%, invece di bordi pesanti. Le ombre sono deboli e servono a separare i livelli; la luce colorata (bagliore dell'accento) è un segnale di stato.
 
 ### Atmosfera
-- **Luce ambientale** (`body::before`): due ellissi radiali dell'accento del tema in alto (`--ambient-strength`: 9% nei temi scuri, 7% in Pergamena), fisse dietro il contenuto. Cambia con il tema.
+- **Luce ambientale** (`body::before`): due ellissi radiali dell'accento del tema in alto (`--ambient-strength`: 17% nei temi scuri, 10% in Pergamena; l'app non deve avere un fondo pieno sopra il `body`, altrimenti la luce sparisce), fisse dietro il contenuto. Cambia con il tema.
 - **Grana** (`body::after`): velo di rumore fisso, già descritto in `index.css`.
-- **`.surface`**: card tonale con gradiente di 3.5% dall'alto, filo di luce e ombra `rest`; è la superficie di pannelli, header dell'eroe, card dei personaggi e "Nuovo eroe".
+- **`.surface`**: card tonale con velo d'accento in alto, bordo `foreground` al 9%, filo d'accento sul bordo alto (`::before`) e ombra `rest`; è la superficie di pannelli, header dell'eroe, card dei personaggi e "Nuovo eroe".
 - **`.hero-glow`**: velo caldo d'accento dall'angolo alto sinistro, solo dietro l'header dell'eroe.
 - **`.glass-pill`**: vetro (sfocatura 16px, fondo card all'82%, bordo marcato) per i controlli che galleggiano.
 
@@ -293,7 +293,7 @@ Tattili e decisi: si abbassano leggermente alla pressione (scala 0.97).
 
 ### Navigation
 - **Header:** fisso, fondo all'85% con sfocatura (l'unico vetro a riposo, perché il contenuto vi scorre sotto), bordo inferiore `border`, nessuna ombra. Marchio Norse in accento con la runa in un riquadro, come link alla lista. Controlli: `Button` ghost o secondary, mai l'accento pieno (quello resta all'azione principale della pagina). Online non mostra nulla; offline compare una pillola `warning` calma, senza pulsazione. Avatar circolare con `Menu`; senza foto mostra l'iniziale.
-- **Tab (vista di gioco):** controllo segmentato (`TabButton variant="pill"`): contenitore incavato (`bg-input/60`, ombra interna) che scorre in orizzontale, voci da 40px; la voce attiva è una pillola `card` con testo accento e filo di luce. Altrove (editor, finestra Campagne) resta la variante con barra di 2px sotto. Ruoli ARIA `tab` / `tabpanel`.
+- **Tab (vista di gioco):** controllo segmentato (`TabButton variant="pill"`): contenitore incavato (`bg-input/60`, ombra interna) che scorre in orizzontale, voci da 40px; la voce attiva è una pillola con fondo accento al 15%, anello e luce d'accento; il contenitore è card al 95% con sfocatura, così il contenuto che scorre sotto non traspare. Altrove (editor, finestra Campagne) resta la variante con barra di 2px sotto. Ruoli ARIA `tab` / `tabpanel`.
 
 ### Dialogs & Toasts
 - **Modal** (`components/ui/Modal`): guscio unico delle finestre. Velo `scrim` al 70% sfocato; pannello card con bordo, ancorato in basso a tutta larghezza su mobile (entrata `sheetIn`, 240ms) e centrato da `sm` (`popIn`, 180ms); titolo Cinzel, chiusura da 44px, barra opzionale sotto il titolo (le tab della finestra Campagne), corpo scorrevole, piede opzionale per le azioni. Chiude con Esc, con il pulsante e toccando il velo; tiene il focus nel pannello e lo restituisce a chi l'ha aperto. Le finestre nuove usano questo guscio, non un `<dialog>` né un overlay scritto a mano.
@@ -312,16 +312,16 @@ Tattili e decisi: si abbassano leggermente alla pressione (scala 0.97).
 
 ### Vista di gioco
 - **Header dell'eroe**: `.surface` con `.hero-glow`, ritratto o segnaposto inciso, azioni a destra.
-- **Emblemi** (`ui/StatBox`, `.frame-rune`): CA, Iniziativa, Velocità, Competenza, Percezione. Icona discreta in alto, numero monospace 30–36px centrato, etichetta `text-label` sotto; la cornice ha filo di luce e gradiente tonale.
-- **Punti vita**: barra da 16px incavata con dieci tacche (segmenti) e PV temporanei in accento; numero da 60px.
-- **Tiri contro la morte**: tre `.check-rune` grandi (`data-size="lg"`) per riga, `data-tone` `success` / `destructive`.
-- **Sigilli** (`.seal`): dadi vita, slot incantesimo, risorse e usi dei privilegi; rombo pieno = disponibile, vuoto = speso.
+- **Emblemi** (`ui/StatBox`, `.frame-rune`): CA, Iniziativa, Velocità, Competenza, Percezione. Icona in un cerchio accento al 10%, numero monospace 36–48px centrato, etichetta `text-label` sotto; la cornice ha filo di luce e gradiente tonale.
+- **Punti vita**: barra da 16px incavata con dieci tacche (segmenti), luce del colore di stato e PV temporanei in accento; numero da 72px.
+- **Tiri contro la morte**: tre `.check-rune` grandi (`data-size="lg"`) per riga, `data-tone` `success` / `destructive` (bordo tinto anche da vuote).
+- **Sigilli** (`.seal`): dadi vita, slot incantesimo, risorse e usi dei privilegi; rombo pieno con luce d'accento = disponibile, vuoto = speso; variante `data-size="lg"` (1.6rem) nella vista di gioco.
 - **Pannello** (`play-view/PlaySection`): guscio unico delle schede. Superficie `.surface` con padding, padding 16px (20px da `sm`), titolo `text-title` in Cinzel accento con icona muted, azione o valore a destra. Dentro un pannello non si annidano altre card: righe e riquadri interni usano `playInsetClass` (bordo e fondo `background` al 40%), le etichette `playLabelClass` (`text-label` maiuscolo), i dati secondari `playChipClass`.
 - **Scelta esclusiva** (`components/ui/SegmentedControl`): modalità del tiro (normale, vantaggio, svantaggio) e filtri degli incantesimi; `radiogroup` con voci da 36px in un contenitore da 40px.
 - **Risorse a segni** (dadi vita, slot incantesimo, risorse personalizzate): il sigillo pieno in accento è una risorsa disponibile, quello vuoto è spesa; ogni sigillo ha un bersaglio di 40–44px.
 - **Valori**: monospace bold con cifre tabellari; l'etichetta sta sotto o sopra in `text-label`. Negli attacchi "Colpire" e "Danno" sono due colonne con il dettaglio del calcolo in piccolo sotto.
 - **Stati di gioco**: verde per successi e colpo critico, rosso per fallimenti, 1 naturale e condizioni attive. Nessun bagliore: basta il fondo pieno o tenue del colore di stato.
-- **Dadiera**: finestra `Modal` oppure pillola flottante in vetro (`.glass-pill`, 56px) in basso a destra con il d20 su un disco accento; aperta, il pannello si apre sopra la pillola (a tutta larghezza su telefono, 320px da `sm`). Il risultato sta in alto, il pulsante "Lancia" in basso, vicino al pollice.
+- **Dadiera**: finestra `Modal` oppure pillola flottante in vetro (`.glass-pill`, 56px) in basso a destra con il d20 su un disco accento (su telefono solo il disco); aperta, il pannello si apre sopra la pillola (a tutta larghezza su telefono, 320px da `sm`). Il risultato sta in alto, il pulsante "Lancia" in basso, vicino al pollice.
 - **Icone**: niente emoji; il tipo di oggetto usa `SwordIcon`, `ShieldIcon`, `SparklesIcon`, `BackpackIcon`.
 
 ### Campi fuori dall'editor

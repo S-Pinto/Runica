@@ -24,7 +24,7 @@ export const TabButton = ({ id, controls, label, isActive, onClick, icon: Icon, 
         onClick={onClick}
         className={`flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3.5 text-sm font-semibold whitespace-nowrap transition-[background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
           isActive
-            ? 'bg-card text-accent shadow-[inset_0_1px_0_rgb(255_255_255/0.07),0_1px_3px_rgb(var(--color-shadow)/0.45)]'
+            ? 'bg-accent/15 text-accent shadow-[inset_0_0_0_1px_rgb(var(--color-accent)/0.35),0_0_18px_-6px_rgb(var(--color-accent)/0.6)]'
             : 'text-muted-foreground hover:text-foreground'
         }`}
       >

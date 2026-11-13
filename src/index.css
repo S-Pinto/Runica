@@ -56,7 +56,7 @@
 
     /* Luce: filo chiaro sul bordo alto di una superficie e velo d'accento in alto. */
     --highlight: inset 0 1px 0 rgb(255 255 255 / 0.06);
-    --ambient-strength: 0.09;
+    --ambient-strength: 0.17;
   }
 
   @media (min-width: 640px) {
@@ -200,7 +200,7 @@
     --shadow-floating: 0 28px 64px -20px rgb(var(--color-shadow) / 0.4);
     --shadow-glow: 0 8px 24px -8px rgb(var(--color-accent) / 0.4);
     --highlight: inset 0 1px 0 rgb(255 255 255 / 0.55);
-    --ambient-strength: 0.07;
+    --ambient-strength: 0.1;
   }
 
   html {
@@ -257,8 +257,9 @@
     z-index: -1;
     pointer-events: none;
     background:
-      radial-gradient(70% 38% at 50% -6%, rgb(var(--color-accent) / var(--ambient-strength)), transparent 72%),
-      radial-gradient(40% 30% at 100% 0%, rgb(var(--color-accent) / calc(var(--ambient-strength) * 0.45)), transparent 70%);
+      radial-gradient(60% 46% at 50% -10%, rgb(var(--color-accent) / var(--ambient-strength)), transparent 75%),
+      radial-gradient(38% 34% at 0% 0%, rgb(var(--color-accent) / calc(var(--ambient-strength) * 0.5)), transparent 70%),
+      radial-gradient(38% 34% at 100% 0%, rgb(var(--color-accent) / calc(var(--ambient-strength) * 0.5)), transparent 70%);
   }
 
   @media print {
@@ -388,10 +389,24 @@ input[type="number"],
     alto al posto di un bordo pesante. Pannelli, header e card la usano.
   */
   .surface {
+    position: relative;
     background-color: rgb(var(--color-card));
-    background-image: linear-gradient(180deg, rgb(var(--color-foreground) / 0.035), transparent 40%);
-    border: 1px solid rgb(var(--color-border) / 0.55);
+    background-image:
+      radial-gradient(70% 55% at 50% 0%, rgb(var(--color-accent) / 0.07), transparent 100%),
+      linear-gradient(180deg, rgb(var(--color-foreground) / 0.05), transparent 45%);
+    border: 1px solid rgb(var(--color-foreground) / 0.09);
     box-shadow: var(--highlight), var(--shadow-rest);
+  }
+  /* Filo d'accento sul bordo alto: luce che sfiora la superficie. */
+  .surface::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 14%;
+    right: 14%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgb(var(--color-accent) / 0.55), transparent);
+    pointer-events: none;
   }
 
   /* Velo caldo dietro l'eroe: luce d'accento da un angolo, solo sull'header. */
@@ -408,9 +423,9 @@ input[type="number"],
   .portrait-rune {
     background-color: rgb(var(--color-input));
     background-image:
-      radial-gradient(120% 90% at 22% 12%, rgb(var(--color-accent) / 0.26), transparent 62%),
-      linear-gradient(45deg, rgb(var(--color-accent) / 0.08) 1px, transparent 1px),
-      linear-gradient(-45deg, rgb(var(--color-accent) / 0.08) 1px, transparent 1px),
+      radial-gradient(120% 90% at 22% 12%, rgb(var(--color-accent) / 0.4), transparent 65%),
+      linear-gradient(45deg, rgb(var(--color-accent) / 0.12) 1px, transparent 1px),
+      linear-gradient(-45deg, rgb(var(--color-accent) / 0.12) 1px, transparent 1px),
       linear-gradient(180deg, transparent 45%, rgb(var(--color-shadow) / 0.25));
     background-size: 100% 100%, 22px 22px, 22px 22px, 100% 100%;
     background-position: center;
@@ -419,8 +434,11 @@ input[type="number"],
     font-family: 'Cinzel', serif;
     font-weight: 700;
     letter-spacing: 0.06em;
-    color: rgb(var(--color-accent) / 0.5);
-    text-shadow: 0 1px 0 rgb(255 255 255 / 0.12), 0 -1px 0 rgb(var(--color-shadow) / 0.55);
+    color: transparent;
+    background-image: linear-gradient(180deg, rgb(var(--color-accent)) 10%, rgb(var(--color-accent-dark) / 0.45) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    filter: drop-shadow(0 2px 1px rgb(var(--color-shadow) / 0.55));
   }
 
   /* Pillola di vetro: controlli che galleggiano (dadiera). */
@@ -446,6 +464,18 @@ input[type="number"],
     border: 1.5px solid rgb(var(--color-border-strong) / 0.7);
     border-radius: 3px;
     transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out), transform 150ms var(--ease-out);
+  }
+  .seal[data-size='lg'] {
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 4px;
+  }
+  .seal[data-size='lg']::after {
+    width: 8px;
+    height: 8px;
+  }
+  .seal[data-on='true'] {
+    box-shadow: 0 0 12px -2px rgb(var(--color-accent) / 0.55);
   }
   .seal::after {
     content: '';
@@ -533,6 +563,16 @@ input[type="number"],
   .check-rune[data-size='lg']::after {
     width: 14px;
     height: 14px;
+  }
+  .check-rune[data-size='lg'] {
+    background-color: rgb(var(--color-input) / 0.55);
+    box-shadow: inset 0 2px 4px rgb(var(--color-shadow) / 0.35);
+  }
+  .check-rune[data-tone='success']:not(:checked) {
+    border-color: rgb(var(--color-success) / 0.5);
+  }
+  .check-rune[data-tone='destructive']:not(:checked) {
+    border-color: rgb(var(--color-destructive) / 0.5);
   }
   .check-rune[data-tone='success']:checked,
   .check-rune[data-tone='success']:checked:hover,

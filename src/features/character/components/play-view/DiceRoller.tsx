@@ -174,12 +174,12 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({ mode = 'dock', isOpen = 
         onClick={() => setIsExpanded((prev) => !prev)}
         aria-expanded={isExpanded}
         aria-label="Dadiera"
-        className="glass-pill pointer-events-auto flex h-14 items-center gap-3 rounded-full py-1.5 pl-1.5 pr-5 text-sm font-semibold text-text transition-[transform,border-color,color] duration-150 ease-soft hover:border-accent/70 hover:text-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="glass-pill pointer-events-auto flex h-14 items-center gap-3 rounded-full py-1.5 pl-1.5 pr-1.5 has-[.font-mono]:pr-4 sm:pr-5 text-sm font-semibold text-text transition-[transform,border-color,color] duration-150 ease-soft hover:border-accent/70 hover:text-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span className="flex h-11 w-11 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.35)]">
           <DiceIcon className="h-6 w-6" />
         </span>
-        <span>Dadiera</span>
+        <span className="hidden sm:inline">Dadiera</span>
         {!isExpanded && lastRoll && (
           <span className="font-mono text-muted-foreground">{lastRoll.dice} · <span className="font-bold text-foreground">{lastRoll.total}</span></span>
         )}
