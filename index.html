@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" href="/icons/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="A dynamic and functional TTRPG character sheet manager with offline access and AI-powered backstory generation." />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="Runica: schede personaggio di D&D 5e per il tavolo, anche offline." />
     <title>Runica: Character Sheet</title>
 
-    <!-- PWA Manifest & Theme -->
-    <meta name="theme-color" content="#f59e0b">
+    <!-- PWA Manifest & Theme: il colore segue il fondo del tema (vedi ThemeProvider) -->
+    <meta name="theme-color" content="#0f0d0b">
 
     <!-- Apple PWA Icons & Config -->
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
@@ -18,13 +18,24 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Runica">
 
+    <!-- Applica il tema salvato prima del primo paint, per evitare il lampo del tema predefinito.
+         I temi rimossi vengono convertiti da ThemeProvider (src/lib/themes.ts). -->
+    <script>
+      try {
+        var savedTheme = localStorage.getItem('app-theme');
+        if (/^theme-(amber|parchment|obsidian|sapphire|evergreen|twilight)$/.test(savedTheme)) {
+          document.documentElement.classList.add(savedTheme);
+        }
+      } catch (e) {}
+    </script>
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 </head>
-  <body class="bg-zinc-900 text-zinc-200">
+  <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

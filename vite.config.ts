@@ -20,8 +20,9 @@ export default defineConfig(({ mode }) => {
           name: env.VITE_APP_NAME,
           short_name: env.VITE_APP_SHORT_NAME,
           description: 'A dynamic and functional TTRPG character sheet manager with offline access and AI-powered backstory generation.',
-          theme_color: '#f59e0b',
-          background_color: '#18181b',
+          // Fondo del tema predefinito (Ambra): schermata di avvio e barra di stato.
+          theme_color: '#0f0d0b',
+          background_color: '#0f0d0b',
           display: 'standalone',
           scope: '/',
           start_url: '/',

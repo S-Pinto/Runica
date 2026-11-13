@@ -1,72 +1,64 @@
-import { createContext, useState, useContext, useEffect, ReactNode, useMemo } from 'react';
+import { createContext, useState, useContext, useEffect, ReactNode, useMemo, useCallback } from 'react';
+import { ThemeId, resolveTheme } from '../lib/themes';
 
-const THEME_IDS = [
-  'theme-amber',
-  'theme-sapphire',
-  'theme-twilight',
-  'theme-evergreen',
-  'theme-crimson',
-  'theme-rose',
-  'theme-veridian',
-  'theme-obsidian',
-  'theme-solaris',
-  'theme-aether',
-  'theme-grove',
-  'theme-celestial', // New Light Theme
-  'theme-nocturne',   // New Dark Theme
-] as const;
-
-type Theme = typeof THEME_IDS[number];
+const STORAGE_KEY = 'app-theme';
 
 interface ThemeContextType {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
+  theme: ThemeId;
+  /** Accetta anche id di temi rimossi (es. da un vecchio backup): li porta al più vicino. */
+  setTheme: (theme: string) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+const readStoredTheme = (): ThemeId => {
+  try {
+    return resolveTheme(localStorage.getItem(STORAGE_KEY));
+  } catch {
+    return resolveTheme(null);
+  }
+};
+
+/** Converte "r g b" (valore di una variabile colore) in #rrggbb. */
+const tripletToHex = (triplet: string): string | null => {
+  const parts = triplet.trim().split(/[\s,]+/).map(Number);
+  if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n))) return null;
+  return `#${parts.map((n) => n.toString(16).padStart(2, '0')).join('')}`;
+};
+
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const storedTheme = localStorage.getItem('app-theme');
-    return (storedTheme as Theme) || 'theme-amber'; // Tema di default
-  });
+  const [theme, setThemeState] = useState<ThemeId>(readStoredTheme);
+
+  const setTheme = useCallback((next: string) => setThemeState(resolveTheme(next)), []);
 
   useEffect(() => {
     const root = window.document.documentElement;
-    root.classList.remove(...THEME_IDS);
+    // Rimuove qualsiasi classe tema, comprese quelle dei temi non più esistenti.
+    const stale = Array.from(root.classList).filter((c) => c.startsWith('theme-') && c !== theme);
+    root.classList.remove(...stale);
     root.classList.add(theme);
-    localStorage.setItem('app-theme', theme);
+    try {
+      localStorage.setItem(STORAGE_KEY, theme);
+    } catch {
+      // Archiviazione non disponibile (es. navigazione privata): il tema vale per la sessione.
+    }
 
-    // Update the <meta name="theme-color"> tag to match the current theme's accent color.
-    // This ensures the PWA's status bar color changes dynamically with the theme.
-    const rootStyle = getComputedStyle(root);
-    const accentColor = rootStyle.getPropertyValue('--color-accent').trim();
-
-    // The CSS variable is a string of numbers "r g b". Let's convert it to a hex color.
-    const toHex = (c: number): string => {
-      const hex = c.toString(16);
-      return hex.length === 1 ? `0${hex}` : hex;
-    };
-
-    const [r, g, b] = accentColor.replace(/,/g, ' ').split(/\s+/).map(Number);
-    const hexColor = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-
+    // La barra di stato della PWA prende il colore del fondo, così l'app
+    // continua fino al bordo dello schermo invece di staccarsi con una fascia colorata.
+    const background = tripletToHex(getComputedStyle(root).getPropertyValue('--color-background'));
+    if (!background) return;
     let themeColorMeta = document.querySelector('meta[name="theme-color"]');
     if (!themeColorMeta) {
       themeColorMeta = document.createElement('meta');
       themeColorMeta.setAttribute('name', 'theme-color');
       document.head.appendChild(themeColorMeta);
     }
-    themeColorMeta.setAttribute('content', hexColor);
+    themeColorMeta.setAttribute('content', background);
   }, [theme]);
 
-  const value = useMemo(() => ({ theme, setTheme }), [theme]);
+  const value = useMemo(() => ({ theme, setTheme }), [theme, setTheme]);
 
-  return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
 
 export const useTheme = (): ThemeContextType => {

@@ -1,10 +1,6 @@
 /*
-  Definizione del font personalizzato "Norse".
-  Questa regola dice al browser dove trovare i file del font
-  e come associarli al nome della famiglia 'Norse'.
+  Font locale "Norse": riservato al marchio RUNICA.
 */
-
-/* Variante Normale */
 @font-face {
     font-family: 'Norse';
     src: url('./assets/fonts/Norse.woff2') format('woff2'),
@@ -14,7 +10,6 @@
     font-display: swap;
 }
 
-/* Variante Grassetto (Bold) */
 @font-face {
     font-family: 'Norse';
     src: url('./assets/fonts/Norse-Bold.woff2') format('woff2'),
@@ -29,218 +24,237 @@
 @tailwind utilities;
 
 @layer base {
-  /* Semantic status colors, shared by every theme. */
+  /*
+    Token non-colore, validi per ogni tema.
+    I colori sono terne "R G B" (senza rgb()) per poter usare l'opacità di
+    Tailwind: bg-card/60, border-border/50…
+  */
   :root {
-    --color-destructive: 239 68 68;          /* red-500 */
-    --color-destructive-foreground: 255 255 255;
-    --color-success: 34 197 94;              /* green-500 */
-    --color-warning: 245 158 11;             /* amber-500 */
+    color-scheme: dark;
+
+    /* Layout: altezza della barra superiore; --header-offset include la tacca
+       del telefono ed è ciò che usano gli elementi sticky sotto l'header. */
+    --header-h: 3.5rem;
+    --header-offset: calc(var(--header-h) + env(safe-area-inset-top, 0px));
+
+    /* Movimento: una sola curva, senza rimbalzo. */
+    --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --dur-press: 90ms;
+    --dur-fast: 120ms;
+    --dur-base: 180ms;
+    --dur-slow: 240ms;
+
+    /* Ombre: sempre con scostamento e sfocatura, mai aloni a zero. */
+    --shadow-rest: 0 1px 2px rgb(var(--color-shadow) / 0.4);
+    --shadow-raised: 0 12px 28px -12px rgb(var(--color-shadow) / 0.7);
+    --shadow-floating: 0 28px 64px -20px rgb(var(--color-shadow) / 0.85);
+    /* Luce dell'accento: solo come risposta a uno stato (hover, attivo). */
+    --shadow-glow: 0 8px 24px -8px rgb(var(--color-accent) / 0.55);
   }
+
+  @media (min-width: 640px) {
+    :root {
+      --header-h: 4rem;
+    }
+  }
+
+  /*
+    Stato, per tutti i temi scuri. Toni chiari: si leggono come testo sulle
+    card (≥ 5.8:1) e portano testo scuro quando fanno da fondo (6.6:1).
+  */
+  :root {
+    --color-destructive: 247 113 114;
+    --color-destructive-foreground: 41 11 11;
+    --color-success: 83 210 119;
+    --color-warning: 251 140 66;
+    --color-shadow: 0 0 0;
+    --color-scrim: 0 0 0;
+  }
+
+  /* Ambra (predefinito): carbone caldo e oro runico. */
   :root, .theme-amber {
-    --color-background: 24 24 27; /* zinc-900 */
-    --color-foreground: 250 250 250; /* zinc-50 */
-    --color-card: 39 39 42; /* zinc-800 */
-    --color-border: 63 63 70; /* zinc-700 */
-    --color-input: 82 82 91; /* zinc-600 */
+    --color-background: 15 13 11;
+    --color-foreground: 247 245 241;
+    --color-card: 34 31 27;
+    --color-input: 49 45 40;
+    --color-border: 59 55 50;
+    --color-border-strong: 112 107 100;
 
-    --color-text: 228 228 231; /* zinc-200 */
-    --color-text-muted: 161 161 170; /* zinc-400 */
-    
-    --color-accent: 245 158 11; /* amber-500 */
-    --color-accent-dark: 180 83 9; /* amber-700 */
-    --color-accent-foreground: 24 24 27; /* zinc-900 */
+    --color-text: 225 221 215;
+    --color-text-muted: 166 161 153;
+
+    --color-accent: 247 179 50;
+    --color-accent-dark: 225 150 27;
+    --color-accent-foreground: 31 19 6;
   }
-  /* Refined for a richer, more vibrant feel */
-  .theme-sapphire {
-    --color-background: 24 36 71;      /* blue-950 */
-    --color-foreground: 224 242 254;   /* blue-50 */
-    --color-card: 27 49 89;            /* blue-900 */
-    --color-border: 35 63 112;         /* blue-800 */
-    --color-input: 43 75 132;          /* blue-700 */
 
-    --color-text: 191 219 254;         /* blue-200 */
-    --color-text-muted: 147 197 253;   /* blue-300 */
-
-    --color-accent: 34 211 238;        /* cyan-400 */
-    --color-accent-dark: 6 182 212;    /* cyan-500 */
-    --color-accent-foreground: 255 255 255; /* white */
-  }
-  /* Refined for better contrast */
-  .theme-twilight {
-    --color-background: 26 25 42;      /* Dark, desaturated purple */
-    --color-foreground: 240 242 250;   /* Light, cool gray */
-    --color-card: 40 39 61;            /* Slightly lighter dark purple */
-    --color-border: 61 60 86;          /* Muted purple-gray */
-    --color-input: 81 80 110;          /* Lighter purple-gray */
-    
-    --color-text: 226 232 240;         /* slate-200 */
-    --color-text-muted: 165 153 214;   /* Muted, light purple */
-
-    --color-accent: 192 132 252;       /* violet-400 */
-    --color-accent-dark: 147 112 219;  /* violet-500 */
-    --color-accent-foreground: 255 255 255; /* white */
-  }
-  /* Refined for a more natural feel */
-  .theme-evergreen {
-    --color-background: 20 34 33;      /* Very dark green */
-    --color-foreground: 239 244 240;   /* Light, warm off-white */
-    --color-card: 28 48 46;            /* Darker green */
-    --color-border: 45 71 69;          /* Muted green */
-    --color-input: 61 92 90;           /* Lighter green */
-
-    --color-text: 220 237 228;         /* Light green-tinted white */
-    --color-text-muted: 148 181 172;   /* Muted, light green */
-
-    --color-accent: 52 211 153;        /* emerald-400 */
-    --color-accent-dark: 16 185 129;   /* emerald-500 */
-    --color-accent-foreground: 20 34 33; /* Very dark green */
-  }
-  /* Refined for a stronger identity */
-  .theme-crimson {
-    --color-background: 28 23 23;      /* Very dark, reddish black */
-    --color-foreground: 250 250 250;   /* Off-white */
-    --color-card: 41 37 37;            /* Dark gray with red hint */
-    --color-border: 68 62 62;          /* Muted red-gray */
-    --color-input: 87 81 81;           /* Lighter red-gray */
-
-    --color-text: 228 228 231;         /* zinc-200 */
-    --color-text-muted: 171 161 161;   /* Muted gray-red */
-
-    --color-accent: 239 68 68;         /* red-500 */
-    --color-accent-dark: 220 38 38;    /* red-600 */
-    --color-accent-foreground: 255 255 255; /* white */
-  }
-  /* Refined for a softer feel */
-  .theme-rose {
-    --color-background: 15 23 42;      /* slate-900 */
-    --color-foreground: 255 228 230;   /* rose-100 */
-    --color-card: 30 41 59;            /* slate-800 */
-    --color-border: 51 65 85;          /* slate-700 */
-    --color-input: 71 85 105;          /* slate-600 */
-
-    --color-text: 255 228 230;         /* rose-100 */
-    --color-text-muted: 253 164 175;   /* rose-300 */
-
-    --color-accent: 244 63 94;         /* rose-500 */
-    --color-accent-dark: 225 29 72;    /* rose-600 */
-    --color-accent-foreground: 255 255 255; /* white */
-  }
-  /* Refined for a darker, more enchanted forest feel */
-  .theme-veridian {
-    --color-background: 20 37 29;      /* green-950 */
-    --color-foreground: 220 252 231;   /* green-50 */
-    --color-card: 22 46 36;            /* green-900 */
-    --color-border: 26 64 44;          /* green-800 */
-    --color-input: 30 79 53;           /* green-700 */
-
-    --color-text: 187 247 208;         /* green-200 */
-    --color-text-muted: 134 239 172;   /* green-300 */
-
-    --color-accent: 74 222 128;        /* green-400 */
-    --color-accent-dark: 34 197 94;    /* green-500 */
-    --color-accent-foreground: 20 37 29; /* green-950 */
-  }
-  /* Refined for higher contrast */
+  /* Ossidiana: nero puro per schermi OLED, accento argento. */
   .theme-obsidian {
-    --color-background: 3 7 18;        /* gray-950 */
-    --color-foreground: 249 250 251;   /* gray-50 */
-    --color-card: 17 24 39;            /* gray-900 */
-    --color-border: 31 41 55;          /* gray-800 */
-    --color-input: 55 65 81;           /* gray-700 */
+    --color-background: 0 0 0;
+    --color-foreground: 250 250 250;
+    --color-card: 21 22 24;
+    --color-input: 36 37 40;
+    --color-border: 45 47 50;
+    --color-border-strong: 102 105 110;
 
-    --color-text: 229 231 235;         /* gray-200 */
-    --color-text-muted: 156 163 175;   /* gray-400 */
+    --color-text: 220 222 225;
+    --color-text-muted: 152 155 160;
 
-    --color-accent: 243 244 246;       /* gray-100 */
-    --color-accent-dark: 209 213 219;  /* gray-300 */
-    --color-accent-foreground: 3 7 18; /* gray-950 */
+    --color-accent: 226 233 240;
+    --color-accent-dark: 190 197 205;
+    --color-accent-foreground: 10 11 13;
   }
-  /* Refined for a warmer glow */
-  .theme-solaris {
-    --color-background: 17 24 39;      /* gray-900 */
-    --color-foreground: 255 251 235;   /* orange-50 */
-    --color-card: 31 41 55;            /* gray-800 */
-    --color-border: 55 65 81;          /* gray-700 */
-    --color-input: 75 85 99;           /* gray-600 */
 
-    --color-text: 254 226 202;         /* orange-200 */
-    --color-text-muted: 251 191 146;   /* orange-300 */
+  /* Zaffiro: blu d'abisso, accento ghiaccio. */
+  .theme-sapphire {
+    --color-background: 6 14 29;
+    --color-foreground: 240 246 252;
+    --color-card: 20 32 54;
+    --color-input: 32 47 73;
+    --color-border: 42 57 84;
+    --color-border-strong: 92 111 145;
 
-    --color-accent: 249 115 22;        /* orange-500 */
-    --color-accent-dark: 234 88 12;    /* orange-600 */
-    --color-accent-foreground: 255 255 255; /* white */
+    --color-text: 212 223 235;
+    --color-text-muted: 150 166 187;
+
+    --color-accent: 89 216 239;
+    --color-accent-dark: 59 189 215;
+    --color-accent-foreground: 9 22 40;
   }
-  /* Refined for a more magical feel */
-  .theme-aether {
-    --color-background: 14 21 38;      /* slate-950 */
-    --color-foreground: 250 245 255;   /* fuchsia-50 */
-    --color-card: 30 41 59;            /* slate-900 */
-    --color-border: 51 65 85;          /* slate-800 */
-    --color-input: 71 85 105;          /* slate-700 */
 
-    --color-text: 233 213 255;         /* fuchsia-200 */
-    --color-text-muted: 216 180 254;   /* fuchsia-300 */
+  /* Foresta: verde profondo, accento foglia nuova (distinto dal verde di esito). */
+  .theme-evergreen {
+    --color-background: 5 16 12;
+    --color-foreground: 242 247 240;
+    --color-card: 18 35 29;
+    --color-input: 30 51 43;
+    --color-border: 40 61 53;
+    --color-border-strong: 89 114 104;
 
-    --color-accent: 217 70 239;        /* fuchsia-500 */
-    --color-accent-dark: 192 38 211;   /* fuchsia-600 */
-    --color-accent-foreground: 255 255 255; /* white */
+    --color-text: 219 228 220;
+    --color-text-muted: 148 169 158;
+
+    --color-accent: 179 225 95;
+    --color-accent-dark: 150 199 76;
+    --color-accent-foreground: 9 26 13;
   }
-  /* Refined for a more earthy tone */
-  .theme-grove {
-    --color-background: 28 25 23;      /* stone-950 */
-    --color-foreground: 247 254 231;   /* lime-50 */
-    --color-card: 41 37 36;            /* stone-900 */
-    --color-border: 68 64 60;          /* stone-800 */
-    --color-input: 87 83 78;           /* stone-700 */
 
-    --color-text: 236 252 203;         /* lime-200 */
-    --color-text-muted: 163 230 53;   /* lime-400 */
+  /* Crepuscolo: indaco notturno, accento lilla. */
+  .theme-twilight {
+    --color-background: 14 11 25;
+    --color-foreground: 245 244 250;
+    --color-card: 32 28 49;
+    --color-input: 46 41 67;
+    --color-border: 56 52 78;
+    --color-border-strong: 109 104 136;
 
-    --color-accent: 132 204 22;        /* lime-500 */
-    --color-accent-dark: 101 163 13;   /* lime-600 */
-    --color-accent-foreground: 28 25 23; /* stone-950 */
+    --color-text: 222 220 232;
+    --color-text-muted: 165 159 183;
+
+    --color-accent: 199 163 252;
+    --color-accent-dark: 172 137 232;
+    --color-accent-foreground: 23 17 42;
   }
-  /* --- NEW THEMES --- */
-  /* Refined for a comfortable, silver-gray feel */
-  .theme-celestial {
-    --color-background: 203 213 225;   /* slate-300 */
-    --color-foreground: 15 23 42;      /* slate-900 */
-    --color-card: 255 255 255;         /* white */
-    --color-border: 226 232 240;       /* slate-200 */
-    --color-input: 241 245 249;        /* slate-100 */
 
-    --color-text: 51 65 85;            /* slate-700 */
-    --color-text-muted: 71 85 105;     /* slate-600 */
+  /*
+    Pergamena: l'unico tema chiaro. Pagina di pergamena, inchiostro bruno,
+    accento lapislazzuli. Ridefinisce anche stato e ombre, che su fondo
+    chiaro devono essere scuri e leggeri.
+  */
+  .theme-parchment {
+    color-scheme: light;
 
-    --color-accent: 79 70 229;         /* indigo-600 */
-    --color-accent-dark: 67 56 202;    /* indigo-700 */
-    --color-accent-foreground: 255 255 255; /* white */
+    --color-background: 238 229 211;
+    --color-foreground: 32 22 15;
+    --color-card: 250 245 234;
+    --color-input: 230 219 199;
+    --color-border: 213 199 177;
+    --color-border-strong: 143 125 102;
+
+    --color-text: 58 45 36;
+    --color-text-muted: 100 85 71;
+
+    --color-accent: 30 71 152;
+    --color-accent-dark: 13 49 122;
+    --color-accent-foreground: 251 248 241;
+
+    --color-destructive: 172 26 28;
+    --color-destructive-foreground: 254 247 242;
+    --color-success: 15 106 49;
+    --color-warning: 151 76 0;
+    --color-shadow: 74 52 28;
+    --color-scrim: 46 34 24;
+
+    --shadow-rest: 0 1px 2px rgb(var(--color-shadow) / 0.12);
+    --shadow-raised: 0 12px 28px -12px rgb(var(--color-shadow) / 0.28);
+    --shadow-floating: 0 28px 64px -20px rgb(var(--color-shadow) / 0.4);
+    --shadow-glow: 0 8px 24px -8px rgb(var(--color-accent) / 0.4);
   }
-  .theme-nocturne {
-    --color-background: 23 21 38;      /* Deep purple */
-    --color-foreground: 221 214 254;   /* lavender-200 */
-    --color-card: 35 32 58;            /* Darker purple */
-    --color-border: 56 52 87;          /* Muted purple */
-    --color-input: 72 68 108;          /* Lighter purple */
 
-    --color-text: 196 181 253;         /* lavender-300 */
-    --color-text-muted: 167 139 250;   /* violet-400 */
-
-    --color-accent: 139 92 246;        /* violet-500 */
-    --color-accent-dark: 124 58 237;   /* violet-600 */
-    --color-accent-foreground: 255 255 255; /* white */
+  html {
+    -webkit-text-size-adjust: 100%;
+    /* Le ancore non finiscono sotto la barra superiore fissa. */
+    scroll-padding-top: var(--header-offset);
+    scrollbar-color: rgb(var(--color-border-strong)) transparent;
   }
-}
 
-body {
-  @apply bg-background text-text;
-  font-family: 'Inter', sans-serif; /* Ho cambiato il font di base in Inter per una migliore leggibilità UI */
-  color: rgb(var(--color-text));
-  background-color: rgb(var(--color-background));
-  transition: background-color 0.3s ease, color 0.3s ease;
-  font-size: 16px; /* Imposta la dimensione del font di base */
-  line-height: 1.5; /* Imposta l'altezza della linea per una migliore leggibilità */
-  font-weight: 400; /* Imposta il peso del font di base */
+  body {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    font-weight: 400;
+    color: rgb(var(--color-text));
+    background-color: rgb(var(--color-background));
+    transition: background-color var(--dur-slow) ease, color var(--dur-slow) ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Tacca laterale del telefono in orizzontale. */
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  h1, h2, h3, h4 {
+    text-wrap: balance;
+  }
+
+  /* Superfici del browser: selezione, cursore e focus nei colori del tema. */
+  ::selection {
+    background-color: rgb(var(--color-accent) / 0.35);
+    color: rgb(var(--color-foreground));
+  }
+
+  input, textarea, [contenteditable] {
+    caret-color: rgb(var(--color-accent));
+  }
+
+  /* Anello di focus predefinito: chi ne disegna uno proprio lo sostituisce. */
+  :focus-visible {
+    outline: 2px solid rgb(var(--color-accent));
+    outline-offset: 2px;
+  }
+
+  /* @tailwindcss/forms usa un blu fisso per il focus dei campi: passa all'accento. */
+  input:focus,
+  input[type]:focus,
+  textarea:focus,
+  select:focus {
+    --tw-ring-color: rgb(var(--color-accent) / 0.35);
+    border-color: rgb(var(--color-accent));
+  }
+
+  /* I valori di gioco non devono "ballare" quando cambiano cifra. */
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
 /* Nasconde le frecce degli input numerici per tutti gli input */
@@ -272,14 +286,14 @@ input[type="number"],
     }
   }
 
+  /* Bordo animato: solo per l'elemento attivo o in evidenza (vedi DESIGN.md). */
   .animated-border-card {
-    --angle: 0deg; /* Variabile per l'animazione */
+    --angle: 0deg;
     --bg: rgb(var(--color-card));
     --border: rgb(var(--color-border));
     --glow: rgb(var(--color-accent));
 
     --bg-color: linear-gradient(var(--bg), var(--bg));
-    /* Gradiente conico che ruota per un effetto circolare "spotlight" */
     --border-color: conic-gradient(
       from var(--angle),
       var(--border),
@@ -292,54 +306,19 @@ input[type="number"],
     background-origin: border-box;
     background-clip: padding-box, border-box;
     background-image: var(--bg-color), var(--border-color);
-    animation: rotate-border 4s linear infinite; /* Animazione di rotazione continua */
+    animation: rotate-border 4s linear infinite;
   }
 
-  .glass-panel {
-    background: rgb(var(--color-card)/0.65);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .glass-panel-accent {
-    background: linear-gradient(135deg, rgb(var(--color-accent)/0.12) 0%, rgb(var(--color-card)/0.75) 100%);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgb(var(--color-accent)/0.3);
-  }
-
-  .hero-glow-bg {
-    position: relative;
-    overflow: hidden;
-  }
-  .hero-glow-bg::before {
-    content: '';
-    position: absolute;
-    top: -30%;
-    left: 20%;
-    width: 60%;
-    height: 160%;
-    background: radial-gradient(circle, rgb(var(--color-accent)/0.18) 0%, rgb(var(--color-accent)/0) 70%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .glow-on-hover {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .glow-on-hover:hover {
-    box-shadow: 0 0 25px -3px rgb(var(--color-accent)/0.35);
-    border-color: rgb(var(--color-accent)/0.6);
-    transform: translateY(-2px);
-  }
-}
-@layer utilities {
-  /* Horizontal scrollers (chip rows) without a visible scrollbar. */
+  /* Righe scorrevoli in orizzontale senza barra visibile. */
   .no-scrollbar {
     scrollbar-width: none;
   }
   .no-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Spazio per la barra di sistema in basso (gesti del telefono). */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
