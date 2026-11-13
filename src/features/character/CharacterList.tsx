@@ -59,20 +59,17 @@ export const CharacterList: React.FC = () => {
 
   if (loadError && characters.length === 0) {
     return (
-      <div className="mx-auto max-w-xl p-8 text-center" role="alert">
-        <p className="mb-4 text-destructive">{loadError}</p>
-        <button
-          type="button"
-          onClick={() => window.location.reload()}
-          className="rounded-xl border border-border bg-card px-4 py-2 text-text hover:bg-input"
-        >
+      <div className="mx-auto max-w-xl px-4 py-16 text-center" role="alert">
+        <p className="mb-5 text-destructive">{loadError}</p>
+        <Button variant="secondary" onClick={() => window.location.reload()}>
           Riprova
-        </button>
+        </Button>
       </div>
     );
   }
 
   const isFiltering = searchQuery !== '' || selectedCampaignFilter !== 'all';
+  const hasCharacters = characters.length > 0;
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 sm:px-6 sm:py-8">
@@ -80,23 +77,28 @@ export const CharacterList: React.FC = () => {
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="font-cinzel text-3xl font-bold text-foreground sm:text-4xl">I tuoi eroi</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {characters.length === 1 ? '1 eroe' : `${characters.length} eroi`}
-            {campaignOptions.length > 0 &&
-              ` · ${campaignOptions.length} ${campaignOptions.length === 1 ? 'campagna' : 'campagne'}`}
-          </p>
+          {hasCharacters && (
+            <p className="mt-1 text-sm text-muted-foreground">
+              {characters.length === 1 ? '1 eroe' : `${characters.length} eroi`}
+              {campaignOptions.length > 0 &&
+                ` · ${campaignOptions.length} ${campaignOptions.length === 1 ? 'campagna' : 'campagne'}`}
+            </p>
+          )}
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={() => setIsCampaignModalOpen(true)} className="flex-1 sm:flex-none">
+          <Button variant="secondary" onClick={() => setIsCampaignModalOpen(true)} className={hasCharacters ? 'flex-1 sm:flex-none' : ''}>
             <UserGroupIcon className="h-4 w-4" /> Campagne
           </Button>
-          <Button onClick={() => handleSelectCharacter('new')} className="flex-1 sm:flex-none">
-            <UserPlusIcon className="h-4 w-4" /> Nuovo eroe
-          </Button>
+          {/* Senza eroi l'azione primaria è l'invito al centro della pagina. */}
+          {hasCharacters && (
+            <Button onClick={() => handleSelectCharacter('new')} className="flex-1 sm:flex-none">
+              <UserPlusIcon className="h-4 w-4" /> Nuovo eroe
+            </Button>
+          )}
         </div>
       </header>
 
-      {characters.length > 0 && (
+      {hasCharacters && (
         <CharacterListToolbar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}

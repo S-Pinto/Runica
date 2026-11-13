@@ -1,4 +1,5 @@
 import { MagnifyingGlassIcon } from '../../../../components/ui/icons';
+import { fieldInputClass } from '../../../../components/ui/field';
 
 interface CharacterListToolbarProps {
   searchQuery: string;
@@ -28,7 +29,7 @@ export const CharacterListToolbar = ({
           placeholder="Cerca per nome, classe o razza"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="h-10 w-full rounded-xl border border-border bg-card pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground/70 transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-ring/30"
+          className={`${fieldInputClass} bg-card pl-10`}
         />
       </div>
       {campaignOptions.length > 0 && (
@@ -41,10 +42,10 @@ export const CharacterListToolbar = ({
                 type="button"
                 aria-pressed={active}
                 onClick={() => onCampaignFilterChange(chip.value)}
-                className={`h-8 shrink-0 whitespace-nowrap rounded-full border px-3.5 text-xs font-semibold transition-colors ${
+                className={`h-9 shrink-0 whitespace-nowrap rounded-full border px-3.5 text-xs font-semibold transition-colors duration-150 ${
                   active
                     ? 'border-accent bg-accent/15 text-accent'
-                    : 'border-border text-muted-foreground hover:border-accent/50 hover:text-text'
+                    : 'border-border-strong/50 text-muted-foreground hover:border-border-strong hover:text-foreground'
                 }`}
               >
                 {chip.label}
