@@ -29,7 +29,10 @@ const Stat = ({ label, value }: { label: string; value?: ReactNode }) => (
     </Box>
 );
 
-const Head = ({ character, level, hasShield }: { character: ICharacter; level: number; hasShield: boolean }) => (
+/** n rombi, i primi `on` pieni (risorse spese, tiri contro la morte segnati). */
+const Diamonds = ({ n, on = 0 }: { n: number; on?: number }) => <>{Array.from({ length: n }).map((_, i) => <span key={i}>{i < on ? SVGs.diamondFilled : SVGs.diamond}</span>)}</>;
+
+const Head = ({ character, level, hasShield, filled }: { character: ICharacter; level: number; hasShield: boolean; filled: boolean }) => (
     <header className="p1-head">
         <Box className="id-box">
             <Field label="Nome del personaggio" value={character.name} className="id-name" />
@@ -54,23 +57,23 @@ const Head = ({ character, level, hasShield }: { character: ICharacter; level: n
             <div className="vit-cell">
                 <div className="vit-title">Punti ferita</div>
                 <div className="hp-cols">
-                    <div className="hp-col"><div className="v" /><div className="lbl">Attuali</div></div>
-                    <div className="hp-col"><div className="v" /><div className="lbl">Temp</div></div>
+                    <div className="hp-col"><div className="v">{filled ? character.hp.current : ''}</div><div className="lbl">Attuali</div></div>
+                    <div className="hp-col"><div className="v">{filled && character.hp.temporary ? character.hp.temporary : ''}</div><div className="lbl">Temp</div></div>
                     <div className="hp-col"><div className="v">{character.hp.max}</div><div className="lbl">Max</div></div>
                 </div>
             </div>
             <div className="vit-cell">
                 <div className="vit-title">Dadi vita</div>
                 <div className="dv-slot">
-                    <div className="row"><div className="lbl">Spesi</div></div>
+                    <div className="row"><div className="lbl">Spesi</div><div className="v">{filled && character.hitDice?.used ? character.hitDice.used : ''}</div></div>
                     <div className="row"><div className="lbl">Max</div><div className="v">{character.hitDice?.total}</div></div>
                 </div>
             </div>
             <div className="vit-cell">
                 <div className="vit-title">Salvezza contro morte</div>
                 <div className="ds-rows">
-                    <div className="ds-row"><span className="diams">{SVGs.diamond}{SVGs.diamond}{SVGs.diamond}</span><span>Successi</span></div>
-                    <div className="ds-row"><span className="diams">{SVGs.diamond}{SVGs.diamond}{SVGs.diamond}</span><span>Fallimenti</span></div>
+                    <div className="ds-row"><span className="diams"><Diamonds n={3} on={filled ? character.deathSaves?.successes : 0} /></span><span>Successi</span></div>
+                    <div className="ds-row"><span className="diams"><Diamonds n={3} on={filled ? character.deathSaves?.failures : 0} /></span><span>Fallimenti</span></div>
                 </div>
             </div>
         </Box>
@@ -99,20 +102,21 @@ const AbilityCard = ({ character, ability, pb }: { character: ICharacter; abilit
     );
 };
 
-const FeatureList = ({ list }: { list: Feature[] }) => (
+const FeatureList = ({ list, filled }: { list: Feature[]; filled: boolean }) => (
     <div className="cols2">
         {list.map((f) => (
             <div key={f.id} className="feat">
                 <div><span className="n serif">{f.name}</span>{f.recovery && f.recovery !== 'none' && <span className="rec">{f.recovery === 'short' ? 'Riposo breve' : 'Riposo lungo'}</span>}</div>
                 <div className="d">{f.description}</div>
-                {f.uses && f.uses.max > 0 && <div className="feat-pips">{Array.from({ length: Math.min(f.uses.max, 12) }).map((_, i) => <span key={i}>{SVGs.diamond}</span>)}</div>}
+                {f.uses && f.uses.max > 0 && <div className="feat-pips"><Diamonds n={Math.min(f.uses.max, 12)} on={filled ? f.uses.max - f.uses.current : 0} /></div>}
             </div>
         ))}
     </div>
 );
 
-/** Pagina 1: intestazione, caratteristiche, parametri vitali, attacchi, privilegi, tratti e talenti. */
-export const PrintPageCore = ({ character }: { character: ICharacter }) => {
+/** Pagina 1: intestazione, caratteristiche, parametri vitali, attacchi, privilegi, tratti e talenti.
+ * `filled`: riporta i valori correnti (PF, dadi vita spesi, tiri contro la morte, usi spesi, ispirazione); altrimenti restano da compilare a matita. */
+export const PrintPageCore = ({ character, filled }: { character: ICharacter; filled: boolean }) => {
     const actions = useMemo(() => getAllActions(character), [character]);
     const pb = getPrintProficiency(character);
     const level = getPrintLevel(character);
@@ -133,7 +137,7 @@ export const PrintPageCore = ({ character }: { character: ICharacter }) => {
 
     return (
         <section className="page">
-            <Head character={character} level={level} hasShield={hasShield} />
+            <Head character={character} level={level} hasShield={hasShield} filled={filled} />
             <div className="p1-rule">
                 <RuleOrnament />
                 <div className="mark"><i className="gem" />RUNICA<i className="gem" /></div>
@@ -143,7 +147,7 @@ export const PrintPageCore = ({ character }: { character: ICharacter }) => {
                 <div className="col col-a">
                     <Box className="pb-box"><Pillars /><div className="lbl">Bonus di competenza</div><div className="v">{fmtMod(pb)}</div></Box>
                     {(['strength', 'dexterity', 'constitution'] as const).map((a) => <AbilityCard key={a} character={character} ability={a} pb={pb} />)}
-                    <Box className="insp-box"><div className="lbl">Ispirazione eroica</div><InspirationStar /></Box>
+                    <Box className="insp-box"><div className="lbl">Ispirazione eroica</div><InspirationStar lit={filled && character.inspiration > 0} /></Box>
                 </div>
                 <div className="col col-b">
                     {(['intelligence', 'wisdom', 'charisma'] as const).map((a) => <AbilityCard key={a} character={character} ability={a} pb={pb} />)}
@@ -180,11 +184,11 @@ export const PrintPageCore = ({ character }: { character: ICharacter }) => {
                         </table>
                     </Box>
                     <Box title={CATEGORY_CONFIG.class.label} className="features-box">
-                        <div className="box-body grid-split"><FeatureList list={groups.cls} /></div>
+                        <div className="box-body grid-split"><FeatureList list={groups.cls} filled={filled} /></div>
                     </Box>
                     <div className="row2">
-                        <Box title={CATEGORY_CONFIG.racial.label}><div className="box-body grid-paper">{groups.species.length > 0 && <FeatureList list={groups.species} />}</div></Box>
-                        <Box title="Talenti"><div className="box-body grid-paper">{groups.feats.length > 0 && <FeatureList list={groups.feats} />}</div></Box>
+                        <Box title={CATEGORY_CONFIG.racial.label}><div className="box-body grid-paper">{groups.species.length > 0 && <FeatureList list={groups.species} filled={filled} />}</div></Box>
+                        <Box title="Talenti"><div className="box-body grid-paper">{groups.feats.length > 0 && <FeatureList list={groups.feats} filled={filled} />}</div></Box>
                     </div>
                 </div>
             </div>

@@ -234,7 +234,7 @@ export const ArrowRightIcon = (props: IconProps) => (
 
 export const ArrowLeftIcon = (props: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15 5.25L7.5 12l7.5 6.75M3 12h18" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
     </svg>
 );
 
@@ -389,8 +389,6 @@ export const FireIcon = (props: IconProps) => (
 
 export const PrinterIcon = (props: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0h9m-9 0a2.25 2.25 0 002.25 2.25h13.5a2.25 2.25 0 002.25-2.25m-9 0v-2.25m6.75-2.25a2.25 2.25 0 01-2.25 2.25H9.75a2.25 2.25 0 01-2.25-2.25" />
-        {/* Cleaner path for Printer */}
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 14h12v8H6z" />
     </svg>
