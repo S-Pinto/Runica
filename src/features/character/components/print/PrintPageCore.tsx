@@ -81,9 +81,8 @@ const AbilityCard = ({ character, ability, pb }: { character: ICharacter; abilit
     const score = character.abilityScores[ability];
     const mod = getMod(score);
     const saveProf = !!character.savingThrows?.[ability]?.proficient;
-    const rows = character.skills.filter((s) => s.ability === ability).length;
     return (
-        <Box className="ab-card" style={{ flex: `${rows + 3} 1 0` }}>
+        <Box className="ab-card">
             <div className="ab-name">{ABILITY_LABELS[ability]}</div>
             <AbilityEmblem mod={fmtMod(mod)} score={score} />
             <ul className="ab-rows">
@@ -141,20 +140,21 @@ export const PrintPageCore = ({ character }: { character: ICharacter }) => {
                 <RuleOrnament flip />
             </div>
             <div className="p1-main">
-                <div className="col">
+                <div className="col col-a">
                     <Box className="pb-box"><Pillars /><div className="lbl">Bonus di competenza</div><div className="v">{fmtMod(pb)}</div></Box>
                     {(['strength', 'dexterity', 'constitution'] as const).map((a) => <AbilityCard key={a} character={character} ability={a} pb={pb} />)}
                     <Box className="insp-box"><div className="lbl">Ispirazione eroica</div><InspirationStar /></Box>
-                    <Box title="Addestramento e competenze" className="training-box">
-                        <div className="training-row"><span className="lbl">Armature</span>{['Leggere', 'Medie', 'Pesanti', 'Scudi'].map((l) => <span key={l} style={{ display: 'flex', alignItems: 'center', gap: '0.5mm' }}>{SVGs.diamond}{l}</span>)}</div>
-                        <div className="training-sec"><span className="lbl">Armi</span><div className="fill blank-lines" /></div>
-                        <div className="training-sec"><span className="lbl">Strumenti</span><div className="fill blank-lines" /></div>
-                    </Box>
                 </div>
-                <div className="col">
+                <div className="col col-b">
                     {(['intelligence', 'wisdom', 'charisma'] as const).map((a) => <AbilityCard key={a} character={character} ability={a} pb={pb} />)}
                 </div>
-                <div className="col">
+                {/* Come nel modulo 2024: il riquadro occupa la larghezza delle due colonne di caratteristiche. */}
+                <Box title="Addestramento e competenze" className="training-box">
+                    <div className="training-row"><span className="lbl">Armature</span>{['Leggere', 'Medie', 'Pesanti', 'Scudi'].map((l) => <span key={l}>{SVGs.diamond}{l}</span>)}</div>
+                    <div className="training-sec"><span className="lbl">Armi</span><div className="fill blank-lines" /></div>
+                    <div className="training-sec"><span className="lbl">Strumenti</span><div className="fill blank-lines" /></div>
+                </Box>
+                <div className="col col-c">
                     <div className="tiles4">
                         <Stat label="Iniziativa" value={fmtMod(getMod(character.abilityScores.dexterity))} />
                         <Stat label="Velocità" value={`${Math.round(character.speed * 0.3)} m`} />

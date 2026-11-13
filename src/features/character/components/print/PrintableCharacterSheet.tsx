@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { getCharacter } from '../../characterRepository';
 import { ICharacter } from '../../characterTypes';
 import { SharedStyles } from './printStyles';
@@ -15,6 +15,7 @@ import {
 /** Scheda stampabile: 2 pagine A4 standard, più continuazioni e compagni solo se servono. */
 export const PrintableCharacterSheet = () => {
     const { characterId } = useParams();
+    const navigate = useNavigate();
     const [character, setCharacter] = useState<ICharacter | null>(null);
     const [failed, setFailed] = useState(false);
 
@@ -27,13 +28,22 @@ export const PrintableCharacterSheet = () => {
     }, [characterId]);
 
     useEffect(() => {
-        if (character?.name) document.title = `${character.name} – scheda`;
+        if (!character?.name) return;
+        const previous = document.title;
+        document.title = `${character.name} – scheda`;
+        return () => { document.title = previous; };
     }, [character?.name]);
 
     const spellChunks = useMemo(
         () => (character ? splitChunks(getPrintSpells(character), SPELL_ROWS_PAGE2, SPELL_ROWS_CONTINUATION).slice(1).filter((c) => c.length > 0) : []),
         [character],
     );
+
+    /** Aperta in una nuova scheda: la chiude; aperta nella stessa finestra (PWA, popup bloccato): torna al personaggio. */
+    const handleClose = () => {
+        if (window.opener) window.close();
+        else navigate(characterId ? `/character/${characterId}` : '/');
+    };
 
     if (failed) return <div style={{ padding: 24 }}>Impossibile caricare il personaggio.</div>;
     if (!character) return <div style={{ padding: 24 }}>Caricamento…</div>;
@@ -50,7 +60,7 @@ export const PrintableCharacterSheet = () => {
                     <h2 style={{ fontSize: '1.05rem', fontWeight: 600 }}>{character.name || 'Scheda personaggio'}</h2>
                     <p style={{ fontSize: '0.8rem', color: '#666' }}>A4 · in stampa scegli "Salva come PDF" per esportarla</p>
                 </div>
-                <button type="button" className="print-btn secondary" onClick={() => window.close()}>Chiudi</button>
+                <button type="button" className="print-btn secondary" onClick={handleClose}>Chiudi</button>
                 <button type="button" className="print-btn" onClick={() => window.print()}>Stampa / Salva PDF</button>
             </div>
 
@@ -58,7 +68,7 @@ export const PrintableCharacterSheet = () => {
             <PrintPageSpells character={character} />
             {spellChunks.map((chunk, i) => <PrintPageSpellsContinuation key={i} character={character} spells={chunk} part={i + 1} />)}
             {showNotes && <PrintPageNotes character={character} showEquipment={showEquipment} showStory={showStory} />}
-            {character.companions?.map((comp) => <PrintPageCompanion key={comp.id} companion={comp} />)}
+            {character.companions?.map((comp) => <PrintPageCompanion key={comp.id} companion={comp} ownerName={character.name} />)}
         </div>
     );
 };

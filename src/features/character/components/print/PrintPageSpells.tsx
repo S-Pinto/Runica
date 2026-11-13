@@ -11,7 +11,7 @@ import {
 
 const CURRENCY_KEYS: (keyof Currency)[] = ['cp', 'sp', 'ep', 'gp', 'pp'];
 const SLOT_COLUMNS = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
-/** Caselle mostrate su una scheda senza slot (come nel modulo ufficiale). */
+/** Caselle mostrate per i livelli senza slot, da compilare a mano (come nel modulo ufficiale). */
 const DEFAULT_SLOTS: Record<number, number> = { 1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 2, 8: 1, 9: 1 };
 
 const spellNote = (s: Spell) => [schoolLabel(s.school), s.damage && `${s.damage} ${s.damageType || ''}`.trim()].filter(Boolean).join(' · ');
@@ -53,7 +53,6 @@ export const PrintPageSpells = ({ character }: { character: ICharacter }) => {
     const attuned = getAttunedItems(character).slice(0, 3);
     const story = getStoryText(character);
     const storyFits = story.length <= STORY_CHARS_PAGE2;
-    const hasSlots = Object.values(character.spellSlots || {}).some((s) => (s?.max || 0) > 0);
 
     return (
         <section className="page">
@@ -80,7 +79,7 @@ export const PrintPageSpells = ({ character }: { character: ICharacter }) => {
                                             <div className="slots-hd"><span className="a" /><span className="b">Totale</span><span className="c">Spesi</span></div>
                                             {levels.map((lv) => {
                                                 const max = character.spellSlots?.[lv]?.max || 0;
-                                                const diamonds = hasSlots ? Math.min(max, 6) : DEFAULT_SLOTS[lv];
+                                                const diamonds = max > 0 ? Math.min(max, 6) : DEFAULT_SLOTS[lv];
                                                 return (
                                                     <div key={lv} className="slot-line">
                                                         <span className="lv">Liv. {lv}</span>
@@ -107,7 +106,7 @@ export const PrintPageSpells = ({ character }: { character: ICharacter }) => {
                             ) : null)}
                             {character.biography && <div className="story-bio">{storyFits ? character.biography : `${character.biography.slice(0, 260)}… (continua)`}</div>}
                         </div>
-                        <div className="lbl" style={{ marginTop: '1mm', borderBottom: '0.25mm solid #888', paddingBottom: '0.6mm' }}>Allineamento: <span style={{ color: '#111', fontSize: '6.4pt' }}>{character.alignment}</span></div>
+                        <div className="lbl" style={{ marginTop: '1mm', borderBottom: '0.25mm solid #444', paddingBottom: '0.6mm' }}>Allineamento: <span style={{ color: '#111', fontSize: '6.4pt' }}>{character.alignment}</span></div>
                     </Box>
                     <Box title="Linguaggi" style={{ flex: '0.7 1 0' }}>
                         <div className="box-body grid-paper" style={{ whiteSpace: 'pre-wrap', fontSize: '6.4pt' }}>{character.languages}</div>

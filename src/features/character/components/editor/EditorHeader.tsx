@@ -2,6 +2,8 @@ import { ICharacter } from '../../characterTypes';
 import { BackIcon, SaveIcon, TrashIcon, PrinterIcon, EllipsisVerticalIcon } from '../../../../components/ui/icons';
 import { Button } from '../../../../components/ui/Button';
 import { Menu, MenuItem } from '../../../../components/ui/Menu';
+import { useNavigate } from 'react-router-dom';
+import { openPrintSheet } from '../../utils/printSheet';
 
 interface EditorHeaderProps {
     character: ICharacter;
@@ -14,8 +16,9 @@ interface EditorHeaderProps {
 }
 
 export const EditorHeader = ({ character, isNewCharacter, isDirty, isSaving, onBack, onSave, onDelete }: EditorHeaderProps) => {
+    const navigate = useNavigate();
     const editorMenu: MenuItem[] = [
-        ...(!isNewCharacter ? [{ label: 'Stampa scheda', icon: <PrinterIcon />, onSelect: () => window.open(`/character/${character.id}/print`, '_blank') }] : []),
+        ...(!isNewCharacter ? [{ label: 'Stampa scheda', icon: <PrinterIcon />, onSelect: () => openPrintSheet(character.id, navigate) }] : []),
         { label: isNewCharacter ? 'Scarta personaggio' : 'Elimina personaggio', icon: <TrashIcon />, onSelect: onDelete, destructive: true },
     ];
 
