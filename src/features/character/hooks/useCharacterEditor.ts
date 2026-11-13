@@ -4,6 +4,7 @@ import { ICharacter } from '../characterTypes';
 import { useCharacter } from '../CharacterProvider';
 import * as characterRepository from '../characterRepository';
 import { createNewCharacter } from '../rules/defaults';
+import { resolveEditorTarget } from '../editorSession';
 import { getModifier } from '../utils/characterUtils';
 import { confirmDialog, toast } from '../../../components/ui/Dialogs';
 import { describeDataError } from '../../../lib/errors';
@@ -19,7 +20,7 @@ export const useCharacterEditor = (activeTab: string) => {
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const isNewCharacter = window.location.pathname.endsWith('/character/new');
+    const isNewCharacter = resolveEditorTarget(characterId).kind === 'new';
     const savedSnapshot = useRef<string | null>(null);
     const isDirty = !!character && savedSnapshot.current !== null && JSON.stringify(character) !== savedSnapshot.current;
 
@@ -56,14 +57,12 @@ export const useCharacterEditor = (activeTab: string) => {
         const loadCharacter = async () => {
             try {
                 if (isMounted) setError(null);
-                let loadedData;
-                if (!characterId) { // Route is /character/new
-                    loadedData = createNewCharacter();
-                } else {
-                    loadedData = await characterRepository.getCharacter(characterId);
-                }
+                const target = resolveEditorTarget(characterId);
+                const loadedData = target.kind === 'new'
+                    ? createNewCharacter()
+                    : await characterRepository.getCharacter(target.id);
 
-                if (!loadedData && characterId) {
+                if (!loadedData) {
                     if (isMounted) setError('Personaggio non trovato');
                     return;
                 }
