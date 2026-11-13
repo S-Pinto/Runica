@@ -43,7 +43,8 @@ const GLYPHS: Record<Glyph, { width: number; path: ReactNode }> = {
 /**
  * Separatore inciso fra le sezioni principali di una pagina: un filo da 1px
  * con un glifo geometrico al centro. È decorazione: i lettori di schermo lo
- * ignorano. Non si usa dentro una card (lì basta il filo del titolo).
+ * ignorano. Dentro un pannello (`.tile`) si usa solo `glyph="notch"`, per
+ * separare i sottogruppi (al massimo due per scheda dell'editor).
  */
 export const RuneDivider = ({ glyph = 'diamond', className = '' }: RuneDividerProps) => {
   const { width, path } = GLYPHS[glyph];

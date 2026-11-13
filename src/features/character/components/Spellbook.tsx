@@ -4,11 +4,11 @@ import { useCharacter } from '../CharacterProvider';
 import { calculateSpellSaveDC, calculateSpellAttackBonus } from '../rules/combat';
 import { PlusIcon, MagnifyingGlassIcon, BookmarkIcon } from '../../../components/ui/icons';
 import { Button } from '../../../components/ui/Button';
-import { fieldControlClass } from '../../../components/ui/field';
+import { fieldControlOnTileClass } from '../../../components/ui/field';
 import { ABILITY_SHORT } from '../../../lib/labels';
 import { formatModifier } from '../utils/characterUtils';
 import { StyledSection } from './ui/StyledInputs';
-import { StatBox } from './ui/StatBox';
+import { BentoStat } from './ui/BentoStat';
 import { playEmptyClass } from './play-view/PlaySection';
 import { SpellCard } from './SpellCard';
 import { SpellForm } from './spellbook/SpellForm';
@@ -108,10 +108,10 @@ const SpellbookContent = () => {
         </Button>
       }
     >
-      <div className="grid grid-cols-3 gap-3 sm:gap-4">
-        <StatBox label="CD tiro salvezza" value={spellSaveDC} />
-        <StatBox label="Bonus d'attacco" value={formatModifier(spellAttackBonus)} />
-        <StatBox label="Caratteristica" value={spellAbility} />
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <BentoStat inset small label="CD" sub="Tiro salvezza" value={spellSaveDC} />
+        <BentoStat inset small label="Attacco" sub="Bonus al tiro" value={formatModifier(spellAttackBonus)} />
+        <BentoStat inset small label="Caratt." sub="Da incantatore" value={spellAbility} />
       </div>
 
       <div className="relative my-5">
@@ -122,7 +122,7 @@ const SpellbookContent = () => {
           placeholder="Cerca incantesimi"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className={`${fieldControlClass} pl-10`}
+          className={`${fieldControlOnTileClass} pl-10`}
         />
       </div>
 

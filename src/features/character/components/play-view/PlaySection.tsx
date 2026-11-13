@@ -38,9 +38,10 @@ export const PlaySection = ({ title, icon, aside, children, className = '', as: 
         {(title || aside) && (
             <div className="mb-3 flex min-h-9 items-center justify-between gap-3">
                 {title && (
-                    <h3 className="flex min-w-0 items-center gap-2 text-label font-semibold uppercase tracking-widest text-muted-foreground">
+                    // Il titolo va a capo (mai troncato): a 375px "Attacchi e trucchetti" sta accanto ad "Aggiungi".
+                    <h3 className="flex min-w-0 items-center gap-2 text-label font-semibold uppercase leading-snug tracking-widest text-muted-foreground">
                         {icon && <span className="shrink-0 [&_svg]:h-5 [&_svg]:w-5">{icon}</span>}
-                        <span className="truncate">{title}</span>
+                        <span className="min-w-0 break-words [text-wrap:balance]">{title}</span>
                     </h3>
                 )}
                 {aside && <div className="ml-auto flex shrink-0 items-center gap-2">{aside}</div>}

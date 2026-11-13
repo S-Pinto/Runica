@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { EquipmentItem } from '../../characterTypes';
 import { TrashIcon, EditIcon, ChevronDownIcon } from '../../../../components/ui/icons';
 import { Button } from '../../../../components/ui/Button';
-import { playChipClass, playEmptyClass } from '../play-view/PlaySection';
+import { playChipClass, playEmptyClass, playInsetClass } from '../play-view/PlaySection';
 import { damageTypeLabel } from '../../../../lib/labels';
 import { itemArmorValue, itemKindLabel, weaponPropertyLabel } from '../../utils/itemLabels';
 
@@ -49,15 +49,15 @@ export const ItemDisplayList = ({
             item.requiresAttunement ? (item.isAttuned ? 'In sintonia' : 'Sintonia richiesta') : '',
           ].filter(Boolean).join(' · ');
           return (
-            <li key={item.id} className="rounded-2xl bg-background/50 transition-colors duration-150 hover:bg-background/70">
+            <li key={item.id} className={`${playInsetClass} transition-colors duration-150 hover:bg-background/70`}>
               <div className="flex items-center gap-1 p-1">
                 <button
                   type="button"
                   onClick={() => onToggleExpand(item.id)}
                   aria-expanded={open}
-                  className="flex min-h-12 min-w-0 flex-1 items-center gap-3 rounded-lg p-1.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="flex min-h-12 min-w-0 flex-1 items-center gap-3 rounded-xl p-1.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-input font-cinzel text-sm font-bold uppercase text-accent/70">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-input font-cinzel text-sm font-bold uppercase text-accent/70">
                     {item.imageUrl ? <img src={item.imageUrl} alt="" className="h-full w-full object-cover" /> : item.name.substring(0, 2)}
                   </span>
                   <span className="min-w-0 flex-1">

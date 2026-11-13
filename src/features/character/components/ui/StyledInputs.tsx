@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { fieldControlClass } from '../../../../components/ui/field';
+import { fieldControlOnTileClass } from '../../../../components/ui/field';
 import { PlaySection } from '../play-view/PlaySection';
 
 interface StyledInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -29,7 +29,7 @@ export const StyledInput: React.FC<StyledInputProps> = ({ label, subLabel, icon,
                 <input
                     {...props}
                     id={id}
-                    className={`${fieldControlClass} ${props.type === 'number' ? 'no-spinner font-mono' : ''} ${icon ? 'pl-10' : ''}`}
+                    className={`${fieldControlOnTileClass} ${props.type === 'number' ? 'no-spinner font-mono' : ''} ${icon ? 'pl-10' : ''}`}
                 />
             </div>
         </div>
@@ -46,7 +46,7 @@ export const StyledTextArea: React.FC<StyledTextAreaProps> = ({ label, subLabel,
     return (
         <div className={`flex flex-col ${className}`}>
             <FieldHeader htmlFor={id} label={label} subLabel={subLabel} />
-            <textarea {...props} id={id} className={`${fieldControlClass} min-h-[100px] flex-grow resize-y leading-relaxed`} />
+            <textarea {...props} id={id} className={`${fieldControlOnTileClass} min-h-[100px] flex-grow resize-y leading-relaxed`} />
         </div>
     );
 };
@@ -61,7 +61,7 @@ export const StyledSelect: React.FC<StyledSelectProps> = ({ label, subLabel, cla
     return (
         <div className={className}>
             <FieldHeader htmlFor={id} label={label} subLabel={subLabel} />
-            <select {...props} id={id} className={fieldControlClass}>{children}</select>
+            <select {...props} id={id} className={fieldControlOnTileClass}>{children}</select>
         </div>
     );
 };

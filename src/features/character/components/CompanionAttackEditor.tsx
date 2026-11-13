@@ -2,7 +2,7 @@ import React from 'react';
 import { ICompanion, Attack } from '../characterTypes';
 import { PlusIcon, TrashIcon } from '../../../components/ui/icons';
 import { Button } from '../../../components/ui/Button';
-import { fieldControlClass, fieldNumericClass } from '../../../components/ui/field';
+import { fieldControlOnTileClass, fieldNumericClass } from '../../../components/ui/field';
 
 const DAMAGE_TYPES = [
   'Acid', 'Bludgeoning', 'Cold', 'Fire', 'Force', 'Lightning', 'Necrotic',
@@ -65,7 +65,7 @@ export const CompanionAttackEditor: React.FC<CompanionAttackEditorProps> = ({ co
               placeholder="Nome dell'attacco"
               value={attack.name}
               onChange={(e) => handleAttackChange(index, 'name', e.target.value)}
-              className={`${fieldControlClass} col-span-2 sm:col-span-1`}
+              className={`${fieldControlOnTileClass} col-span-2 sm:col-span-1`}
             />
             <Button variant="ghost" size="icon-lg" aria-label={`Elimina attacco ${index + 1}`} onClick={() => deleteAttack(index)} className="hover:text-destructive sm:order-last">
               <TrashIcon className="h-4 w-4" />
@@ -90,7 +90,7 @@ export const CompanionAttackEditor: React.FC<CompanionAttackEditorProps> = ({ co
               aria-label={`Attacco ${index + 1}: tipo di danno`}
               value={attack.damageType || ''}
               onChange={(e) => handleAttackChange(index, 'damageType', e.target.value)}
-              className={`${fieldControlClass} col-span-3 sm:col-span-1`}
+              className={`${fieldControlOnTileClass} col-span-3 sm:col-span-1`}
             >
               <option value="">Tipo</option>
               {DAMAGE_TYPES.map(type => (

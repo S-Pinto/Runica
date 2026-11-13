@@ -1,5 +1,6 @@
 import React, { useId } from 'react';
 import { PlusIcon, MinusIcon } from '../../../components/ui/icons';
+import { fieldShellOnTileClass } from '../../../components/ui/field';
 import { getModifier, formatModifier } from '../utils/characterUtils';
 
 interface StatInputProps {
@@ -37,7 +38,7 @@ export const StatInput: React.FC<StatInputProps> = ({ label, value, onChange, pl
         </div>
       )}
 
-      <div className="flex items-center rounded-xl border border-border-strong/60 bg-background p-0.5 transition-colors duration-150 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/30 hover:border-border-strong">
+      <div className={`flex items-center p-0.5 ${fieldShellOnTileClass}`}>
         <button type="button" onClick={handleDecrement} className={stepClass} aria-label={label ? `Diminuisci ${label}` : 'Diminuisci'}>
           <MinusIcon className="h-4 w-4" />
         </button>

@@ -330,61 +330,6 @@ input[type="number"],
 
 @layer components {
   /*
-    Cornice incisa: il contorno dei blocchi chiave (Classe Armatura, Iniziativa,
-    Velocità, Punti vita). Doppio filo (bordo marcato + filo interno a 3px) e
-    una chiave a rombo in accento al centro del lato alto. Nessuna luce: in
-    hover il filo interno prende l'accento e il rombo si riempie.
-    Il contenitore non deve avere overflow nascosto (il rombo sporge di 4px).
-  */
-  .frame-rune {
-    position: relative;
-    border: 1px solid rgb(var(--color-border-strong) / 0.6);
-    border-radius: 1rem;
-    background-color: rgb(var(--color-card));
-    background-image: linear-gradient(180deg, rgb(var(--color-foreground) / 0.045), transparent 55%);
-    box-shadow: var(--highlight), var(--shadow-rest);
-  }
-  .frame-rune::before {
-    content: '';
-    position: absolute;
-    inset: 3px;
-    border: 1px solid rgb(var(--color-border));
-    border-radius: calc(1rem - 4px);
-    pointer-events: none;
-    transition: border-color 150ms var(--ease-out);
-  }
-  .frame-rune::after {
-    content: '';
-    position: absolute;
-    top: -4px;
-    left: 50%;
-    width: 7px;
-    height: 7px;
-    margin-left: -3.5px;
-    transform: rotate(45deg);
-    border: 1px solid rgb(var(--color-accent));
-    background-color: rgb(var(--color-card));
-    pointer-events: none;
-    transition: background-color 150ms var(--ease-out);
-  }
-  @media (hover: hover) {
-    .frame-rune:hover::before {
-      border-color: rgb(var(--color-accent) / 0.5);
-    }
-    .frame-rune:hover::after {
-      background-color: rgb(var(--color-accent));
-    }
-  }
-  /* Stato critico (es. personaggio a terra): la cornice passa al rosso. */
-  .frame-rune[data-tone='destructive'] {
-    border-color: rgb(var(--color-destructive) / 0.6);
-  }
-  .frame-rune[data-tone='destructive']::after {
-    border-color: rgb(var(--color-destructive));
-    background-color: rgb(var(--color-destructive));
-  }
-
-  /*
     Superficie: un gradino tonale sopra il fondo, con un filo di luce sul bordo
     alto al posto di un bordo pesante. Pannelli, header e card la usano.
   */
@@ -783,42 +728,6 @@ input[type="number"],
 }
 
 @layer utilities {
-  /* Registra la custom property --angle per permettere l'animazione nei gradienti */
-  @property --angle {
-    syntax: "<angle>";
-    initial-value: 0deg;
-    inherits: false;
-  }
-
-  @keyframes rotate-border {
-    to {
-      --angle: 360deg;
-    }
-  }
-
-  /* Bordo animato: solo per l'elemento attivo o in evidenza (vedi DESIGN.md). */
-  .animated-border-card {
-    --angle: 0deg;
-    --bg: rgb(var(--color-card));
-    --border: rgb(var(--color-border));
-    --glow: rgb(var(--color-accent));
-
-    --bg-color: linear-gradient(var(--bg), var(--bg));
-    --border-color: conic-gradient(
-      from var(--angle),
-      var(--border),
-      var(--glow) 20%,
-      var(--glow) 30%,
-      var(--border) 50%
-    );
-
-    border: 1px solid transparent;
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    background-image: var(--bg-color), var(--border-color);
-    animation: rotate-border 4s linear infinite;
-  }
-
   /* Righe scorrevoli in orizzontale senza barra visibile. */
   .no-scrollbar {
     scrollbar-width: none;

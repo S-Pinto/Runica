@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { ICompanion, Spell } from '../characterTypes';
 import { PlusIcon, TrashIcon } from '../../../components/ui/icons';
-import { fieldControlClass } from '../../../components/ui/field';
+import { fieldControlOnTileClass } from '../../../components/ui/field';
 
 interface CompanionSpellEditorProps {
     companion: ICompanion;
@@ -119,7 +119,7 @@ export const CompanionSpellEditor: React.FC<CompanionSpellEditorProps> = ({ comp
         setCompanion(prev => ({ ...prev, spells: prev.spells.filter(spell => spell.id !== spellId) }));
     };
 
-    const inputClass = fieldControlClass;
+    const inputClass = fieldControlOnTileClass;
 
     return (
         <div className="space-y-2">

@@ -48,7 +48,7 @@ export const IdentitySection = ({ character, isNewCharacter }: IdentitySectionPr
                             onClick={() => setIsUploaderOpen(true)}
                             disabled={isNewCharacter}
                             aria-label={character.imageUrl ? 'Cambia ritratto' : 'Carica ritratto'}
-                            className="group relative h-32 w-32 overflow-hidden rounded-2xl border border-border-strong/60 bg-input transition-colors duration-150 hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:cursor-not-allowed disabled:hover:border-border-strong/60"
+                            className="group relative h-32 w-32 overflow-hidden rounded-2xl bg-input transition-shadow duration-150 enabled:hover:ring-2 enabled:hover:ring-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:cursor-not-allowed"
                         >
                             {character.imageUrl ? (
                                 <img src={character.imageUrl} alt="" className="h-full w-full object-cover transition-transform duration-500 ease-soft group-hover:scale-[1.03]" />

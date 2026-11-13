@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ICharacter, CustomResource } from '../characterTypes';
 import { PlusIcon } from '../../../components/ui/icons';
 import { Button } from '../../../components/ui/Button';
-import { fieldControlClass, fieldGroupTitleClass, fieldLabelClass, fieldNumericClass } from '../../../components/ui/field';
+import { fieldControlOnTileClass, fieldGroupTitleClass, fieldLabelClass, fieldNumericClass } from '../../../components/ui/field';
 import { InlineForm, RowActions } from './ui/InlineForm';
 
 const DEFAULT_RESOURCE: Omit<CustomResource, 'id' | 'used'> = {
@@ -42,7 +42,7 @@ const ResourceForm = ({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="sm:col-span-2">
           <label htmlFor="resource-name" className={fieldLabelClass}>Nome</label>
-          <input id="resource-name" type="text" placeholder="Es. Punti ki" value={formData.name} onChange={e => handleChange('name', e.target.value)} required className={fieldControlClass} />
+          <input id="resource-name" type="text" placeholder="Es. Punti ki" value={formData.name} onChange={e => handleChange('name', e.target.value)} required className={fieldControlOnTileClass} />
         </div>
         <div>
           <label htmlFor="resource-max" className={fieldLabelClass}>Massimo</label>

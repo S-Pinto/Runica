@@ -3,7 +3,7 @@ import { ICharacter } from '../../characterTypes';
 import { useCampaigns } from '../../../../providers/CampaignProvider';
 import { UserGroupIcon } from '../../../../components/ui/icons';
 import { Button } from '../../../../components/ui/Button';
-import { fieldControlClass, fieldLabelClass } from '../../../../components/ui/field';
+import { fieldControlOnTileClass, fieldLabelClass } from '../../../../components/ui/field';
 
 interface CampaignSelectProps {
     character: ICharacter;
@@ -40,7 +40,7 @@ export const CampaignSelect = ({ character, setCharacter, onOpenManager }: Campa
                             campaignName: selected ? selected.name : undefined,
                         } : null);
                     }}
-                    className={`${fieldControlClass} min-w-0 flex-1`}
+                    className={`${fieldControlOnTileClass} min-w-0 flex-1`}
                 >
                     <option value="">Nessuna campagna</option>
                     {!currentIsKnown && (

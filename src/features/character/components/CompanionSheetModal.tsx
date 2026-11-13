@@ -30,9 +30,9 @@ interface CompanionSheetModalProps {
 
 const sectionTitleClass = 'mb-2 text-label uppercase text-muted-foreground';
 
-/** Valore in sola lettura dentro la cornice incisa: numero prima, etichetta sotto. */
+/** Valore in sola lettura in un riquadro interno: numero prima, etichetta sotto. */
 const ReadStat = ({ label, value }: { label: string, value: React.ReactNode }) => (
-  <div className="frame-rune px-3 py-3 text-center">
+  <div className="rounded-2xl bg-background/50 px-3 py-3 text-center">
     <div className="font-mono text-2xl font-bold leading-none tabular-nums text-foreground">{value || '–'}</div>
     <div className="mt-1.5 text-xs text-muted-foreground">{label}</div>
   </div>
@@ -170,7 +170,7 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
               disabled={!canOpenPortrait}
               onClick={() => (readOnly ? setIsImageModalOpen(true) : setIsUploaderOpen(true))}
               aria-label={readOnly ? 'Ingrandisci ritratto' : data.imageUrl ? 'Cambia ritratto' : 'Carica ritratto'}
-              className="group relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl border border-border-strong/60 bg-input transition-colors duration-150 enabled:hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+              className="group relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl bg-input transition-shadow duration-150 enabled:hover:ring-2 enabled:hover:ring-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
             >
               {data.imageUrl ? (
                 <img src={data.imageUrl} alt="" className="h-full w-full object-cover" />
