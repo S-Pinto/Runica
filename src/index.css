@@ -207,7 +207,18 @@
     -webkit-text-size-adjust: 100%;
     /* Le ancore non finiscono sotto la barra superiore fissa. */
     scroll-padding-top: var(--header-offset);
-    scrollbar-color: rgb(var(--color-border-strong)) transparent;
+  }
+
+  /*
+    Barra di scorrimento a tema solo con un puntatore preciso (mouse, trackpad).
+    Su telefono e tablet `scrollbar-color` farebbe usare a Chromium la barra classica,
+    sempre visibile, al posto di quella sovrapposta che compare solo mentre si scorre:
+    lì resta quella nativa. La proprietà si eredita, quindi vale anche per finestre e liste.
+  */
+  @media (hover: hover) and (pointer: fine) {
+    html {
+      scrollbar-color: rgb(var(--color-border-strong)) transparent;
+    }
   }
 
   body {
