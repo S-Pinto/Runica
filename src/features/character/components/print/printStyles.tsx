@@ -255,11 +255,24 @@ export const SharedStyles = () => (
     .cont-body { flex: 1; min-height: 0; }
     .cont-text { white-space: pre-wrap; font-size: 7.4pt; line-height: 1.35; margin-bottom: 3mm; }
     .cont-cols { column-count: 2; column-gap: 5mm; }
-    .comp-head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 0.45mm solid #444; padding-bottom: 1.5mm; flex-shrink: 0; }
-    .comp-head .n { font-family: Georgia, serif; font-size: 18pt; font-weight: 700; }
-    .comp-head .ty { font-size: 10pt; font-style: italic; color: #555; }
-    .comp-vitals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5mm; flex-shrink: 0; }
+    .comp-id { height: 15mm; flex-shrink: 0; }
+    .comp-id .bx3 { justify-content: center; padding: 1.2mm 3mm; }
+    .comp-id-row { display: grid; grid-template-columns: 2fr 1.2fr 1.2fr; column-gap: 4mm; }
+    .comp-name .v { font-size: 13pt; }
+    .comp-vitals { display: grid; grid-template-columns: 26mm 1fr 1fr; gap: 2.5mm; height: 30mm; flex-shrink: 0; }
+    .comp-hp .bx3 { grid-template-columns: 1fr; }
+    .comp-hp .hp-col .v { font-size: 16pt; }
+    .comp-vital .v { font-size: 13pt; padding: 0 7mm; line-height: 1.15; }
     .comp-abil { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2mm; flex-shrink: 0; }
+    .comp-ab .bx3 { padding-bottom: 1.4mm; }
+    .comp-bottom { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 62mm; gap: 2.5mm; }
+    .comp-traits { min-height: 0; }
+    .comp-cols { column-count: 2; column-gap: 4mm; column-fill: auto; height: 100%; padding: 0 0.5mm; }
+    .comp-d { -webkit-line-clamp: 8 !important; font-size: 6.4pt !important; }
+    .comp-side { display: flex; flex-direction: column; gap: 2.5mm; min-height: 0; }
+    .comp-small { flex: 1 1 0; min-height: 0; }
+    .comp-notes { flex: 1.6 1 0; min-height: 0; }
+    .comp-text { font-size: 6.6pt; line-height: 1.3; }
     .comp-item { margin-bottom: 2mm; font-size: 7.2pt; line-height: 1.3; border-bottom: 0.18mm solid #9a9a9a; padding-bottom: 1mm; }
 
     @media print {

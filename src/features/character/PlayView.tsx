@@ -5,9 +5,8 @@ import { useCharacter } from './CharacterProvider';
 import { useCampaigns } from '../../providers/CampaignProvider';
 import { resolveCampaignName } from './rules/campaign';
 import { describeDataError } from '../../lib/errors';
-import { BackIcon, EditIcon, SparklesIcon, MoonIcon, SunIcon, PrinterIcon, DiceIcon, EllipsisVerticalIcon, UserGroupIcon, HeartIcon, StarIcon, SwordIcon, UserCircleIcon, ShieldIcon } from '../../components/ui/icons';
+import { BackIcon, EditIcon, SparklesIcon, MoonIcon, SunIcon, PrinterIcon, DiceIcon, UserGroupIcon, HeartIcon, StarIcon, SwordIcon, UserCircleIcon, ShieldIcon } from '../../components/ui/icons';
 import { Button } from '../../components/ui/Button';
-import { Menu, MenuItem } from '../../components/ui/Menu';
 import { AbilitiesDisplay } from './components/AbilitiesDisplay';
 import { ImageModal } from '../../components/ui/ImageModal';
 import { CompanionTab } from './components/play-view/CompanionTab';
@@ -168,16 +167,11 @@ export const PlayView: FC = () => {
         `Livello ${character.level || 1}`,
     ].filter(Boolean).join(' · ');
 
-    const menuItems: MenuItem[] = [
-        { label: 'Riposo breve', icon: <SunIcon />, onSelect: handleShortRest },
-        ...(diceMode === 'modal' ? [{ label: 'Apri dadiera', icon: <DiceIcon />, onSelect: () => setIsDiceModalOpen(true) }] : []),
-    ];
-
     return (
         <div className="mx-auto max-w-7xl space-y-3 p-3 pb-28 sm:space-y-4 sm:p-6 sm:pb-28">
             {/* Identity header */}
             <header className="tile hero-glow relative z-20 p-3 sm:p-5">
-                {/* Ritaglio solo per la filigrana: l'header non può avere overflow-hidden, altrimenti il menu "..." viene tagliato. */}
+                {/* Ritaglio solo per la filigrana: l'header resta senza overflow-hidden (focus ring e ombre dei tasti non vengono tagliati). */}
                 <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
                     <AstrolabeRing className="absolute -right-16 -top-24 h-72 w-72 text-accent/[0.18] sm:-right-6 sm:-top-28 sm:h-80 sm:w-80" />
                     <span className="absolute inset-x-6 bottom-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
@@ -218,31 +212,33 @@ export const PlayView: FC = () => {
                     </div>
 
                     <div className="flex items-center gap-1 sm:gap-2">
-                        <Button variant="secondary" onClick={() => handleTabChange('combat')} className="flex-1 sm:flex-none" title="Vai al combattimento">
-                            <SwordIcon className="h-4 w-4" /> <span className="hidden sm:inline">Combatti</span>
+                        {/* Tutte le azioni sono a vista (niente menu "⋯"). Su telefono: riposi solo icona e "Combatti" nascosto, la tab Combattimento è subito sotto. */}
+                        <Button variant="secondary" onClick={() => handleTabChange('combat')} className="hidden sm:inline-flex" title="Vai al combattimento">
+                            <SwordIcon className="h-4 w-4" /> Combatti
+                        </Button>
+                        <Button variant="secondary" onClick={handleShortRest} className="flex-1 sm:flex-none" title="Riposo breve: spendi dadi vita e recupera le cariche a riposo breve" aria-label="Riposo breve">
+                            <SunIcon className="h-4 w-4" /> <span className="hidden lg:inline">Riposo breve</span>
                         </Button>
                         <Button variant="secondary" onClick={handleLongRest} className="flex-1 sm:flex-none" title="Riposo lungo: ripristina PV, slot e cariche" aria-label="Riposo lungo">
-                            {/* Su telefono solo icona: lascia spazio al tasto Stampa senza spingere fuori il menu. */}
-                            <MoonIcon className="h-4 w-4" /> <span className="hidden sm:inline">Riposo lungo</span>
+                            <MoonIcon className="h-4 w-4" /> <span className="hidden lg:inline">Riposo lungo</span>
                         </Button>
                         <Button
                             variant="secondary"
-                            size="icon"
                             onClick={() => characterId && openPrintSheet(characterId, navigate)}
+                            className="flex-1 sm:flex-none"
                             aria-label="Stampa scheda o salva PDF"
                             title="Stampa scheda / PDF"
                         >
                             <PrinterIcon className="h-4 w-4" />
                         </Button>
-                        <Button onClick={() => navigate(`/character/${characterId}/edit?tab=${activeTab}`)} className="flex-1 sm:flex-none">
+                        {diceMode === 'modal' && (
+                            <Button variant="secondary" onClick={() => setIsDiceModalOpen(true)} className="flex-1 sm:flex-none" aria-label="Apri dadiera" title="Apri dadiera">
+                                <DiceIcon className="h-4 w-4" />
+                            </Button>
+                        )}
+                        <Button onClick={() => navigate(`/character/${characterId}/edit?tab=${activeTab}`)} className="flex-[2] sm:flex-none">
                             <EditIcon className="h-4 w-4" /> Modifica
                         </Button>
-                        <Menu
-                            label="Altre azioni"
-                            trigger={<EllipsisVerticalIcon className="h-5 w-5" />}
-                            items={menuItems}
-                            triggerClassName="flex h-10 w-10 shrink-0 sm:w-11 items-center justify-center rounded-xl bg-foreground/10 text-muted-foreground transition-colors duration-150 hover:bg-accent/20 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        />
                     </div>
                 </div>
             </header>

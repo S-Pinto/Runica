@@ -68,7 +68,7 @@ export const PrintableCharacterSheet = () => {
             <PrintPageSpells character={character} />
             {spellChunks.map((chunk, i) => <PrintPageSpellsContinuation key={i} character={character} spells={chunk} part={i + 1} />)}
             {showNotes && <PrintPageNotes character={character} showEquipment={showEquipment} showStory={showStory} />}
-            {character.companions?.map((comp) => <PrintPageCompanion key={comp.id} companion={comp} />)}
+            {character.companions?.map((comp) => <PrintPageCompanion key={comp.id} companion={comp} ownerName={character.name} />)}
         </div>
     );
 };
