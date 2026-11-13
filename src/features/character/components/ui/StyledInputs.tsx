@@ -1,4 +1,5 @@
 import React, { ReactNode } from 'react';
+import { fieldControlClass } from '../../../../components/ui/field';
 
 interface StyledInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label: string;
@@ -6,33 +7,28 @@ interface StyledInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     icon?: ReactNode;
 }
 
+const FieldHeader = ({ htmlFor, label, subLabel }: { htmlFor?: string; label: string; subLabel?: string }) => (
+    <div className="mb-1.5 flex items-baseline justify-between gap-2">
+        <label htmlFor={htmlFor} className="text-label uppercase text-muted-foreground">{label}</label>
+        {subLabel && <span className="text-xs text-muted-foreground">{subLabel}</span>}
+    </div>
+);
+
 export const StyledInput: React.FC<StyledInputProps> = ({ label, subLabel, icon, className = '', ...props }) => {
+    const id = props.id || props.name;
     return (
-        <div className={`space-y-1.5 ${className}`}>
-            <div className="flex justify-between items-baseline">
-                <label htmlFor={props.id || props.name} className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
-                    {label}
-                </label>
-                {subLabel && <span className="text-[10px] text-muted-foreground/60 italic">{subLabel}</span>}
-            </div>
-            <div className="relative group">
+        <div className={className}>
+            <FieldHeader htmlFor={id} label={label} subLabel={subLabel} />
+            <div className="group relative">
                 {icon && (
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-accent transition-colors">
+                    <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors duration-150 group-focus-within:text-accent">
                         {icon}
                     </div>
                 )}
                 <input
                     {...props}
-                    className={`
-                        w-full bg-background/50 backdrop-blur-sm 
-                        border border-border/50 rounded-xl 
-                        py-2.5 px-3 ${icon ? 'pl-10' : ''}
-                        text-foreground placeholder:text-muted-foreground/40
-                        shadow-sm transition-all duration-200
-                        focus:ring-2 focus:ring-accent/20 focus:border-accent
-                        hover:border-accent/30 hover:bg-background/80
-                        ${props.disabled ? 'opacity-50 cursor-not-allowed' : ''}
-                    `}
+                    id={id}
+                    className={`${fieldControlClass} ${props.type === 'number' ? 'no-spinner font-mono' : ''} ${icon ? 'pl-10' : ''}`}
                 />
             </div>
         </div>
@@ -45,26 +41,26 @@ interface StyledTextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaE
 }
 
 export const StyledTextArea: React.FC<StyledTextAreaProps> = ({ label, subLabel, className = '', ...props }) => {
+    const id = props.id || props.name;
     return (
-        <div className={`space-y-1.5 flex flex-col h-full ${className}`}>
-            <div className="flex justify-between items-baseline">
-                <label htmlFor={props.id || props.name} className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
-                    {label}
-                </label>
-                {subLabel && <span className="text-[10px] text-muted-foreground/60 italic">{subLabel}</span>}
-            </div>
-            <textarea
-                {...props}
-                className={`
-                    w-full flex-grow bg-background/50 backdrop-blur-sm 
-                    border border-border/50 rounded-xl 
-                    p-3 text-foreground placeholder:text-muted-foreground/40
-                    shadow-sm transition-all duration-200
-                    focus:ring-2 focus:ring-accent/20 focus:border-accent
-                    hover:border-accent/30 hover:bg-background/80
-                    resize-y min-h-[100px]
-                `}
-            />
+        <div className={`flex flex-col ${className}`}>
+            <FieldHeader htmlFor={id} label={label} subLabel={subLabel} />
+            <textarea {...props} id={id} className={`${fieldControlClass} min-h-[100px] flex-grow resize-y leading-relaxed`} />
+        </div>
+    );
+};
+
+interface StyledSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+    label: string;
+    subLabel?: string;
+}
+
+export const StyledSelect: React.FC<StyledSelectProps> = ({ label, subLabel, className = '', children, ...props }) => {
+    const id = props.id || props.name;
+    return (
+        <div className={className}>
+            <FieldHeader htmlFor={id} label={label} subLabel={subLabel} />
+            <select {...props} id={id} className={fieldControlClass}>{children}</select>
         </div>
     );
 };
@@ -76,16 +72,19 @@ interface StyledSectionProps {
     action?: ReactNode;
 }
 
-export const StyledSection: React.FC<StyledSectionProps> = ({ title, children, className = '', action }) => {
-    return (
-        <div className={`bg-card/40 backdrop-blur-md border border-border/50 rounded-2xl p-5 shadow-lg shadow-black/5 ${className}`}>
-            {title && (
-                <div className="flex justify-between items-center mb-4 border-b border-border/30 pb-2">
-                    <h3 className="text-lg font-cinzel text-accent drop-shadow-sm">{title}</h3>
-                    {action}
-                </div>
-            )}
-            {children}
-        </div>
-    );
-};
+/**
+ * Sezione dell'editor: card piatta con bordo. Il titolo è inciso in Cinzel e
+ * un filo lo prolunga fino al margine (o fino all'azione a destra).
+ */
+export const StyledSection: React.FC<StyledSectionProps> = ({ title, children, className = '', action }) => (
+    <section aria-label={title} className={`rounded-2xl border border-border bg-card p-4 sm:p-5 ${className}`}>
+        {title && (
+            <div className="mb-4 flex min-h-10 items-center gap-3">
+                <h3 className="min-w-0 truncate font-cinzel text-title text-accent">{title}</h3>
+                <span aria-hidden className="h-px min-w-4 flex-1 bg-border" />
+                {action && <div className="flex shrink-0 items-center gap-2">{action}</div>}
+            </div>
+        )}
+        {children}
+    </section>
+);

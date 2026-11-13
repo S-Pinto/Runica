@@ -102,27 +102,32 @@ function ConfirmModal({ pending }: { pending: PendingConfirm }) {
   };
 
   useEffect(() => {
+    // Il focus torna a chi ha aperto la conferma (es. il pulsante dentro una finestra).
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     confirmRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') close(false);
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      opener?.focus();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pending]);
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn"
+      className="fixed inset-0 z-dialog flex items-end sm:items-center justify-center p-4 bg-scrim/70 backdrop-blur-sm animate-fadeIn"
       onMouseDown={(e) => e.target === e.currentTarget && close(false)}
     >
       <div
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="dialog-title"
-        className="w-full max-w-md rounded-2xl border border-border bg-card shadow-2xl p-6 animate-popIn"
+        className="pb-safe w-full max-w-md rounded-2xl border border-border bg-card shadow-floating p-6 animate-popIn"
       >
-        <h2 id="dialog-title" className="font-cinzel text-xl font-bold text-foreground">
+        <h2 id="dialog-title" className="font-cinzel text-headline text-foreground">
           {pending.title}
         </h2>
         {pending.message && (
@@ -166,13 +171,13 @@ export function DialogHost() {
       {snapshot.confirm && <ConfirmModal pending={snapshot.confirm} />}
       <div
         aria-live="polite"
-        className="fixed z-[110] bottom-20 sm:bottom-4 left-1/2 -translate-x-1/2 sm:left-auto sm:right-4 sm:translate-x-0 flex flex-col gap-2 w-[calc(100%-2rem)] sm:w-96 pointer-events-none"
+        className="fixed z-toast bottom-20 sm:bottom-4 left-1/2 -translate-x-1/2 sm:left-auto sm:right-4 sm:translate-x-0 flex flex-col gap-2 w-[calc(100%-2rem)] sm:w-96 pointer-events-none"
       >
         {snapshot.toasts.map((t) => (
           <div
             key={t.id}
             role={t.variant === 'error' ? 'alert' : 'status'}
-            className={`pointer-events-auto flex items-start gap-3 rounded-xl border bg-card/95 backdrop-blur px-4 py-3 text-sm text-text shadow-xl animate-popIn ${TOAST_STYLES[t.variant]}`}
+            className={`pointer-events-auto flex items-start gap-3 rounded-xl border bg-card px-4 py-3 text-sm text-text shadow-raised animate-popIn ${TOAST_STYLES[t.variant]}`}
           >
             <span className="dot mt-1.5 h-2 w-2 shrink-0 rounded-full" />
             <span className="flex-1">{t.message}</span>

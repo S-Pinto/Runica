@@ -1,8 +1,13 @@
+import { ReactNode } from 'react';
 import { EquipmentItem } from '../../characterTypes';
 import { TrashIcon, EditIcon, ChevronDownIcon } from '../../../../components/ui/icons';
+import { Button } from '../../../../components/ui/Button';
+import { playChipClass, playEmptyClass } from '../play-view/PlaySection';
 
 export const ItemDisplayList = ({
   title,
+  icon,
+  emptyText,
   items,
   expandedItem,
   onToggleExpand,
@@ -11,6 +16,8 @@ export const ItemDisplayList = ({
   onDelete,
 }: {
   title: string;
+  icon?: ReactNode;
+  emptyText: string;
   items: EquipmentItem[];
   expandedItem: string | null;
   onToggleExpand: (id: string) => void;
@@ -19,84 +26,75 @@ export const ItemDisplayList = ({
   onDelete: (id: string) => void;
 }) => (
   <div>
-    <h4 className="text-base font-semibold text-foreground border-b border-border/50 pb-2 mb-3 flex items-center justify-between">
+    <h4 className="mb-3 flex items-center gap-2 text-label uppercase text-muted-foreground">
+      {icon && <span className="shrink-0 [&_svg]:h-4 [&_svg]:w-4">{icon}</span>}
       {title}
-      <span className="text-xs bg-muted/40 px-2 py-0.5 rounded text-muted-foreground">{items.length}</span>
+      <span className="font-mono tabular-nums">{items.length}</span>
+      <span aria-hidden className="h-px flex-1 bg-border" />
     </h4>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-      {items.length === 0 && <p className="text-center text-muted-foreground text-xs py-4 border border-dashed border-border/30 rounded-lg">Nessun oggetto in {title.toLowerCase()}.</p>}
-      {items.map(item => (
-        <div key={item.id} className="bg-card/40 backdrop-blur-sm rounded-lg text-sm border border-border/30 hover:border-accent/30 transition-all">
-          <div className="p-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <button onClick={() => onToggleExpand(item.id)} className="flex-shrink-0 text-muted-foreground hover:text-foreground">
-                <ChevronDownIcon className={`w-5 h-5 transition-transform ${expandedItem === item.id ? 'rotate-180' : ''}`} />
-              </button>
-
-              {/* Item Thumbnail */}
-              <div className="w-10 h-10 rounded bg-muted/30 border border-border flex items-center justify-center flex-shrink-0 overflow-hidden">
-                {item.imageUrl ? (
-                  <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-accent/5 flex items-center justify-center text-accent/20">
-                    <span className="text-[9px] font-bold uppercase">{item.name.substring(0, 2)}</span>
-                  </div>
-                )}
+    {items.length === 0 ? (
+      <p className={playEmptyClass}>{emptyText}</p>
+    ) : (
+      <ul className="grid grid-cols-1 items-start gap-3 md:grid-cols-2">
+        {items.map(item => {
+          const open = expandedItem === item.id;
+          const stats = [
+            `Q.tà ${item.quantity}`,
+            item.damage && `Danni ${item.damage}`,
+            item.armorClass ? `CA ${item.armorClass}` : '',
+          ].filter(Boolean).join(' · ');
+          return (
+            <li key={item.id} className="rounded-xl border border-border bg-background/40 transition-colors duration-150 hover:border-accent/40">
+              <div className="flex items-center gap-1 p-1">
+                <button
+                  type="button"
+                  onClick={() => onToggleExpand(item.id)}
+                  aria-expanded={open}
+                  className="flex min-h-12 min-w-0 flex-1 items-center gap-3 rounded-lg p-1.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-input font-cinzel text-sm font-bold uppercase text-accent/70">
+                    {item.imageUrl ? <img src={item.imageUrl} alt="" className="h-full w-full object-cover" /> : item.name.substring(0, 2)}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+                      <span className="truncate">{item.name}</span>
+                      <ChevronDownIcon className={`h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform duration-150 ${open ? 'rotate-180' : ''}`} />
+                    </span>
+                    <span className="block truncate text-xs text-muted-foreground">{stats}</span>
+                  </span>
+                </button>
+                <Button
+                  variant={item.equipped ? 'primary' : 'secondary'}
+                  size="sm"
+                  aria-pressed={!!item.equipped}
+                  onClick={() => onToggleEquip(item.id)}
+                  className="h-9"
+                >
+                  {item.equipped ? 'Equipaggiato' : 'Equipaggia'}
+                </Button>
+                <Button variant="ghost" size="icon" aria-label={`Modifica ${item.name}`} title="Modifica" onClick={() => onEdit(item)}>
+                  <EditIcon className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" aria-label={`Elimina ${item.name}`} title="Elimina" onClick={() => onDelete(item.id)} className="hover:text-destructive">
+                  <TrashIcon className="h-4 w-4" />
+                </Button>
               </div>
-
-              <div className="flex flex-col min-w-0">
-                <p className="font-semibold text-accent truncate" title={item.name}>
-                  {item.name}
-                  {item.equipped && <span className="ml-2 text-[10px] bg-primary/20 text-primary font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">Equipaggiato</span>}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Q.tà: {item.quantity} {item.damage && `• Dmg: ${item.damage}`} {item.armorClass ? `• AC: ${item.armorClass}` : ''}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <button
-                onClick={() => onToggleEquip(item.id)}
-                className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md transition-all shadow-sm ${
-                  item.equipped
-                    ? 'bg-primary text-primary-foreground shadow-primary/20'
-                    : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/50'
-                }`}
-              >
-                {item.equipped ? 'Equipaggiato' : 'Equipaggia'}
-              </button>
-              <button onClick={() => onEdit(item)} className="text-muted-foreground hover:text-accent p-1.5 hover:bg-accent/10 rounded transition-colors"><EditIcon className="w-4 h-4" /></button>
-              <button onClick={() => onDelete(item.id)} className="text-muted-foreground hover:text-destructive p-1.5 hover:bg-destructive/10 rounded transition-colors"><TrashIcon className="w-4 h-4" /></button>
-            </div>
-          </div>
-          {expandedItem === item.id && (
-            <div className="p-3 border-t border-border/30 bg-muted/10 space-y-2">
-              <div className="flex flex-wrap gap-2 text-xs">
-                {item.armorType && (
-                  <div className="bg-background/50 px-2 py-1 rounded border border-border/50">
-                    <span className="text-muted-foreground capitalize mr-1">Armatura:</span>
-                    <span className="font-medium">{item.armorType}</span>
+              {open && (
+                <div className="animate-fadeIn space-y-2 border-t border-border px-3 py-3">
+                  <div className="flex flex-wrap gap-1.5">
+                    {item.armorType && <span className={playChipClass}>Tipo: {item.armorType}</span>}
+                    {item.armorClass && <span className={playChipClass}>CA {item.armorClass}</span>}
+                    {item.damage && <span className={playChipClass}>Danni {item.damage} {item.damageType}</span>}
                   </div>
-                )}
-                {item.armorClass && (
-                  <div className="bg-background/50 px-2 py-1 rounded border border-border/50">
-                    <span className="text-muted-foreground capitalize mr-1">CA:</span>
-                    <span className="font-medium">{item.armorClass}</span>
-                  </div>
-                )}
-                {item.damage && (
-                  <div className="bg-background/50 px-2 py-1 rounded border border-border/50">
-                    <span className="text-muted-foreground capitalize mr-1">Danni:</span>
-                    <span className="font-medium">{item.damage} {item.damageType}</span>
-                  </div>
-                )}
-              </div>
-              {item.description && <p className="text-foreground/80 whitespace-pre-wrap text-[13px] leading-relaxed pl-1">{item.description}</p>}
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-text">
+                    {item.description || <span className="text-muted-foreground">Nessuna descrizione.</span>}
+                  </p>
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    )}
   </div>
 );

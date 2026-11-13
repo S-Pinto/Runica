@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { Feature, FeatureCategory, CATEGORY_CONFIG } from '../../characterTypes';
-import { TrashIcon, EditIcon, PlusCircleIcon, CheckIcon, XMarkIcon, ChevronDownIcon, ChevronUpIcon } from '../../../../components/ui/icons';
+import { PlusIcon, ChevronDownIcon } from '../../../../components/ui/icons';
+import { Button } from '../../../../components/ui/Button';
+import { RowActions } from '../ui/InlineForm';
+
+const RECOVERY_LABELS: Record<string, string> = { short: 'riposo breve', long: 'riposo lungo' };
 
 export const CategorySection = ({
     category,
@@ -17,103 +21,82 @@ export const CategorySection = ({
 }) => {
     const [isExpanded, setIsExpanded] = useState(true);
     const [expandedFeatures, setExpandedFeatures] = useState<Record<string, boolean>>({});
-    const [deletingId, setDeletingId] = useState<string | null>(null);
 
     const config = CATEGORY_CONFIG[category];
     const count = features.length;
+    const listId = `features-${category}`;
 
     const toggleFeature = (id: string) => {
         setExpandedFeatures(prev => ({ ...prev, [id]: !prev[id] }));
     };
 
     return (
-        <div className="bg-card/40 backdrop-blur-sm rounded-xl border border-border/40 overflow-hidden">
-            {/* Header */}
-            <div
-                className="flex items-center justify-between p-4 cursor-pointer hover:bg-card/60 transition-colors"
-                onClick={() => setIsExpanded(!isExpanded)}
-            >
-                <div className="flex items-center gap-3">
-                    {isExpanded ? <ChevronUpIcon className="w-5 h-5 text-muted-foreground" /> : <ChevronDownIcon className="w-5 h-5 text-muted-foreground" />}
-                    <h3 className={`font-cinzel text-lg font-bold text-${config.color}`}>{config.label}</h3>
-                    {count > 0 && (
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full bg-${config.color}/10 text-${config.color} border border-${config.color}/20`}>
-                            {count}
-                        </span>
-                    )}
-                </div>
+        <div className="rounded-xl border border-border bg-background/40">
+            <div className="flex items-center gap-1 py-1 pl-1 pr-2">
                 <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); onAdd(category); }}
-                    className={`flex items-center gap-1.5 text-xs bg-${config.color}/10 hover:bg-${config.color} text-${config.color} hover:text-accent-foreground border border-${config.color}/20 rounded-lg px-3 py-1.5 transition-all font-bold uppercase tracking-wide`}
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    aria-expanded={isExpanded}
+                    aria-controls={listId}
+                    className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg px-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                    <PlusCircleIcon className="w-4 h-4" />
-                    Aggiungi
+                    <ChevronDownIcon className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-150 ${isExpanded ? 'rotate-180' : ''}`} />
+                    <span className="min-w-0 truncate text-sm font-semibold text-foreground">{config.label}</span>
+                    <span className="font-mono text-xs tabular-nums text-muted-foreground">{count}</span>
                 </button>
+                <Button variant="ghost" size="sm" onClick={() => onAdd(category)} className="h-9 text-accent" aria-label={`Aggiungi a ${config.label}`}>
+                    <PlusIcon className="h-3.5 w-3.5" /> Aggiungi
+                </Button>
             </div>
 
-            {/* Content */}
             {isExpanded && (
-                <div className="border-t border-border/30">
+                <div id={listId} className="border-t border-border">
                     {count === 0 ? (
-                        <div className="p-6 text-center">
-                            <p className="text-sm text-muted-foreground italic">{config.description}</p>
-                        </div>
+                        <p className="px-4 py-4 text-sm text-muted-foreground">{config.description}.</p>
                     ) : (
-                        <div className="p-3 space-y-2">
-                            {features.map(feature => (
-                                <div key={feature.id} className="bg-background/30 rounded-lg overflow-hidden border border-border/20">
-                                    <div
-                                        className="flex items-center justify-between p-3 cursor-pointer hover:bg-background/50 transition-colors"
-                                        onClick={() => toggleFeature(feature.id)}
-                                    >
-                                        <div className="flex flex-col gap-0.5">
-                                            <span className={`font-semibold text-${config.color}`}>{feature.name}</span>
-                                            {feature.uses && feature.uses.max > 0 && (
-                                                <div className="flex items-center gap-1.5 mt-0.5">
-                                                    <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                                                        {[...Array(feature.uses.max)].map((_, i) => (
-                                                            <div
-                                                                key={i}
-                                                                onClick={() => {
-                                                                    // Toggle usage
-                                                                    const newCurrent = i < (feature.uses?.current || 0) ? i : i + 1;
-                                                                    onEdit({ ...feature, uses: { ...feature.uses!, current: newCurrent } });
-                                                                }}
-                                                                className={`w-3 h-3 rounded-sm border cursor-pointer transition-all ${i < (feature.uses?.current || 0) ? `bg-${config.color} border-${config.color}` : 'bg-transparent border-muted-foreground/30'}`}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                    <span className="text-[10px] text-muted-foreground font-mono">
-                                                        {feature.uses.current}/{feature.uses.max}
-                                                        {feature.recovery !== 'none' && <span className="ml-1 opacity-70">({feature.recovery})</span>}
-                                                    </span>
+                        <ul className="divide-y divide-border">
+                            {features.map(feature => {
+                                const open = !!expandedFeatures[feature.id];
+                                const uses = feature.uses && feature.uses.max > 0 ? feature.uses : null;
+                                return (
+                                    <li key={feature.id}>
+                                        <div className="flex items-center gap-1 py-1 pl-1 pr-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleFeature(feature.id)}
+                                                aria-expanded={open}
+                                                disabled={!feature.description}
+                                                className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg px-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default"
+                                            >
+                                                <span className="min-w-0 break-words text-sm font-semibold text-accent">{feature.name}</span>
+                                                {feature.description && (
+                                                    <ChevronDownIcon className={`h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform duration-150 ${open ? 'rotate-180' : ''}`} />
+                                                )}
+                                            </button>
+                                            <RowActions name={feature.name} onEdit={() => onEdit(feature)} onDelete={() => onDelete(feature.id)} />
+                                        </div>
+
+                                        {uses && (
+                                            <div className="flex flex-wrap items-center gap-x-3 px-3 pb-2">
+                                                <div className="flex flex-wrap gap-1.5 py-1" aria-hidden>
+                                                    {Array.from({ length: uses.max }).map((_, i) => (
+                                                        <span key={i} className="seal scale-75" data-on={i < uses.current} />
+                                                    ))}
                                                 </div>
-                                            )}
-                                        </div>
-                                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                                            {deletingId === feature.id ? (
-                                                <>
-                                                    <span className="text-xs text-destructive-foreground">Sicuro?</span>
-                                                    <button onClick={() => { onDelete(feature.id); setDeletingId(null); }} className="text-destructive hover:text-destructive-foreground p-1"><CheckIcon className="w-4 h-4" /></button>
-                                                    <button onClick={() => setDeletingId(null)} className="text-muted-foreground hover:text-accent p-1"><XMarkIcon className="w-4 h-4" /></button>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <button onClick={() => onEdit(feature)} className="text-muted-foreground hover:text-accent p-1"><EditIcon className="w-4 h-4" /></button>
-                                                    <button onClick={() => setDeletingId(feature.id)} className="text-muted-foreground hover:text-destructive p-1"><TrashIcon className="w-4 h-4" /></button>
-                                                </>
-                                            )}
-                                        </div>
-                                    </div>
-                                    {expandedFeatures[feature.id] && feature.description && (
-                                        <div className="p-3 border-t border-border/20 bg-muted/20">
-                                            <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{feature.description}</p>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
+                                                <span className="font-mono text-xs tabular-nums text-muted-foreground">
+                                                    <span className="font-bold text-foreground">{uses.current}</span>/{uses.max}
+                                                    {feature.recovery && RECOVERY_LABELS[feature.recovery] && <span className="font-sans"> · {RECOVERY_LABELS[feature.recovery]}</span>}
+                                                </span>
+                                            </div>
+                                        )}
+
+                                        {open && feature.description && (
+                                            <p className="whitespace-pre-wrap px-3 pb-3 text-sm leading-relaxed text-text animate-fadeIn">{feature.description}</p>
+                                        )}
+                                    </li>
+                                );
+                            })}
+                        </ul>
                     )}
                 </div>
             )}

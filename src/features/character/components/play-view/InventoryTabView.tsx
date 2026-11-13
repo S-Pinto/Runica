@@ -4,6 +4,7 @@ import { Currency } from '../../characterTypes';
 import { toggleEquippedItem, splitEquipment } from '../../rules/equipment';
 import { ImageModal } from '../../../../components/ui/ImageModal';
 import { toast } from '../../../../components/ui/Dialogs';
+import { ShieldIcon, BackpackIcon } from '../../../../components/ui/icons';
 import { InventoryItemList } from './inventory/InventoryItemList';
 import { InventoryCurrencyBanner } from './inventory/InventoryCurrencyBanner';
 
@@ -95,7 +96,7 @@ const InventoryTabViewContent = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <ImageModal
         imageUrl={selectedImage?.url || ''}
         altText={selectedImage?.alt || ''}
@@ -104,11 +105,8 @@ const InventoryTabViewContent = () => {
 
       <InventoryCurrencyBanner currency={character.currency} attunedCount={attunedCount} onChange={handleCurrencyChange} />
 
-      {/* Main Full-Width Inventory Lists */}
-      <div className="space-y-6">
-        <InventoryItemList title="🛡️ Equipaggiati" items={equippableItems} {...listProps} />
-        <InventoryItemList title="🎒 Zaino" items={backpackItems} {...listProps} />
-      </div>
+      <InventoryItemList title="Equipaggiamento" icon={<ShieldIcon className="text-muted-foreground" />} items={equippableItems} {...listProps} />
+      <InventoryItemList title="Zaino" icon={<BackpackIcon className="text-muted-foreground" />} items={backpackItems} {...listProps} />
     </div>
   );
 };

@@ -26,7 +26,7 @@ export const CharacterGrid = ({
 }: CharacterGridProps) => (
   <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={onDragStart} onDragEnd={onDragEnd}>
     <SortableContext items={characters.map((c) => c.id)} strategy={rectSortingStrategy}>
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
         {characters.map((char) => (
           <SortableCharacterCard
             key={char.id}
@@ -43,10 +43,10 @@ export const CharacterGrid = ({
           <button
             type="button"
             onClick={() => onSelect('new')}
-            className="group flex min-h-[16rem] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-muted-foreground/30 text-muted-foreground transition-colors hover:border-accent/60 hover:bg-accent/5 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="group surface flex min-h-[4rem] items-center justify-center gap-3 rounded-2xl text-muted-foreground transition-[border-color,color,transform] duration-200 ease-soft hover:border-accent/60 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-[7rem] sm:self-start"
           >
-            <span className="flex h-12 w-12 items-center justify-center rounded-full border border-current transition-transform group-hover:scale-110">
-              <PlusIcon className="h-6 w-6" />
+            <span aria-hidden className="flex h-8 w-8 rotate-45 items-center justify-center rounded-lg border border-accent/40 bg-accent/10 text-accent transition-colors duration-150 group-hover:bg-accent group-hover:text-accent-foreground">
+              <PlusIcon className="-rotate-45 h-4 w-4" />
             </span>
             <span className="text-sm font-semibold">Nuovo eroe</span>
           </button>
@@ -56,7 +56,7 @@ export const CharacterGrid = ({
 
     <DragOverlay adjustScale>
       {activeCharacter ? (
-        <div className="pointer-events-none rotate-2 scale-105 rounded-2xl shadow-2xl ring-2 ring-accent">
+        <div className="pointer-events-none rounded-2xl shadow-floating ring-2 ring-accent">
           <CharacterCard character={activeCharacter} onSelect={() => {}} onDelete={() => {}} onEdit={() => {}} />
         </div>
       ) : null}

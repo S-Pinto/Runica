@@ -1,21 +1,28 @@
-import { EquipmentItem } from '../../../characterTypes';
-import { ChevronDownIcon } from '../../../../../components/ui/icons';
+import { FC, ReactNode } from 'react';
+import { EquipmentItem, ChargeResetType } from '../../../characterTypes';
+import { ChevronDownIcon, SwordIcon, ShieldIcon, SparklesIcon, BackpackIcon, RefreshIcon, CheckIcon } from '../../../../../components/ui/icons';
+import { Button } from '../../../../../components/ui/Button';
+import { PlaySection, playChipClass, playEmptyClass } from '../PlaySection';
 
-const getItemIcon = (item: EquipmentItem) => {
-  if (item.itemType === 'weapon' || item.damage) return '⚔️';
-  if (item.itemType === 'armor' || item.armorType) return '🛡️';
-  if (item.itemType === 'shield') return '🛡️';
-  if (item.itemType === 'ring') return '💍';
-  if (item.itemType === 'amulet') return '📿';
-  if (item.itemType === 'helmet') return '🪖';
-  if (item.itemType === 'wondrous') return '✨';
-  if (item.itemType === 'potion') return '🧪';
-  if (item.itemType === 'scroll') return '📜';
-  return '🎒';
+const MAGIC_TYPES = ['ring', 'amulet', 'wondrous', 'potion', 'scroll'];
+
+const getItemIcon = (item: EquipmentItem): FC<{ className?: string }> => {
+  if (item.itemType === 'weapon' || item.damage) return SwordIcon;
+  if (item.itemType === 'armor' || item.itemType === 'shield' || item.armorType) return ShieldIcon;
+  if (item.itemType && MAGIC_TYPES.includes(item.itemType)) return SparklesIcon;
+  return BackpackIcon;
+};
+
+const RESET_LABELS: Record<ChargeResetType, string> = {
+  longRest: 'riposo lungo',
+  shortRest: 'riposo breve',
+  dawn: 'all’alba',
+  none: '',
 };
 
 interface InventoryItemListProps {
   title: string;
+  icon?: ReactNode;
   items: EquipmentItem[];
   expandedItem: string | null;
   onToggleExpand: (itemId: string) => void;
@@ -27,156 +34,117 @@ interface InventoryItemListProps {
 }
 
 export const InventoryItemList = ({
-  title, items, expandedItem, onToggleExpand, onToggleEquip, onToggleAttune, onUseCharge, onResetCharge, onSelectImage,
+  title, icon, items, expandedItem, onToggleExpand, onToggleEquip, onToggleAttune, onUseCharge, onResetCharge, onSelectImage,
 }: InventoryItemListProps) => (
-  <div className="bg-card p-6 rounded-2xl border border-border/40 space-y-4">
-    <div className="flex items-center justify-between border-b border-border/40 pb-3">
-      <h3 className="text-xl font-cinzel font-bold text-foreground flex items-center gap-2">
-        {title}
-      </h3>
-      <span className="text-xs font-mono font-bold bg-accent/10 text-accent px-2.5 py-1 rounded-lg border border-accent/20">
-        {items.length} oggetti
-      </span>
-    </div>
-
+  <PlaySection
+    title={title}
+    icon={icon}
+    aside={<span className="font-mono text-sm tabular-nums text-muted-foreground">{items.length}</span>}
+  >
     {items.length === 0 ? (
-      <p className="text-muted-foreground text-sm text-center py-8 border border-dashed border-border/30 rounded-xl">
-        Nessun oggetto in questa sezione.
-      </p>
+      <p className={playEmptyClass}>Nessun oggetto in questa sezione.</p>
     ) : (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {items.map(item => (
-          <div key={item.id} className="bg-card/50 backdrop-blur-sm rounded-xl text-sm border border-border/40 overflow-hidden transition-all hover:border-accent/40 shadow-sm flex flex-col justify-between">
-            <div className="p-3.5 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <button onClick={() => onToggleExpand(item.id)} className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors p-1">
-                  <ChevronDownIcon className={`w-5 h-5 transition-transform duration-300 ${expandedItem === item.id ? 'rotate-180' : ''}`} />
-                </button>
-
-                <div
-                  className="w-12 h-12 rounded-xl bg-muted/40 border border-border/50 flex items-center justify-center flex-shrink-0 overflow-hidden relative group cursor-pointer shadow-sm text-xl"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (item.imageUrl) {
-                      onSelectImage({ url: item.imageUrl, alt: item.name });
-                    }
-                  }}
-                >
-                  {item.imageUrl ? (
-                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
-                  ) : (
-                    <span>{getItemIcon(item)}</span>
-                  )}
-                </div>
-
-                <div className="flex flex-col min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-bold text-foreground truncate text-base" title={item.name}>
-                      {item.name}
-                    </p>
-                    {item.isAttuned && (
-                      <span className="text-[10px] bg-accent/20 text-accent font-bold px-1.5 py-0.5 rounded border border-accent/30">
-                        🔮 Sintonizzato
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-xs text-muted-foreground">
-                    <span className="bg-background/50 px-1.5 py-0.5 rounded border border-border/30 font-mono">Qtà: {item.quantity}</span>
-                    {item.damage && <span className="text-accent font-bold bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">Danni: {item.damage}</span>}
-                    {item.armorClass && <span className="text-accent font-bold bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">CA: {item.armorClass}</span>}
-                    {item.bonusAC && <span className="text-accent font-bold bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">+ {item.bonusAC} CA</span>}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                {item.requiresAttunement && (
+      <ul className="grid grid-cols-1 items-start gap-3 md:grid-cols-2">
+        {items.map(item => {
+          const Icon = getItemIcon(item);
+          const isExpanded = expandedItem === item.id;
+          const resetLabel = item.charges ? RESET_LABELS[item.charges.resetType] ?? '' : '';
+          return (
+            <li key={item.id} className="overflow-hidden rounded-xl border border-border bg-background/40">
+              <div className="flex items-start gap-3 p-3">
+                {item.imageUrl ? (
                   <button
-                    onClick={(e) => { e.stopPropagation(); onToggleAttune(item.id); }}
-                    className={`px-2.5 py-1.5 text-xs font-bold rounded-xl transition-all border ${
-                      item.isAttuned
-                        ? 'bg-accent/20 text-accent border-accent/40'
-                        : 'bg-background/40 text-muted-foreground border-border/40 hover:text-accent'
-                    }`}
-                    title="Sintonizzazione Magica (Max 3)"
+                    type="button"
+                    onClick={() => onSelectImage({ url: item.imageUrl!, alt: item.name })}
+                    aria-label={`Ingrandisci l'immagine di ${item.name}`}
+                    className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    🔮
+                    <img src={item.imageUrl} alt="" className="h-full w-full object-cover" />
                   </button>
-                )}
-
-                <button
-                  onClick={(e) => { e.stopPropagation(); onToggleEquip(item.id); }}
-                  className={`px-3.5 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex-shrink-0 ${
-                    item.equipped
-                      ? 'bg-accent text-accent-foreground shadow-accent/20 font-black'
-                      : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/50'
-                  }`}
-                >
-                  {item.equipped ? 'Equipaggiato' : 'Equipaggia'}
-                </button>
-              </div>
-            </div>
-
-            {/* Charge Tracker Bar for Active Magic Items */}
-            {item.charges && item.charges.max > 0 && (
-              <div className="px-3.5 py-2 bg-accent/10 border-t border-accent/20 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-accent flex items-center gap-1">
-                    ⚡ Cariche:
-                  </span>
-                  <span className="text-sm font-black font-mono text-foreground">
-                    {item.charges.current} / {item.charges.max}
-                  </span>
-                  <span className="text-[10px] uppercase font-semibold text-accent/70">
-                    ({item.charges.resetType === 'longRest' ? 'Riposo Lungo' : item.charges.resetType})
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); onUseCharge(item.id); }}
-                    disabled={item.charges.current <= 0}
-                    className="px-2.5 py-1 bg-accent hover:bg-accent-dark disabled:opacity-40 disabled:cursor-not-allowed text-accent-foreground font-bold text-xs rounded-lg transition-all shadow-sm flex items-center gap-1"
-                  >
-                    ⚡ Usa
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); onResetCharge(item.id); }}
-                    className="p-1 bg-background/50 hover:bg-background border border-accent/30 text-accent rounded-lg transition-colors text-xs"
-                    title="Ricarica Manuale"
-                  >
-                    🔄
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {expandedItem === item.id && (
-              <div className="px-4 pb-4 pt-2 border-t border-border/30 bg-muted/10 space-y-2 animate-in slide-in-from-top-2 duration-200">
-                <div className="flex flex-wrap gap-2 text-xs">
-                  {item.armorType && (
-                    <div className="bg-background/60 px-2.5 py-1 rounded-md border border-border/40">
-                      <span className="text-muted-foreground capitalize mr-1">Armatura:</span>
-                      <span className="font-semibold text-foreground">{item.armorType}</span>
-                    </div>
-                  )}
-                  {item.damageType && (
-                    <div className="bg-background/60 px-2.5 py-1 rounded-md border border-border/40">
-                      <span className="text-muted-foreground capitalize mr-1">Tipo Danno:</span>
-                      <span className="font-semibold text-foreground">{item.damageType}</span>
-                    </div>
-                  )}
-                </div>
-                {item.description ? (
-                  <p className="text-foreground/90 whitespace-pre-wrap text-[13px] leading-relaxed bg-background/40 p-3 rounded-lg border border-border/30">{item.description}</p>
                 ) : (
-                  <p className="text-muted-foreground italic text-xs pl-1">Nessuna descrizione disponibile.</p>
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-input text-muted-foreground">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                )}
+
+                <div className="min-w-0 flex-1">
+                  <button
+                    type="button"
+                    onClick={() => onToggleExpand(item.id)}
+                    aria-expanded={isExpanded}
+                    className="flex w-full items-center gap-1.5 rounded-lg py-0.5 text-left text-base font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <span className="truncate" title={item.name}>{item.name}</span>
+                    <ChevronDownIcon className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-150 ${isExpanded ? 'rotate-180' : ''}`} />
+                  </button>
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                    <span className={`${playChipClass} font-mono`}>×{item.quantity}</span>
+                    {item.damage && <span className={playChipClass}>Danni <span className="font-mono text-foreground">{item.damage}</span></span>}
+                    {item.armorClass && <span className={playChipClass}>CA <span className="font-mono text-foreground">{item.armorClass}</span></span>}
+                    {item.bonusAC && <span className={playChipClass}>CA <span className="font-mono text-foreground">+{item.bonusAC}</span></span>}
+                    {item.isAttuned && <span className="rounded-md border border-accent/40 px-1.5 py-0.5 text-xs font-medium text-accent">In sintonia</span>}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2 px-3 pb-3">
+                <Button
+                  variant="secondary"
+                  onClick={() => onToggleEquip(item.id)}
+                  aria-pressed={!!item.equipped}
+                  className={`flex-1 ${item.equipped ? 'border-accent/60 bg-accent/15 text-accent' : ''}`}
+                >
+                  {item.equipped && <CheckIcon className="h-4 w-4" />}
+                  {item.equipped ? 'Equipaggiato' : 'Equipaggia'}
+                </Button>
+                {item.requiresAttunement && (
+                  <Button
+                    variant="secondary"
+                    onClick={() => onToggleAttune(item.id)}
+                    aria-pressed={!!item.isAttuned}
+                    title="Sintonia magica (massimo 3 oggetti)"
+                    className={`flex-1 ${item.isAttuned ? 'border-accent/60 bg-accent/15 text-accent' : ''}`}
+                  >
+                    <SparklesIcon className="h-4 w-4" />
+                    {item.isAttuned ? 'In sintonia' : 'Sintonizza'}
+                  </Button>
                 )}
               </div>
-            )}
-          </div>
-        ))}
-      </div>
+
+              {item.charges && item.charges.max > 0 && (
+                <div className="flex items-center justify-between gap-3 border-t border-border px-3 py-2">
+                  <p className="min-w-0 text-xs text-muted-foreground">
+                    <span className="font-mono text-base font-bold tabular-nums text-foreground">{item.charges.current}</span>
+                    <span className="font-mono">/{item.charges.max}</span> cariche
+                    {resetLabel && <span> · {resetLabel}</span>}
+                  </p>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <Button variant="secondary" onClick={() => onUseCharge(item.id)} disabled={item.charges.current <= 0}>
+                      Usa
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => onResetCharge(item.id)} aria-label={`Ricarica ${item.name}`} title="Ricarica tutte le cariche">
+                      <RefreshIcon className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {isExpanded && (
+                <div className="space-y-2 border-t border-border px-3 py-3 animate-fadeIn">
+                  {(item.armorType || item.damageType) && (
+                    <p className="text-xs text-muted-foreground">
+                      {[item.armorType && `Armatura: ${item.armorType}`, item.damageType && `Tipo di danno: ${item.damageType}`].filter(Boolean).join(' · ')}
+                    </p>
+                  )}
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-text">
+                    {item.description || <span className="text-muted-foreground">Nessuna descrizione.</span>}
+                  </p>
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
     )}
-  </div>
+  </PlaySection>
 );

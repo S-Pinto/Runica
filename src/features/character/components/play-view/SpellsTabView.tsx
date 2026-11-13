@@ -1,6 +1,7 @@
 import { useCharacter } from '../../CharacterProvider';
 import { getModifier, formatModifier } from '../../utils/characterUtils';
 import { ResourceTracker } from './ResourceTracker';
+import { PlaySection } from './PlaySection';
 import { PlayViewSpellList } from '../PlayViewSpellList';
 import { SparklesIcon } from '../../../../components/ui/icons';
 import { abilityLabel } from '../../../../lib/labels';
@@ -15,35 +16,33 @@ const SpellsTabView = () => {
     const attackBonus = ability ? formatModifier(character.proficiencyBonus + mod) : '–';
 
     return (
-        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
-            <aside className="space-y-6 lg:sticky lg:top-40">
-                <section aria-labelledby="spellcasting-title" className="rounded-2xl border border-border/60 bg-card p-5">
-                    <h3 id="spellcasting-title" className="mb-4 flex items-center gap-2 font-cinzel text-lg font-bold text-foreground">
-                        <SparklesIcon className="h-5 w-5 text-accent" /> Capacità magiche
-                    </h3>
+        <div className="grid grid-cols-1 items-start gap-4 sm:gap-6 lg:grid-cols-3">
+            {/* Su desktop la colonna resta visibile sotto l'header e la barra delle sezioni. */}
+            <aside className="space-y-4 sm:space-y-6 lg:sticky lg:top-[calc(var(--header-offset)+4.5rem)]">
+                <PlaySection title="Capacità magiche" icon={<SparklesIcon className="text-muted-foreground" />}>
                     {ability ? (
                         <>
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="rounded-xl border border-accent/30 bg-accent/10 p-3 text-center">
-                                    <p className="font-mono text-3xl font-bold text-accent">{saveDC}</p>
-                                    <p className="mt-1 text-xs text-muted-foreground">CD tiro salvezza</p>
+                            <dl className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <dd className="font-mono text-numeric tabular-nums text-foreground">{saveDC}</dd>
+                                    <dt className="mt-1 text-xs font-medium text-muted-foreground">CD tiro salvezza</dt>
                                 </div>
-                                <div className="rounded-xl border border-accent/30 bg-accent/10 p-3 text-center">
-                                    <p className="font-mono text-3xl font-bold text-accent">{attackBonus}</p>
-                                    <p className="mt-1 text-xs text-muted-foreground">Bonus d'attacco</p>
+                                <div>
+                                    <dd className="font-mono text-numeric tabular-nums text-foreground">{attackBonus}</dd>
+                                    <dt className="mt-1 text-xs font-medium text-muted-foreground">Bonus d'attacco</dt>
                                 </div>
-                            </div>
-                            <p className="mt-3 text-center text-sm text-muted-foreground">
+                            </dl>
+                            <p className="mt-4 border-t border-border pt-3 text-sm text-muted-foreground">
                                 Caratteristica: <span className="font-semibold text-foreground">{abilityLabel(ability)}</span>{' '}
-                                <span className="font-mono text-accent">({formatModifier(mod)})</span>
+                                <span className="font-mono text-foreground">({formatModifier(mod)})</span>
                             </p>
                         </>
                     ) : (
-                        <p className="rounded-xl bg-background/40 py-4 text-center text-sm italic text-muted-foreground">
+                        <p className="text-sm text-muted-foreground">
                             Nessuna caratteristica da incantatore. Impostala in Modifica.
                         </p>
                     )}
-                </section>
+                </PlaySection>
 
                 <ResourceTracker
                     title="Slot incantesimo"

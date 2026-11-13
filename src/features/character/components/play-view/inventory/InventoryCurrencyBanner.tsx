@@ -1,12 +1,15 @@
 import { useMemo } from 'react';
 import { Currency } from '../../../characterTypes';
+import { MinusIcon, PlusIcon } from '../../../../../components/ui/icons';
+import { Button } from '../../../../../components/ui/Button';
+import { PlaySection, playLabelClass } from '../PlaySection';
 
-const COINS: { key: keyof Currency; label: string; color: string }[] = [
-  { key: 'pp', label: 'MP (platino)', color: 'border-accent/30 bg-accent/5 text-accent' },
-  { key: 'gp', label: 'MO (oro)', color: 'border-warning/30 bg-warning/5 text-warning' },
-  { key: 'ep', label: 'ME (electrum)', color: 'border-accent/30 bg-accent/5 text-accent' },
-  { key: 'sp', label: 'MA (argento)', color: 'border-text-muted/30 bg-text-muted/5 text-text-muted' },
-  { key: 'cp', label: 'MR (rame)', color: 'border-warning/30 bg-warning/5 text-warning' },
+const COINS: { key: keyof Currency; label: string; short: string }[] = [
+  { key: 'pp', label: 'Platino', short: 'MP' },
+  { key: 'gp', label: 'Oro', short: 'MO' },
+  { key: 'ep', label: 'Electrum', short: 'ME' },
+  { key: 'sp', label: 'Argento', short: 'MA' },
+  { key: 'cp', label: 'Rame', short: 'MR' },
 ];
 
 interface InventoryCurrencyBannerProps {
@@ -24,53 +27,49 @@ export const InventoryCurrencyBanner = ({ currency, attunedCount, onChange }: In
   }, [currency]);
 
   return (
-    <div className="bg-card p-6 rounded-2xl border border-border/50 shadow-md space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/40 pb-3">
-        <h3 className="text-xl font-cinzel font-bold text-foreground flex items-center gap-2">
-          <span>🪙</span> Monete
-        </h3>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="bg-accent/10 text-accent px-3.5 py-1 rounded-xl border border-accent/30 text-xs font-bold">
-            🔮 Sintonizzazione: <span className="text-foreground text-sm font-black">{attunedCount} / 3</span>
-          </div>
-          <div className="bg-accent/10 text-accent px-3.5 py-1 rounded-xl border border-accent/20 text-xs font-bold font-mono">
-            Valore totale stimato: <span className="text-foreground text-sm font-black">{totalGp} MO</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+    <PlaySection
+      title="Monete"
+      aside={
+        <p className="text-right text-xs text-muted-foreground">
+          Valore totale <span className="ml-1 font-mono text-base font-bold tabular-nums text-foreground">{totalGp}</span> MO
+        </p>
+      }
+    >
+      <div className="grid grid-cols-2 gap-x-3 gap-y-4 sm:grid-cols-3 lg:grid-cols-5">
         {COINS.map((coin) => {
           const val = currency[coin.key] || 0;
+          const inputId = `coin-${coin.key}`;
           return (
-            <div key={coin.key} className={`p-3 rounded-xl border ${coin.color} flex flex-col items-center justify-between gap-2 shadow-sm`}>
-              <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">{coin.label}</span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => onChange(coin.key, val - 1)}
-                  className="w-7 h-7 rounded-lg bg-background/50 hover:bg-background border border-border/50 text-foreground font-bold flex items-center justify-center transition-colors text-sm"
-                >
-                  -
-                </button>
+            <div key={coin.key}>
+              <label htmlFor={inputId} className={`${playLabelClass} mb-1.5 block`}>
+                {coin.label} <span className="font-normal">· {coin.short}</span>
+              </label>
+              <div className="flex items-center gap-1">
+                <Button variant="secondary" size="icon" onClick={() => onChange(coin.key, val - 1)} disabled={val <= 0} aria-label={`Togli una moneta: ${coin.label}`}>
+                  <MinusIcon className="h-4 w-4" />
+                </Button>
                 <input
+                  id={inputId}
                   type="number"
+                  inputMode="numeric"
+                  min={0}
                   value={val}
                   onChange={(e) => onChange(coin.key, parseInt(e.target.value) || 0)}
-                  className="w-14 bg-background/60 text-center font-mono font-bold text-base rounded border border-border/40 py-0.5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="no-spinner h-10 min-w-0 flex-1 rounded-xl border border-border-strong/60 bg-background px-1 text-center font-mono text-base font-bold tabular-nums text-foreground transition-colors duration-150 hover:border-border-strong focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
                 />
-                <button
-                  type="button"
-                  onClick={() => onChange(coin.key, val + 1)}
-                  className="w-7 h-7 rounded-lg bg-background/50 hover:bg-background border border-border/50 text-foreground font-bold flex items-center justify-center transition-colors text-sm"
-                >
-                  +
-                </button>
+                <Button variant="secondary" size="icon" onClick={() => onChange(coin.key, val + 1)} aria-label={`Aggiungi una moneta: ${coin.label}`}>
+                  <PlusIcon className="h-4 w-4" />
+                </Button>
               </div>
             </div>
           );
         })}
       </div>
-    </div>
+
+      <p className="mt-4 border-t border-border pt-3 text-sm text-muted-foreground">
+        Oggetti in sintonia{' '}
+        <span className={`font-mono font-bold tabular-nums ${attunedCount >= 3 ? 'text-warning' : 'text-foreground'}`}>{attunedCount}/3</span>
+      </p>
+    </PlaySection>
   );
 };

@@ -2,6 +2,19 @@ import React from 'react';
 
 type IconProps = React.SVGProps<SVGSVGElement>;
 
+/** Marchio: la runa Raido (ᚱ) disegnata, così è identica su ogni dispositivo. */
+export const RuneMarkIcon = (props: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" {...props}>
+        <path strokeLinecap="square" strokeLinejoin="miter" d="M8.5 3.5v17M8.5 4l7.5 4.75-7.5 4.75 7.5 7" />
+    </svg>
+);
+
+export const CloudOffIcon = (props: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.4 8.6a4.5 4.5 0 00-2.6 2.1A4.5 4.5 0 006.75 19.5h11.4M10.6 6.4a5.25 5.25 0 014.97 2a3 3 0 013.76 3.84 3.75 3.75 0 011.9 5.36M3.75 3.75l16.5 16.5" />
+    </svg>
+);
+
 export const XMarkIcon = (props: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -138,7 +151,7 @@ export const SunIcon = (props: IconProps) => (
 
 export const SwordIcon = (props: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12.75m0 0l-3.75-3.75M12 15.75l3.75-3.75M6 18.75h12" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 4.5l11 11M12.5 17.5l5-5M16 16l3.5 3.5M19.5 4.5l-11 11M11.5 17.5l-5-5M8 16l-3.5 3.5" />
     </svg>
 );
 export const CheckIcon = (props: IconProps) => (
@@ -325,6 +338,13 @@ export const MinusIcon = (props: IconProps) => (
     </svg>
 );
 
+/** Scudo vuoto: contenitore della Classe Armatura (il numero va sopra). */
+export const ShieldOutlineIcon = (props: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2.714A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+    </svg>
+);
+
 export const ShieldIcon = (props: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" {...props}>
         <path fillRule="evenodd" d="M12.516 2.17a.75.75 0 00-1.032 0 11.209 11.209 0 01-7.877 3.08.75.75 0 00-.722.515A12.74 12.74 0 002.25 9.75c0 5.942 4.064 10.933 9.563 12.348a.749.749 0 00.374 0c5.499-1.415 9.563-6.406 9.563-12.348 0-1.39-.223-2.73-.635-3.985a.75.75 0 00-.722-.516l-.143.001c-2.996 0-5.717-1.17-7.734-3.08zm3.094 8.016a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
@@ -385,5 +405,30 @@ export const ShareIcon = (props: IconProps) => (
 export const ArrowPathIcon = (props: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+    </svg>
+);
+
+export const BookmarkIcon = (props: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path fillRule="evenodd" d="M6.32 2.577a49.255 49.255 0 0 1 11.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 0 1-1.085.67L12 18.089l-7.165 3.583A.75.75 0 0 1 3.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93Z" clipRule="evenodd" />
+    </svg>
+);
+
+/** Dado a venti facce visto di fronte. */
+export const DiceIcon = (props: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2.5l8.25 4.75v9.5L12 21.5l-8.25-4.75v-9.5L12 2.5zM12 2.5L7.5 15.25h9L12 2.5zM3.75 7.25l3.75 8M20.25 7.25l-3.75 8M7.5 15.25L12 21.5l4.5-6.25M3.75 16.75l3.75-1.5M20.25 16.75l-3.75-1.5" />
+    </svg>
+);
+
+export const SkullIcon = (props: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3a8 8 0 00-8 8c0 2.5 1.15 4.6 3 6v2.5a1 1 0 001 1h8a1 1 0 001-1V17c1.85-1.4 3-3.5 3-6a8 8 0 00-8-8zM10 20.5V18m4 2.5V18M9 13.25a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm6 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+    </svg>
+);
+
+export const BackpackIcon = (props: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 6V4.75A1.75 1.75 0 0110.75 3h2.5A1.75 1.75 0 0115 4.75V6m-6 0h6m-6 0a4 4 0 00-4 4v9a2 2 0 002 2h10a2 2 0 002-2v-9a4 4 0 00-4-4M8.5 21v-5a1 1 0 011-1h5a1 1 0 011 1v5M9.5 10.5h5" />
     </svg>
 );

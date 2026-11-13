@@ -1,52 +1,78 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { useTheme } from '../providers/ThemeProvider';
-import { XMarkIcon, CheckIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, ExclamationTriangleIcon } from './ui/icons';
+import { THEMES } from '../lib/themes';
+import { CheckIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, ExclamationTriangleIcon } from './ui/icons';
 import * as characterRepository from '../features/character/characterRepository';
 import { alertDialog, confirmDialog, toast } from './ui/Dialogs';
+import { Modal } from './ui/Modal';
+import { Button } from './ui/Button';
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+type DiceMode = 'dock' | 'modal';
+
+const DICE_MODES: { id: DiceMode; name: string; hint: string }[] = [
+  { id: 'dock', name: 'Barra fissa', hint: 'Sempre in basso' },
+  { id: 'modal', name: 'Finestra', hint: 'Su richiesta' },
+];
+
 const SettingsSection: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <div className="border-t border-border pt-4 mt-4 first:border-t-0 first:mt-0 first:pt-0">
-    <h4 className="text-md font-semibold text-muted-foreground mb-3">{title}</h4>
+  <section className="mt-7 first:mt-0">
+    <h3 className="mb-3 text-label uppercase text-muted-foreground">{title}</h3>
     {children}
-  </div>
+  </section>
 );
 
-const THEMES = [
-  { id: 'theme-amber', name: 'Ambra', color: 'bg-amber-400' },
-  { id: 'theme-sapphire', name: 'Zaffiro', color: 'bg-cyan-400' },
-  { id: 'theme-twilight', name: 'Crepuscolo', color: 'bg-violet-400' },
-  { id: 'theme-evergreen', name: 'Foresta', color: 'bg-emerald-400' },
-  { id: 'theme-crimson', name: 'Cremisi', color: 'bg-red-500' },
-  { id: 'theme-rose', name: 'Rosato', color: 'bg-rose-500' },
-  { id: 'theme-veridian', name: 'Veridiano', color: 'bg-green-400' },
-  { id: 'theme-obsidian', name: 'Ossidiana', color: 'bg-gray-300' },
-  { id: 'theme-solaris', name: 'Solaris', color: 'bg-orange-500' },
-  { id: 'theme-aether', name: 'Etere', color: 'bg-fuchsia-500' },
-  { id: 'theme-grove', name: 'Bosco', color: 'bg-lime-500' },
-  { id: 'theme-nocturne', name: 'Notturno', color: 'bg-violet-500' },
-  { id: 'theme-celestial', name: 'Celeste', color: 'bg-indigo-600' },
-];
+/** Opzione di un gruppo a scelta singola (tema, dadiera). */
+const ChoiceOption: React.FC<{
+  selected: boolean;
+  onSelect: () => void;
+  name: string;
+  hint: string;
+  leading?: React.ReactNode;
+}> = ({ selected, onSelect, name, hint, leading }) => (
+  <button
+    type="button"
+    role="radio"
+    aria-checked={selected}
+    onClick={onSelect}
+    className={`flex min-h-14 items-center gap-3 rounded-xl border px-3 py-2 text-left transition-colors duration-150 ${
+      selected ? 'border-accent bg-accent/10' : 'border-border hover:border-border-strong hover:bg-muted/40'
+    }`}
+  >
+    {leading}
+    <span className="min-w-0 flex-1">
+      <span className="block truncate text-sm font-semibold text-foreground">{name}</span>
+      <span className="block truncate text-xs text-muted-foreground">{hint}</span>
+    </span>
+    {selected && <CheckIcon className="h-4 w-4 shrink-0 text-accent" />}
+  </button>
+);
+
+/** Anteprima reale del tema: la classe `theme-*` risolve i suoi stessi token. */
+const ThemeSwatch = ({ themeId }: { themeId: string }) => (
+  <span aria-hidden className={`${themeId} flex h-9 w-9 shrink-0 items-end overflow-hidden rounded-lg border border-border-strong bg-background`}>
+    <span className="flex h-4 w-full items-center justify-end bg-card pr-1.5">
+      <span className="h-2 w-2 rounded-full bg-accent" />
+    </span>
+  </span>
+);
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const { theme, setTheme } = useTheme();
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [diceMode, setDiceMode] = React.useState<'dock' | 'modal'>(
-    () => (localStorage.getItem('runica_dice_mode') as 'dock' | 'modal') || 'dock'
+  const [diceMode, setDiceMode] = React.useState<DiceMode>(
+    () => (localStorage.getItem('runica_dice_mode') as DiceMode) || 'dock'
   );
 
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (dialog) {
-      if (isOpen) dialog.showModal();
-      else dialog.close();
-    }
-  }, [isOpen]);
+  const selectDiceMode = (mode: DiceMode) => {
+    setDiceMode(mode);
+    localStorage.setItem('runica_dice_mode', mode);
+    window.dispatchEvent(new Event('storage'));
+  };
 
   const handleExportData = async () => {
     try {
@@ -126,86 +152,56 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   };
 
   return (
-    <dialog ref={dialogRef} onClose={onClose} className="bg-card text-text p-0 rounded-lg shadow-2xl w-full max-w-sm border border-border backdrop:bg-black/50">
-      <header className="flex items-center justify-between p-4 border-b border-border">
-        <h3 className="text-lg font-cinzel text-accent">Impostazioni</h3>
-        <button onClick={onClose} className="p-1 rounded-full hover:bg-input transition-colors"><XMarkIcon className="w-5 h-5" /></button>
-      </header>
-      <div className="p-6 max-h-[70vh] overflow-y-auto">
-        <SettingsSection title="Aspetto">
-          <div className="grid grid-cols-2 gap-3">
-            {THEMES.map((t) => (
-              <button key={t.id} onClick={() => setTheme(t.id as any)} className={`flex items-center justify-between p-3 rounded-md border-2 transition-colors ${theme === t.id ? 'border-accent' : 'border-border hover:border-border'}`}>
-                <span className="flex items-center gap-2">
-                  <span className={`w-5 h-5 rounded-full ${t.color}`}></span> {t.name}
-                </span>
-                {theme === t.id && <CheckIcon className="w-5 h-5 text-accent" />}
-              </button>
-            ))}
-          </div>
-        </SettingsSection>
+    <Modal open={isOpen} onClose={onClose} title="Impostazioni">
+      <SettingsSection title="Tema">
+        <div role="radiogroup" aria-label="Tema" className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2">
+          {THEMES.map((t) => (
+            <ChoiceOption
+              key={t.id}
+              selected={theme === t.id}
+              onSelect={() => setTheme(t.id)}
+              name={t.name}
+              hint={t.hint}
+              leading={<ThemeSwatch themeId={t.id} />}
+            />
+          ))}
+        </div>
+      </SettingsSection>
 
-        <SettingsSection title="Strumenti di gioco">
-          <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase text-muted-foreground">Dadiera</label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setDiceMode('dock');
-                  localStorage.setItem('runica_dice_mode', 'dock');
-                  window.dispatchEvent(new Event('storage'));
-                }}
-                className={`p-3 rounded-lg border flex flex-col items-center gap-1 text-xs font-semibold transition-all ${
-                  diceMode === 'dock'
-                    ? 'border-accent bg-accent/20 text-accent'
-                    : 'border-border bg-card text-muted-foreground hover:border-border'
-                }`}
-              >
-                <span>Barra fissa</span>
-                <span className="text-[10px] text-muted-foreground font-normal">Sempre in basso</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setDiceMode('modal');
-                  localStorage.setItem('runica_dice_mode', 'modal');
-                  window.dispatchEvent(new Event('storage'));
-                }}
-                className={`p-3 rounded-lg border flex flex-col items-center gap-1 text-xs font-semibold transition-all ${
-                  diceMode === 'modal'
-                    ? 'border-accent bg-accent/20 text-accent'
-                    : 'border-border bg-card text-muted-foreground hover:border-border'
-                }`}
-              >
-                <span>Finestra</span>
-                <span className="text-[10px] text-muted-foreground font-normal">Su richiesta</span>
-              </button>
-            </div>
-          </div>
-        </SettingsSection>
+      <SettingsSection title="Dadiera">
+        <div role="radiogroup" aria-label="Dadiera" className="grid grid-cols-2 gap-2">
+          {DICE_MODES.map((mode) => (
+            <ChoiceOption
+              key={mode.id}
+              selected={diceMode === mode.id}
+              onSelect={() => selectDiceMode(mode.id)}
+              name={mode.name}
+              hint={mode.hint}
+            />
+          ))}
+        </div>
+      </SettingsSection>
 
-        <SettingsSection title="Dati">
-          <div className="space-y-3">
-            <button onClick={handleExportData} className="w-full flex items-center justify-center gap-2 bg-input hover:bg-input text-text font-semibold py-2 px-4 rounded-md transition-colors">
-              <ArrowDownTrayIcon className="w-5 h-5" />
-              Esporta tutti i dati
-            </button>
-            <button onClick={handleImportClick} className="w-full flex items-center justify-center gap-2 bg-input hover:bg-input text-text font-semibold py-2 px-4 rounded-md transition-colors">
-              <ArrowUpTrayIcon className="w-5 h-5" />
-              Importa da backup
-            </button>
-            <input type="file" ref={fileInputRef} onChange={handleImportData} accept=".json" className="hidden" />
-          </div>
-        </SettingsSection>
+      <SettingsSection title="Dati">
+        <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2">
+          <Button variant="secondary" onClick={handleExportData}>
+            <ArrowDownTrayIcon className="h-4 w-4" />
+            Esporta backup
+          </Button>
+          <Button variant="secondary" onClick={handleImportClick}>
+            <ArrowUpTrayIcon className="h-4 w-4" />
+            Importa backup
+          </Button>
+        </div>
+        <input type="file" ref={fileInputRef} onChange={handleImportData} accept=".json" className="hidden" />
+      </SettingsSection>
 
-        <SettingsSection title="Zona pericolosa">
-          <button onClick={handleClearAllData} className="w-full flex items-center justify-center gap-2 bg-destructive/20 hover:bg-destructive/40 text-destructive font-semibold py-2 px-4 rounded-md transition-colors border border-destructive/50">
-            <ExclamationTriangleIcon className="w-5 h-5" />
-            Elimina tutti i dati
-          </button>
-        </SettingsSection>
-      </div>
-    </dialog>
+      <SettingsSection title="Zona pericolosa">
+        <Button variant="destructive-outline" onClick={handleClearAllData} className="w-full">
+          <ExclamationTriangleIcon className="h-4 w-4" />
+          Elimina tutti i dati
+        </Button>
+      </SettingsSection>
+    </Modal>
   );
 };

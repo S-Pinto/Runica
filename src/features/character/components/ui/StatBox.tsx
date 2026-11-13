@@ -8,19 +8,20 @@ interface StatBoxProps {
     className?: string;
 }
 
+/**
+ * Emblema di un valore di gioco in cornice incisa (`frame-rune`): icona
+ * discreta in alto, numero grande al centro, etichetta sotto. In hover il
+ * filo interno e il rombo prendono l'accento; l'icona lo segue.
+ */
 export const StatBox: FC<StatBoxProps> = ({ label, value, subValue, icon: Icon, className = '' }) => (
-    <div className={`group relative flex items-center gap-3 overflow-hidden rounded-2xl border border-border/60 bg-card p-3.5 transition-colors hover:border-accent/40 sm:p-4 ${className}`}>
+    <div className={`frame-rune group flex flex-col items-center justify-center px-3 pb-3 pt-4 text-center sm:pb-4 sm:pt-5 ${className}`}>
         {Icon && (
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent transition-colors group-hover:bg-accent/20 md:hidden xl:flex">
-                <Icon className="h-5 w-5" />
-            </div>
+            <span className="mb-2 flex h-7 w-7 items-center justify-center rounded-full bg-accent/10 text-accent ring-1 ring-accent/25 transition-colors duration-150 group-hover:bg-accent/20">
+                <Icon className="h-3.5 w-3.5" />
+            </span>
         )}
-        <div className="min-w-0">
-            <div className="flex items-baseline gap-1.5">
-                <span className="font-mono text-2xl font-bold leading-none text-foreground sm:text-3xl">{value}</span>
-                {subValue && <span className="truncate text-xs text-muted-foreground">{subValue}</span>}
-            </div>
-            <p className="mt-1 text-xs font-medium leading-tight text-muted-foreground">{label}</p>
-        </div>
+        <span className="font-mono text-4xl font-bold leading-none tabular-nums text-foreground sm:text-5xl">{value}</span>
+        {subValue && <span className="mt-1 text-xs leading-none text-muted-foreground">{subValue}</span>}
+        <p className="mt-2 text-label uppercase leading-tight text-muted-foreground">{label}</p>
     </div>
 );

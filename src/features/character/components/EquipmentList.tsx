@@ -1,7 +1,10 @@
 import { useState, useMemo } from 'react';
 import { useCharacter } from '../CharacterProvider';
 import { EquipmentItem, Currency } from '../characterTypes';
-import { PlusCircleIcon } from '../../../components/ui/icons';
+import { PlusIcon, ShieldIcon, BackpackIcon } from '../../../components/ui/icons';
+import { Button } from '../../../components/ui/Button';
+import { RuneDivider } from '../../../components/ui/RuneDivider';
+import { StyledSection } from './ui/StyledInputs';
 import { toggleEquippedItem, splitEquipment } from '../rules/equipment';
 import { confirmDialog } from '../../../components/ui/Dialogs';
 import { EquipmentForm } from './equipment/EquipmentForm';
@@ -73,36 +76,33 @@ const EquipmentListContent = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <CurrencyBanner currency={character.currency} onChange={handleCurrencyChange} />
 
-      {/* Main Inventory Gear List */}
-      <div className="bg-card/20 backdrop-blur-md p-6 rounded-2xl border border-border/50 space-y-6">
-        <div className="flex justify-between items-center border-b border-border/40 pb-4">
-          <div>
-            <h3 className="text-xl font-cinzel text-accent">Zaino ed equipaggiamento</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Armi, armature, oggetti e consumabili</p>
-          </div>
-          <button
-            onClick={() => setEditingItem('new')}
-            className="flex items-center gap-2 text-sm bg-accent hover:bg-accent/90 text-accent-foreground font-bold px-4 py-2.5 rounded-xl transition-all shadow-md hover:shadow-lg"
-          >
-            <PlusCircleIcon className="w-5 h-5" />
-            <span>Aggiungi oggetto</span>
-          </button>
-        </div>
+      <RuneDivider />
 
+      <StyledSection
+        title="Zaino ed equipaggiamento"
+        action={
+          <Button variant="secondary" onClick={() => setEditingItem('new')} disabled={editingItem !== null}>
+            <PlusIcon className="h-4 w-4" /> Aggiungi
+          </Button>
+        }
+      >
         {editingItem && (
           <EquipmentForm
+            key={editingItem === 'new' ? 'new' : editingItem.id}
             initialData={editingItem === 'new' ? DEFAULT_ITEM : editingItem}
             onSave={handleSave}
             onCancel={() => setEditingItem(null)}
           />
         )}
 
-        <div className="space-y-8">
+        <div className="space-y-6">
           <ItemDisplayList
-            title="🛡️ Equipaggiati"
+            title="Equipaggiati"
+            icon={<ShieldIcon />}
+            emptyText="Niente di equipaggiato."
             items={equippableItems}
             expandedItem={expandedItem}
             onToggleExpand={handleToggleExpand}
@@ -111,7 +111,9 @@ const EquipmentListContent = () => {
             onDelete={handleDelete}
           />
           <ItemDisplayList
-            title="🎒 Zaino"
+            title="Zaino"
+            icon={<BackpackIcon />}
+            emptyText="Lo zaino è vuoto."
             items={backpackItems}
             expandedItem={expandedItem}
             onToggleExpand={handleToggleExpand}
@@ -120,7 +122,7 @@ const EquipmentListContent = () => {
             onDelete={handleDelete}
           />
         </div>
-      </div>
+      </StyledSection>
     </div>
   );
 };

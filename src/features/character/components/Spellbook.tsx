@@ -2,7 +2,14 @@ import { useState, useMemo } from 'react';
 import { Spell } from '../characterTypes';
 import { useCharacter } from '../CharacterProvider';
 import { calculateSpellSaveDC, calculateSpellAttackBonus } from '../rules/combat';
-import { PlusCircleIcon, SearchIcon, SparklesIcon } from '../../../components/ui/icons';
+import { PlusIcon, MagnifyingGlassIcon } from '../../../components/ui/icons';
+import { Button } from '../../../components/ui/Button';
+import { fieldControlClass } from '../../../components/ui/field';
+import { ABILITY_SHORT } from '../../../lib/labels';
+import { formatModifier } from '../utils/characterUtils';
+import { StyledSection } from './ui/StyledInputs';
+import { StatBox } from './ui/StatBox';
+import { playEmptyClass } from './play-view/PlaySection';
 import { SpellCard } from './SpellCard';
 import { SpellForm } from './spellbook/SpellForm';
 
@@ -33,7 +40,7 @@ const SpellbookContent = () => {
 
   const spellSaveDC = calculateSpellSaveDC(character);
   const spellAttackBonus = calculateSpellAttackBonus(character);
-  const spellAbility = character.spellcastingAbility ? character.spellcastingAbility.substring(0, 3).toUpperCase() : '???';
+  const spellAbility = character.spellcastingAbility ? ABILITY_SHORT[character.spellcastingAbility] : '–';
 
   const handleSaveSpell = (spellData: Spell | Omit<Spell, 'id'>) => {
     let updatedSpells: Spell[];
@@ -93,88 +100,63 @@ const SpellbookContent = () => {
 
 
   return (
-    <div className="bg-card/80 p-6 rounded-xl border border-border flex flex-col h-full shadow-lg">
-      {/* Header Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 pb-6 border-b border-border/40">
-        <div className="bg-background/50 p-3 rounded-xl border border-border/50 flex flex-col items-center">
-          <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">CD tiro salvezza</span>
-          <span className="text-2xl font-bold text-accent font-cinzel">{spellSaveDC}</span>
-        </div>
-        <div className="bg-background/50 p-3 rounded-xl border border-border/50 flex flex-col items-center">
-          <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Bonus d'attacco</span>
-          <span className="text-2xl font-bold text-accent font-cinzel">+{spellAttackBonus}</span>
-        </div>
-        <div className="bg-background/50 p-3 rounded-xl border border-border/50 flex flex-col items-center">
-          <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Caratteristica</span>
-          <span className="text-2xl font-bold text-foreground font-cinzel">{spellAbility}</span>
-        </div>
-        <div className="flex items-center justify-center">
-          <button
-            onClick={() => setEditingSpell('new')}
-            disabled={editingSpell !== null}
-            className="flex flex-col items-center justify-center gap-1 w-full h-full bg-primary/10 hover:bg-primary/20 border border-primary/20 hover:border-primary/40 rounded-xl transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <PlusCircleIcon className="w-6 h-6 text-primary group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-primary uppercase tracking-wide">Aggiungi incantesimo</span>
-          </button>
-        </div>
+    <StyledSection
+      title="Libro degli incantesimi"
+      action={
+        <Button variant="secondary" onClick={() => setEditingSpell('new')} disabled={editingSpell !== null}>
+          <PlusIcon className="h-4 w-4" /> Aggiungi
+        </Button>
+      }
+    >
+      <div className="grid grid-cols-3 gap-3 sm:gap-4">
+        <StatBox label="CD tiro salvezza" value={spellSaveDC} />
+        <StatBox label="Bonus d'attacco" value={formatModifier(spellAttackBonus)} />
+        <StatBox label="Caratteristica" value={spellAbility} />
       </div>
 
-      <div className="flex items-center gap-3 mb-6 bg-background/30 p-2 rounded-lg border border-border/30">
-        <SearchIcon className="w-5 h-5 text-muted-foreground ml-2" />
+      <div className="relative my-5">
+        <MagnifyingGlassIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
-          type="text"
-          placeholder="Cerca incantesimi…"
+          type="search"
+          aria-label="Cerca incantesimi"
+          placeholder="Cerca incantesimi"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-muted-foreground/70"
+          className={`${fieldControlClass} pl-10`}
         />
       </div>
 
-      {editingSpell && (
+      {editingSpell === 'new' && (
         <SpellForm
-          initialData={editingSpell === 'new' ? DEFAULT_SPELL : editingSpell}
+          initialData={DEFAULT_SPELL}
           onSave={handleSaveSpell}
           onCancel={() => setEditingSpell(null)}
         />
       )}
 
-      <div className="space-y-8 overflow-y-auto pr-2 -mr-2 flex-grow scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+      <div className="space-y-6">
         {activeLevels.length === 0 && !editingSpell && (
-          <div className="text-center py-12 px-6 flex flex-col items-center">
-            <SparklesIcon className="w-12 h-12 text-muted-foreground/30 mb-3" />
-            <p className="text-muted-foreground font-cinzel">Nessun incantesimo ancora.</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Aggiungi il primo incantesimo per iniziare.</p>
-          </div>
+          <p className={playEmptyClass}>
+            {searchTerm ? 'Nessun incantesimo con questo nome.' : 'Nessun incantesimo. Aggiungi il primo per iniziare.'}
+          </p>
         )}
 
         {activeLevels.map(level => {
-          const spells = spellsByLevel[level] || [];
-          // Sort spells alphabetically
-          spells.sort((a, b) => a.name.localeCompare(b.name));
+          const spells = [...(spellsByLevel[level] || [])].sort((a, b) => a.name.localeCompare(b.name));
 
           return (
-            <div key={level} className="space-y-3">
-              <div className="flex items-center justify-between border-b border-border/40 pb-2 mb-2 sticky top-0 bg-card/95 backdrop-blur-sm z-10 py-2">
-                <h4 className="text-lg font-cinzel text-foreground flex items-center gap-3">
-                  {level === 0 ? (
-                    <span className="text-sm font-cinzel text-muted-foreground/50">Trucchetti e rituali</span>
-                  ) : (
-                    <>
-                      <span className="text-sm font-cinzel text-muted-foreground/50">Livello {level}</span>
-                    </>
-                  )}
-                </h4>
-                <span className="text-xs font-bold text-muted-foreground bg-muted/30 px-2 py-1 rounded-md">{spells.length} conosciuti</span>
-              </div>
+            <div key={level}>
+              <h4 className="mb-3 flex items-center gap-2 text-label uppercase text-muted-foreground">
+                {level === 0 ? 'Trucchetti' : `Livello ${level}`}
+                <span className="font-mono tabular-nums">{spells.length}</span>
+                <span aria-hidden className="h-px flex-1 bg-border" />
+              </h4>
 
-              {spells.length === 0 && level > 0 && (
-                <div className="p-4 rounded-lg border border-dashed border-border/30 bg-muted/10 text-center">
-                  <span className="text-xs text-muted-foreground italic">Nessun incantesimo di questo livello.</span>
-                </div>
+              {spells.length === 0 && (
+                <p className="text-sm text-muted-foreground">Nessun incantesimo di questo livello.</p>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 items-start gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {spells.map(spell =>
                   editingSpell && typeof editingSpell === 'object' && editingSpell.id === spell.id ? (
                     <div key={spell.id} className="md:col-span-2 xl:col-span-3">
@@ -195,7 +177,6 @@ const SpellbookContent = () => {
                       isDeleting={deletingSpellId === spell.id}
                       onConfirmDelete={() => handleDeleteSpell(spell.id)}
                       onCancelDelete={() => setDeletingSpellId(null)}
-
                       isEditingActive={editingSpell !== null}
                       onTogglePrepared={() => handleTogglePrepared(spell.id)}
                     />
@@ -206,7 +187,7 @@ const SpellbookContent = () => {
           );
         })}
       </div>
-    </div>
+    </StyledSection>
   );
 };
 

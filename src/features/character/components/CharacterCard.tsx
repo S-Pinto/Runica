@@ -8,12 +8,14 @@ import {
   ArrowDownTrayIcon,
   UserGroupIcon,
   EllipsisVerticalIcon,
-  ShieldIcon,
+  ShieldOutlineIcon,
 } from '../../../components/ui/icons';
+import { Button } from '../../../components/ui/Button';
 import { Menu, MenuItem } from '../../../components/ui/Menu';
 import { calculateArmorClass } from '../rules/combat';
 import { resolveCampaignName } from '../rules/campaign';
 import { useCampaigns } from '../../../providers/CampaignProvider';
+import { hpBarTone, hpPercent, initials } from '../utils/characterDisplay';
 
 interface CharacterCardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onSelect'> {
   character: ICharacter;
@@ -24,23 +26,23 @@ interface CharacterCardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 
   onExport?: (e: React.MouseEvent) => void;
 }
 
-const initials = (name: string) =>
-  name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? '')
-    .join('') || '?';
+const MENU_TRIGGER =
+  'flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
-const hpTone = (pct: number) => (pct > 50 ? 'bg-success' : pct > 20 ? 'bg-warning' : 'bg-destructive');
-
+/**
+ * Scheda di un personaggio nella lista. Su telefono è una riga compatta
+ * (miniatura a sinistra) per vedere più eroi senza scorrere; da `sm` diventa
+ * una card con il ritratto in alto. Tutta la scheda apre la vista di gioco.
+ */
 export const CharacterCard = forwardRef<HTMLDivElement, CharacterCardProps>(
   ({ character, onSelect, onDelete, onEdit, onDuplicate, onExport, className = '', onKeyDown, ...rest }, ref) => {
     const { hp } = character;
     const { campaignNames } = useCampaigns();
     const campaignName = resolveCampaignName(character, campaignNames);
-    const hpPercent = hp.max > 0 ? Math.min(100, Math.max(0, (hp.current / hp.max) * 100)) : 100;
-    const subtitle = [character.race, character.class].filter(Boolean).join(' · ') || 'Avventuriero';
+    const percent = hpPercent(hp.current, hp.max);
+    const subtitle = [character.race, character.class, character.subclass].filter(Boolean).join(' · ') || 'Avventuriero';
+    const displayName = character.name || 'Senza nome';
+    const armorClass = calculateArmorClass(character);
 
     // The menu passes no event; parents only use it for stopPropagation, which the menu already does.
     const noEvent = {} as React.MouseEvent;
@@ -50,6 +52,7 @@ export const CharacterCard = forwardRef<HTMLDivElement, CharacterCardProps>(
       ...(onExport ? [{ label: 'Esporta JSON', icon: <ArrowDownTrayIcon />, onSelect: () => onExport(noEvent) }] : []),
       { label: 'Elimina', icon: <TrashIcon />, onSelect: () => onDelete(noEvent), destructive: true },
     ];
+    const menuLabel = `Altre azioni per ${character.name || 'personaggio'}`;
 
     return (
       <div
@@ -68,98 +71,107 @@ export const CharacterCard = forwardRef<HTMLDivElement, CharacterCardProps>(
         tabIndex={0}
         aria-label={`Apri ${character.name || 'personaggio'}`}
         data-character-id={character.id}
-        className={`group relative flex flex-col rounded-2xl border border-border/70 bg-card cursor-pointer touch-pan-y select-none transition-all duration-300 hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_18px_40px_-12px_rgb(var(--color-accent)/0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${className}`}
+        className={`group relative flex cursor-pointer touch-pan-y select-none gap-3 surface rounded-2xl p-2.5 transition-[transform,box-shadow,border-color] duration-200 ease-soft hover:border-accent/60 hover:shadow-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:flex-col sm:gap-0 sm:p-0 sm:hover:-translate-y-0.5 ${className}`}
       >
-        {/* Portrait */}
-        <div className="relative aspect-video overflow-hidden rounded-t-2xl sm:aspect-[4/3]">
+        {/* Ritratto */}
+        <div className="relative h-[5.5rem] w-[5.5rem] shrink-0 overflow-hidden rounded-xl bg-input shadow-[inset_0_0_0_1px_rgb(var(--color-border)/0.5)] sm:aspect-[16/10] sm:h-auto sm:w-full sm:rounded-b-none sm:rounded-t-[15px]">
           {character.imageUrl ? (
             <img
               src={character.imageUrl}
               alt=""
               loading="lazy"
               draggable={false}
-              className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+              className="h-full w-full object-cover transition-transform duration-500 ease-soft group-hover:scale-[1.03]"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgb(var(--color-accent)/0.28),transparent_60%),linear-gradient(160deg,rgb(var(--color-input)/0.6),rgb(var(--color-card)))]">
-              <span className="font-cinzel text-6xl font-bold text-accent/70 drop-shadow-[0_0_24px_rgb(var(--color-accent)/0.5)]">
-                {initials(character.name || '')}
-              </span>
+            <div className="portrait-rune flex h-full w-full items-center justify-center">
+              <span className="monogram text-3xl sm:text-6xl">{initials(character.name || '')}</span>
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
 
-          <div className="absolute inset-x-3 top-3 flex items-start justify-between gap-2">
-            <span className="rounded-full border border-accent/40 bg-background/80 px-2.5 py-0.5 font-mono text-xs font-bold text-accent backdrop-blur">
-              Lv {character.level || 1}
+          <span className="absolute bottom-1.5 left-1.5 rounded-md bg-background/85 px-1.5 py-0.5 font-mono text-xs font-bold text-foreground sm:bottom-auto sm:left-3 sm:top-3 sm:rounded-full sm:px-2.5">
+            Lv {character.level || 1}
+          </span>
+          {campaignName && (
+            <span className="absolute right-3 top-3 hidden max-w-[60%] items-center gap-1 rounded-full bg-background/85 px-2.5 py-0.5 text-xs font-medium text-text sm:flex">
+              <UserGroupIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              <span className="truncate">{campaignName}</span>
             </span>
+          )}
+        </div>
+
+        <div className="flex min-w-0 flex-1 flex-col justify-between gap-2 sm:gap-3 sm:p-4">
+          <div className="min-w-0">
+            <h3 className="truncate font-cinzel text-lg font-bold leading-snug text-foreground sm:text-xl">{displayName}</h3>
+            <p className="truncate text-sm capitalize text-muted-foreground">{subtitle}</p>
             {campaignName && (
-              <span className="flex min-w-0 items-center gap-1 rounded-full border border-border/60 bg-background/80 px-2.5 py-0.5 text-xs font-medium text-text backdrop-blur">
-                <UserGroupIcon className="h-3.5 w-3.5 shrink-0 text-accent" />
-                <span className="truncate max-w-[9rem]">{campaignName}</span>
-              </span>
+              <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground sm:hidden">
+                <UserGroupIcon className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{campaignName}</span>
+              </p>
             )}
           </div>
 
-          <div className="absolute inset-x-4 bottom-3">
-            <h3 className="truncate font-cinzel text-2xl font-bold text-foreground drop-shadow">
-              {character.name || 'Senza nome'}
-            </h3>
-            <p className="truncate text-sm capitalize text-muted-foreground">
-              {subtitle}
-              {character.subclass && <span className="text-muted-foreground/70"> · {character.subclass}</span>}
-            </p>
-          </div>
-        </div>
-
-        {/* Vitals */}
-        <div className="flex items-center gap-4 px-4 pt-3">
-          <div className="flex-1 min-w-0">
-            <div className="mb-1.5 flex items-baseline justify-between text-xs">
-              <span className="font-semibold uppercase tracking-wider text-muted-foreground">Punti vita</span>
-              <span className="font-mono font-semibold text-text">
-                {hp.current}
-                <span className="text-muted-foreground">/{hp.max}</span>
-                {hp.temporary > 0 && <span className="ml-1 text-accent">+{hp.temporary}</span>}
+          {/* Punti vita e classe armatura */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="mb-1.5 flex items-baseline justify-between gap-2">
+                <span className="text-label uppercase text-muted-foreground">
+                  <span className="sm:hidden">PV</span>
+                  <span className="hidden sm:inline">Punti vita</span>
+                </span>
+                <span className="font-mono text-sm font-bold text-foreground">
+                  {hp.current}
+                  <span className="font-normal text-muted-foreground">/{hp.max}</span>
+                  {hp.temporary > 0 && <span className="ml-1 text-accent">+{hp.temporary}</span>}
+                </span>
+              </div>
+              <div
+                className="h-1.5 overflow-hidden rounded-full bg-input"
+                role="progressbar"
+                aria-label="Punti vita"
+                aria-valuemin={0}
+                aria-valuemax={hp.max}
+                aria-valuenow={hp.current}
+              >
+                <div className={`h-full rounded-full transition-[width] duration-500 ease-soft ${hpBarTone(percent)}`} style={{ width: `${percent}%` }} />
+              </div>
+            </div>
+            <div className="relative flex h-10 w-9 shrink-0 items-center justify-center" title="Classe Armatura">
+              <ShieldOutlineIcon aria-hidden className="absolute inset-0 h-full w-full text-border-strong" />
+              <span className="relative font-mono text-sm font-bold text-foreground">
+                <span className="sr-only">Classe Armatura </span>
+                {armorClass}
               </span>
             </div>
-            <div
-              className="h-1.5 overflow-hidden rounded-full bg-muted/50"
-              role="progressbar"
-              aria-label="Punti vita"
-              aria-valuemin={0}
-              aria-valuemax={hp.max}
-              aria-valuenow={hp.current}
-            >
-              <div className={`h-full rounded-full transition-all duration-500 ${hpTone(hpPercent)}`} style={{ width: `${hpPercent}%` }} />
+            {/* Su telefono la riga intera apre il personaggio: resta solo il menu. */}
+            <div className="sm:hidden">
+              <Menu label={menuLabel} trigger={<EllipsisVerticalIcon className="h-5 w-5" />} items={menuItems} placement="top" triggerClassName={`${MENU_TRIGGER} hover:bg-muted/60`} />
             </div>
           </div>
-          <div className="relative flex h-11 w-10 shrink-0 items-center justify-center" title="Classe Armatura">
-            <ShieldIcon className="absolute inset-0 h-full w-full text-accent/25" />
-            <span className="relative font-mono text-sm font-bold text-text">{calculateArmorClass(character)}</span>
-          </div>
-        </div>
 
-        {/* Actions */}
-        <div className="mt-auto flex items-center gap-2 p-4 pt-3">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelect();
-            }}
-            onPointerDown={(e) => e.stopPropagation()}
-            className="flex h-10 flex-1 items-center justify-center gap-2 rounded-xl bg-accent text-sm font-semibold text-accent-foreground transition-all hover:bg-accent-dark active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <PlayIcon className="h-4 w-4" /> Gioca
-          </button>
-          <Menu
-            label={`Altre azioni per ${character.name || 'personaggio'}`}
-            trigger={<EllipsisVerticalIcon className="h-5 w-5" />}
-            items={menuItems}
-            placement="top"
-            triggerClassName="flex h-10 w-10 items-center justify-center rounded-xl border border-border/70 text-muted-foreground transition-colors hover:border-accent/60 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          />
+          <div className="hidden items-center gap-2 sm:flex">
+            {/* Secondario a riposo: l'accento arriva quando si punta la card. */}
+            <Button
+              variant="secondary"
+              tabIndex={-1}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelect();
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              className="flex-1 group-hover:border-accent/70 group-hover:text-accent"
+            >
+              <PlayIcon className="h-4 w-4" /> Gioca
+            </Button>
+            <Menu
+              label={menuLabel}
+              trigger={<EllipsisVerticalIcon className="h-5 w-5" />}
+              items={menuItems}
+              placement="top"
+              triggerClassName={`${MENU_TRIGGER} border border-border-strong/60 hover:border-accent/70`}
+            />
+          </div>
         </div>
       </div>
     );

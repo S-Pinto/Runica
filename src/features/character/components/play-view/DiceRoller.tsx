@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import { SparklesIcon, XMarkIcon, ChevronUpIcon, ChevronDownIcon } from '../../../../components/ui/icons';
+import { DiceIcon, ChevronDownIcon, MinusIcon, PlusIcon } from '../../../../components/ui/icons';
+import { Button } from '../../../../components/ui/Button';
+import { Modal } from '../../../../components/ui/Modal';
+import { SegmentedControl, SegmentedOption } from '../../../../components/ui/SegmentedControl';
+import { playLabelClass, playInsetClass } from './PlaySection';
 
 type DiceType = 'd4' | 'd6' | 'd8' | 'd10' | 'd12' | 'd20' | 'd100';
 type AdvantageMode = 'normal' | 'advantage' | 'disadvantage';
@@ -30,6 +34,14 @@ const DICE_FACES: Record<DiceType, number> = {
   d100: 100,
 };
 
+const ADVANTAGE_MODES: SegmentedOption<AdvantageMode>[] = [
+  { value: 'normal', label: 'Normale' },
+  { value: 'advantage', label: 'Vantaggio', tone: 'success' },
+  { value: 'disadvantage', label: 'Svantaggio', tone: 'destructive' },
+];
+
+const formatSigned = (n: number) => (n >= 0 ? `+${n}` : `${n}`);
+
 export const DiceRoller: React.FC<DiceRollerProps> = ({ mode = 'dock', isOpen = false, onClose }) => {
   const [selectedDice, setSelectedDice] = useState<DiceType>('d20');
   const [modifier, setModifier] = useState<number>(0);
@@ -43,8 +55,8 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({ mode = 'dock', isOpen = 
     const faces = DICE_FACES[selectedDice];
 
     setTimeout(() => {
-      let r1 = Math.floor(Math.random() * faces) + 1;
-      let r2 = Math.floor(Math.random() * faces) + 1;
+      const r1 = Math.floor(Math.random() * faces) + 1;
+      const r2 = Math.floor(Math.random() * faces) + 1;
       let selected = r1;
 
       if (selectedDice === 'd20') {
@@ -68,169 +80,111 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({ mode = 'dock', isOpen = 
     }, 250);
   };
 
-  if (mode === 'modal' && !isOpen) return null;
+  // Il 20 e l'1 naturali su un d20 si leggono dal colore, senza altre decorazioni.
+  const resultTone = !lastRoll || lastRoll.dice !== 'd20'
+    ? 'text-foreground'
+    : lastRoll.selectedRoll === 20 ? 'text-success' : lastRoll.selectedRoll === 1 ? 'text-destructive' : 'text-foreground';
 
   const content = (
-    <div className="space-y-4 text-foreground">
-      {/* Dice Selection */}
+    <div className="space-y-4">
+      {/* Risultato: sempre presente, così i controlli sotto non si spostano al primo tiro. */}
+      <div className={`${playInsetClass} flex min-h-[6.5rem] flex-col items-center justify-center px-4 py-3 text-center`} aria-live="polite">
+        {lastRoll ? (
+          <div key={lastRoll.timestamp} className="animate-popIn">
+            <p className={`font-mono text-5xl font-bold leading-none tabular-nums ${resultTone}`}>{lastRoll.total}</p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              {lastRoll.dice}: <span className="font-mono font-semibold text-foreground">{lastRoll.selectedRoll}</span>
+              {lastRoll.rolls.length > 1 && <span className="font-mono"> (tiri {lastRoll.rolls.join(', ')})</span>}
+              {lastRoll.modifier !== 0 && (
+                <> · modificatore <span className="font-mono font-semibold text-foreground">{formatSigned(lastRoll.modifier)}</span></>
+              )}
+            </p>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">Scegli un dado e lancia.</p>
+        )}
+      </div>
+
       <div>
-        <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
-          Seleziona Dado
-        </label>
-        <div className="flex flex-wrap gap-2">
+        <p className={`${playLabelClass} mb-2`}>Dado</p>
+        <div role="radiogroup" aria-label="Dado" className="grid grid-cols-4 gap-2">
           {(Object.keys(DICE_FACES) as DiceType[]).map((dice) => (
             <button
               key={dice}
               type="button"
+              role="radio"
+              aria-checked={selectedDice === dice}
               onClick={() => setSelectedDice(dice)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
+              className={`h-11 rounded-xl border font-mono text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card ${
                 selectedDice === dice
-                  ? 'bg-accent text-accent-foreground shadow-[0_0_10px_rgb(var(--color-accent)/0.4)] scale-105'
-                  : 'bg-muted/40 hover:bg-muted text-muted-foreground'
+                  ? 'border-accent bg-accent text-accent-foreground'
+                  : 'border-border-strong/60 text-text hover:border-accent/70 hover:text-accent'
               }`}
             >
-              {dice.toUpperCase()}
+              {dice}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Advantage / Disadvantage for d20 */}
       {selectedDice === 'd20' && (
-        <div>
-          <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
-            Modalità d20
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              type="button"
-              onClick={() => setAdvantageMode('normal')}
-              className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all ${
-                advantageMode === 'normal'
-                  ? 'bg-accent/20 border border-accent text-accent'
-                  : 'bg-muted/30 border border-transparent text-muted-foreground hover:bg-muted/50'
-              }`}
-            >
-              Normale
-            </button>
-            <button
-              type="button"
-              onClick={() => setAdvantageMode('advantage')}
-              className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all ${
-                advantageMode === 'advantage'
-                  ? 'bg-success/15 border border-success text-success'
-                  : 'bg-muted/30 border border-transparent text-muted-foreground hover:bg-muted/50'
-              }`}
-            >
-              Vantaggio
-            </button>
-            <button
-              type="button"
-              onClick={() => setAdvantageMode('disadvantage')}
-              className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all ${
-                advantageMode === 'disadvantage'
-                  ? 'bg-destructive/15 border border-destructive text-destructive'
-                  : 'bg-muted/30 border border-transparent text-muted-foreground hover:bg-muted/50'
-              }`}
-            >
-              Svantaggio
-            </button>
-          </div>
-        </div>
+        <SegmentedControl label="Modalità del d20" options={ADVANTAGE_MODES} value={advantageMode} onChange={setAdvantageMode} />
       )}
 
-      {/* Modifier Input */}
-      <div className="flex items-center justify-between gap-4 bg-background/40 p-2.5 rounded-xl border border-border/50">
-        <span className="text-xs font-bold text-muted-foreground uppercase">Modificatore</span>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setModifier((prev) => prev - 1)}
-            className="w-7 h-7 rounded-lg bg-secondary hover:bg-accent hover:text-accent-foreground text-foreground font-bold flex items-center justify-center"
-          >
-            -
-          </button>
-          <span className="w-10 text-center font-mono font-bold text-base text-accent">
-            {modifier >= 0 ? `+${modifier}` : modifier}
+      <div className="flex items-center justify-between gap-4">
+        <span className={playLabelClass}>Modificatore</span>
+        <div className="flex items-center gap-1">
+          <Button variant="secondary" size="icon" onClick={() => setModifier((prev) => prev - 1)} aria-label="Diminuisci il modificatore">
+            <MinusIcon className="h-4 w-4" />
+          </Button>
+          <span className="w-12 text-center font-mono text-lg font-bold tabular-nums text-foreground" aria-live="polite">
+            {formatSigned(modifier)}
           </span>
-          <button
-            type="button"
-            onClick={() => setModifier((prev) => prev + 1)}
-            className="w-7 h-7 rounded-lg bg-secondary hover:bg-accent hover:text-accent-foreground text-foreground font-bold flex items-center justify-center"
-          >
-            +
-          </button>
+          <Button variant="secondary" size="icon" onClick={() => setModifier((prev) => prev + 1)} aria-label="Aumenta il modificatore">
+            <PlusIcon className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
-      {/* Roll Action Button */}
-      <button
-        type="button"
-        onClick={rollDice}
-        disabled={isRolling}
-        className="w-full py-3 bg-accent text-accent-foreground font-bold text-base rounded-xl shadow-lg hover:bg-accent-light transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
-      >
-        <SparklesIcon className="w-5 h-5" />
-        {isRolling ? 'Lancio in corso...' : `Lancia ${selectedDice.toUpperCase()}`}
-      </button>
-
-      {/* Result Display */}
-      {lastRoll && (
-        <div className="p-4 bg-background/80 rounded-xl border border-accent/40 text-center space-y-1 animate-fadeIn">
-          <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Risultato</div>
-          <div className="text-4xl font-black font-mono text-accent drop-shadow-[0_0_12px_rgb(var(--color-accent)/0.6)]">
-            {lastRoll.total}
-          </div>
-          <div className="text-xs text-muted-foreground">
-            Dado: <span className="font-mono text-foreground font-semibold">{lastRoll.selectedRoll}</span>
-            {lastRoll.rolls.length > 1 && (
-              <span className="text-[10px] ml-1">({lastRoll.rolls.join(', ')})</span>
-            )}
-            {lastRoll.modifier !== 0 && (
-              <span> | Mod: <span className="font-mono text-foreground font-semibold">{lastRoll.modifier >= 0 ? `+${lastRoll.modifier}` : lastRoll.modifier}</span></span>
-            )}
-          </div>
-        </div>
-      )}
+      <Button size="lg" onClick={rollDice} disabled={isRolling} className="w-full">
+        <DiceIcon className="h-5 w-5" />
+        {isRolling ? 'Lancio…' : `Lancia ${selectedDice}`}
+      </Button>
     </div>
   );
 
-  // Render as Modal Popover
   if (mode === 'modal') {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-        <div className="bg-card border border-border rounded-2xl shadow-2xl p-6 w-full max-w-sm relative">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-cinzel font-bold text-accent flex items-center gap-2">
-              <SparklesIcon className="w-5 h-5" /> Dadiera
-            </h3>
-            {onClose && (
-              <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted">
-                <XMarkIcon className="w-5 h-5" />
-              </button>
-            )}
-          </div>
-          {content}
-        </div>
-      </div>
+      <Modal open={isOpen} onClose={() => onClose?.()} title="Dadiera" icon={<DiceIcon />} size="sm">
+        {content}
+      </Modal>
     );
   }
 
-  // Render as Floating Bottom Dock
+  // Pillola flottante: chiusa è un solo pulsante, aperta mostra la dadiera sopra di lei.
   return (
-    <div className="fixed bottom-0 right-4 z-40 max-w-sm w-[calc(100%-2rem)] sm:w-80 shadow-2xl transition-all duration-300">
-      <div className="bg-card/95 backdrop-blur-md border border-accent/40 rounded-t-2xl overflow-hidden shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
-        <button
-          onClick={() => setIsExpanded((prev) => !prev)}
-          className="w-full px-4 py-3 bg-accent/15 hover:bg-accent/25 flex items-center justify-between text-accent font-bold text-sm transition-all"
-        >
-          <div className="flex items-center gap-2 font-cinzel">
-            <SparklesIcon className="w-4 h-4" /> Dadiera
-          </div>
-          {isExpanded ? <ChevronDownIcon className="w-5 h-5" /> : <ChevronUpIcon className="w-5 h-5" />}
-        </button>
-        {isExpanded && <div className="p-4">{content}</div>}
-      </div>
+    <div className="pointer-events-none fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-4 right-4 z-40 flex flex-col items-end gap-2 sm:left-auto sm:right-6 sm:w-80">
+      {isExpanded && (
+        <section aria-label="Dadiera" className="glass-pill pointer-events-auto max-h-[70dvh] w-full overflow-y-auto rounded-2xl p-4 animate-popIn">
+          {content}
+        </section>
+      )}
+      <button
+        type="button"
+        onClick={() => setIsExpanded((prev) => !prev)}
+        aria-expanded={isExpanded}
+        aria-label="Dadiera"
+        className="glass-pill pointer-events-auto flex h-14 items-center gap-3 rounded-full py-1.5 pl-1.5 pr-1.5 has-[.font-mono]:pr-4 sm:pr-5 text-sm font-semibold text-text transition-[transform,border-color,color] duration-150 ease-soft hover:border-accent/70 hover:text-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.35)]">
+          <DiceIcon className="h-6 w-6" />
+        </span>
+        <span className="hidden sm:inline">Dadiera</span>
+        {!isExpanded && lastRoll && (
+          <span className="font-mono text-muted-foreground">{lastRoll.dice} · <span className="font-bold text-foreground">{lastRoll.total}</span></span>
+        )}
+        {isExpanded && <ChevronDownIcon className="h-5 w-5 text-muted-foreground" />}
+      </button>
     </div>
   );
 };

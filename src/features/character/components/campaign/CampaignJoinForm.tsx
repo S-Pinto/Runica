@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button } from '../../../../components/ui/Button';
+import { fieldInputClass, fieldLabelClass } from '../../../../components/ui/field';
 import { INVITE_CODE_LENGTH } from '../../rules/campaign';
 
 interface CampaignJoinFormProps {
@@ -23,9 +24,9 @@ export const CampaignJoinForm = ({ onJoin }: CampaignJoinFormProps) => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-                <label htmlFor="campaign-code" className="mb-1 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <label htmlFor="campaign-code" className={fieldLabelClass}>
                     Codice d'invito ({INVITE_CODE_LENGTH} caratteri)
                 </label>
                 <input
@@ -33,13 +34,14 @@ export const CampaignJoinForm = ({ onJoin }: CampaignJoinFormProps) => {
                     type="text"
                     value={code}
                     onChange={(e) => setCode(e.target.value.toUpperCase())}
-                    placeholder="Es. X7K9AB"
+                    placeholder="X7K9AB"
                     maxLength={INVITE_CODE_LENGTH}
                     autoCapitalize="characters"
                     autoComplete="off"
                     required
-                    className="w-full rounded-xl border border-border bg-input/60 p-3 text-center font-mono text-lg font-bold uppercase tracking-widest text-accent outline-none focus:border-accent focus:ring-2 focus:ring-accent/40"
+                    className={`${fieldInputClass} bg-background text-center font-mono text-xl font-bold uppercase tracking-widest placeholder:font-normal`}
                 />
+                <p className="mt-2 text-sm text-muted-foreground">Te lo dà il DM della campagna.</p>
             </div>
             <Button type="submit" size="lg" className="w-full" disabled={busy}>
                 {busy ? 'Verifica…' : 'Unisciti alla campagna'}

@@ -21,12 +21,13 @@ Deploy: GitHub Actions su merge (`.github/workflows/`), oppure `npm run deploy:l
 ## Stack
 
 - **Frontend**: React 19, TypeScript 5, Vite 5, React Router 6 (`createBrowserRouter`)
-- **Stile**: Tailwind 3 + `@tailwindcss/forms`, token colore come variabili CSS RGB in `src/index.css`, 13 temi (`theme-*`) gestiti da `ThemeProvider`
+- **Stile**: Tailwind 3 + `@tailwindcss/forms`, token colore come variabili CSS RGB in `src/index.css`, 6 temi (`theme-*`, elenco in `src/lib/themes.ts`) gestiti da `ThemeProvider`
 - **Animazioni**: framer-motion + keyframe Tailwind (`fadeIn`, `popIn`)
 - **Drag & drop**: `@dnd-kit` (ordinamento personaggi)
 - **Immagini**: `react-cropper`, `browser-image-compression`
 - **Backend**: Firebase 11 — Auth (Google), Firestore, Storage, Cloud Functions (`functions/`)
-- **PWA**: `vite-plugin-pwa` (autoUpdate); nome e icone dipendono dalle variabili `VITE_*` del mode
+- **PWA**: `vite-plugin-pwa` (autoUpdate); nome e icone dipendono dalle variabili `VITE_*` del mode. Il service worker esclude `/__/` (`navigateFallbackDenylist`): senza, il popup di login Google (`/__/auth/handler`) riceve `index.html` e mostra "Pagina non trovata". Chi ha un vecchio service worker installato deve annullarne la registrazione (`about:serviceworkers`) o attendere il redeploy.
+- **Sviluppo locale**: servono le variabili `VITE_FIREBASE_*` in `.env.local` (non versionato); senza, l'app parte in modalità locale e il login mostra "Firebase non è configurato". `.claude/launch.json` avvia `npm run dev` (la porta può cambiare se la 5173 è occupata: aggiungere l'host tra i domini autorizzati di Firebase Auth).
 - **Hosting**: Firebase Hosting, target `live` e `staging` (`.firebaserc`)
 
 ## Architettura
@@ -114,6 +115,7 @@ functions/src/
 ### Stile
 
 - Solo classi Tailwind con i token del tema: `bg-background`, `bg-card`, `border-border`, `bg-input`, `text-text`, `text-text-muted`, `accent`, `destructive`, `success`, `warning`. **Niente colori hard-coded** (`zinc-800`, `#hex`): rompono i temi.
+- Vista di gioco (restyling in corso, branch `restyling-ui`): direzione bento senza bordi. Usare `.tile` / `.tile-hero` / `.tile-danger` (`src/index.css`) e `PlaySection`, non `.surface` né bordi; le tessere di valore sono `BentoStat` in `MainTabView`. Dettagli e regole (Borderless-Bento) in `DESIGN.md`.
 - Un nuovo token va aggiunto in tutti i blocchi `theme-*` di `src/index.css` e in `tailwind.config.js`.
 - Font: `font-norse` per i titoli, `font-cinzel` per gli accenti, `font-sans` (Inter) per il testo.
 - Input numerici: classe `no-spinner`.

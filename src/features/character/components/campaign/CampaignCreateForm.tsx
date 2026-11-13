@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { PlusIcon } from '../../../../components/ui/icons';
 import { Button } from '../../../../components/ui/Button';
+import { fieldInputClass, fieldLabelClass } from '../../../../components/ui/field';
 
 interface CampaignCreateFormProps {
     /** Se false la campagna resta solo su questo dispositivo. */
@@ -27,14 +28,14 @@ export const CampaignCreateForm = ({ isShared, onCreate }: CampaignCreateFormPro
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
             {!isShared && (
-                <p className="rounded-xl border border-warning/40 bg-warning/10 p-3 text-xs text-text">
+                <p className="rounded-xl border border-warning/40 bg-warning/10 p-3 text-sm text-text">
                     Senza accesso la campagna resta su questo dispositivo. Accedi per condividerla con giocatori e DM.
                 </p>
             )}
             <div>
-                <label htmlFor="campaign-name" className="mb-1 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <label htmlFor="campaign-name" className={fieldLabelClass}>
                     Nome della campagna
                 </label>
                 <input
@@ -45,25 +46,25 @@ export const CampaignCreateForm = ({ isShared, onCreate }: CampaignCreateFormPro
                     placeholder="Es. La Maledizione di Strahd"
                     maxLength={120}
                     required
-                    className="w-full rounded-xl border border-border bg-input/60 p-3 text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/40"
+                    className={`${fieldInputClass} bg-background`}
                 />
             </div>
             <div>
-                <label htmlFor="campaign-desc" className="mb-1 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <label htmlFor="campaign-desc" className={fieldLabelClass}>
                     Descrizione o note del DM (facoltativo)
                 </label>
                 <textarea
                     id="campaign-desc"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Breve intro o dettagli della campagna..."
+                    placeholder="Breve introduzione o dettagli della campagna"
                     maxLength={2000}
                     rows={3}
-                    className="w-full resize-none rounded-xl border border-border bg-input/60 p-3 text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/40"
+                    className={`${fieldInputClass} resize-none bg-background`}
                 />
             </div>
             <Button type="submit" size="lg" className="w-full" disabled={busy}>
-                <PlusIcon className="h-5 w-5" /> {busy ? 'Creazione…' : 'Crea campagna'}
+                <PlusIcon className="h-4 w-4" /> {busy ? 'Creazione…' : 'Crea campagna'}
             </Button>
         </form>
     );

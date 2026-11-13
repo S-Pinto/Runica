@@ -1,7 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import Cropper, { ReactCropperElement } from 'react-cropper';
 import 'cropperjs/dist/cropper.css';
-import { PhotoIcon, UploadIcon, XMarkIcon } from '../../../components/ui/icons';
+import { PhotoIcon, UploadIcon } from '../../../components/ui/icons';
+import { Button } from '../../../components/ui/Button';
+import { Modal } from '../../../components/ui/Modal';
 import { compressImage } from '../../../services/storageService';
 
 interface ImageUploaderProps {
@@ -15,18 +17,6 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ isOpen, onClose, o
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const cropperRef = useRef<ReactCropperElement>(null);
-    const dialogRef = useRef<HTMLDialogElement>(null);
-
-    useEffect(() => {
-        const dialog = dialogRef.current;
-        if (dialog) {
-            if (isOpen) {
-                dialog.showModal();
-            } else {
-                dialog.close();
-            }
-        }
-    }, [isOpen]);
 
     const resetState = () => {
         setImageSrc(null);
@@ -58,7 +48,8 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ isOpen, onClose, o
                 };
                 reader.readAsDataURL(compressedFile);
             } catch (error) {
-                setError(error instanceof Error ? error.message : 'Image processing failed.');
+                console.error('Image processing failed:', error);
+                setError('Non riesco a leggere questa immagine. Prova con un altro file.');
                 setIsProcessing(false);
             }
         }
@@ -66,7 +57,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ isOpen, onClose, o
 
     const handleCrop = async () => {
         if (!cropperRef.current?.cropper) {
-            setError('Cropper not available.');
+            setError('Ritaglio non disponibile. Chiudi e riprova.');
             return;
         }
         setIsProcessing(true);
@@ -83,67 +74,55 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ isOpen, onClose, o
             await onImageReady(dataUrl);
             handleClose(); // Close only on success
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Upload failed. Please try again.');
+            console.error('Image upload failed:', err);
+            setError('Caricamento non riuscito. Controlla la connessione e riprova.');
         } finally {
             setIsProcessing(false);
         }
     };
 
     return (
-        <dialog ref={dialogRef} onClose={handleClose} className="bg-card text-foreground p-0 rounded-lg shadow-2xl w-full max-w-md border border-border backdrop:bg-black/50">
-            <header className="flex items-center justify-between p-4 border-b border-border">
-                <h3 className="text-lg font-cinzel text-accent">Carica ritratto</h3>
-                <button onClick={handleClose} className="p-1 rounded-full hover:bg-muted transition-colors">
-                    <XMarkIcon className="w-5 h-5" />
-                </button>
-            </header>
-            <div className="p-6">
-                {!imageSrc ? (
-                    <div className="flex flex-col items-center justify-center border-2 border-dashed border-input rounded-lg p-8 text-center">
-                        <PhotoIcon className="w-12 h-12 text-muted-foreground mb-2" />
-                        <label htmlFor="image-upload-input" className="cursor-pointer bg-accent hover:bg-accent-dark text-accent-foreground font-bold py-2 px-4 rounded transition-colors duration-200">
-                            Scegli un'immagine
-                        </label>
-                        <input id="image-upload-input" type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-                        <p className="text-xs text-muted-foreground mt-2">PNG, JPG o WEBP fino a 1 MB.</p>
-                        {isProcessing && <p className="mt-2 text-muted-foreground animate-pulse">Elaborazione…</p>}
-                    </div>
-                ) : (
-                    <div>
-                        <Cropper
-                            ref={cropperRef}
-                            src={imageSrc}
-                            style={{ height: 400, width: '100%' }}
-                            aspectRatio={1 / 1}
-                            guides={false}
-                            viewMode={1}
-                            autoCropArea={0.8}
-                            movable={true}
-                            zoomable={true}
-                            background={false}
-                            className="bg-background rounded-md"
-                        />
-                    </div>
-                )}
-                {error && <p className="text-destructive text-sm mt-4">{error}</p>}
-            </div>
-            <footer className="flex justify-end gap-2 p-4 bg-muted/50 border-t border-border">
-                <button
-                    onClick={handleClose}
-                    disabled={isProcessing}
-                    className="bg-secondary hover:bg-secondary/80 text-secondary-foreground font-bold py-2 px-4 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        <Modal
+            open={isOpen}
+            onClose={handleClose}
+            title="Carica immagine"
+            icon={<PhotoIcon />}
+            footer={
+                <>
+                    <Button variant="ghost" onClick={handleClose} disabled={isProcessing}>Annulla</Button>
+                    <Button onClick={handleCrop} disabled={isProcessing || !imageSrc}>
+                        <UploadIcon className="h-4 w-4" />
+                        {isProcessing && imageSrc ? 'Salvataggio…' : 'Salva il ritaglio'}
+                    </Button>
+                </>
+            }
+        >
+            {!imageSrc ? (
+                <label
+                    htmlFor="image-upload-input"
+                    className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border-strong/60 px-6 py-10 text-center transition-colors duration-150 focus-within:border-accent hover:border-accent"
                 >
-                    Annulla
-                </button>
-                <button
-                    onClick={handleCrop}
-                    disabled={isProcessing || !imageSrc}
-                    className="flex items-center gap-2 bg-success hover:bg-success/80 text-background font-bold py-2 px-4 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    <UploadIcon className="w-5 h-5" />
-                    {isProcessing ? 'Saving...' : 'Salva immagine ritagliata'}
-                </button>
-            </footer>
-        </dialog>
+                    <PhotoIcon className="h-10 w-10 text-muted-foreground" />
+                    <span className="text-sm font-semibold text-foreground">{isProcessing ? 'Elaborazione…' : 'Scegli un\'immagine'}</span>
+                    <span className="text-xs text-muted-foreground">PNG, JPG o WEBP. Poi la ritagli in un quadrato.</span>
+                    <input id="image-upload-input" type="file" accept="image/*" onChange={handleFileChange} className="sr-only" />
+                </label>
+            ) : (
+                <Cropper
+                    ref={cropperRef}
+                    src={imageSrc}
+                    style={{ height: 'min(360px, 50dvh)', width: '100%' }}
+                    aspectRatio={1 / 1}
+                    guides={false}
+                    viewMode={1}
+                    autoCropArea={0.8}
+                    movable={true}
+                    zoomable={true}
+                    background={false}
+                    className="overflow-hidden rounded-xl bg-background"
+                />
+            )}
+            {error && <p role="alert" className="mt-4 text-sm text-destructive">{error}</p>}
+        </Modal>
     );
 };

@@ -55,42 +55,51 @@ export const HPTracker = () => {
 
     const pct = hp.max > 0 ? Math.min(100, (hp.current / hp.max) * 100) : 100;
     const tempPct = hp.max > 0 ? Math.min(100 - pct, (hp.temporary / hp.max) * 100) : 0;
-    const tone = pct > 50 ? 'bg-success' : pct > 25 ? 'bg-warning' : 'bg-destructive';
+    const tone = pct > 50
+        ? 'bg-success shadow-[0_0_16px_rgb(var(--color-success)/0.6)]'
+        : pct > 25
+            ? 'bg-warning shadow-[0_0_16px_rgb(var(--color-warning)/0.6)]'
+            : 'bg-destructive shadow-[0_0_16px_rgb(var(--color-destructive)/0.6)]';
     const isDown = hp.current === 0;
 
     return (
-        <section aria-labelledby="hp-title" className="space-y-5 rounded-2xl border border-border/60 bg-card p-5 sm:p-6">
-            <div className="flex items-center justify-between">
-                <h3 id="hp-title" className="flex items-center gap-2 font-cinzel text-lg font-bold text-foreground">
-                    <HeartIcon className="h-5 w-5 text-destructive" /> Punti vita
-                </h3>
-                {hp.temporary > 0 && (
-                    <span className="flex items-center gap-1 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-0.5 text-xs font-semibold text-accent">
-                        <ShieldIcon className="h-3.5 w-3.5" /> {hp.temporary} temporanei
-                    </span>
-                )}
-            </div>
-
+        <section aria-label="Punti vita" className={`tile tile-danger flex h-full flex-col justify-between gap-5 p-5 sm:p-6 ${isDown ? 'ring-2 ring-destructive/60' : ''}`}>
             <div>
-                <div className="flex items-baseline justify-center gap-2" aria-live="polite">
-                    <span className={`font-mono text-6xl font-bold leading-none ${isDown ? 'text-destructive' : 'text-foreground'}`}>{hp.current}</span>
-                    <span className="font-mono text-2xl text-muted-foreground">/ {hp.max}</span>
+                <div className="flex items-center justify-between gap-3">
+                    <h3 className="flex items-center gap-2 text-label font-semibold uppercase tracking-widest text-muted-foreground">
+                        <HeartIcon className="h-4 w-4 text-destructive" /> Punti vita
+                    </h3>
+                    {hp.temporary > 0 && (
+                        <span className="flex items-center gap-1.5 rounded-full bg-accent/15 px-2.5 py-1 text-xs font-semibold text-accent">
+                            <ShieldIcon className="h-3.5 w-3.5" /> <span className="font-mono">+{hp.temporary}</span> temp
+                        </span>
+                    )}
                 </div>
-                {isDown && <p className="mt-2 text-center text-sm font-semibold text-destructive">A terra: effettua i tiri salvezza contro la morte</p>}
+                <div className="mt-2 flex items-baseline gap-3" aria-live="polite">
+                    <span className={`font-mono text-8xl font-black leading-none tracking-tighter tabular-nums sm:text-9xl ${isDown ? 'text-destructive' : 'text-foreground'}`}>{hp.current}</span>
+                    <span className="font-mono text-3xl font-semibold tabular-nums text-muted-foreground">/ {hp.max}</span>
+                </div>
+                {isDown && <p className="mt-2 text-sm font-semibold text-destructive">A terra: effettua i tiri salvezza contro la morte</p>}
                 <div
-                    className="mt-4 flex h-3 overflow-hidden rounded-full bg-muted/40"
+                    className="relative mt-4 flex h-3 overflow-hidden rounded-full bg-background/60"
                     role="progressbar"
                     aria-label="Punti vita"
                     aria-valuemin={0}
                     aria-valuemax={hp.max}
                     aria-valuenow={hp.current}
                 >
-                    <div className={`${tone} h-full transition-all duration-500 ease-out`} style={{ width: `${pct}%` }} />
-                    {tempPct > 0 && <div className="h-full bg-accent/70 transition-all duration-500" style={{ width: `${tempPct}%` }} />}
+                    <div className={`${tone} h-full transition-[width] duration-300 ease-soft`} style={{ width: `${pct}%` }} />
+                    {tempPct > 0 && <div className="h-full bg-accent/70 transition-[width] duration-300 ease-soft" style={{ width: `${tempPct}%` }} />}
+                    {/* Tacche: dieci segmenti, come le incisioni di un righello. */}
+                    <div
+                        aria-hidden
+                        className="pointer-events-none absolute inset-0"
+                        style={{ backgroundImage: 'repeating-linear-gradient(90deg, transparent 0, transparent calc(10% - 2px), rgb(var(--color-card)) calc(10% - 2px), rgb(var(--color-card)) 10%)' }}
+                    />
                 </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
                 <div className="flex gap-2">
                     <input
                         type="number"
@@ -101,14 +110,14 @@ export const HPTracker = () => {
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && applyDamage()}
-                        className="no-spinner h-11 min-w-0 flex-1 rounded-xl border border-border bg-background/60 px-3 text-center font-mono text-xl font-bold text-foreground placeholder:font-sans placeholder:text-sm placeholder:font-normal placeholder:text-muted-foreground/60 focus:border-accent focus:outline-none focus:ring-2 focus:ring-ring/30"
+                        className="no-spinner h-12 min-w-0 flex-1 rounded-2xl bg-background/60 px-3 text-center font-mono text-xl font-bold text-foreground transition-shadow duration-150 placeholder:font-sans placeholder:text-base placeholder:font-normal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/60"
                     />
                     {QUICK_AMOUNTS.map((n) => (
                         <button
                             key={n}
                             type="button"
                             onClick={() => setAmount(String(value + n))}
-                            className="h-11 w-11 shrink-0 rounded-xl border border-border font-mono text-sm font-semibold text-muted-foreground transition-colors hover:border-accent/50 hover:text-accent"
+                            className="h-12 w-12 shrink-0 rounded-2xl bg-foreground/10 font-mono text-sm font-semibold text-text transition-[background-color,color,transform] duration-150 ease-soft hover:bg-accent/20 hover:text-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             aria-label={`Aggiungi ${n}`}
                         >
                             +{n}
@@ -120,7 +129,7 @@ export const HPTracker = () => {
                         type="button"
                         onClick={applyDamage}
                         disabled={value <= 0}
-                        className="flex h-12 items-center justify-center gap-1.5 rounded-xl bg-destructive/15 text-sm font-semibold text-destructive transition-all hover:bg-destructive hover:text-destructive-foreground active:scale-[0.97] disabled:opacity-40 disabled:hover:bg-destructive/15 disabled:hover:text-destructive"
+                        className="flex h-12 items-center justify-center gap-1.5 rounded-xl bg-destructive/15 text-sm font-semibold text-destructive transition-[background-color,color,transform] duration-150 ease-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hover:bg-destructive hover:text-destructive-foreground active:scale-[0.97] disabled:opacity-60 disabled:hover:bg-destructive/15 disabled:hover:text-destructive"
                     >
                         <MinusIcon className="h-4 w-4" /> Danno
                     </button>
@@ -128,7 +137,7 @@ export const HPTracker = () => {
                         type="button"
                         onClick={applyHeal}
                         disabled={value <= 0 || hp.current >= hp.max}
-                        className="flex h-12 items-center justify-center gap-1.5 rounded-xl bg-success/15 text-sm font-semibold text-success transition-all hover:bg-success hover:text-background active:scale-[0.97] disabled:opacity-40 disabled:hover:bg-success/15 disabled:hover:text-success"
+                        className="flex h-12 items-center justify-center gap-1.5 rounded-xl bg-success/15 text-sm font-semibold text-success transition-[background-color,color,transform] duration-150 ease-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hover:bg-success hover:text-background active:scale-[0.97] disabled:opacity-60 disabled:hover:bg-success/15 disabled:hover:text-success"
                     >
                         <PlusIcon className="h-4 w-4" /> Cura
                     </button>
@@ -136,7 +145,7 @@ export const HPTracker = () => {
                         type="button"
                         onClick={setTemp}
                         disabled={amount === ''}
-                        className="flex h-12 items-center justify-center gap-1.5 rounded-xl bg-accent/15 text-sm font-semibold text-accent transition-all hover:bg-accent hover:text-accent-foreground active:scale-[0.97] disabled:opacity-40 disabled:hover:bg-accent/15 disabled:hover:text-accent"
+                        className="flex h-12 items-center justify-center gap-1.5 rounded-xl bg-accent/15 text-sm font-semibold text-accent transition-[background-color,color,transform] duration-150 ease-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hover:bg-accent hover:text-accent-foreground active:scale-[0.97] disabled:opacity-60 disabled:hover:bg-accent/15 disabled:hover:text-accent"
                         title="Imposta i punti vita temporanei"
                     >
                         <ShieldIcon className="h-4 w-4" /> Temp

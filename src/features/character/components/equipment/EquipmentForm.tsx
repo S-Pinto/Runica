@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useCharacter } from '../../CharacterProvider';
 import { EquipmentItem } from '../../characterTypes';
 import { PhotoIcon } from '../../../../components/ui/icons';
+import { Button } from '../../../../components/ui/Button';
+import { fieldNumericClass } from '../../../../components/ui/field';
+import { InlineForm } from '../ui/InlineForm';
 import { ImageUploader } from '../ImageUploader';
 import { useAuth } from '../../../../providers/AuthProvider';
 import { uploadItemImage } from '../../../../services/storageService';
@@ -70,60 +73,52 @@ export const EquipmentForm = ({
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="bg-card/95 backdrop-blur-md p-6 rounded-xl border border-accent/20 space-y-5 mb-6 shadow-xl relative overflow-hidden animate-in fade-in slide-in-from-top-2">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl -z-10 -mr-32 -mt-32 pointer-events-none" />
-
-        <div className="flex justify-between items-center border-b border-border/40 pb-3">
-          <h3 className="font-cinzel text-xl font-bold text-accent italic">
-            {formData.id ? 'Modifica oggetto' : 'Nuovo oggetto'}
-          </h3>
-          <div className="flex items-center gap-3">
+      <InlineForm
+        title={formData.id ? 'Modifica oggetto' : 'Nuovo oggetto'}
+        onSubmit={handleSubmit}
+        onCancel={onCancel}
+        submitLabel="Salva oggetto"
+        className="mb-5"
+        aside={
+          <div className="flex items-center gap-2">
             {formData.imageUrl && (
-              <div className="w-12 h-12 rounded-lg overflow-hidden border-2 border-accent/30 shadow-inner">
-                <img src={formData.imageUrl} alt="Anteprima" className="w-full h-full object-cover" />
-              </div>
+              <img src={formData.imageUrl} alt="" className="h-10 w-10 rounded-lg border border-border object-cover" />
             )}
-            <button
-              type="button"
-              onClick={() => setIsImageUploaderOpen(true)}
-              className="p-2 bg-background/50 hover:bg-accent/10 border border-border/50 rounded-lg text-accent transition-all"
-              title="Carica immagine"
-            >
-              <PhotoIcon className="w-5 h-5" />
-            </button>
+            <Button variant="secondary" onClick={() => setIsImageUploaderOpen(true)}>
+              <PhotoIcon className="h-4 w-4" /> {formData.imageUrl ? 'Cambia immagine' : 'Immagine'}
+            </Button>
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-          <div className="md:col-span-8">
+        }
+      >
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-12">
+          <div className="sm:col-span-6">
             <label htmlFor="name" className={labelClass}>Nome dell'oggetto</label>
-            <input id="name" type="text" placeholder="Es. spada lunga, armatura a piastre, pozione di guarigione" value={formData.name} onChange={e => handleChange('name', e.target.value)} required className={inputClass} />
+            <input id="name" type="text" placeholder="Es. spada lunga" value={formData.name} onChange={e => handleChange('name', e.target.value)} required className={inputClass} />
           </div>
-          <div className="md:col-span-4">
+          <div className="sm:col-span-4">
+            <label htmlFor="itemType" className={labelClass}>Categoria</label>
+            <select
+              id="itemType"
+              value={formData.itemType || 'gear'}
+              onChange={e => handleChange('itemType', e.target.value as EquipmentItem['itemType'])}
+              className={inputClass}
+            >
+              <option value="weapon">Arma</option>
+              <option value="armor">Armatura</option>
+              <option value="shield">Scudo</option>
+              <option value="wondrous">Oggetto prodigioso o magico</option>
+              <option value="ring">Anello magico</option>
+              <option value="amulet">Amuleto o ciondolo</option>
+              <option value="helmet">Elmo o copricapo</option>
+              <option value="potion">Pozione o consumabile</option>
+              <option value="scroll">Pergamena</option>
+              <option value="gear">Oggetto da avventura</option>
+            </select>
+          </div>
+          <div className="sm:col-span-2">
             <label htmlFor="quantity" className={labelClass}>Quantità</label>
-            <input id="quantity" type="number" value={formData.quantity} onChange={e => handleChange('quantity', parseInt(e.target.value) || 1)} min="1" className={`${inputClass} text-center font-mono`} />
+            <input id="quantity" type="number" inputMode="numeric" value={formData.quantity} onChange={e => handleChange('quantity', parseInt(e.target.value) || 1)} min="1" className={fieldNumericClass} />
           </div>
-        </div>
-
-        <div>
-          <label htmlFor="itemType" className={labelClass}>Categoria</label>
-          <select
-            id="itemType"
-            value={formData.itemType || 'gear'}
-            onChange={e => handleChange('itemType', e.target.value as EquipmentItem['itemType'])}
-            className={inputClass}
-          >
-            <option value="weapon">⚔️ Arma</option>
-            <option value="armor">🛡️ Armatura</option>
-            <option value="shield">🛡️ Scudo</option>
-            <option value="wondrous">✨ Oggetto Prodigioso / Magico</option>
-            <option value="ring">💍 Anello Magico</option>
-            <option value="amulet">📿 Amuleto / Ciondolo</option>
-            <option value="helmet">🪖 Elmo / Copricapo</option>
-            <option value="potion">🧪 Pozione / Consumabile</option>
-            <option value="scroll">📜 Pergamena</option>
-            <option value="gear">🎒 Oggetto da Avventura / Zaino</option>
-          </select>
         </div>
 
         {formData.itemType === 'weapon' && <WeaponBasicFields {...fieldProps} />}
@@ -132,19 +127,14 @@ export const EquipmentForm = ({
         <AttunementFields {...fieldProps} />
 
         <div>
-          <label htmlFor="description" className={labelClass}>Descrizione / Note</label>
-          <textarea id="description" value={formData.description} onChange={e => handleChange('description', e.target.value)} className={inputClass} rows={2}></textarea>
+          <label htmlFor="description" className={labelClass}>Descrizione e note</label>
+          <textarea id="description" value={formData.description} onChange={e => handleChange('description', e.target.value)} className={`${inputClass} resize-y leading-relaxed`} rows={3}></textarea>
         </div>
 
         {formData.armorType === 'weapon' && <TacticalWeaponFields {...fieldProps} />}
         {formData.armorType === 'magic' && <MagicPowerFields {...fieldProps} />}
         {(formData.armorType === 'magic' || formData.armorType === 'weapon' || formData.uses?.max) && <UsesTrackingFields {...fieldProps} />}
-
-        <div className="flex justify-end gap-3 pt-3 border-t border-border/30">
-          <button type="button" onClick={onCancel} className="bg-muted/40 hover:bg-muted/60 text-foreground font-bold py-2 px-6 rounded-lg transition-all text-sm uppercase tracking-wider">Annulla</button>
-          <button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2 px-8 rounded-lg transition-all text-sm shadow-md hover:shadow-primary/20 uppercase tracking-widest">Salva oggetto</button>
-        </div>
-      </form>
+      </InlineForm>
       <ImageUploader
         isOpen={isImageUploaderOpen}
         onClose={() => setIsImageUploaderOpen(false)}

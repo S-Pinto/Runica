@@ -88,30 +88,30 @@ export const CompanionSkillSelector: React.FC<CompanionSkillSelectorProps> = ({ 
                         <div
                             key={skillDef.name}
                             onClick={() => toggleSkill(skillDef)}
-                            className={`flex items-center justify-between p-2 rounded-md border text-sm transition-all select-none
-                    ${readOnly ? 'cursor-default' : 'cursor-pointer hover:bg-accent/5'}
-                    ${state !== 'none' ? 'bg-accent/10 border-accent/30 shadow-sm' : 'bg-card/30 border-transparent hover:border-border'}
+                            className={`flex min-h-10 items-center justify-between rounded-lg border px-2.5 text-sm transition-colors duration-150 select-none
+                    ${readOnly ? 'cursor-default' : 'cursor-pointer hover:border-accent/50'}
+                    ${state !== 'none' ? 'border-accent/40 bg-accent/10' : 'border-border bg-background/40'}
                 `}
                         >
                             <div className="flex items-center gap-2">
-                                <div className={`w-4 h-4 flex items-center justify-center rounded-full text-[10px] 
+                                <div className={`flex h-4 w-4 items-center justify-center rounded-full 
                     ${state === 'expertise' ? 'bg-accent text-accent-foreground' :
                                         state === 'proficient' ? 'bg-accent/50 text-foreground' : 'bg-muted text-muted-foreground'}
                 `}>
                                     {state === 'expertise' && <DoubleCheckIcon className="w-3 h-3" />}
                                     {state === 'proficient' && <CheckIcon className="w-3 h-3" />}
                                 </div>
-                                <span className={`font-medium ${state !== 'none' ? 'text-accent' : 'text-muted-foreground'}`}>
+                                <span className={`font-medium ${state !== 'none' ? 'text-foreground' : 'text-muted-foreground'}`}>
                                     {skillDef.name}
-                                    <span className="text-xs ml-1 opacity-50 uppercase">({skillDef.ability.substring(0, 3)})</span>
+                                    <span className="ml-1 text-xs uppercase text-muted-foreground">({skillDef.ability.substring(0, 3)})</span>
                                 </span>
                             </div>
-                            <div className="font-mono font-bold text-muted-foreground">{bonus}</div>
+                            <div className="font-mono font-bold tabular-nums text-foreground">{bonus}</div>
                         </div>
                     );
                 })}
             </div>
-            {!readOnly && <p className="text-xs text-muted-foreground mt-2 italic">* Un clic per la competenza, due per la maestria, tre per rimuovere.</p>}
+            {!readOnly && <p className="mt-2 text-xs text-muted-foreground">Un clic per la competenza, due per la maestria, tre per rimuovere.</p>}
         </div>
     );
 };

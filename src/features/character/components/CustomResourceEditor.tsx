@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { ICharacter, CustomResource } from '../characterTypes';
-import { TrashIcon, EditIcon, PlusCircleIcon } from '../../../components/ui/icons';
-import { confirmDialog } from '../../../components/ui/Dialogs';
+import { PlusIcon } from '../../../components/ui/icons';
+import { Button } from '../../../components/ui/Button';
+import { fieldControlClass, fieldGroupTitleClass, fieldLabelClass, fieldNumericClass } from '../../../components/ui/field';
+import { InlineForm, RowActions } from './ui/InlineForm';
 
 const DEFAULT_RESOURCE: Omit<CustomResource, 'id' | 'used'> = {
   name: '',
@@ -30,17 +32,24 @@ const ResourceForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-card/80 p-4 rounded-lg border border-accent/30 space-y-4 mb-4">
-      <h3 className="font-cinzel text-lg text-accent">{'id' in initialData ? 'Modifica risorsa' : 'Nuova risorsa'}</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <input type="text" placeholder="Nome della risorsa" value={formData.name} onChange={e => handleChange('name', e.target.value)} required className="w-full bg-input p-2 rounded border border-border focus:ring-ring focus:border-accent sm:col-span-2" />
-        <input type="number" placeholder="Max" value={formData.max} onChange={e => handleChange('max', parseInt(e.target.value) || 1)} min="1" className="w-full bg-input p-2 rounded border border-border focus:ring-ring focus:border-accent text-center" />
+    <InlineForm
+      title={'id' in initialData ? 'Modifica risorsa' : 'Nuova risorsa'}
+      onSubmit={handleSubmit}
+      onCancel={onCancel}
+      submitLabel="Salva risorsa"
+      className="mb-3"
+    >
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="sm:col-span-2">
+          <label htmlFor="resource-name" className={fieldLabelClass}>Nome</label>
+          <input id="resource-name" type="text" placeholder="Es. Punti ki" value={formData.name} onChange={e => handleChange('name', e.target.value)} required className={fieldControlClass} />
+        </div>
+        <div>
+          <label htmlFor="resource-max" className={fieldLabelClass}>Massimo</label>
+          <input id="resource-max" type="number" inputMode="numeric" value={formData.max} onChange={e => handleChange('max', parseInt(e.target.value) || 1)} min="1" className={fieldNumericClass} />
+        </div>
       </div>
-      <div className="flex justify-end gap-2">
-        <button type="button" onClick={onCancel} className="bg-secondary hover:bg-secondary/80 text-secondary-foreground font-bold py-2 px-4 rounded transition">Annulla</button>
-        <button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2 px-4 rounded transition">Salva</button>
-      </div>
-    </form>
+    </InlineForm>
   );
 };
 
@@ -59,45 +68,43 @@ export const CustomResourceEditor = ({ character, onUpdateCharacter }: { charact
     setEditingResource(null);
   };
 
-  const handleDelete = async (resourceId: string) => {
-    if (await confirmDialog({ title: 'Eliminare questa risorsa?', confirmLabel: 'Elimina', destructive: true })) {
-      const updatedResources = (character.customResources || []).filter(r => r.id !== resourceId);
-      onUpdateCharacter({ customResources: updatedResources });
-    }
+  const handleDelete = (resourceId: string) => {
+    onUpdateCharacter({ customResources: (character.customResources || []).filter(r => r.id !== resourceId) });
   };
 
+  const resources = character.customResources || [];
+
   return (
-    <div className="bg-muted/50 p-4 rounded-lg">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-cinzel text-accent">Altre risorse</h3>
-        <button onClick={() => setEditingResource('new')} className="flex items-center gap-2 text-sm bg-primary hover:bg-primary/90 px-3 py-2 rounded-md text-primary-foreground transition">
-          <PlusCircleIcon className="w-5 h-5" /> Aggiungi risorsa
-        </button>
+    <div>
+      <div className="mb-3 flex min-h-10 items-center justify-between gap-3">
+        <h4 className={fieldGroupTitleClass}>Risorse personalizzate</h4>
+        <Button variant="ghost" size="sm" onClick={() => setEditingResource('new')} disabled={editingResource !== null} className="h-9 text-accent">
+          <PlusIcon className="h-3.5 w-3.5" /> Aggiungi
+        </Button>
       </div>
 
       {editingResource && (
         <ResourceForm
+          key={editingResource === 'new' ? 'new' : editingResource.id}
           initialData={editingResource === 'new' ? DEFAULT_RESOURCE : editingResource}
           onSave={handleSave}
           onCancel={() => setEditingResource(null)}
         />
       )}
 
-      <div className="space-y-2">
-        {(character.customResources || []).length === 0 && !editingResource && (
-            <p className="text-center text-muted-foreground text-sm py-4">Nessuna risorsa personalizzata.</p>
-        )}
-        {(character.customResources || []).map(resource => (
-          <div key={resource.id} className="bg-card/50 rounded-lg text-sm p-3 flex items-center justify-between">
-              <span className="font-semibold text-accent">{resource.name}</span>
-              <div className="flex items-center gap-4">
-                <span className="text-muted-foreground">Max: {resource.max}</span>
-                <button onClick={() => setEditingResource(resource)} className="text-muted-foreground hover:text-accent p-1"><EditIcon className="w-4 h-4"/></button>
-                <button onClick={() => handleDelete(resource.id)} className="text-muted-foreground hover:text-destructive p-1"><TrashIcon className="w-4 h-4"/></button>
-              </div>
-          </div>
-        ))}
-      </div>
+      {resources.length === 0 && !editingResource ? (
+        <p className="text-sm text-muted-foreground">Punti ki, ispirazione bardica, furia: tutto ciò che si conta e si recupera.</p>
+      ) : (
+        <ul className="divide-y divide-border">
+          {resources.map(resource => (
+            <li key={resource.id} className="flex min-h-11 items-center gap-3">
+              <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{resource.name}</span>
+              <span className="font-mono text-sm tabular-nums text-muted-foreground">max <span className="font-bold text-foreground">{resource.max}</span></span>
+              <RowActions name={resource.name} onEdit={() => setEditingResource(resource)} onDelete={() => handleDelete(resource.id)} />
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { ICampaign, CampaignRole } from '../../character/characterTypes';
 import { Button } from '../../../components/ui/Button';
 import { ArrowPathIcon, CheckIcon, CopyIcon, TrashIcon } from '../../../components/ui/icons';
+import { fieldInputClass, fieldLabelClass } from '../../../components/ui/field';
 import { ROLE_LABELS } from '../../character/rules/campaign';
 
 interface CampaignHeaderProps {
@@ -43,7 +44,7 @@ export const CampaignHeader = ({ campaign, role, onSave, onRegenerateCode, onDel
     if (editing) {
         return (
             <form
-                className="space-y-3 rounded-2xl border border-border/70 bg-card p-4"
+                className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5"
                 onSubmit={(e) => {
                     e.preventDefault();
                     if (!name.trim()) return;
@@ -53,12 +54,16 @@ export const CampaignHeader = ({ campaign, role, onSave, onRegenerateCode, onDel
                     });
                 }}
             >
-                <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground" htmlFor="edit-campaign-name">Nome</label>
-                <input id="edit-campaign-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={120} required
-                    className="w-full rounded-xl border border-border bg-input/60 p-3 text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/40" />
-                <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground" htmlFor="edit-campaign-desc">Descrizione</label>
-                <textarea id="edit-campaign-desc" value={description} onChange={(e) => setDescription(e.target.value)} maxLength={2000} rows={3}
-                    className="w-full resize-none rounded-xl border border-border bg-input/60 p-3 text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/40" />
+                <div>
+                    <label className={fieldLabelClass} htmlFor="edit-campaign-name">Nome</label>
+                    <input id="edit-campaign-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={120} required
+                        className={`${fieldInputClass} bg-background`} />
+                </div>
+                <div>
+                    <label className={fieldLabelClass} htmlFor="edit-campaign-desc">Descrizione</label>
+                    <textarea id="edit-campaign-desc" value={description} onChange={(e) => setDescription(e.target.value)} maxLength={2000} rows={3}
+                        className={`${fieldInputClass} resize-none bg-background`} />
+                </div>
                 <div className="flex gap-2">
                     <Button type="submit" disabled={busy}>Salva</Button>
                     <Button variant="ghost" onClick={() => setEditing(false)}>Annulla</Button>
@@ -68,20 +73,21 @@ export const CampaignHeader = ({ campaign, role, onSave, onRegenerateCode, onDel
     }
 
     return (
-        <header className="space-y-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <header className="space-y-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
-                    <p className="text-xs font-bold uppercase tracking-wider text-accent">{ROLE_LABELS[role]}</p>
                     <h1 className="break-words font-cinzel text-3xl font-bold text-foreground sm:text-4xl">{campaign.name}</h1>
+                    <p className="mt-1 text-sm text-muted-foreground">Il tuo ruolo: {ROLE_LABELS[role]}</p>
                     {campaign.description && (
-                        <p className="mt-2 max-w-prose whitespace-pre-line text-sm text-muted-foreground">{campaign.description}</p>
+                        <p className="mt-3 max-w-prose whitespace-pre-line text-sm leading-relaxed text-text">{campaign.description}</p>
                     )}
                 </div>
                 <div className="flex shrink-0 gap-2">
                     {role === 'dm' ? (
                         <>
                             <Button variant="secondary" onClick={() => setEditing(true)}>Modifica</Button>
-                            <Button variant="destructive" disabled={busy} onClick={() => void run(onDelete)}>
+                            {/* Contorno a riposo: il rosso pieno è nella conferma. */}
+                            <Button variant="destructive-outline" disabled={busy} onClick={() => void run(onDelete)}>
                                 <TrashIcon className="h-4 w-4" /> Elimina
                             </Button>
                         </>
@@ -92,16 +98,16 @@ export const CampaignHeader = ({ campaign, role, onSave, onRegenerateCode, onDel
             </div>
 
             {role === 'dm' && (
-                <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border/70 bg-card p-4">
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border border-border bg-card p-4">
                     <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Codice d'invito</p>
-                        <p className="font-mono text-2xl font-bold tracking-widest text-accent">{campaign.inviteCode}</p>
+                        <p className="text-label uppercase text-muted-foreground">Codice d'invito</p>
+                        <p className="mt-1 font-mono text-2xl font-bold tracking-widest text-foreground">{campaign.inviteCode}</p>
                     </div>
                     <div className="flex gap-2 sm:ml-auto">
-                        <Button variant="secondary" size="sm" onClick={copyCode}>
+                        <Button variant="secondary" onClick={copyCode}>
                             {copied ? <CheckIcon className="h-4 w-4 text-success" /> : <CopyIcon className="h-4 w-4" />} {copied ? 'Copiato' : 'Copia'}
                         </Button>
-                        <Button variant="ghost" size="sm" disabled={busy} onClick={() => void run(onRegenerateCode)}>
+                        <Button variant="ghost" disabled={busy} onClick={() => void run(onRegenerateCode)}>
                             <ArrowPathIcon className="h-4 w-4" /> Nuovo codice
                         </Button>
                     </div>

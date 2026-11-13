@@ -29,7 +29,7 @@ Runica sostituisce la scheda cartacea o il PDF compilabile con una scheda viva: 
 
 ## Capabilities and Constraints
 
-- Funzioni attuali: lista personaggi ordinabile, editor completo, vista di gioco a schede (principale, combattimento, incantesimi, inventario, info, compagni), lanciadadi, riposi brevi/lunghi, compagni con scheda propria, ritratti con ritaglio, stampa/PDF, generazione di personalità con Gemini, 13 temi colore.
+- Funzioni attuali: lista personaggi ordinabile, editor completo, vista di gioco a schede (principale, combattimento, incantesimi, inventario, info, compagni), lanciadadi, riposi brevi/lunghi, compagni con scheda propria, ritratti con ritaglio, stampa/PDF, generazione di personalità con Gemini, 6 temi colore (uno chiaro).
 - Regole di riferimento attuali: D&D 5e edizione 2024 (`features/character/rules/`).
 - Lingua attuale dell'interfaccia: italiano; i dati salvati usano chiavi inglesi.
 - **Vincolo: mobile-first in gioco.** La vista di gioco deve funzionare bene sul telefono; l'editor può privilegiare schermi più ampi.

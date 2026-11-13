@@ -15,24 +15,24 @@ export const MemberList = ({ members, currentUid, canManage, onRemove }: MemberL
     const sorted = [...members].sort((a, b) => (a.role === b.role ? a.joinedAt - b.joinedAt : a.role === 'dm' ? -1 : 1));
 
     return (
-        <ul className="divide-y divide-border/50 rounded-2xl border border-border/70 bg-card">
+        <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
             {sorted.map((m) => (
-                <li key={m.uid} className="flex items-center gap-3 p-3">
+                <li key={m.uid} className="flex min-h-14 items-center gap-3 px-4 py-2">
                     {m.photoURL ? (
                         <img src={m.photoURL} alt="" referrerPolicy="no-referrer" className="h-9 w-9 shrink-0 rounded-full object-cover" />
                     ) : (
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/20 font-cinzel text-sm font-bold text-accent">
+                        <span aria-hidden className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/15 text-sm font-semibold text-accent">
                             {m.displayName.slice(0, 1).toUpperCase()}
                         </span>
                     )}
                     <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-text">
-                            {m.displayName}{m.uid === currentUid && ' (tu)'}
+                        <p className="truncate text-sm font-semibold text-foreground">
+                            {m.displayName}{m.uid === currentUid && <span className="font-normal text-muted-foreground"> (tu)</span>}
                         </p>
                         <p className="text-xs text-muted-foreground">{ROLE_LABELS[m.role]}</p>
                     </div>
                     {canManage && m.role !== 'dm' && (
-                        <Button size="sm" variant="ghost" aria-label={`Rimuovi ${m.displayName}`} onClick={() => onRemove(m)}>
+                        <Button size="icon" variant="ghost" aria-label={`Rimuovi ${m.displayName}`} onClick={() => onRemove(m)}>
                             <XMarkIcon className="h-4 w-4" />
                         </Button>
                     )}

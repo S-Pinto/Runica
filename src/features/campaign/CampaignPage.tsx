@@ -13,9 +13,9 @@ import { MemberList } from './components/MemberList';
 import { SharedCharacterCard } from './components/SharedCharacterCard';
 
 const Notice = ({ children }: { children: React.ReactNode }) => (
-  <div className="mx-auto max-w-xl space-y-4 p-8 text-center text-muted-foreground">
+  <div className="mx-auto max-w-xl space-y-5 px-4 py-16 text-center text-muted-foreground">
     {children}
-    <Link to="/" className="inline-block text-sm font-semibold text-accent hover:underline">Torna ai tuoi eroi</Link>
+    <Link to="/" className="inline-block text-sm font-semibold text-accent underline-offset-4 hover:underline">Torna ai tuoi eroi</Link>
   </div>
 );
 
@@ -49,7 +49,9 @@ export const CampaignPage = () => {
     return (
       <Notice>
         <p>Accedi per vedere le campagne condivise.</p>
-        <Link to="/login" className="inline-block rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground">Accedi</Link>
+        <p>
+          <Link to="/login" className="inline-flex h-10 items-center rounded-xl bg-accent px-4 text-sm font-semibold text-accent-foreground shadow-rest transition-colors duration-150 hover:bg-accent-dark">Accedi</Link>
+        </p>
       </Notice>
     );
   }
@@ -79,8 +81,8 @@ export const CampaignPage = () => {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8 p-4 sm:p-8">
-      <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-accent">
+    <div className="mx-auto max-w-5xl space-y-8 p-4 sm:px-6 sm:py-8">
+      <Link to="/" className="inline-flex min-h-10 items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground">
         <ArrowLeftIcon className="h-4 w-4" /> I tuoi eroi
       </Link>
 
@@ -130,13 +132,13 @@ export const CampaignPage = () => {
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
 
       <section aria-labelledby="party-title" className="space-y-3">
-        <h2 id="party-title" className="font-cinzel text-xl font-bold text-foreground">Il gruppo</h2>
+        <h2 id="party-title" className="font-cinzel text-headline text-foreground">Il gruppo</h2>
         {shared.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+          <p className="rounded-2xl border border-dashed border-border-strong/70 p-6 text-center text-sm text-muted-foreground">
             Nessun personaggio condiviso. Per comparire qui, associa un personaggio a questa campagna dall'editor e salvalo.
           </p>
         ) : (
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
             {shared.map((c) => (
               <SharedCharacterCard key={c.id} character={c} ownerName={ownerNames.get(c.ownerUid)} isMine={c.ownerUid === uid} />
             ))}
@@ -145,7 +147,7 @@ export const CampaignPage = () => {
       </section>
 
       <section aria-labelledby="members-title" className="space-y-3">
-        <h2 id="members-title" className="font-cinzel text-xl font-bold text-foreground">Membri ({members.length})</h2>
+        <h2 id="members-title" className="font-cinzel text-headline text-foreground">Membri ({members.length})</h2>
         <MemberList members={members} currentUid={uid} canManage={role === 'dm'} onRemove={handleRemoveMember} />
       </section>
     </div>
