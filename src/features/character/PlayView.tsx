@@ -176,9 +176,12 @@ export const PlayView: FC = () => {
     return (
         <div className="mx-auto max-w-7xl space-y-3 p-3 pb-28 sm:space-y-4 sm:p-6 sm:pb-28">
             {/* Identity header */}
-            <header className="tile hero-glow relative overflow-hidden p-3 sm:p-5">
-                <AstrolabeRing className="absolute -right-16 -top-24 h-72 w-72 text-accent/[0.18] sm:-right-6 sm:-top-28 sm:h-80 sm:w-80" />
-                <span aria-hidden className="absolute inset-x-6 bottom-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
+            <header className="tile hero-glow relative z-20 p-3 sm:p-5">
+                {/* Ritaglio solo per la filigrana: l'header non può avere overflow-hidden, altrimenti il menu "..." viene tagliato. */}
+                <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
+                    <AstrolabeRing className="absolute -right-16 -top-24 h-72 w-72 text-accent/[0.18] sm:-right-6 sm:-top-28 sm:h-80 sm:w-80" />
+                    <span className="absolute inset-x-6 bottom-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
+                </div>
                 <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                     <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
                         <Button variant="ghost" size="icon-lg" onClick={() => navigate('/')} aria-label="Torna ai tuoi eroi" className="-ml-1 sm:ml-0">
