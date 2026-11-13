@@ -5,9 +5,9 @@ import { PlaySection } from './PlaySection';
 
 type SaveType = 'successes' | 'failures';
 
-const ROWS: { type: SaveType; label: string; text: string; border: string }[] = [
-    { type: 'successes', label: 'Successi', text: 'text-success', border: 'border-success/40' },
-    { type: 'failures', label: 'Fallimenti', text: 'text-destructive', border: 'border-destructive/40' },
+const ROWS: { type: SaveType; label: string; text: string }[] = [
+    { type: 'successes', label: 'Successi', text: 'text-success' },
+    { type: 'failures', label: 'Fallimenti', text: 'text-destructive' },
 ];
 
 export const DeathSavesTracker = () => {
@@ -38,7 +38,7 @@ export const DeathSavesTracker = () => {
         >
             {isComplete && (
                 <div
-                    className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-card animate-fadeIn"
+                    className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-card/95 backdrop-blur-md animate-fadeIn"
                     role="status"
                 >
                     {isStable ? <HeartIcon className="h-10 w-10 text-success" /> : <SkullIcon className="h-10 w-10 text-destructive" />}
@@ -61,7 +61,7 @@ export const DeathSavesTracker = () => {
                                     type="button"
                                     onClick={naturalTwenty}
                                     disabled={isComplete || character.hp.current > 0}
-                                    className={`h-9 rounded-lg border px-3 text-xs font-semibold transition-colors duration-150 hover:bg-success/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40 ${row.text} ${row.border}`}
+                                    className={`h-9 rounded-lg px-3 text-xs font-semibold transition-colors duration-150 bg-success/10 hover:bg-success/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40 ${row.text}`}
                                     title="20 naturale: torni cosciente con 1 punto vita"
                                 >
                                     20 naturale
@@ -71,7 +71,7 @@ export const DeathSavesTracker = () => {
                                     type="button"
                                     onClick={() => setSaves(row.type, saves[row.type] + 2)}
                                     disabled={isComplete}
-                                    className={`h-9 rounded-lg border px-3 text-xs font-semibold transition-colors duration-150 hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40 ${row.text} ${row.border}`}
+                                    className={`h-9 rounded-lg px-3 text-xs font-semibold transition-colors duration-150 bg-destructive/10 hover:bg-destructive/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40 ${row.text}`}
                                     title="1 naturale o colpo critico subito: due fallimenti"
                                 >
                                     +2 fallimenti

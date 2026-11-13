@@ -15,7 +15,8 @@ import { Menu, MenuItem } from '../../../components/ui/Menu';
 import { calculateArmorClass } from '../rules/combat';
 import { resolveCampaignName } from '../rules/campaign';
 import { useCampaigns } from '../../../providers/CampaignProvider';
-import { hpBarTone, hpPercent, initials } from '../utils/characterDisplay';
+import { AstrolabeRing, CornerGlyphs } from '../../../components/ui/RuneOrnaments';
+import { hpPercent, hpTone, initials } from '../utils/characterDisplay';
 
 interface CharacterCardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onSelect'> {
   character: ICharacter;
@@ -71,8 +72,9 @@ export const CharacterCard = forwardRef<HTMLDivElement, CharacterCardProps>(
         tabIndex={0}
         aria-label={`Apri ${character.name || 'personaggio'}`}
         data-character-id={character.id}
-        className={`group relative flex cursor-pointer touch-pan-y select-none gap-3 surface rounded-2xl p-2.5 transition-[transform,box-shadow,border-color] duration-200 ease-soft hover:border-accent/60 hover:shadow-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:flex-col sm:gap-0 sm:p-0 sm:hover:-translate-y-0.5 ${className}`}
+        className={`group relative flex cursor-pointer touch-pan-y select-none gap-3 surface rounded-2xl p-2.5 lift hover:border-accent/60 hover:shadow-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:flex-col sm:gap-0 sm:p-0 sm:hover:-translate-y-0.5 ${className}`}
       >
+        <CornerGlyphs />
         {/* Ritratto */}
         <div className="relative h-[5.5rem] w-[5.5rem] shrink-0 overflow-hidden rounded-xl bg-input shadow-[inset_0_0_0_1px_rgb(var(--color-border)/0.5)] sm:aspect-[16/10] sm:h-auto sm:w-full sm:rounded-b-none sm:rounded-t-[15px]">
           {character.imageUrl ? (
@@ -84,8 +86,11 @@ export const CharacterCard = forwardRef<HTMLDivElement, CharacterCardProps>(
               className="h-full w-full object-cover transition-transform duration-500 ease-soft group-hover:scale-[1.03]"
             />
           ) : (
-            <div className="portrait-rune flex h-full w-full items-center justify-center">
-              <span className="monogram text-3xl sm:text-6xl">{initials(character.name || '')}</span>
+            <div className="portrait-rune relative flex h-full w-full items-center justify-center overflow-hidden">
+              <span aria-hidden className="absolute inset-0 flex items-center justify-center">
+                <AstrolabeRing className="h-[130%] w-auto max-w-none shrink-0 text-accent/30" />
+              </span>
+              <span className="relative monogram text-3xl sm:text-6xl">{initials(character.name || '')}</span>
             </div>
           )}
 
@@ -127,14 +132,14 @@ export const CharacterCard = forwardRef<HTMLDivElement, CharacterCardProps>(
                 </span>
               </div>
               <div
-                className="h-1.5 overflow-hidden rounded-full bg-input"
+                className="h-1.5 overflow-hidden rounded-full bg-input shadow-[inset_0_1px_2px_rgb(var(--color-shadow)/0.4)]"
                 role="progressbar"
                 aria-label="Punti vita"
                 aria-valuemin={0}
                 aria-valuemax={hp.max}
                 aria-valuenow={hp.current}
               >
-                <div className={`h-full rounded-full transition-[width] duration-500 ease-soft ${hpBarTone(percent)}`} style={{ width: `${percent}%` }} />
+                <div className="hp-fill h-full rounded-full" data-tone={hpTone(percent)} style={{ width: `${percent}%` }} />
               </div>
             </div>
             <div className="relative flex h-10 w-9 shrink-0 items-center justify-center" title="Classe Armatura">

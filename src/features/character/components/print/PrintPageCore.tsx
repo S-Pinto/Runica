@@ -1,224 +1,193 @@
-import { useMemo } from 'react';
-import { ICharacter, Feature } from '../../characterTypes';
+import { ReactNode, useMemo } from 'react';
+import { ICharacter, Feature, CATEGORY_CONFIG } from '../../characterTypes';
 import { getAllActions, calculateArmorClass, CharacterAction } from '../../rules/combat';
+import { ABILITY_LABELS, skillLabel } from '../../../../lib/labels';
 import { SVGs } from './printStyles';
+import { Box } from './PrintBox';
+import { AbilityEmblem, InspirationStar, LevelMedallion, Pillars, RuleOrnament, ShieldFrame } from './PrintOrnaments';
 import { ABILITY_KEYS, fmtMod, getMod, getPrintLevel, getPrintProficiency } from './printUtils';
-
-const CATEGORY_LABELS: Record<string, string> = {
-    'class': 'CLASS FEATURES',
-    'racial': 'RACIAL TRAITS',
-    'feat-origin': 'ORIGIN FEATS',
-    'feat-general': 'GENERAL FEATS',
-    'feat-combat': 'COMBAT FEATS',
-    'feat-epic': 'EPIC FEATS',
-};
-
-const FEATURE_CATEGORIES = ['class', 'racial', 'feat-origin', 'feat-general', 'feat-combat', 'feat-epic', 'other'];
 
 const formatDamage = (character: ICharacter, atk: CharacterAction) => {
     const mod = atk.damageAbility ? getMod(character.abilityScores[atk.damageAbility as keyof typeof character.abilityScores]) : 0;
-    const parts = [`${atk.damage}${mod !== 0 ? (mod > 0 ? `+${mod}` : mod) : ''} ${atk.damageType || ''}`.trim()];
-    if (atk.additionalDamage && atk.additionalDamage.length > 0) {
-        atk.additionalDamage.forEach((e) => {
-            parts.push(`${e.formula} ${e.type}`);
-        });
-    }
+    const parts = [`${atk.damage}${mod !== 0 ? fmtMod(mod) : ''} ${atk.damageType || ''}`.trim()];
+    atk.additionalDamage?.forEach((e) => parts.push(`${e.formula} ${e.type}`));
     return parts.join(' + ');
 };
 
-const PrintHeader = ({ character, level }: { character: ICharacter; level: number }) => (
-    <header className="char-header">
-        <div className="portrait-container">
-            {character.imageUrl ? <img src={character.imageUrl} className="portrait-img" alt="Portrait" /> : <div className="portrait-placeholder">{SVGs.portraitFrame}</div>}
-        </div>
-        <div className="header-info">
-            <div className="name-level-row">
-                <div className="header-field name-field">
-                    <div className="field-value">{character.name}</div>
-                    <div className="field-label">CHARACTER NAME</div>
-                </div>
-                <div className="level-badge">
-                    <div className="lvl-label">LVL</div>
-                    <div className="lvl-val">{level}</div>
+const Field = ({ label, value, className = '' }: { label: string; value?: string | number; className?: string }) => (
+    <div className={`id-field ${className}`}>
+        <div className="lbl">{label}</div>
+        <div className="v ell">{value}</div>
+    </div>
+);
+
+const Stat = ({ label, value }: { label: string; value?: ReactNode }) => (
+    <Box className="stat-tile">
+        <Pillars />
+        <div className="lbl">{label}</div>
+        <div className="v">{value}</div>
+    </Box>
+);
+
+const Head = ({ character, level, hasShield }: { character: ICharacter; level: number; hasShield: boolean }) => (
+    <header className="p1-head">
+        <Box className="id-box">
+            <Field label="Nome del personaggio" value={character.name} className="id-name" />
+            <Field label="Background" value={character.background} />
+            <Field label="Classe" value={character.class} />
+            <Field label="Specie" value={character.race} />
+            <Field label="Sottoclasse" value={character.subclass} />
+            <div className="level-medal">
+                <LevelMedallion />
+                <div className="lbl">Livello</div>
+                <div className="big">{level}</div>
+                <div className="sub">{character.experiencePoints || ''}</div>
+                <div className="lbl">PE</div>
+            </div>
+        </Box>
+        <Box className="ac-box">
+            <div className="lbl">Classe Armatura</div>
+            <div className="ac-art"><ShieldFrame /><b>{calculateArmorClass(character)}</b></div>
+            <div className="ac-shield-row">{hasShield ? SVGs.diamondFilled : SVGs.diamond} SCUDO</div>
+        </Box>
+        <Box className="vit-box">
+            <div className="vit-cell">
+                <div className="vit-title">Punti ferita</div>
+                <div className="hp-cols">
+                    <div className="hp-col"><div className="v" /><div className="lbl">Attuali</div></div>
+                    <div className="hp-col"><div className="v" /><div className="lbl">Temp</div></div>
+                    <div className="hp-col"><div className="v">{character.hp.max}</div><div className="lbl">Max</div></div>
                 </div>
             </div>
-            <div className="meta-row">
-                <div className="header-field"><div className="field-value">{character.class}</div><div className="field-label">CLASS</div></div>
-                <div className="header-field"><div className="field-value">{character.background}</div><div className="field-label">BACKGROUND</div></div>
-                <div className="header-field"><div className="field-value">{character.race}</div><div className="field-label">SPECIES</div></div>
-                <div className="header-field"><div className="field-value">{character.alignment}</div><div className="field-label">ALIGNMENT</div></div>
+            <div className="vit-cell">
+                <div className="vit-title">Dadi vita</div>
+                <div className="dv-slot">
+                    <div className="row"><div className="lbl">Spesi</div></div>
+                    <div className="row"><div className="lbl">Max</div><div className="v">{character.hitDice?.total}</div></div>
+                </div>
             </div>
-        </div>
+            <div className="vit-cell">
+                <div className="vit-title">Salvezza contro morte</div>
+                <div className="ds-rows">
+                    <div className="ds-row"><span className="diams">{SVGs.diamond}{SVGs.diamond}{SVGs.diamond}</span><span>Successi</span></div>
+                    <div className="ds-row"><span className="diams">{SVGs.diamond}{SVGs.diamond}{SVGs.diamond}</span><span>Fallimenti</span></div>
+                </div>
+            </div>
+        </Box>
     </header>
 );
 
-const AbilitiesColumn = ({ character, pb }: { character: ICharacter; pb: number }) => (
-    <div className="left-col">
-        <div className="pb-container-v15">
-            <div className="pb-svg-frame">{SVGs.pbFrame}</div>
-            <div className="pb-badge-v15">
-                <div className="pb-label-v15">PROFICIENCY</div>
-                <div className="pb-value-v15">{fmtMod(pb)}</div>
-                <div className="pb-label-v15">BONUS</div>
-            </div>
-        </div>
-        <div className="abilities-vertical">
-            {ABILITY_KEYS.map(key => {
-                const score = character.abilityScores[key];
-                const mod = getMod(score);
-                const saveProf = character.savingThrows[key]?.proficient;
-                return (
-                    <div key={key} className="ability-card-v9">
-                        <div className="ability-label-v9">{key.toUpperCase()}</div>
-                        <div className="ability-body-v9">
-                            <div className="ability-header-v9">
-                                <div className="mod-container-v9">{SVGs.modFrame}<div className="mod-value-v9">{fmtMod(mod)}</div></div>
-                                <div className="score-bubble-v9"><div className="score-val-v9">{score}</div></div>
-                            </div>
-                            <div className="ability-details-v9">
-                                <div className="save-row-v9">
-                                    <div className={`prof-indicator ${saveProf ? 'filled' : ''}`}></div>
-                                    <span style={{ width: '4.5mm', textAlign: 'right', fontWeight: 800 }}>{fmtMod(mod + (saveProf ? pb : 0))}</span>
-                                    <span style={{ fontWeight: 950 }}>SAVING THROW</span>
-                                </div>
-                                <div className="skills-list-v9">
-                                    {character.skills.filter(s => s.ability === key).map(s => (
-                                        <div key={s.name} className="skill-row">
-                                            <div className={`prof-indicator ${s.proficient ? 'filled' : ''}`}></div>
-                                            <span className="skill-val">{fmtMod(mod + (s.proficient ? pb : 0) + (s.expertise ? pb : 0))}</span>
-                                            <span className="skill-name-v8">{s.name}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                );
-            })}
-        </div>
-    </div>
-);
-
-const VitalsBlock = ({ character, pb, level }: { character: ICharacter; pb: number; level: number }) => (
-    <>
-        <div className="vitals-row">
-            <div className="vital-card ac-card">
-                <div className="vital-label">ARMOR CLASS</div>
-                <div className="shield-container">{SVGs.shield}<div className="vital-value">{calculateArmorClass(character)}</div></div>
-            </div>
-            <div className="vital-card"><div className="vital-label">INITIATIVE</div><div className="vital-value-frame">{fmtMod(getMod(character.abilityScores.dexterity))}</div></div>
-            <div className="vital-card"><div className="vital-label">SPEED</div><div className="vital-value-frame">{character.speed}ft</div></div>
-            <div className="vital-card"><div className="vital-label">PASSIVE PERC.</div><div className="vital-value-frame">{10 + getMod(character.abilityScores.wisdom) + (character.skills.find(s => s.name === 'Perception')?.proficient ? pb : 0)}</div></div>
-        </div>
-
-        <div className="hp-vitals-container">
-            <div className="hp-row">
-                <div className="hp-box current-hp"><div className="box-label">CURRENT HIT POINTS</div><div className="box-value-empty"></div></div>
-                <div className="hp-box max-hp"><div className="box-label">MAX HIT POINTS</div><div className="box-value">{character.hp.max}</div></div>
-                <div className="hp-box temp-hp"><div className="box-label">TEMP HIT POINTS</div><div className="box-value-empty"></div></div>
-            </div>
-            <div className="vitals-lower-row">
-                <div className="vital-box hit-dice">
-                    <div className="box-label">HIT DICE</div>
-                    <div className="hd-val">{character.hitDice.total}</div>
-                    <div className="hd-dots-grid">{Array.from({ length: level }).map((_, i) => <span key={i}>{SVGs.dot}</span>)}</div>
-                </div>
-                <div className="vital-box death-saves">
-                    <div className="box-label">DEATH SAVES</div>
-                    <div className="ds-container">
-                        <div className="ds-row">SUCC {SVGs.diamond} {SVGs.diamond} {SVGs.diamond}</div>
-                        <div className="ds-row">FAIL {SVGs.diamond} {SVGs.diamond} {SVGs.diamond}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </>
-);
-
-const AttacksTable = ({ character, actions }: { character: ICharacter; actions: CharacterAction[] }) => (
-    <div className="section-card">
-        <div className="section-title">ATTACKS & SPELLCASTING</div>
-        <table className="grid-table">
-            <thead><tr><th style={{ width: '21%' }}>NAME</th><th style={{ width: '10%' }}>HIT/DC</th><th style={{ width: '23%' }}>DAMAGE/TYPE</th><th style={{ width: '18%' }}>PROPERTIES</th><th style={{ width: '28%' }}>MASTERY/NOTES</th></tr></thead>
-            <tbody>
-                {actions.map((atk, i) => (
-                    <tr key={i}>
-                        <td className="font-serif"><b>{atk.name}</b></td>
-                        <td className="center"><b>{atk.bonus}</b></td>
-                        <td style={{ fontSize: '7.2pt' }}><b>{formatDamage(character, atk)}</b></td>
-                        <td className="notes-cell">{atk.sourceType === 'spell' ? 'Cantrip' : (atk.properties?.join(', ') || '---')}</td>
-                        <td className="notes-cell">
-                            {atk.notes ? (
-                                atk.notes.includes(': ') ? (
-                                    <><b>{atk.notes.split(': ')[0]}</b>: {atk.notes.split(': ').slice(1).join(': ')}</>
-                                ) : atk.notes
-                            ) : (atk.properties?.join(', ') || '---')}
-                        </td>
-                    </tr>
-                ))}
-                {Array.from({ length: Math.max(0, 4 - actions.length) }).map((_, i) => <tr key={`empty-${i}`}><td colSpan={5}>&nbsp;</td></tr>)}
-            </tbody>
-        </table>
-    </div>
-);
-
-const FeaturesBlock = ({ character }: { character: ICharacter }) => {
-    const groupedFeatures = useMemo(() => {
-        const groups: Record<string, Feature[]> = {};
-        if (!character.featuresAndTraits) return groups;
-        character.featuresAndTraits.filter(f => !f.isAction).forEach(f => {
-            const cat = f.category || 'other';
-            if (!groups[cat]) groups[cat] = [];
-            groups[cat].push(f);
-        });
-        return groups;
-    }, [character.featuresAndTraits]);
-
+const AbilityCard = ({ character, ability, pb }: { character: ICharacter; ability: (typeof ABILITY_KEYS)[number]; pb: number }) => {
+    const score = character.abilityScores[ability];
+    const mod = getMod(score);
+    const saveProf = !!character.savingThrows?.[ability]?.proficient;
+    const rows = character.skills.filter((s) => s.ability === ability).length;
     return (
-        <div className="section-card">
-            <div className="section-title">FEATURES & TRAITS</div>
-            <div className="features-container">
-                {FEATURE_CATEGORIES.map(cat => {
-                    const list = groupedFeatures[cat];
-                    if (!list || list.length === 0) return null;
-                    return (
-                        <div key={cat} className="feature-group">
-                            <div className="group-label">{CATEGORY_LABELS[cat] || 'OTHER FEATURES'}</div>
-                            {list.map((f, i) => (
-                                <div key={i} className="feature-item-v14">
-                                    <div className="feat-header">
-                                        <span className="font-serif feat-name">{f.name}</span>
-                                        {f.recovery && <span className="feat-recovery">Recover: {f.recovery === 'short' ? 'Short' : 'Long'} Rest</span>}
-                                    </div>
-                                    <div className="feat-desc">{f.description}</div>
-                                    {f.uses && f.uses.max > 0 && <div className="feature-tracker">{Array.from({ length: f.uses.max }).map((_, idx) => <span key={idx}>{SVGs.diamond}</span>)}</div>}
-                                </div>
-                            ))}
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
+        <Box className="ab-card" style={{ flex: `${rows + 3} 1 0` }}>
+            <div className="ab-name">{ABILITY_LABELS[ability]}</div>
+            <AbilityEmblem mod={fmtMod(mod)} score={score} />
+            <ul className="ab-rows">
+                <li className="save"><i className={`dot ${saveProf ? 'on' : ''}`} /><b>{fmtMod(mod + (saveProf ? pb : 0))}</b><span>Tiro salvezza</span></li>
+                {character.skills.filter((s) => s.ability === ability).map((s) => (
+                    <li key={s.name}>
+                        <i className={`dot ${s.proficient || s.expertise ? 'on' : ''}`} />
+                        <b>{fmtMod(mod + (s.expertise ? pb * 2 : s.proficient ? pb : 0))}</b>
+                        <span>{skillLabel(s.name)}</span>
+                    </li>
+                ))}
+            </ul>
+        </Box>
     );
 };
 
-/** Pagina 1: intestazione, caratteristiche, parametri vitali, attacchi e privilegi. */
+const FeatureList = ({ list }: { list: Feature[] }) => (
+    <div className="cols2">
+        {list.map((f) => (
+            <div key={f.id} className="feat">
+                <div><span className="n serif">{f.name}</span>{f.recovery && f.recovery !== 'none' && <span className="rec">{f.recovery === 'short' ? 'Riposo breve' : 'Riposo lungo'}</span>}</div>
+                <div className="d">{f.description}</div>
+                {f.uses && f.uses.max > 0 && <div className="feat-pips">{Array.from({ length: Math.min(f.uses.max, 12) }).map((_, i) => <span key={i}>{SVGs.diamond}</span>)}</div>}
+            </div>
+        ))}
+    </div>
+);
+
+/** Pagina 1: intestazione, caratteristiche, parametri vitali, attacchi, privilegi, tratti e talenti. */
 export const PrintPageCore = ({ character }: { character: ICharacter }) => {
     const actions = useMemo(() => getAllActions(character), [character]);
     const pb = getPrintProficiency(character);
     const level = getPrintLevel(character);
+    const hasShield = !!character.equipment?.some((i) => i.equipped && i.armorType === 'shield');
+
+    const groups = useMemo(() => {
+        const feats = (character.featuresAndTraits || []).filter((f) => !f.isAction);
+        return {
+            cls: feats.filter((f) => f.category === 'class' || !f.category),
+            species: feats.filter((f) => f.category === 'racial'),
+            feats: feats.filter((f) => f.category?.startsWith('feat-')),
+        };
+    }, [character.featuresAndTraits]);
+
+    const perception = character.skills.find((s) => s.name === 'Perception');
+    const passive = 10 + getMod(character.abilityScores.wisdom) + (perception?.expertise ? pb * 2 : perception?.proficient ? pb : 0);
+    const weaponRows = Math.max(5, actions.length);
 
     return (
-        <div className="page">
-            <PrintHeader character={character} level={level} />
-            <div className="main-content">
-                <AbilitiesColumn character={character} pb={pb} />
-                <div className="right-col">
-                    <VitalsBlock character={character} pb={pb} level={level} />
-                    <AttacksTable character={character} actions={actions} />
-                    <FeaturesBlock character={character} />
+        <section className="page">
+            <Head character={character} level={level} hasShield={hasShield} />
+            <div className="p1-rule">
+                <RuleOrnament />
+                <div className="mark"><i className="gem" />RUNICA<i className="gem" /></div>
+                <RuleOrnament flip />
+            </div>
+            <div className="p1-main">
+                <div className="col">
+                    <Box className="pb-box"><Pillars /><div className="lbl">Bonus di competenza</div><div className="v">{fmtMod(pb)}</div></Box>
+                    {(['strength', 'dexterity', 'constitution'] as const).map((a) => <AbilityCard key={a} character={character} ability={a} pb={pb} />)}
+                    <Box className="insp-box"><div className="lbl">Ispirazione eroica</div><InspirationStar /></Box>
+                    <Box title="Addestramento e competenze" className="training-box">
+                        <div className="training-row"><span className="lbl">Armature</span>{['Leggere', 'Medie', 'Pesanti', 'Scudi'].map((l) => <span key={l} style={{ display: 'flex', alignItems: 'center', gap: '0.5mm' }}>{SVGs.diamond}{l}</span>)}</div>
+                        <div className="training-sec"><span className="lbl">Armi</span><div className="fill blank-lines" /></div>
+                        <div className="training-sec"><span className="lbl">Strumenti</span><div className="fill blank-lines" /></div>
+                    </Box>
+                </div>
+                <div className="col">
+                    {(['intelligence', 'wisdom', 'charisma'] as const).map((a) => <AbilityCard key={a} character={character} ability={a} pb={pb} />)}
+                </div>
+                <div className="col">
+                    <div className="tiles4">
+                        <Stat label="Iniziativa" value={fmtMod(getMod(character.abilityScores.dexterity))} />
+                        <Stat label="Velocità" value={`${Math.round(character.speed * 0.3)} m`} />
+                        <Stat label="Taglia" value="" />
+                        <Stat label="Percezione passiva" value={passive} />
+                    </div>
+                    <Box title="Armi e trucchetti di danno" className="weapons-box">
+                        <table className="sheet-table">
+                            <thead><tr><th style={{ width: '30%' }}>Nome</th><th style={{ width: '14%' }}>Bonus / CD</th><th style={{ width: '30%' }}>Danno e tipo</th><th>Note</th></tr></thead>
+                            <tbody>
+                                {Array.from({ length: weaponRows }).map((_, i) => {
+                                    const a = actions[i];
+                                    return (
+                                        <tr key={i}>
+                                            <td className="serif"><b>{a?.name}</b></td>
+                                            <td>{a?.bonus}</td>
+                                            <td>{a && formatDamage(character, a)}</td>
+                                            <td style={{ fontSize: '5.6pt' }}>{a && (a.sourceType === 'spell' ? 'Trucchetto' : a.mastery || a.properties?.join(', '))}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </Box>
+                    <Box title={CATEGORY_CONFIG.class.label} className="features-box">
+                        <div className="box-body grid-split"><FeatureList list={groups.cls} /></div>
+                    </Box>
+                    <div className="row2">
+                        <Box title={CATEGORY_CONFIG.racial.label}><div className="box-body grid-paper">{groups.species.length > 0 && <FeatureList list={groups.species} />}</div></Box>
+                        <Box title="Talenti"><div className="box-body grid-paper">{groups.feats.length > 0 && <FeatureList list={groups.feats} />}</div></Box>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
     );
 };

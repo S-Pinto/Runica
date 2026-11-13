@@ -76,7 +76,7 @@ export const HitDiceTracker = () => {
             </div>
 
             {lastRoll && (
-                <p className="mt-3 rounded-xl border border-success/30 bg-success/10 py-2 text-center font-mono text-sm text-success animate-fadeIn" aria-live="polite">
+                <p className="mt-3 rounded-xl bg-success/15 py-2 text-center font-mono text-sm text-success animate-fadeIn" aria-live="polite">
                     Cura: {lastRoll} PV
                 </p>
             )}

@@ -18,7 +18,7 @@ export const SharedCharacterCard = ({ character, ownerName, isMine }: SharedChar
     const subtitle = [character.race, character.class].filter(Boolean).join(' · ') || 'Avventuriero';
 
     return (
-        <li className="flex gap-3 rounded-2xl border border-border bg-card p-2.5 sm:flex-col sm:gap-0 sm:p-0">
+        <li className="flex gap-3 surface p-2.5 sm:flex-col sm:gap-0 sm:p-0">
             <div className="relative h-[5.5rem] w-[5.5rem] shrink-0 overflow-hidden rounded-xl bg-input sm:aspect-[16/10] sm:h-auto sm:w-full sm:rounded-b-none sm:rounded-t-[15px]">
                 {character.portraitUrl ? (
                     <img src={character.portraitUrl} alt="" loading="lazy" className="h-full w-full object-cover" />

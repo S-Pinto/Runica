@@ -242,6 +242,14 @@ Profondità tonale a strati: fondo → card → campo. Ogni superficie porta un 
 - **`.hero-glow`**: velo caldo d'accento dall'angolo alto sinistro, solo dietro l'header dell'eroe.
 - **`.glass-pill`**: vetro (sfocatura 16px, fondo card all'82%, bordo marcato) per i controlli che galleggiano.
 
+### Modern Arcane (filigrana e luce)
+- **`RuneOrnaments`** (`components/ui/RuneOrnaments.tsx`): `AstrolabeRing` (anello con tacche, rotazione 60s, `.rune-spin`) come filigrana nell'header dell'eroe e attorno al monogramma delle card; `CornerGlyphs` (quattro angoli a L con rombo) è la cornice attiva delle card, visibile solo in hover/focus o con `data-active`. `RuneDivider glyph="notch"` è il separatore con incavo centrale.
+- **Bordo di luce**: `.tile` e `.surface` hanno un gradiente da 1px (`::after`, maschera) che cattura la luce dall'alto.
+- **Barra HP** (`.hp-fill`, `data-tone` da `hpTone`): gradiente per stato, riflesso interno, tacche e un velo luminoso (`.hp-sheen`) quando il valore cambia.
+- **Sigilli e tiri contro la morte**: l'accensione incide la runa (rotazione + scala del punto) e accende la luce con una transizione, quindi niente lampi al montaggio.
+- **Tab**: `.tab-indicator` scorre sotto la voce attiva (PlayView lo posiziona). **Dadiera**: `.dice-tumble` durante il tiro, `.result-flash` sul risultato. Vetro: sticky nav e `Modal` con sfocatura e saturazione.
+- Tutte le animazioni usano `transform`/`opacity`/`box-shadow` e si fermano con `prefers-reduced-motion`.
+
 ### Shadow Vocabulary
 Le ombre sono token (`src/index.css`, classi in `tailwind.config.js`) con il colore del tema: nere nei temi scuri, brune e più leggere in Pergamena. Hanno sempre scostamento e sfocatura.
 - **Separazione leggera** (`shadow-rest`): pulsanti pieni, campi e card a riposo.

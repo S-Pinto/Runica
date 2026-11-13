@@ -8,11 +8,11 @@ export const AttackDetails = ({ attack }: { attack: Attack }) => {
     const properties = attack.properties || [];
 
     if (!mastery && properties.length === 0) {
-        return <p className="border-t border-border pt-3 text-sm text-muted-foreground animate-fadeIn">Nessun dettaglio per questo attacco.</p>;
+        return <p className="border-t border-foreground/10 pt-3 text-sm text-muted-foreground animate-fadeIn">Nessun dettaglio per questo attacco.</p>;
     }
 
     return (
-        <dl className="space-y-3 border-t border-border pt-3 animate-fadeIn">
+        <dl className="space-y-3 border-t border-foreground/10 pt-3 animate-fadeIn">
             {properties.map(propKey => {
                 const propData = WEAPON_PROPERTIES[propKey as keyof typeof WEAPON_PROPERTIES];
                 return (

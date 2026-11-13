@@ -145,7 +145,7 @@ export const CompanionTab: React.FC<CompanionTabProps> = ({ readOnly = false }) 
           ))}
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-border-strong/50 px-6 py-12 text-center">
+        <div className="tile px-6 py-12 text-center">
             <SparklesIcon className="mx-auto h-8 w-8 text-muted-foreground" />
             <h3 className="mt-3 font-cinzel text-title text-foreground">Nessun compagno</h3>
             <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">

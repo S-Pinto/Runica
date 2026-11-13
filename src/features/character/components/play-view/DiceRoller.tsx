@@ -90,7 +90,7 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({ mode = 'dock', isOpen = 
       {/* Risultato: sempre presente, così i controlli sotto non si spostano al primo tiro. */}
       <div className={`${playInsetClass} flex min-h-[6.5rem] flex-col items-center justify-center px-4 py-3 text-center`} aria-live="polite">
         {lastRoll ? (
-          <div key={lastRoll.timestamp} className="animate-popIn">
+          <div key={lastRoll.timestamp} className="animate-popIn result-flash rounded-2xl px-4 py-1">
             <p className={`font-mono text-5xl font-bold leading-none tabular-nums ${resultTone}`}>{lastRoll.total}</p>
             <p className="mt-2 text-xs text-muted-foreground">
               {lastRoll.dice}: <span className="font-mono font-semibold text-foreground">{lastRoll.selectedRoll}</span>
@@ -115,10 +115,10 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({ mode = 'dock', isOpen = 
               role="radio"
               aria-checked={selectedDice === dice}
               onClick={() => setSelectedDice(dice)}
-              className={`h-11 rounded-xl border font-mono text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card ${
+              className={`h-11 rounded-xl font-mono text-sm font-semibold transition-[color,background-color,border-color,transform,box-shadow] duration-200 ease-soft active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                 selectedDice === dice
-                  ? 'border-accent bg-accent text-accent-foreground'
-                  : 'border-border-strong/60 text-text hover:border-accent/70 hover:text-accent'
+                  ? 'bg-accent text-accent-foreground shadow-glow'
+                  : 'bg-foreground/10 text-text hover:bg-accent/15 hover:text-accent'
               }`}
             >
               {dice}
@@ -147,7 +147,7 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({ mode = 'dock', isOpen = 
       </div>
 
       <Button size="lg" onClick={rollDice} disabled={isRolling} className="w-full">
-        <DiceIcon className="h-5 w-5" />
+        <DiceIcon className={`h-5 w-5 ${isRolling ? 'dice-tumble' : ''}`} />
         {isRolling ? 'Lancio…' : `Lancia ${selectedDice}`}
       </Button>
     </div>
@@ -176,7 +176,7 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({ mode = 'dock', isOpen = 
         aria-label="Dadiera"
         className="glass-pill pointer-events-auto flex h-14 items-center gap-3 rounded-full py-1.5 pl-1.5 pr-1.5 has-[.font-mono]:pr-4 sm:pr-5 text-sm font-semibold text-text transition-[transform,border-color,color] duration-150 ease-soft hover:border-accent/70 hover:text-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.35)]">
+        <span className={`flex h-11 w-11 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.35),0_0_18px_-4px_rgb(var(--color-accent)/0.6)] ${isRolling ? 'dice-tumble' : ''}`}>
           <DiceIcon className="h-6 w-6" />
         </span>
         <span className="hidden sm:inline">Dadiera</span>

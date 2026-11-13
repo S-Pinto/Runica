@@ -31,7 +31,7 @@ const CategorySectionDisplay = ({
                 type="button"
                 onClick={() => setIsExpanded(!isExpanded)}
                 aria-expanded={isExpanded}
-                className="flex min-h-11 w-full items-center justify-between gap-3 border-b border-border text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex min-h-11 w-full items-center justify-between gap-3 border-b border-foreground/10 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
                 <span className={playLabelClass}>
                     {config.label} <span className="font-mono font-normal tracking-normal">· {count}</span>
@@ -44,7 +44,7 @@ const CategorySectionDisplay = ({
             )}
 
             {isExpanded && count > 0 && (
-                <ul className="divide-y divide-border/60">
+                <ul className="divide-y divide-foreground/10">
                     {features.map(feature => {
                         const open = !!expandedFeatures[feature.id];
                         return (

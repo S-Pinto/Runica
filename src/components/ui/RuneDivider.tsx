@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-type Glyph = 'diamond' | 'knot';
+type Glyph = 'diamond' | 'knot' | 'notch';
 
 interface RuneDividerProps {
   /** `diamond`: rombo con punto inciso (predefinito). `knot`: nodo a clessidra fra due rombi, per gli stacchi maggiori. */
@@ -16,6 +16,16 @@ const GLYPHS: Record<Glyph, { width: number; path: ReactNode }> = {
         <path d="M14 1.5 19.5 7 14 12.5 8.5 7Z" />
         <path d="M14 5.2 15.8 7 14 8.8 12.2 7Z" fill="currentColor" stroke="none" />
         <path d="M3 7h2.5M22.5 7H25" />
+      </>
+    ),
+  },
+  // Incavo centrale: una tacca a V che scende dal filo, con un punto al fondo.
+  notch: {
+    width: 36,
+    path: (
+      <>
+        <path d="M2 7h10l6 5 6-5h10" />
+        <path d="M18 9.6 19.6 11.2 18 12.8 16.4 11.2Z" fill="currentColor" stroke="none" />
       </>
     ),
   },

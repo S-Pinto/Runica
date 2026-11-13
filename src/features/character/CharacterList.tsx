@@ -99,7 +99,7 @@ export const CharacterList: React.FC = () => {
         </div>
       </header>
 
-      <RuneDivider />
+      <RuneDivider glyph="notch" />
 
       {hasCharacters && (
         <CharacterListToolbar

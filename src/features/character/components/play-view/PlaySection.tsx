@@ -17,13 +17,13 @@ export const playLabelClass = 'text-label uppercase text-muted-foreground';
 export const playInsetClass = 'rounded-2xl bg-background/50';
 
 /** Messaggio di elenco vuoto dentro un pannello. */
-export const playEmptyClass = 'rounded-xl border border-dashed border-border-strong/50 px-4 py-6 text-center text-sm text-muted-foreground';
+export const playEmptyClass = 'rounded-2xl bg-background/40 px-4 py-6 text-center text-sm text-muted-foreground';
 
 /** Etichetta piccola per dati secondari (quantità, tipo di danno, proprietà). */
-export const playChipClass = 'inline-flex items-center gap-1 rounded-md border border-border px-1.5 py-0.5 text-xs text-muted-foreground';
+export const playChipClass = 'inline-flex items-center gap-1 rounded-md bg-foreground/10 px-1.5 py-0.5 text-xs text-muted-foreground';
 
 /**
- * Pannello della vista di gioco: card piatta con bordo, titolo inciso e
+ * Pannello della vista di gioco: tessera `.tile` (senza bordo), titolo inciso e
  * un'eventuale azione a destra. Tutte le schede usano questo guscio.
  */
 export const PlaySection = ({ title, icon, aside, children, className = '' }: PlaySectionProps) => (

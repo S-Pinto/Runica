@@ -1,70 +1,64 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getCharacter } from '../../characterRepository';
 import { ICharacter } from '../../characterTypes';
-import { generateCharacterPDF } from '../../../../api/characterApi';
-import { toast } from '../../../../components/ui/Dialogs';
 import { SharedStyles } from './printStyles';
 import { PrintPageCore } from './PrintPageCore';
 import { PrintPageSpells } from './PrintPageSpells';
-import { PrintPageInventory } from './PrintPageInventory';
+import { PrintPageNotes, PrintPageSpellsContinuation } from './PrintPageOverflow';
 import { PrintPageCompanion } from './PrintPageCompanion';
+import {
+    EQUIPMENT_ROWS_PAGE2, SPELL_ROWS_CONTINUATION, SPELL_ROWS_PAGE2, STORY_CHARS_PAGE2,
+    getPrintSpells, getStoryText, splitChunks,
+} from './printUtils';
 
+/** Scheda stampabile: 2 pagine A4 standard, più continuazioni e compagni solo se servono. */
 export const PrintableCharacterSheet = () => {
     const { characterId } = useParams();
     const [character, setCharacter] = useState<ICharacter | null>(null);
-    const [downloading, setDownloading] = useState(false);
+    const [failed, setFailed] = useState(false);
 
     useEffect(() => {
-        if (characterId) {
-            getCharacter(characterId).then(setCharacter).catch((error) => {
-                console.error('Failed to load character for print', error);
-                setCharacter(null);
-            });
-        }
+        if (!characterId) return;
+        getCharacter(characterId).then((c) => (c ? setCharacter(c) : setFailed(true))).catch((error) => {
+            console.error('Failed to load character for print', error);
+            setFailed(true);
+        });
     }, [characterId]);
 
-    if (!character) return <div>Loading...</div>;
+    useEffect(() => {
+        if (character?.name) document.title = `${character.name} – scheda`;
+    }, [character?.name]);
 
-    const handleDownload = async () => {
-        setDownloading(true);
-        try {
-            const pdfBlob = await generateCharacterPDF(character);
-            const url = window.URL.createObjectURL(pdfBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `${character.name || 'character'}_sheet.pdf`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-        } catch (error) {
-            console.error('Download error:', error);
-            toast.error('Errore durante la generazione del PDF.');
-        } finally {
-            setDownloading(false);
-        }
-    };
+    const spellChunks = useMemo(
+        () => (character ? splitChunks(getPrintSpells(character), SPELL_ROWS_PAGE2, SPELL_ROWS_CONTINUATION).slice(1).filter((c) => c.length > 0) : []),
+        [character],
+    );
 
-    const hasSpells = character.spells && character.spells.length > 0;
-    const hasCustomResources = character.customResources && character.customResources.length > 0;
+    if (failed) return <div style={{ padding: 24 }}>Impossibile caricare il personaggio.</div>;
+    if (!character) return <div style={{ padding: 24 }}>Caricamento…</div>;
+
+    const showEquipment = (character.equipment?.length || 0) > EQUIPMENT_ROWS_PAGE2;
+    const showStory = getStoryText(character).length > STORY_CHARS_PAGE2;
+    const showNotes = showEquipment || showStory || !!character.notes?.trim();
 
     return (
         <div className="dnd-sheet-wrapper">
             <SharedStyles />
             <div className="print-controls">
                 <div style={{ flex: 1 }}>
-                    <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>D&D 2024 CS (v15.2.0)</h2>
-                    <p style={{ fontSize: '0.85rem', color: '#666' }}>Premium Page 1 + Multi-Page Expansion</p>
+                    <h2 style={{ fontSize: '1.05rem', fontWeight: 600 }}>{character.name || 'Scheda personaggio'}</h2>
+                    <p style={{ fontSize: '0.8rem', color: '#666' }}>A4 · in stampa scegli "Salva come PDF" per esportarla</p>
                 </div>
-                <button onClick={handleDownload} className="download-btn" disabled={downloading}>
-                    {downloading ? 'Generating...' : 'Download PDF'}
-                </button>
+                <button type="button" className="print-btn secondary" onClick={() => window.close()}>Chiudi</button>
+                <button type="button" className="print-btn" onClick={() => window.print()}>Stampa / Salva PDF</button>
             </div>
 
             <PrintPageCore character={character} />
-            {(hasSpells || hasCustomResources) && <PrintPageSpells character={character} />}
-            <PrintPageInventory character={character} />
-            {character.companions?.map((comp, i) => <PrintPageCompanion key={i} companion={comp} />)}
+            <PrintPageSpells character={character} />
+            {spellChunks.map((chunk, i) => <PrintPageSpellsContinuation key={i} character={character} spells={chunk} part={i + 1} />)}
+            {showNotes && <PrintPageNotes character={character} showEquipment={showEquipment} showStory={showStory} />}
+            {character.companions?.map((comp) => <PrintPageCompanion key={comp.id} companion={comp} />)}
         </div>
     );
 };

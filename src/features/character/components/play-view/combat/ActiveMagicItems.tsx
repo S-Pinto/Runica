@@ -29,7 +29,7 @@ export const ActiveMagicItems = ({ equipment, onUpdate }: { equipment: Equipment
         <PlaySection title="Oggetti magici equipaggiati" icon={<BoltIcon className="text-muted-foreground" />}>
             <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {activeItems.map(item => (
-                    <li key={item.id} className="flex items-center gap-3 rounded-xl border border-border bg-background/40 p-3">
+                    <li key={item.id} className="flex items-center gap-3 rounded-2xl bg-background/50 p-3">
                         <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-semibold text-foreground">{item.name}</p>
                             <p className="mt-0.5 text-xs text-muted-foreground">

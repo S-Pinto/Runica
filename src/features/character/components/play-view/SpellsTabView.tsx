@@ -32,7 +32,7 @@ const SpellsTabView = () => {
                                     <dt className="mt-1 text-xs font-medium text-muted-foreground">Bonus d'attacco</dt>
                                 </div>
                             </dl>
-                            <p className="mt-4 border-t border-border pt-3 text-sm text-muted-foreground">
+                            <p className="mt-4 border-t border-foreground/10 pt-3 text-sm text-muted-foreground">
                                 Caratteristica: <span className="font-semibold text-foreground">{abilityLabel(ability)}</span>{' '}
                                 <span className="font-mono text-foreground">({formatModifier(mod)})</span>
                             </p>

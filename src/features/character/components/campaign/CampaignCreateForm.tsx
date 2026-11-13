@@ -30,7 +30,7 @@ export const CampaignCreateForm = ({ isShared, onCreate }: CampaignCreateFormPro
     return (
         <form onSubmit={handleSubmit} className="space-y-5">
             {!isShared && (
-                <p className="rounded-xl border border-warning/40 bg-warning/10 p-3 text-sm text-text">
+                <p className="rounded-xl bg-warning/15 p-3 text-sm text-text">
                     Senza accesso la campagna resta su questo dispositivo. Accedi per condividerla con giocatori e DM.
                 </p>
             )}

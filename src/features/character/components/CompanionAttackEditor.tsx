@@ -25,7 +25,7 @@ export const CompanionAttackEditor: React.FC<CompanionAttackEditorProps> = ({ co
         {companion.attacks.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nessun attacco.</p>
         ) : (
-          <ul className="divide-y divide-border rounded-xl border border-border bg-background/40">
+          <ul className="divide-y divide-foreground/10 rounded-2xl bg-background/50">
             {companion.attacks.map((attack, index) => (
               <li key={index} className="flex items-baseline gap-3 px-3 py-2.5">
                 <span className="min-w-0 flex-1 break-words text-sm font-semibold text-foreground">{attack.name}</span>
@@ -58,7 +58,7 @@ export const CompanionAttackEditor: React.FC<CompanionAttackEditorProps> = ({ co
       <h4 className="mb-2 text-label uppercase text-muted-foreground">Attacchi</h4>
       <div className="space-y-3">
         {companion.attacks.map((attack, index) => (
-          <div key={index} className="grid grid-cols-[1fr_1fr_auto] gap-2 rounded-xl border border-border bg-background/40 p-2 sm:grid-cols-[1fr_5rem_6rem_9rem_auto] sm:border-0 sm:bg-transparent sm:p-0">
+          <div key={index} className="grid grid-cols-[1fr_1fr_auto] gap-2 rounded-2xl bg-background/50 p-2 sm:grid-cols-[1fr_5rem_6rem_9rem_auto] sm:bg-transparent sm:p-0">
             <input
               type="text"
               aria-label={`Attacco ${index + 1}: nome`}

@@ -70,7 +70,7 @@ export const CompanionSpellEditor: React.FC<CompanionSpellEditorProps> = ({ comp
                         <p className="text-sm text-muted-foreground">Nessuna capacità speciale.</p>
                     ) : (
                         sortedSpells.map((spell) => (
-                            <div key={spell.id} className="rounded-xl border border-border bg-background/40 p-3 text-sm">
+                            <div key={spell.id} className="rounded-2xl bg-background/50 p-3 text-sm">
                                 <p className="font-bold text-foreground">{spell.name}</p>
                                 <div className="mt-1 text-xs text-muted-foreground">
                                     {(spell.level > 0) ? `Level ${spell.level} ${spell.school}` : spell.school || 'Capacità speciale'}
@@ -176,7 +176,7 @@ interface SpellFormProps {
 }
 
 const SpellForm: React.FC<SpellFormProps> = ({ spell, onSpellChange, onDelete, inputClass }) => (
-    <div className="space-y-2 rounded-xl border border-border bg-background/40 p-3">
+    <div className="space-y-2 rounded-2xl bg-background/50 p-3">
         <div className="flex justify-between items-start gap-2">
             <input type="text" placeholder="Nome dell'incantesimo o capacità" value={spell.name} onChange={(e) => onSpellChange(spell.id, 'name', e.target.value)} className={`${inputClass} font-semibold`} />
             <button onClick={() => onDelete(spell.id)} type="button" aria-label="Elimina" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors duration-150 hover:bg-muted/60 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><TrashIcon className="w-4 h-4" /></button>

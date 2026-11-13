@@ -77,7 +77,7 @@ interface StyledSectionProps {
  * un filo lo prolunga fino al margine (o fino all'azione a destra).
  */
 export const StyledSection: React.FC<StyledSectionProps> = ({ title, children, className = '', action }) => (
-    <section aria-label={title} className={`rounded-2xl border border-border bg-card p-4 sm:p-5 ${className}`}>
+    <section aria-label={title} className={`surface p-4 sm:p-5 ${className}`}>
         {title && (
             <div className="mb-4 flex min-h-10 items-center gap-3">
                 <h3 className="min-w-0 truncate font-cinzel text-title text-accent">{title}</h3>

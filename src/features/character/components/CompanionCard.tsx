@@ -45,7 +45,7 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, onEdit,
     return (
       <div
         onClick={onView}
-        className="group relative cursor-pointer overflow-hidden rounded-2xl border border-border bg-card transition-[transform,border-color,box-shadow] duration-200 ease-soft hover:-translate-y-0.5 hover:border-accent/60 hover:shadow-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="group relative cursor-pointer overflow-hidden tile transition-[transform,box-shadow] duration-200 ease-soft hover:-translate-y-0.5 hover:shadow-raised hover:ring-1 hover:ring-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         role="button"
         tabIndex={0}
         onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onView && onView()}

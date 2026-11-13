@@ -44,7 +44,7 @@ export const CampaignHeader = ({ campaign, role, onSave, onRegenerateCode, onDel
     if (editing) {
         return (
             <form
-                className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5"
+                className="space-y-4 surface p-4 sm:p-5"
                 onSubmit={(e) => {
                     e.preventDefault();
                     if (!name.trim()) return;
@@ -98,7 +98,7 @@ export const CampaignHeader = ({ campaign, role, onSave, onRegenerateCode, onDel
             </div>
 
             {role === 'dm' && (
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border border-border bg-card p-4">
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-3 surface p-4">
                     <div>
                         <p className="text-label uppercase text-muted-foreground">Codice d'invito</p>
                         <p className="mt-1 font-mono text-2xl font-bold tracking-widest text-foreground">{campaign.inviteCode}</p>

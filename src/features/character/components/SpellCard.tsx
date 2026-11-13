@@ -16,14 +16,14 @@ interface SpellCardProps {
   onTogglePrepared?: () => void;
 }
 
-const tagClass = 'rounded-md border px-1.5 py-0.5 text-xs font-medium';
+const tagClass = 'rounded-md px-1.5 py-0.5 text-xs font-medium';
 
 /** Etichetta del tempo di lancio: l'azione è neutra, bonus e reazione si distinguono. */
 const castingTag = (castingTime: string): { label: string; className: string } | null => {
   const value = castingTime.toLowerCase();
-  if (value.includes('bonus')) return { label: 'Bonus', className: 'border-warning/40 text-warning' };
-  if (value.includes('reaction')) return { label: 'Reazione', className: 'border-warning/40 text-warning' };
-  if (value.includes('1 action')) return { label: 'Azione', className: 'border-border text-muted-foreground' };
+  if (value.includes('bonus')) return { label: 'Bonus', className: 'bg-warning/15 text-warning' };
+  if (value.includes('reaction')) return { label: 'Reazione', className: 'bg-warning/15 text-warning' };
+  if (value.includes('1 action')) return { label: 'Azione', className: 'bg-foreground/10 text-muted-foreground' };
   return null;
 };
 
@@ -50,7 +50,7 @@ export const SpellCard: React.FC<SpellCardProps> = ({
   const casting = castingTag(spell.castingTime);
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-background/40 transition-colors duration-150 hover:border-accent/40">
+    <div className="flex flex-col overflow-hidden rounded-2xl bg-background/50 transition-colors duration-150 hover:bg-background/70">
       <div className="flex items-start gap-1 p-1">
         <div
           role="button"
@@ -70,12 +70,12 @@ export const SpellCard: React.FC<SpellCardProps> = ({
             <ChevronDownIcon className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-150 ${isExpanded ? 'rotate-180' : ''}`} />
           </h4>
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            <span className={`${tagClass} border-border text-muted-foreground`}>
+            <span className={`${tagClass} bg-foreground/10 text-muted-foreground`}>
               {spell.level === 0 ? 'Trucchetto' : `Livello ${spell.level}`}
             </span>
             {casting && <span className={`${tagClass} ${casting.className}`}>{casting.label}</span>}
-            {spell.concentration && <span className={`${tagClass} border-accent/40 text-accent`}>Concentrazione</span>}
-            {spell.ritual && <span className={`${tagClass} border-border text-muted-foreground`}>Rituale</span>}
+            {spell.concentration && <span className={`${tagClass} bg-accent/15 text-accent`}>Concentrazione</span>}
+            {spell.ritual && <span className={`${tagClass} bg-foreground/10 text-muted-foreground`}>Rituale</span>}
           </div>
         </div>
 
@@ -95,7 +95,7 @@ export const SpellCard: React.FC<SpellCardProps> = ({
         )}
       </div>
 
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-2 border-t border-border px-3 py-2.5">
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-2 border-t border-foreground/10 px-3 py-2.5">
         {META.map(({ label, key }) => (
           <div key={key} className="min-w-0">
             <dt className="text-xs text-muted-foreground">{label}</dt>
@@ -105,12 +105,12 @@ export const SpellCard: React.FC<SpellCardProps> = ({
       </dl>
 
       {isExpanded && (
-        <div className="animate-fadeIn border-t border-border">
+        <div className="animate-fadeIn border-t border-foreground/10">
           <p className="whitespace-pre-wrap px-3 py-3 text-sm leading-relaxed text-text">
             {spell.description || <span className="text-muted-foreground">Nessuna descrizione.</span>}
           </p>
           {canBeEdited && (
-            <div className="flex items-center justify-end gap-1 border-t border-border p-1">
+            <div className="flex items-center justify-end gap-1 border-t border-foreground/10 p-1">
               {isDeleting ? (
                 <>
                   <span className="mr-auto pl-2 text-sm text-destructive">Eliminare?</span>

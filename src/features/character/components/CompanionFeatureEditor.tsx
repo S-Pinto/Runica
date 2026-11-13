@@ -64,7 +64,7 @@ export const CompanionFeatureEditor: React.FC<CompanionFeatureEditorProps> = ({ 
             </div>
 
             {!readOnly && isAdding && (
-                <div className="animate-fadeIn space-y-3 rounded-xl border border-accent/60 bg-background/40 p-4">
+                <div className="animate-fadeIn space-y-3 rounded-2xl bg-background/50 ring-1 ring-accent/50 p-4">
                     <StyledInput
                         label="Nome del tratto"
                         name="name"
@@ -104,7 +104,7 @@ export const CompanionFeatureEditor: React.FC<CompanionFeatureEditorProps> = ({ 
                 )}
 
                 {companion.featuresAndTraits.map(feature => (
-                    <div key={feature.id} className="group overflow-hidden rounded-xl border border-border bg-background/40">
+                    <div key={feature.id} className="group overflow-hidden rounded-2xl bg-background/50">
                         <div
                             className="flex min-h-11 cursor-pointer items-center justify-between px-3 py-2"
                             onClick={() => toggleExpand(feature.id)}

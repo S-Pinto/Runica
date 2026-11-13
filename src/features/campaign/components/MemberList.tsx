@@ -15,7 +15,7 @@ export const MemberList = ({ members, currentUid, canManage, onRemove }: MemberL
     const sorted = [...members].sort((a, b) => (a.role === b.role ? a.joinedAt - b.joinedAt : a.role === 'dm' ? -1 : 1));
 
     return (
-        <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
+        <ul className="surface divide-y divide-foreground/10">
             {sorted.map((m) => (
                 <li key={m.uid} className="flex min-h-14 items-center gap-3 px-4 py-2">
                     {m.photoURL ? (

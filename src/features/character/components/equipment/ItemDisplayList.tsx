@@ -44,7 +44,7 @@ export const ItemDisplayList = ({
             item.armorClass ? `CA ${item.armorClass}` : '',
           ].filter(Boolean).join(' · ');
           return (
-            <li key={item.id} className="rounded-xl border border-border bg-background/40 transition-colors duration-150 hover:border-accent/40">
+            <li key={item.id} className="rounded-2xl bg-background/50 transition-colors duration-150 hover:bg-background/70">
               <div className="flex items-center gap-1 p-1">
                 <button
                   type="button"
@@ -80,7 +80,7 @@ export const ItemDisplayList = ({
                 </Button>
               </div>
               {open && (
-                <div className="animate-fadeIn space-y-2 border-t border-border px-3 py-3">
+                <div className="animate-fadeIn space-y-2 border-t border-foreground/10 px-3 py-3">
                   <div className="flex flex-wrap gap-1.5">
                     {item.armorType && <span className={playChipClass}>Tipo: {item.armorType}</span>}
                     {item.armorClass && <span className={playChipClass}>CA {item.armorClass}</span>}

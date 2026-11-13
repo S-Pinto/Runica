@@ -19,7 +19,7 @@ interface InlineFormProps {
  * in accento: è l'elemento attivo della sezione. Azioni in fondo, la primaria a destra.
  */
 export const InlineForm = ({ title, onSubmit, onCancel, submitLabel = 'Salva', aside, children, className = '' }: InlineFormProps) => (
-    <form onSubmit={onSubmit} className={`animate-fadeIn rounded-xl border border-accent/60 bg-background/40 p-4 sm:p-5 ${className}`}>
+    <form onSubmit={onSubmit} className={`animate-fadeIn rounded-2xl bg-background/50 ring-1 ring-accent/50 p-4 sm:p-5 ${className}`}>
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
             <h4 className="font-cinzel text-title font-bold text-foreground">{title}</h4>
             <span aria-hidden className="hidden h-px flex-1 bg-border sm:block" />
