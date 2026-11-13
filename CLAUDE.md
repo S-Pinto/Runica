@@ -21,7 +21,7 @@ Deploy: GitHub Actions su merge (`.github/workflows/`), oppure `npm run deploy:l
 ## Stack
 
 - **Frontend**: React 19, TypeScript 5, Vite 5, React Router 6 (`createBrowserRouter`)
-- **Stile**: Tailwind 3 + `@tailwindcss/forms`, token colore come variabili CSS RGB in `src/index.css`, 13 temi (`theme-*`) gestiti da `ThemeProvider`
+- **Stile**: Tailwind 3 + `@tailwindcss/forms`, token colore come variabili CSS RGB in `src/index.css`, 6 temi (`theme-*`, elenco in `src/lib/themes.ts`) gestiti da `ThemeProvider`
 - **Animazioni**: framer-motion + keyframe Tailwind (`fadeIn`, `popIn`)
 - **Drag & drop**: `@dnd-kit` (ordinamento personaggi)
 - **Immagini**: `react-cropper`, `browser-image-compression`
