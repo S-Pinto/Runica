@@ -55,7 +55,7 @@ export const InventoryCurrencyBanner = ({ currency, attunedCount, onChange }: In
                   min={0}
                   value={val}
                   onChange={(e) => onChange(coin.key, parseInt(e.target.value) || 0)}
-                  className="no-spinner h-10 min-w-0 flex-1 rounded-xl border border-border-strong/60 bg-background px-1 text-center font-mono text-base font-bold tabular-nums text-foreground transition-colors duration-150 hover:border-border-strong focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  className="no-spinner h-10 min-w-0 flex-1 rounded-xl bg-foreground/10 px-1 text-center font-mono text-base font-bold tabular-nums text-foreground transition-colors duration-150 hover:bg-foreground/15 focus:outline-none focus:ring-2 focus:ring-accent/60"
                 />
                 <Button variant="secondary" size="icon" onClick={() => onChange(coin.key, val + 1)} aria-label={`Aggiungi una moneta: ${coin.label}`}>
                   <PlusIcon className="h-4 w-4" />
@@ -66,7 +66,7 @@ export const InventoryCurrencyBanner = ({ currency, attunedCount, onChange }: In
         })}
       </div>
 
-      <p className="mt-4 border-t border-border pt-3 text-sm text-muted-foreground">
+      <p className="mt-4 border-t border-foreground/10 pt-3 text-sm text-muted-foreground">
         Oggetti in sintonia{' '}
         <span className={`font-mono font-bold tabular-nums ${attunedCount >= 3 ? 'text-warning' : 'text-foreground'}`}>{attunedCount}/3</span>
       </p>

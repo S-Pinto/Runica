@@ -42,10 +42,10 @@ export const AbilitiesDisplay: FC<{ readOnly?: boolean }> = () => {
                         <section
                             key={key}
                             aria-label={ABILITY_LABELS[key]}
-                            className="flex flex-col rounded-2xl border border-border/60 bg-card p-4 transition-colors hover:border-accent/40"
+                            className="flex flex-col tile p-4 transition-shadow duration-200 hover:ring-1 hover:ring-accent/40"
                         >
                             <header className="flex items-center gap-4">
-                                <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl border border-accent/40 bg-accent/10">
+                                <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl bg-accent/15 ring-1 ring-accent/30">
                                     <span className="font-mono text-2xl font-bold leading-none text-accent">{formatModifier(mod)}</span>
                                     <span className="mt-1 font-mono text-xs text-muted-foreground">{score}</span>
                                 </div>
@@ -55,7 +55,7 @@ export const AbilitiesDisplay: FC<{ readOnly?: boolean }> = () => {
                                 </div>
                             </header>
 
-                            <ul className="mt-4 space-y-0.5 border-t border-border/50 pt-3 text-sm">
+                            <ul className="mt-4 space-y-0.5 border-t border-foreground/10 pt-3 text-sm">
                                 <li className="flex items-center justify-between rounded-lg px-2 py-1.5 font-medium text-foreground">
                                     <span className="flex items-center gap-2.5">
                                         <ProfDot proficient={save.proficient} />

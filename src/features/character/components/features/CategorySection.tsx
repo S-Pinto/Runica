@@ -31,7 +31,7 @@ export const CategorySection = ({
     };
 
     return (
-        <div className="rounded-xl border border-border bg-background/40">
+        <div className="rounded-2xl bg-background/50">
             <div className="flex items-center gap-1 py-1 pl-1 pr-2">
                 <button
                     type="button"
@@ -50,7 +50,7 @@ export const CategorySection = ({
             </div>
 
             {isExpanded && (
-                <div id={listId} className="border-t border-border">
+                <div id={listId} className="border-t border-foreground/10">
                     {count === 0 ? (
                         <p className="px-4 py-4 text-sm text-muted-foreground">{config.description}.</p>
                     ) : (

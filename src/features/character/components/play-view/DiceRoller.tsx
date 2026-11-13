@@ -115,10 +115,10 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({ mode = 'dock', isOpen = 
               role="radio"
               aria-checked={selectedDice === dice}
               onClick={() => setSelectedDice(dice)}
-              className={`h-11 rounded-xl border font-mono text-sm font-semibold transition-[color,background-color,border-color,transform,box-shadow] duration-200 ease-soft active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card ${
+              className={`h-11 rounded-xl font-mono text-sm font-semibold transition-[color,background-color,border-color,transform,box-shadow] duration-200 ease-soft active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                 selectedDice === dice
-                  ? 'border-accent bg-accent text-accent-foreground shadow-glow'
-                  : 'border-border-strong/60 text-text hover:border-accent/70 hover:text-accent'
+                  ? 'bg-accent text-accent-foreground shadow-glow'
+                  : 'bg-foreground/10 text-text hover:bg-accent/15 hover:text-accent'
               }`}
             >
               {dice}

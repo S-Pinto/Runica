@@ -8,11 +8,11 @@ interface AttackRollResultsProps {
     onClear: () => void;
 }
 
-const rowClass = 'flex items-baseline justify-between gap-3 rounded-lg border px-3 py-2 animate-fadeIn';
+const rowClass = 'flex items-baseline justify-between gap-3 rounded-xl px-3 py-2 animate-fadeIn';
 
 /** Esiti dei tiri di un attacco: il totale in grande, il dettaglio dei dadi sotto. */
 export const AttackRollResults = ({ results, onClear }: AttackRollResultsProps) => (
-    <div className="mt-3 border-t border-border pt-2" aria-live="polite">
+    <div className="mt-3 border-t border-foreground/10 pt-2" aria-live="polite">
         <div className="flex items-center justify-between">
             <span className={playLabelClass}>Risultati</span>
             <Button variant="ghost" size="icon" onClick={onClear} aria-label="Cancella i risultati" title="Cancella i risultati">
@@ -22,10 +22,10 @@ export const AttackRollResults = ({ results, onClear }: AttackRollResultsProps) 
         <div className="flex flex-col gap-1.5">
             {results.atk?.map((roll, i) => {
                 const tone = roll.isCrit
-                    ? 'border-success/50 bg-success/10 text-success'
+                    ? 'bg-success/15 text-success ring-1 ring-success/30'
                     : roll.isFail
-                        ? 'border-destructive/50 bg-destructive/10 text-destructive'
-                        : 'border-border text-foreground';
+                        ? 'bg-destructive/15 text-destructive ring-1 ring-destructive/30'
+                        : 'bg-foreground/10 text-foreground';
                 return (
                     <div key={`atk-${i}`} className={`${rowClass} ${tone}`}>
                         <div className="min-w-0">
@@ -39,7 +39,7 @@ export const AttackRollResults = ({ results, onClear }: AttackRollResultsProps) 
                 );
             })}
             {results.dmg?.map((roll, i) => (
-                <div key={`dmg-${i}`} className={`${rowClass} border-border text-foreground`}>
+                <div key={`dmg-${i}`} className={`${rowClass} bg-foreground/10 text-foreground`}>
                     <div className="min-w-0">
                         <p className="text-sm font-semibold">Danni</p>
                         {roll.breakdown && <p className="text-xs text-muted-foreground">{roll.breakdown}</p>}

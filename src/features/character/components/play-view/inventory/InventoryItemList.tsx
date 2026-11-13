@@ -50,14 +50,14 @@ export const InventoryItemList = ({
           const isExpanded = expandedItem === item.id;
           const resetLabel = item.charges ? RESET_LABELS[item.charges.resetType] ?? '' : '';
           return (
-            <li key={item.id} className="overflow-hidden rounded-xl border border-border bg-background/40">
+            <li key={item.id} className="overflow-hidden rounded-2xl bg-background/50 transition-colors duration-150 hover:bg-background/70">
               <div className="flex items-start gap-3 p-3">
                 {item.imageUrl ? (
                   <button
                     type="button"
                     onClick={() => onSelectImage({ url: item.imageUrl!, alt: item.name })}
                     aria-label={`Ingrandisci l'immagine di ${item.name}`}
-                    className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="h-12 w-12 shrink-0 overflow-hidden rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <img src={item.imageUrl} alt="" className="h-full w-full object-cover" />
                   </button>
@@ -82,7 +82,7 @@ export const InventoryItemList = ({
                     {item.damage && <span className={playChipClass}>Danni <span className="font-mono text-foreground">{item.damage}</span></span>}
                     {item.armorClass && <span className={playChipClass}>CA <span className="font-mono text-foreground">{item.armorClass}</span></span>}
                     {item.bonusAC && <span className={playChipClass}>CA <span className="font-mono text-foreground">+{item.bonusAC}</span></span>}
-                    {item.isAttuned && <span className="rounded-md border border-accent/40 px-1.5 py-0.5 text-xs font-medium text-accent">In sintonia</span>}
+                    {item.isAttuned && <span className="rounded-md bg-accent/15 px-1.5 py-0.5 text-xs font-medium text-accent">In sintonia</span>}
                   </div>
                 </div>
               </div>
@@ -112,7 +112,7 @@ export const InventoryItemList = ({
               </div>
 
               {item.charges && item.charges.max > 0 && (
-                <div className="flex items-center justify-between gap-3 border-t border-border px-3 py-2">
+                <div className="flex items-center justify-between gap-3 border-t border-foreground/10 px-3 py-2">
                   <p className="min-w-0 text-xs text-muted-foreground">
                     <span className="font-mono text-base font-bold tabular-nums text-foreground">{item.charges.current}</span>
                     <span className="font-mono">/{item.charges.max}</span> cariche
@@ -130,7 +130,7 @@ export const InventoryItemList = ({
               )}
 
               {isExpanded && (
-                <div className="space-y-2 border-t border-border px-3 py-3 animate-fadeIn">
+                <div className="space-y-2 border-t border-foreground/10 px-3 py-3 animate-fadeIn">
                   {(item.armorType || item.damageType) && (
                     <p className="text-xs text-muted-foreground">
                       {[item.armorType && `Armatura: ${item.armorType}`, item.damageType && `Tipo di danno: ${item.damageType}`].filter(Boolean).join(' · ')}

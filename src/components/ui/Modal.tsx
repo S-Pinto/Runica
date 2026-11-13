@@ -89,9 +89,9 @@ export const Modal = ({ open, onClose, title, icon, children, toolbar, footer, s
         aria-labelledby={titleId}
         tabIndex={-1}
         onKeyDown={onKeyDown}
-        className={`pb-safe flex max-h-[88dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-border/70 bg-card/90 text-text shadow-floating backdrop-blur-xl backdrop-saturate-150 outline-none animate-sheetIn sm:rounded-2xl sm:animate-popIn ${SIZES[size]}`}
+        className={`pb-safe flex max-h-[88dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-foreground/10 bg-card/90 text-text [box-shadow:var(--highlight),var(--shadow-floating)] backdrop-blur-xl backdrop-saturate-150 outline-none animate-sheetIn sm:rounded-2xl sm:animate-popIn ${SIZES[size]}`}
       >
-        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border py-2 pl-5 pr-2">
+        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-foreground/10 py-2 pl-5 pr-2">
           <h2 id={titleId} className="flex min-w-0 items-center gap-2.5 font-cinzel text-headline text-foreground">
             {icon && <span className="shrink-0 text-accent [&_svg]:h-5 [&_svg]:w-5">{icon}</span>}
             <span className="truncate">{title}</span>
@@ -100,9 +100,9 @@ export const Modal = ({ open, onClose, title, icon, children, toolbar, footer, s
             <XMarkIcon className="h-5 w-5" />
           </Button>
         </header>
-        {toolbar && <div className="shrink-0 border-b border-border">{toolbar}</div>}
+        {toolbar && <div className="shrink-0 border-b border-foreground/10">{toolbar}</div>}
         <div className="flex-1 overflow-y-auto overscroll-contain p-5">{children}</div>
-        {footer && <footer className="flex shrink-0 flex-col-reverse gap-2 border-t border-border p-4 sm:flex-row sm:justify-end">{footer}</footer>}
+        {footer && <footer className="flex shrink-0 flex-col-reverse gap-2 border-t border-foreground/10 p-4 sm:flex-row sm:justify-end">{footer}</footer>}
       </div>
     </div>,
     document.body,

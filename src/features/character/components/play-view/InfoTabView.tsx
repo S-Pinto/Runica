@@ -45,7 +45,7 @@ const InfoTabView = () => {
                             type="button"
                             onClick={() => setSelectedImage({ url: character.imageUrl ?? '', alt: character.name })}
                             aria-label="Ingrandisci ritratto"
-                            className="h-28 w-28 shrink-0 overflow-hidden rounded-2xl border border-border-strong/60 transition-colors duration-150 hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-32 sm:w-32"
+                            className="h-28 w-28 shrink-0 overflow-hidden rounded-2xl ring-1 ring-foreground/15 transition-shadow duration-150 hover:ring-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-32 sm:w-32"
                         >
                             <img src={character.imageUrl} alt="" className="h-full w-full object-cover" />
                         </button>

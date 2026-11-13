@@ -39,7 +39,7 @@ const ReadStat = ({ label, value }: { label: string, value: React.ReactNode }) =
 );
 
 const AbilityDisplay = ({ ability, value }: { ability: keyof AbilityScores, value: number }) => (
-  <div className="rounded-xl border border-border bg-background/40 px-2 py-2.5 text-center" title={ABILITY_LABELS[ability]}>
+  <div className="rounded-2xl bg-background/50 px-2 py-2.5 text-center" title={ABILITY_LABELS[ability]}>
     <div className="font-mono text-2xl font-bold leading-none tabular-nums text-foreground">{formatModifier(getModifier(value))}</div>
     <div className="mt-1 font-mono text-xs tabular-nums text-muted-foreground">{value}</div>
     <div className="mt-1 text-label uppercase text-muted-foreground">{ABILITY_SHORT[ability]}</div>

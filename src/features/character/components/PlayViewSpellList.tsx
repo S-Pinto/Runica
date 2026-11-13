@@ -109,7 +109,7 @@ export const PlayViewSpellList = () => {
         ) : (
           sortedLevels.map(level => (
             <div key={level}>
-              <h4 className="mb-3 flex items-baseline justify-between border-b border-border pb-2 font-cinzel text-base font-bold text-foreground">
+              <h4 className="mb-3 flex items-baseline justify-between border-b border-foreground/10 pb-2 font-cinzel text-base font-bold text-foreground">
                 {level === 0 ? 'Trucchetti' : `Livello ${level}`}
                 <span className="font-mono text-xs font-normal text-muted-foreground">{spellsByLevel[level].length}</span>
               </h4>

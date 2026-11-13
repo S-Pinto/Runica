@@ -141,7 +141,7 @@ export function getAttackSummary(
 
 const labelClass = 'text-label uppercase text-muted-foreground';
 const valueClass = 'mt-0.5 font-mono text-xl font-bold leading-tight tabular-nums text-foreground';
-const chipClass = 'rounded-md border border-border px-1.5 py-0.5 text-xs text-muted-foreground';
+const chipClass = 'rounded-md bg-foreground/10 px-1.5 py-0.5 text-xs text-muted-foreground';
 
 export const AttackRow: React.FC<AttackRowProps & { isExpanded?: boolean }> = ({
   attack,
@@ -156,8 +156,8 @@ export const AttackRow: React.FC<AttackRowProps & { isExpanded?: boolean }> = ({
   const summary = getAttackSummary(attack, abilityScores, proficiencyBonus);
 
   const containerClasses = {
-    card: 'rounded-xl border border-border bg-background/40 transition-colors duration-150 hover:border-accent/40',
-    list: 'border-b border-border py-3',
+    card: 'rounded-2xl bg-background/50 transition-colors duration-150 hover:bg-background/70',
+    list: 'border-b border-foreground/10 py-3',
   };
 
   const name = <span className="min-w-0 break-words">{attack.name}</span>;
@@ -215,7 +215,7 @@ export const AttackRow: React.FC<AttackRowProps & { isExpanded?: boolean }> = ({
         {summary.additionalDamage && summary.additionalDamage.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {summary.additionalDamage.map((extra, idx) => (
-              <span key={idx} className="rounded-md border border-accent/40 px-1.5 py-0.5 text-xs font-medium text-accent">
+              <span key={idx} className="rounded-md bg-accent/15 px-1.5 py-0.5 text-xs font-medium text-accent">
                 Extra <span className="font-mono">+{extra.formula}</span> {extra.type}
               </span>
             ))}
@@ -225,7 +225,7 @@ export const AttackRow: React.FC<AttackRowProps & { isExpanded?: boolean }> = ({
         {(attack.mastery || (attack.properties && attack.properties.length > 0)) && (
           <div className="flex flex-wrap items-center gap-1.5">
             {attack.mastery && (
-              <span className="rounded-md border border-accent/40 px-1.5 py-0.5 text-xs font-medium text-accent">
+              <span className="rounded-md bg-accent/15 px-1.5 py-0.5 text-xs font-medium text-accent">
                 Maestria: {WEAPON_MASTERIES[attack.mastery]?.name ?? attack.mastery}
               </span>
             )}

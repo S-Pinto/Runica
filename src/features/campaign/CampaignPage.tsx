@@ -134,7 +134,7 @@ export const CampaignPage = () => {
       <section aria-labelledby="party-title" className="space-y-3">
         <h2 id="party-title" className="font-cinzel text-headline text-foreground">Il gruppo</h2>
         {shared.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-border-strong/70 p-6 text-center text-sm text-muted-foreground">
+          <p className="surface p-6 text-center text-sm text-muted-foreground">
             Nessun personaggio condiviso. Per comparire qui, associa un personaggio a questa campagna dall'editor e salvalo.
           </p>
         ) : (
