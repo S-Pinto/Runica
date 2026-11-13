@@ -38,7 +38,7 @@ export const CategorySection = ({
                     onClick={() => setIsExpanded(!isExpanded)}
                     aria-expanded={isExpanded}
                     aria-controls={listId}
-                    className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg px-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-xl px-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                     <ChevronDownIcon className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-150 ${isExpanded ? 'rotate-180' : ''}`} />
                     <span className="min-w-0 truncate text-sm font-semibold text-foreground">{config.label}</span>
@@ -66,7 +66,7 @@ export const CategorySection = ({
                                                 onClick={() => toggleFeature(feature.id)}
                                                 aria-expanded={open}
                                                 disabled={!feature.description}
-                                                className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg px-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default"
+                                                className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-xl px-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default"
                                             >
                                                 <span className="min-w-0 break-words text-sm font-semibold text-accent">{feature.name}</span>
                                                 {feature.description && (

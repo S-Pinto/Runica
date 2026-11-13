@@ -4,6 +4,7 @@ import { useCharacter } from '../CharacterProvider';
 import { FeatureForm } from './features/FeatureForm';
 import { CategorySection } from './features/CategorySection';
 import { StyledSection } from './ui/StyledInputs';
+import { BoltIcon } from '../../../components/ui/icons';
 
 
 const DEFAULT_FEATURE: Omit<Feature, 'id'> = {
@@ -78,7 +79,7 @@ const CategorizedFeatureListContent = () => {
     );
 
     return (
-        <StyledSection title="Privilegi e tratti">
+        <StyledSection icon={<BoltIcon className="text-muted-foreground" />} title="Privilegi e tratti">
             {editingFeature && (
                 <FeatureForm
                     key={'id' in editingFeature ? editingFeature.id : `new-${editingFeature.category}`}

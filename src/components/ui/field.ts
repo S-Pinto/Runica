@@ -15,11 +15,28 @@ export const fieldInputClass =
 /** Campo dentro una card o una finestra (input, select, textarea). */
 export const fieldControlClass = `${fieldInputClass} bg-background`;
 
-/** Campo per un valore di gioco: cifre tabellari, centrato. */
-export const fieldNumericClass = `${fieldControlClass} no-spinner text-center font-mono font-bold`;
+/**
+ * Campo sopra una `.tile` vetrata: fondo semitrasparente (niente "buchi" pieni),
+ * contorno marcato a riposo, bordo e anello in accento al focus.
+ */
+export const fieldControlOnTileClass =
+  'w-full rounded-xl border border-border-strong/50 bg-background/60 px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground transition-colors duration-150 hover:border-border-strong focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 disabled:cursor-not-allowed disabled:opacity-50 [&_option]:bg-card [&_option]:text-foreground';
 
-/** Riquadro che raggruppa campi affini dentro una card: un gradino sotto, senza ombra. */
-export const fieldGroupClass = 'rounded-xl border border-border bg-background/40 p-3 sm:p-4';
+/**
+ * Guscio di un campo composto (valore con passi +/−) sopra una `.tile`: stesso
+ * fondo e contorno di `fieldControlOnTileClass`, il focus si accende dall'interno.
+ */
+export const fieldShellOnTileClass =
+  'rounded-xl border border-border-strong/50 bg-background/60 transition-colors duration-150 hover:border-border-strong focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20';
+
+/** Campo per un valore di gioco: cifre tabellari, centrato (sopra una `.tile` o una finestra). */
+export const fieldNumericClass = `${fieldControlOnTileClass} no-spinner text-center font-mono font-bold`;
+
+/**
+ * Riquadro che raggruppa campi affini dentro una `.tile`: un gradino tonale sotto,
+ * senza bordo né ombra (Borderless-Bento), stesso raggio di `playInsetClass`.
+ */
+export const fieldGroupClass = 'rounded-2xl bg-background/50 p-3 sm:p-4';
 
 /** Titolo di un gruppo di campi. */
 export const fieldGroupTitleClass = 'text-label uppercase text-accent';

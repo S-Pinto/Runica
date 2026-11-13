@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Feature } from '../../characterTypes';
-import { fieldCheckRowClass, fieldControlClass, fieldGroupClass, fieldLabelClass, fieldNumericClass } from '../../../../components/ui/field';
+import { fieldCheckRowClass, fieldControlOnTileClass, fieldGroupClass, fieldLabelClass, fieldNumericClass } from '../../../../components/ui/field';
 import { InlineForm } from '../ui/InlineForm';
 
 export const FeatureForm = ({
@@ -42,7 +42,7 @@ export const FeatureForm = ({
                         value={formData.name}
                         onChange={e => handleChange('name', e.target.value)}
                         required
-                        className={fieldControlClass}
+                        className={fieldControlOnTileClass}
                     />
                 </div>
                 <div>
@@ -51,7 +51,7 @@ export const FeatureForm = ({
                         id="feature-category"
                         value={formData.category}
                         onChange={e => handleChange('category', e.target.value)}
-                        className={fieldControlClass}
+                        className={fieldControlOnTileClass}
                     >
                         <option value="class">Privilegio di classe</option>
                         <option value="racial">Tratto di specie</option>
@@ -71,7 +71,7 @@ export const FeatureForm = ({
                     value={formData.description}
                     onChange={e => handleChange('description', e.target.value)}
                     rows={4}
-                    className={`${fieldControlClass} resize-y leading-relaxed`}
+                    className={`${fieldControlOnTileClass} resize-y leading-relaxed`}
                 />
             </div>
 
@@ -98,7 +98,7 @@ export const FeatureForm = ({
                         id="feature-recovery"
                         value={formData.recovery || 'none'}
                         onChange={e => handleChange('recovery', e.target.value)}
-                        className={fieldControlClass}
+                        className={fieldControlOnTileClass}
                     >
                         <option value="none">Non si ricarica</option>
                         <option value="short">Riposo breve</option>

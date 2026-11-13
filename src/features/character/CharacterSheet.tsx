@@ -3,12 +3,12 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCharacterEditor } from './hooks/useCharacterEditor';
 import { SparklesIcon, BackIcon, UserGroupIcon, HeartIcon, StarIcon, SwordIcon, ShieldIcon, UserCircleIcon } from '../../components/ui/icons';
 import { Button } from '../../components/ui/Button';
-import { TabButton } from '../../components/ui/TabButton';
 import { RuneDivider } from '../../components/ui/RuneDivider';
 import { EquipmentList } from './components/EquipmentList';
 import { AttackList } from './components/AttackList';
 import { CategorizedFeatureList } from './components/CategorizedFeatureList';
 import { CompanionTab } from './components/play-view/CompanionTab';
+import { PillTabBar } from './components/play-view/PillTabBar';
 import { EditorHeader } from './components/editor/EditorHeader';
 import { TabPanel } from './components/editor/TabPanel';
 import { IdentitySection } from './components/editor/IdentitySection';
@@ -63,16 +63,16 @@ export const CharacterSheet: React.FC = () => {
 
     if (!character) {
         return (
-            <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6" aria-busy="true" aria-label="Caricamento scheda">
-                <div className="h-16 animate-pulse rounded-2xl bg-muted/30" />
-                <div className="h-12 animate-pulse rounded-xl bg-muted/20" />
-                <div className="h-96 animate-pulse rounded-2xl bg-muted/20" />
+            <div className="mx-auto max-w-7xl space-y-3 p-3 sm:space-y-4 sm:p-6" aria-busy="true" aria-label="Caricamento scheda">
+                <div className="tile h-20 animate-pulse" />
+                <div className="h-12 animate-pulse rounded-full bg-card/70" />
+                <div className="tile h-96 animate-pulse" />
             </div>
         );
     }
 
     return (
-        <div className="mx-auto max-w-7xl space-y-4 p-4 pb-24 sm:space-y-6 sm:p-6 sm:pb-24">
+        <div className="mx-auto max-w-7xl space-y-3 p-3 pb-28 sm:space-y-4 sm:p-6 sm:pb-28">
             <EditorHeader
                 character={character}
                 isNewCharacter={isNewCharacter}
@@ -83,25 +83,19 @@ export const CharacterSheet: React.FC = () => {
                 onDelete={handleDelete}
             />
 
-            <nav className="-mx-4 border-b border-border px-2 sm:mx-0 sm:px-0">
-                <div role="tablist" aria-label="Sezioni della scheda" className="no-scrollbar flex overflow-x-auto">
-                    {TABS.map(tab => (
-                        <TabButton
-                            key={tab.key}
-                            id={`tab-${tab.key}`}
-                            label={tab.label}
-                            icon={tab.icon}
-                            isActive={activeTab === tab.key}
-                            onClick={() => handleTabChange(tab.key)}
-                            controls={`panel-${tab.key}`} />
-                    ))}
-                </div>
-            </nav>
+            <PillTabBar
+                tabs={TABS}
+                activeTab={activeTab}
+                onChange={handleTabChange}
+                tabId={key => `tab-${key}`}
+                panelId={key => `panel-${key}`}
+                measureKey={character.id}
+            />
 
-            <TabPanel tabKey="main" activeTab={activeTab} className="space-y-4 sm:space-y-6">
+            <TabPanel tabKey="main" activeTab={activeTab} className="space-y-3 sm:space-y-4">
                 <IdentitySection character={character} isNewCharacter={isNewCharacter} />
                 <RuneDivider />
-                <div className="grid grid-cols-1 items-start gap-4 sm:gap-6 lg:grid-cols-2">
+                <div className="grid grid-cols-1 items-start gap-3 sm:gap-4 lg:grid-cols-2">
                     <VitalsSection character={character} />
                     <CombatStatsSection character={character} initiative={initiative} proficiencyBonus={proficiencyBonus} />
                 </div>
@@ -112,13 +106,13 @@ export const CharacterSheet: React.FC = () => {
             </TabPanel>
 
             <TabPanel tabKey="combat" activeTab={activeTab} className="min-h-[60vh]">
-                <div className="grid grid-cols-1 items-start gap-4 sm:gap-6 lg:grid-cols-2">
+                <div className="grid grid-cols-1 items-start gap-3 sm:gap-4 lg:grid-cols-2">
                     <AttackList />
                     <CategorizedFeatureList />
                 </div>
             </TabPanel>
 
-            <TabPanel tabKey="spells" activeTab={activeTab} className="min-h-[60vh] space-y-4 sm:space-y-6">
+            <TabPanel tabKey="spells" activeTab={activeTab} className="min-h-[60vh] space-y-3 sm:space-y-4">
                 <SpellResourcesPanel character={character} />
             </TabPanel>
 

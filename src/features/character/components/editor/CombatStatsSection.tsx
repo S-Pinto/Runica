@@ -3,10 +3,12 @@ import { ICharacter } from '../../characterTypes';
 import { useCharacter } from '../../CharacterProvider';
 import { getModifier, formatModifier } from '../../utils/characterUtils';
 import { ABILITY_LABELS } from '../../../../lib/labels';
-import { BoltIcon, StarIcon } from '../../../../components/ui/icons';
+import { BoltIcon, StarIcon, ShieldIcon, SparklesIcon } from '../../../../components/ui/icons';
+import { RuneDivider } from '../../../../components/ui/RuneDivider';
 import { StyledSection, StyledSelect } from '../ui/StyledInputs';
-import { StatBox } from '../ui/StatBox';
+import { BentoStat } from '../ui/BentoStat';
 import { StatInput } from '../StatInput';
+import { playGroupTitleClass, playInsetClass } from '../play-view/PlaySection';
 import { useFieldChange } from '../../hooks/useFieldChange';
 import { ABILITIES } from './constants';
 
@@ -30,17 +32,19 @@ export const CombatStatsSection = ({ character, initiative, proficiencyBonus }: 
     }, [character.spellcastingAbility, character.abilityScores, proficiencyBonus]);
 
     return (
-        <StyledSection title="Statistiche di combattimento">
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                <StatBox label="Iniziativa" value={formatModifier(initiative)} icon={BoltIcon} />
-                <StatBox label="Competenza" value={formatModifier(proficiencyBonus)} icon={StarIcon} />
-                {/* La velocità è l'unico valore del gruppo che si scrive a mano: stessa cornice, con i passi. */}
-                <div className="frame-rune col-span-2 p-3.5 sm:p-4">
+        <StyledSection icon={<ShieldIcon className="text-muted-foreground" />} title="Statistiche di combattimento">
+            <div className="grid grid-cols-2 gap-3">
+                <BentoStat inset small label="Iniziativa" value={formatModifier(initiative)} icon={BoltIcon} />
+                <BentoStat inset small label="Competenza" value={formatModifier(proficiencyBonus)} icon={StarIcon} />
+                {/* La velocità è l'unico valore del gruppo che si scrive a mano: stesso riquadro, con i passi. */}
+                <div className={`${playInsetClass} col-span-2 p-3 sm:p-4`}>
                     <StatInput label="Velocità (ft)" value={character.speed} onChange={(val) => updateCharacter({ speed: Number(val) })} />
                 </div>
             </div>
 
-            <div className="mt-5 border-t border-border pt-4">
+            <RuneDivider glyph="notch" className="my-5" />
+            <div className="space-y-3">
+                <h4 className={playGroupTitleClass}>Incantesimi</h4>
                 <StyledSelect
                     label="Caratteristica da incantatore"
                     name="spellcastingAbility"
@@ -50,9 +54,9 @@ export const CombatStatsSection = ({ character, initiative, proficiencyBonus }: 
                     <option value="">Nessuna</option>
                     {ABILITIES.map(ability => (<option key={ability} value={ability}>{ABILITY_LABELS[ability]}</option>))}
                 </StyledSelect>
-                <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-4">
-                    <StatBox label="CD incantesimi" value={String(spellSaveDC)} />
-                    <StatBox label="Attacco con incantesimi" value={String(spellAttackBonus)} />
+                <div className="grid grid-cols-2 gap-3">
+                    <BentoStat inset small label="CD incantesimi" value={String(spellSaveDC)} icon={ShieldIcon} />
+                    <BentoStat inset small label="Attacco" value={String(spellAttackBonus)} icon={SparklesIcon} />
                 </div>
             </div>
         </StyledSection>

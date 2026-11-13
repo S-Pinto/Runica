@@ -3,7 +3,7 @@ import { ICharacter, AbilityScores } from '../../characterTypes';
 import { useCharacter } from '../../CharacterProvider';
 import { ABILITY_LABELS, ABILITY_SHORT } from '../../../../lib/labels';
 import { CONDITIONS } from '../../../../data/conditions';
-import { XMarkIcon } from '../../../../components/ui/icons';
+import { XMarkIcon, HeartIcon } from '../../../../components/ui/icons';
 import { fieldCheckRowClass, fieldChipClass, fieldGroupClass, fieldGroupTitleClass } from '../../../../components/ui/field';
 import { getArmorClassBreakdown } from '../../rules/combat';
 import { StyledInput, StyledTextArea, StyledSection } from '../ui/StyledInputs';
@@ -27,14 +27,14 @@ const HitPointsCard = ({ character }: VitalsSectionProps) => {
     };
 
     return (
-        <div className="frame-rune p-4 sm:p-5">
+        <div className={fieldGroupClass}>
             <h4 className={`${fieldGroupTitleClass} mb-3`}>Punti vita</h4>
             <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-3">
                 <StatInput label="Attuali" value={character.hp.current} onChange={(val) => handleHpChange('current', Number(val))} />
                 <StatInput label="Massimi" value={character.hp.max} onChange={(val) => handleHpChange('max', Number(val))} />
                 <StatInput label="Temporanei" value={character.hp.temporary} onChange={(val) => handleHpChange('temporary', Number(val))} />
             </div>
-            <div className="mt-4 border-t border-border pt-4">
+            <div className="mt-4">
                 <StyledInput label="Dadi vita" subLabel="Numero e tipo, es. 5d8" name="hitDice" value={character.hitDice.total} onChange={handleHitDiceChange} placeholder="1d8" className="sm:max-w-xs" />
             </div>
         </div>
@@ -179,7 +179,7 @@ const DefensesAndConditions = ({ character }: VitalsSectionProps) => {
 };
 
 export const VitalsSection = ({ character }: VitalsSectionProps) => (
-    <StyledSection title="Vita e difesa">
+    <StyledSection icon={<HeartIcon className="text-muted-foreground" />} title="Vita e difesa">
         <div className="space-y-5">
             <HitPointsCard character={character} />
             <UnarmoredDefenseCard character={character} />

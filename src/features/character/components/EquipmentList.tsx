@@ -79,12 +79,12 @@ const EquipmentListContent = () => {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-3 sm:space-y-4">
       <CurrencyBanner currency={character.currency} onChange={handleCurrencyChange} />
 
       <RuneDivider />
 
-      <StyledSection
+      <StyledSection icon={<BackpackIcon className="text-muted-foreground" />}
         title="Zaino ed equipaggiamento"
         action={
           <Button variant="secondary" onClick={() => setEditingItem('new')} disabled={editingItem !== null}>

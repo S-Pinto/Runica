@@ -53,7 +53,7 @@ export const CompanionHpManager: React.FC<CompanionHpManagerProps> = ({ hp, onHp
     const hpColor = hpPercentage > 50 ? 'bg-success' : hpPercentage > 25 ? 'bg-warning' : 'bg-destructive';
 
     return (
-        <div className="frame-rune space-y-3 p-4">
+        <div className="space-y-3 rounded-2xl bg-background/50 p-4">
             <div className="flex items-baseline justify-between gap-3">
                 <span className="text-label uppercase text-muted-foreground">Punti vita</span>
                 <span className="font-mono text-2xl font-bold tabular-nums text-foreground" aria-live="polite">

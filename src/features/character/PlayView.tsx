@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, Suspense, lazy, FC, createElement } from 'react';
+import { useState, useEffect, Suspense, lazy, FC, createElement } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import * as characterRepository from './characterRepository';
 import { useCharacter } from './CharacterProvider';
@@ -15,8 +15,8 @@ import { confirmDialog, toast } from '../../components/ui/Dialogs';
 import { longRestUpdate, shortRestUpdate } from './rules/rest';
 import { usePlayViewAutosave } from './hooks/usePlayViewAutosave';
 import { useDiceMode } from './hooks/useDiceMode';
-import { AstrolabeRing } from '../../components/ui/RuneOrnaments';
-import { TabButton } from '../../components/ui/TabButton';
+import { HeroHeader } from './components/play-view/HeroHeader';
+import { PillTabBar } from './components/play-view/PillTabBar';
 import { openPrintSheet } from './utils/printSheet';
 
 type PlayTab = 'main' | 'stats' | 'combat' | 'bio' | 'inventory' | 'spells' | 'companions';
@@ -91,25 +91,6 @@ export const PlayView: FC = () => {
 
     usePlayViewAutosave(character);
 
-    const tabContainerRef = useRef<HTMLDivElement>(null);
-
-    // Indicatore scorrevole: segue la tab attiva (posizione e larghezza misurate).
-    const [indicator, setIndicator] = useState<{ x: number; w: number } | null>(null);
-    useEffect(() => {
-        const measure = () => {
-            const el = tabContainerRef.current?.querySelector<HTMLElement>('[aria-selected="true"]');
-            if (el) setIndicator({ x: el.offsetLeft, w: el.offsetWidth });
-        };
-        measure();
-        window.addEventListener('resize', measure);
-        return () => window.removeEventListener('resize', measure);
-    }, [activeTab, character?.id]);
-
-    useEffect(() => {
-        const el = tabContainerRef.current?.querySelector<HTMLElement>('[aria-selected="true"]');
-        el?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
-    }, [activeTab, character?.id]);
-
     const handleLongRest = async () => {
         if (!character) return;
         const ok = await confirmDialog({
@@ -166,101 +147,63 @@ export const PlayView: FC = () => {
         character.class && (character.subclass ? `${character.class} (${character.subclass})` : character.class),
         `Livello ${character.level || 1}`,
     ].filter(Boolean).join(' · ');
+    const campaignName = resolveCampaignName(character, campaignNames);
 
     return (
         <div className="mx-auto max-w-7xl space-y-3 p-3 pb-28 sm:space-y-4 sm:p-6 sm:pb-28">
-            {/* Identity header */}
-            <header className="tile hero-glow relative z-20 p-3 sm:p-5">
-                {/* Ritaglio solo per la filigrana: l'header resta senza overflow-hidden (focus ring e ombre dei tasti non vengono tagliati). */}
-                <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
-                    <AstrolabeRing className="absolute -right-16 -top-24 h-72 w-72 text-accent/[0.18] sm:-right-6 sm:-top-28 sm:h-80 sm:w-80" />
-                    <span className="absolute inset-x-6 bottom-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
-                </div>
-                <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-                    <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
-                        <Button variant="ghost" size="icon-lg" onClick={() => navigate('/')} aria-label="Torna ai tuoi eroi" className="-ml-1 sm:ml-0">
-                            <BackIcon className="h-5 w-5" />
+            <HeroHeader
+                name={character.name}
+                subtitle={subtitle}
+                imageUrl={character.imageUrl}
+                onPortraitClick={() => setIsImageModalOpen(true)}
+                onBack={() => navigate('/')}
+                backLabel="Torna ai tuoi eroi"
+                badge={campaignName && (
+                    <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-medium text-accent">
+                        <UserGroupIcon className="h-3.5 w-3.5" />
+                        {campaignName}
+                    </span>
+                )}
+                actions={<>
+                    {/* Tutte le azioni sono a vista (niente menu "⋯"). Su telefono: riposi solo icona e "Combatti" nascosto, la tab Combattimento è subito sotto. */}
+                    <Button variant="secondary" onClick={() => handleTabChange('combat')} className="hidden sm:inline-flex" title="Vai al combattimento">
+                        <SwordIcon className="h-4 w-4" /> Combatti
+                    </Button>
+                    <Button variant="secondary" onClick={handleShortRest} className="flex-1 sm:flex-none" title="Riposo breve: spendi dadi vita e recupera le cariche a riposo breve" aria-label="Riposo breve">
+                        <SunIcon className="h-4 w-4" /> <span className="hidden lg:inline">Riposo breve</span>
+                    </Button>
+                    <Button variant="secondary" onClick={handleLongRest} className="flex-1 sm:flex-none" title="Riposo lungo: ripristina PV, slot e cariche" aria-label="Riposo lungo">
+                        <MoonIcon className="h-4 w-4" /> <span className="hidden lg:inline">Riposo lungo</span>
+                    </Button>
+                    <Button
+                        variant="secondary"
+                        onClick={() => characterId && openPrintSheet(characterId, navigate)}
+                        className="flex-1 sm:flex-none"
+                        aria-label="Stampa scheda o salva PDF"
+                        title="Stampa scheda / PDF"
+                    >
+                        <PrinterIcon className="h-4 w-4" />
+                    </Button>
+                    {diceMode === 'modal' && (
+                        <Button variant="secondary" onClick={() => setIsDiceModalOpen(true)} className="flex-1 sm:flex-none" aria-label="Apri dadiera" title="Apri dadiera">
+                            <DiceIcon className="h-4 w-4" />
                         </Button>
-                        {character.imageUrl ? (
-                            <button
-                                type="button"
-                                onClick={() => setIsImageModalOpen(true)}
-                                aria-label="Ingrandisci ritratto"
-                                className="shrink-0 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                            >
-                                <img
-                                    src={character.imageUrl}
-                                    alt=""
-                                    className="h-14 w-14 rounded-2xl object-cover ring-2 ring-accent/40 transition-shadow duration-150 hover:ring-accent sm:h-16 sm:w-16"
-                                />
-                            </button>
-                        ) : (
-                            <div className="portrait-rune monogram relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-border-strong/40 text-xl sm:h-16 sm:w-16 sm:text-2xl">
-                                {(character.name || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase()).join('')}
-                            </div>
-                        )}
-                        <div className="min-w-0">
-                            <h1 className="line-clamp-2 break-words font-norse text-2xl font-black leading-none tracking-tight text-foreground sm:line-clamp-1 sm:text-4xl">{character.name || 'Senza nome'}</h1>
-                            <p className="mt-0.5 line-clamp-2 text-sm capitalize text-muted-foreground sm:line-clamp-1">{subtitle}</p>
-                            {resolveCampaignName(character, campaignNames) && (
-                                <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-medium text-accent">
-                                    <UserGroupIcon className="h-3.5 w-3.5" />
-                                    {resolveCampaignName(character, campaignNames)}
-                                </span>
-                            )}
-                        </div>
-                    </div>
+                    )}
+                    <Button onClick={() => navigate(`/character/${characterId}/edit?tab=${activeTab}`)} className="flex-[2] sm:flex-none">
+                        <EditIcon className="h-4 w-4" /> Modifica
+                    </Button>
+                </>}
+            />
 
-                    <div className="flex items-center gap-1 sm:gap-2">
-                        {/* Tutte le azioni sono a vista (niente menu "⋯"). Su telefono: riposi solo icona e "Combatti" nascosto, la tab Combattimento è subito sotto. */}
-                        <Button variant="secondary" onClick={() => handleTabChange('combat')} className="hidden sm:inline-flex" title="Vai al combattimento">
-                            <SwordIcon className="h-4 w-4" /> Combatti
-                        </Button>
-                        <Button variant="secondary" onClick={handleShortRest} className="flex-1 sm:flex-none" title="Riposo breve: spendi dadi vita e recupera le cariche a riposo breve" aria-label="Riposo breve">
-                            <SunIcon className="h-4 w-4" /> <span className="hidden lg:inline">Riposo breve</span>
-                        </Button>
-                        <Button variant="secondary" onClick={handleLongRest} className="flex-1 sm:flex-none" title="Riposo lungo: ripristina PV, slot e cariche" aria-label="Riposo lungo">
-                            <MoonIcon className="h-4 w-4" /> <span className="hidden lg:inline">Riposo lungo</span>
-                        </Button>
-                        <Button
-                            variant="secondary"
-                            onClick={() => characterId && openPrintSheet(characterId, navigate)}
-                            className="flex-1 sm:flex-none"
-                            aria-label="Stampa scheda o salva PDF"
-                            title="Stampa scheda / PDF"
-                        >
-                            <PrinterIcon className="h-4 w-4" />
-                        </Button>
-                        {diceMode === 'modal' && (
-                            <Button variant="secondary" onClick={() => setIsDiceModalOpen(true)} className="flex-1 sm:flex-none" aria-label="Apri dadiera" title="Apri dadiera">
-                                <DiceIcon className="h-4 w-4" />
-                            </Button>
-                        )}
-                        <Button onClick={() => navigate(`/character/${characterId}/edit?tab=${activeTab}`)} className="flex-[2] sm:flex-none">
-                            <EditIcon className="h-4 w-4" /> Modifica
-                        </Button>
-                    </div>
-                </div>
-            </header>
-
-            {/* Sticky section navigation (sits under the app header: --header-offset) */}
-            <nav className="sticky top-header z-40 py-2">
-                <div ref={tabContainerRef} role="tablist" aria-label="Sezioni della scheda" className="no-scrollbar relative flex gap-1 overflow-x-auto rounded-full bg-card/70 p-1 shadow-raised backdrop-blur-xl backdrop-saturate-150 sm:inline-flex sm:max-w-full">
-                    {indicator && <span aria-hidden className="tab-indicator" style={{ transform: `translateX(${indicator.x}px)`, width: indicator.w }} />}
-                    {PLAY_TABS.map(tab => (
-                        <TabButton
-                            key={tab.key}
-                            variant="pill"
-                            id={`play-tab-${tab.key}`}
-                            controls={`play-panel-${tab.key}`}
-                            label={tab.label}
-                            icon={tab.icon}
-                            isActive={activeTab === tab.key}
-                            onClick={() => handleTabChange(tab.key)}
-                        />
-                    ))}
-                </div>
-            </nav>
+            {/* Navigazione sticky sotto l'header dell'app (--header-offset). */}
+            <PillTabBar
+                tabs={PLAY_TABS}
+                activeTab={activeTab}
+                onChange={handleTabChange}
+                tabId={key => `play-tab-${key}`}
+                panelId={key => `play-panel-${key}`}
+                measureKey={character.id}
+            />
 
             <main id={`play-panel-${activeTab}`} role="tabpanel" aria-labelledby={`play-tab-${activeTab}`} key={activeTab} className="animate-fadeIn">
                 <Suspense fallback={<TabLoadingSpinner />}>

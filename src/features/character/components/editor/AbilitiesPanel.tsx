@@ -3,7 +3,9 @@ import { useCharacter } from '../../CharacterProvider';
 import { getModifier, formatModifier } from '../../utils/characterUtils';
 import { ABILITY_LABELS, skillLabel } from '../../../../lib/labels';
 import { StyledSection } from '../ui/StyledInputs';
+import { StarIcon } from '../../../../components/ui/icons';
 import { StatInput } from '../StatInput';
+import { playInsetClass } from '../play-view/PlaySection';
 import { ABILITIES } from './constants';
 
 interface AbilitiesPanelProps {
@@ -97,10 +99,10 @@ const AbilityCard = ({ character, abilityKey, proficiencyBonus }: { character: I
     const relevantSkills = character.skills.filter(s => s.ability === abilityKey);
 
     return (
-        <StyledSection title={ABILITY_LABELS[abilityKey]} className="flex h-full flex-col">
+        <StyledSection icon={<StarIcon className="text-muted-foreground" />} title={ABILITY_LABELS[abilityKey]} className="flex h-full flex-col">
             {/* Il modificatore è il valore che si usa al tavolo: sta in cornice, il punteggio accanto si modifica. */}
             <div className="flex items-end gap-3">
-                <div className="frame-rune flex h-[4.25rem] w-24 shrink-0 flex-col items-center justify-center">
+                <div className={`${playInsetClass} flex h-[4.25rem] w-24 shrink-0 flex-col items-center justify-center`}>
                     <span className="font-mono text-numeric tabular-nums text-foreground">{formatModifier(abilityModifier)}</span>
                     <span className="mt-1 text-xs text-muted-foreground">Modificatore</span>
                 </div>
@@ -113,8 +115,8 @@ const AbilityCard = ({ character, abilityKey, proficiencyBonus }: { character: I
 
             <label
                 htmlFor={`saving-throw-${abilityKey}`}
-                className={`mt-4 flex min-h-11 cursor-pointer select-none items-center gap-3 rounded-xl border px-3 transition-colors duration-150 ${
-                    savingThrow.proficient ? 'border-accent/50 bg-accent/10' : 'border-border bg-background/40 hover:border-border-strong'
+                className={`mt-4 flex min-h-11 cursor-pointer select-none items-center gap-3 rounded-2xl px-3 transition-colors duration-150 ${
+                    savingThrow.proficient ? 'bg-accent/15' : 'bg-background/50 hover:bg-background/70'
                 }`}
             >
                 <input
@@ -129,7 +131,7 @@ const AbilityCard = ({ character, abilityKey, proficiencyBonus }: { character: I
             </label>
 
             {relevantSkills.length > 0 && (
-                <ul className="mt-3 border-t border-border pt-2">
+                <ul className="mt-3">
                     {relevantSkills.map(skill => (
                         <SkillRow key={skill.name} skill={skill} abilityModifier={abilityModifier} proficiencyBonus={proficiencyBonus} />
                     ))}
@@ -144,7 +146,7 @@ export const AbilitiesPanel = ({ character, proficiencyBonus }: AbilitiesPanelPr
         <p className="text-sm text-muted-foreground">
             Accanto a ogni abilità, la prima casella segna la competenza, la seconda la maestria (competenza doppia).
         </p>
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
             {ABILITIES.map(abilityKey => (
                 <AbilityCard key={abilityKey} character={character} abilityKey={abilityKey} proficiencyBonus={proficiencyBonus} />
             ))}

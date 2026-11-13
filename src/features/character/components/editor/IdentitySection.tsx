@@ -4,7 +4,7 @@ import { useCharacter } from '../../CharacterProvider';
 import { useAuth } from '../../../../providers/AuthProvider';
 import * as storageService from '../../../../services/storageService';
 import { toast } from '../../../../components/ui/Dialogs';
-import { PhotoIcon } from '../../../../components/ui/icons';
+import { PhotoIcon, UserCircleIcon } from '../../../../components/ui/icons';
 import { StyledInput, StyledSection } from '../ui/StyledInputs';
 import { StatInput } from '../StatInput';
 import { ImageUploader } from '../ImageUploader';
@@ -39,7 +39,7 @@ export const IdentitySection = ({ character, isNewCharacter }: IdentitySectionPr
 
     return (
         <>
-            <StyledSection title="Identità">
+            <StyledSection icon={<UserCircleIcon className="text-muted-foreground" />} title="Identità">
                 <div className="flex flex-col gap-5 sm:flex-row sm:gap-6">
                     {/* Ritratto: tutta la cornice apre il caricamento. */}
                     <div className="flex shrink-0 flex-col items-center gap-2 sm:items-start">
@@ -48,7 +48,7 @@ export const IdentitySection = ({ character, isNewCharacter }: IdentitySectionPr
                             onClick={() => setIsUploaderOpen(true)}
                             disabled={isNewCharacter}
                             aria-label={character.imageUrl ? 'Cambia ritratto' : 'Carica ritratto'}
-                            className="group relative h-32 w-32 overflow-hidden rounded-2xl border border-border-strong/60 bg-input transition-colors duration-150 hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:cursor-not-allowed disabled:hover:border-border-strong/60"
+                            className="group relative h-32 w-32 overflow-hidden rounded-2xl bg-input transition-shadow duration-150 enabled:hover:ring-2 enabled:hover:ring-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:cursor-not-allowed"
                         >
                             {character.imageUrl ? (
                                 <img src={character.imageUrl} alt="" className="h-full w-full object-cover transition-transform duration-500 ease-soft group-hover:scale-[1.03]" />

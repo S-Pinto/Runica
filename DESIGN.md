@@ -60,6 +60,7 @@ rounded:
   lg: "8px"
   xl: "12px"
   2xl: "16px"
+  tile: "24px"
   full: "9999px"
 spacing:
   "1": "4px"
@@ -103,16 +104,15 @@ components:
     typography: "{typography.body}"
     rounded: "{rounded.xl}"
     padding: "10px 12px"
-  section-card:
+  section-tile:
     backgroundColor: "{colors.card}"
-    rounded: "{rounded.2xl}"
-    padding: "20px"
-  stat-box:
-    backgroundColor: "{colors.card}"
+    rounded: "{rounded.tile}"
+    padding: "16px"
+  bento-stat:
     textColor: "{colors.foreground}"
     typography: "{typography.numeric}"
-    rounded: "{rounded.2xl}"
-    padding: "14px"
+    rounded: "{rounded.tile}"
+    padding: "12px"
   tab:
     textColor: "{colors.text-muted}"
     typography: "{typography.body-sm}"
@@ -161,9 +161,9 @@ I temi rimossi (Solaris, Cremisi, Rosato, Veridiano, Bosco, Etere, Notturno, Cel
 
 **Key Characteristics:**
 - Fondo scuro tonale, card un gradino più chiare, bordi sottili semitrasparenti.
-- Un solo accento per tema, usato per azioni primarie, stato attivo e titoli di sezione.
-- Titoli incisi (Norse per il marchio, Cinzel per le sezioni), testo e dati in Inter, valori numerici in monospace.
-- Angoli morbidi (12–16px) su controlli e contenitori.
+- Un solo accento per tema, usato per azioni primarie, stato attivo e icone dei valori.
+- Titoli incisi (Norse per il marchio, Cinzel per i titoli di gruppo e delle finestre), testo e dati in Inter, valori numerici in monospace.
+- Angoli morbidi: 12px sui controlli, 16px sui riquadri interni, 24px sulle tessere.
 - Bagliore dell'accento solo come segnale di stato.
 
 ## Colors
@@ -171,7 +171,7 @@ I temi rimossi (Solaris, Cremisi, Rosato, Veridiano, Bosco, Etere, Notturno, Cel
 Palette scura e neutra con un unico accento caldo che cambia per tema; i ruoli sono fissi, i valori variano.
 
 ### Primary
-- **Ambra Runica** (accent): azione primaria, tab e voce attiva, titoli delle sezioni, icone dei valori, anello di focus. In ogni tema è l'unico colore che chiede attenzione.
+- **Ambra Runica** (accent): azione primaria, tab e voce attiva, icone dei valori, anello di focus. In ogni tema è l'unico colore che chiede attenzione.
 - **Ambra Bruciata** (accent-dark): hover e pressione dell'azione primaria.
 - **Inchiostro sull'Ambra** (accent-foreground): testo e icone sopra l'accento pieno.
 
@@ -207,7 +207,8 @@ Palette scura e neutra con un unico accento caldo che cambia per tema; i ruoli s
 ### Hierarchy
 - **Display** (Norse 700, 36px/24px su mobile, 48px/30px da `sm`, tracking ampio): solo il marchio "RUNICA" nell'header. La runa accanto è un'icona SVG (`RuneMarkIcon`), non un carattere.
 - **Headline** (Cinzel 700, 20px, `text-headline`): titoli di finestre di dialogo e di pagina.
-- **Title** (Cinzel 400, 18px, colore accento, `text-title`): titoli di sezione (`StyledSection`).
+- **Title** (Cinzel 400, 18px, `text-title`, in `foreground`): titoli di **gruppo** dentro un pannello (`playGroupTitleClass`, es. "Incantesimi" in Statistiche di combattimento, "Tratti e ideali" in Personalità). Il titolo del pannello non è Cinzel: è un'etichetta (vedi sotto).
+- **Titolo di pannello** (`PlaySection`/`StyledSection`, uguale in gioco e nell'editor): `text-label` maiuscolo, `tracking-widest`, `muted-foreground`, con icona. Va a capo su due righe invece di troncarsi quando ha un'azione accanto ("Attacchi e trucchetti" + "Aggiungi" a 375px).
 - **Body** (Inter 400, 16px, 1.5): testo corrente, campi di input.
 - **Body small** (Inter 400–600, 14px): pulsanti, tab, liste, toast. È il testo più usato nell'app insieme a label.
 - **Label** (Inter 600, 12px, maiuscolo, tracking 0.08em, `text-label`): etichette dei campi e intestazioni brevi.
@@ -223,7 +224,7 @@ I ruoli con una classe (`text-headline`, `text-title`, `text-label`, `text-numer
 ## Layout
 
 - Contenitore pagina: larghezza massima 1280px (`max-w-7xl`), centrato, padding 16px su mobile e 24–32px da `sm` (640px).
-- Ritmo verticale tra sezioni 24px (a volte 32px); spaziatura interna tra elementi 8–12px; card con padding 14–20px.
+- Ritmo verticale tra pannelli 12px (16px da `sm`), come la griglia bento; spaziatura interna tra elementi 8–12px; tessere con padding 16–20px.
 - Breakpoint Tailwind standard (`sm` 640, `md` 768, `lg` 1024, `xl` 1280). Si progetta da mobile e si aggiungono colonne salendo.
 - Header fisso in alto, alto 56px su mobile e 64px da `sm` (`--header-h`), più la tacca del telefono. Gli elementi sticky sotto l'header usano `top-header`, mai un valore fisso.
 - Aree sicure: `viewport-fit=cover`; l'header aggiunge la tacca in alto, il `body` quelle laterali, `pb-safe` quella in basso.
@@ -238,12 +239,12 @@ Profondità tonale a strati: fondo → card → campo. Ogni superficie porta un 
 - **Luce ambientale** (`body::before`): due ellissi radiali dell'accento del tema in alto (`--ambient-strength`: 17% nei temi scuri, 10% in Pergamena; l'app non deve avere un fondo pieno sopra il `body`, altrimenti la luce sparisce), fisse dietro il contenuto. Cambia con il tema.
 - **Grana** (`body::after`): velo di rumore fisso, già descritto in `index.css`.
 - **`.surface`**: card tonale con velo d'accento in alto, bordo `foreground` al 9%, filo d'accento sul bordo alto (`::before`) e ombra `rest`; è la superficie di pannelli, header dell'eroe, card dei personaggi e "Nuovo eroe".
-- **`.tile`** (vista di gioco, direzione bento): superficie senza bordo, angoli 24px (`1.5rem`), fondo card al 72% con sfocatura 14px, gradiente tonale e filo di luce interno (`inset` 1px). Varianti: **`.tile-hero`** (campo d'accento pieno dall'angolo alto sinistro, per la CA) e **`.tile-danger`** (campo `destructive`, per i punti vita). La tessera si distingue per il salto tonale, non per il bordo.
+- **`.tile`** (vista di gioco **ed editor**, direzione bento): superficie senza bordo, angoli 24px (`1.5rem`), fondo card al 72% con sfocatura 14px, gradiente tonale e filo di luce interno (`inset` 1px). Varianti: **`.tile-hero`** (campo d'accento pieno dall'angolo alto sinistro, per la CA) e **`.tile-danger`** (campo `destructive`, per i punti vita). La tessera si distingue per il salto tonale, non per il bordo.
 - **`.hero-glow`**: velo caldo d'accento dall'angolo alto sinistro, solo dietro l'header dell'eroe.
 - **`.glass-pill`**: vetro (sfocatura 16px, fondo card all'82%, bordo marcato) per i controlli che galleggiano.
 
 ### Modern Arcane (filigrana e luce)
-- **`RuneOrnaments`** (`components/ui/RuneOrnaments.tsx`): `AstrolabeRing` (anello con tacche, rotazione 60s, `.rune-spin`) come filigrana nell'header dell'eroe e attorno al monogramma delle card; `CornerGlyphs` (quattro angoli a L con rombo) è la cornice attiva delle card, visibile solo in hover/focus o con `data-active`. `RuneDivider glyph="notch"` è il separatore con incavo centrale.
+- **`RuneOrnaments`** (`components/ui/RuneOrnaments.tsx`): `AstrolabeRing` (anello con tacche, rotazione 60s, `.rune-spin`) come filigrana nell'header dell'eroe e attorno al monogramma delle card; `CornerGlyphs` (quattro angoli a L con rombo) è la cornice attiva delle card, visibile solo in hover/focus o con `data-active`. `RuneDivider glyph="notch"` è il separatore con incavo centrale: separa i sottogruppi di uno stesso pannello (prima del titolo di gruppo Cinzel), al massimo due per scheda dell'editor; il `RuneDivider` semplice separa i pannelli di una pagina.
 - **Bordo di luce**: `.tile` e `.surface` hanno un gradiente da 1px (`::after`, maschera) che cattura la luce dall'alto.
 - **Barra HP** (`.hp-fill`, `data-tone` da `hpTone`): gradiente per stato, riflesso interno, tacche e un velo luminoso (`.hp-sheen`) quando il valore cambia.
 - **Sigilli e tiri contro la morte**: l'accensione incide la runa (rotazione + scala del punto) e accende la luce con una transizione, quindi niente lampi al montaggio.
@@ -262,15 +263,15 @@ Le ombre sono token (`src/index.css`, classi in `tailwind.config.js`) con il col
 `z-header` 50 · `z-modal` 100 (finestre) · `z-dialog` 105 (conferme, sopra la finestra che le apre) · `z-toast` 110.
 
 ### Named Rules
-**The Glow-Means-State Rule.** Il bagliore dell'accento e il bordo animato (`animated-border-card`) compaiono solo su elementi attivi o in hover/focus. A riposo nessun elemento brilla: l'azione primaria si distingue per il fondo pieno in accento. Le eccezioni sono l'atmosfera fissa (luce ambientale, `.hero-glow`) e la dadiera, unico controllo flottante, in vetro.
+**The Glow-Means-State Rule.** Il bagliore dell'accento compare solo su elementi attivi o in hover/focus. A riposo nessun elemento brilla: l'azione primaria si distingue per il fondo pieno in accento. Le eccezioni sono l'atmosfera fissa (luce ambientale, `.hero-glow`) e la dadiera, unico controllo flottante, in vetro.
 
-**The One Elevation Rule.** Un livello si dichiara con il bordo o con l'ombra. A riposo basta il bordo; l'ombra ampia è per ciò che galleggia sopra un velo. Eccezione: la vista di gioco usa `.tile`, che non ha bordo e si definisce solo con il salto tonale e la luce interna.
+**The One Elevation Rule.** Un livello si dichiara con il bordo o con l'ombra. A riposo basta il bordo; l'ombra ampia è per ciò che galleggia sopra un velo. Eccezione: vista di gioco ed editor usano `.tile`, che non ha bordo e si definisce solo con il salto tonale e la luce interna.
 
-**The Borderless-Bento Rule.** Nella vista di gioco niente scatole con bordo: le tessere sono superfici stratificate (`.tile`), i controlli interni hanno fondo pieno (`foreground`/10% o `background`/60%) e nessun contorno; l'accento compare come anello (`ring`) solo su focus o stato critico.
+**The Borderless-Bento Rule.** Nella vista di gioco e nell'editor niente scatole con bordo: le tessere sono superfici stratificate (`.tile`), righe e gruppi di campi sono riquadri interni senza bordo (`playInsetClass`, `fieldGroupClass`), e nessuna `.tile` si annida in un'altra (`BentoStat inset`). Il contorno resta solo sui **campi** (`fieldControlOnTileClass`), perché un campo deve sembrare scrivibile; l'accento compare come anello (`ring`) solo su focus, stato attivo o critico.
 
 ## Shapes
 
-Angoli morbidi e costanti: 12px (`rounded-xl`) per controlli e campi, 16px (`rounded-2xl`) per card, sezioni e dialoghi, 8px per elementi piccoli in liste, cerchio pieno per avatar, pallini di stato e pillole. Bordi da 1px quasi sempre in `border` semitrasparente; l'accento compare sul bordo solo in hover/focus/attivo.
+Angoli morbidi e costanti: 24px (`.tile`) per pannelli e tessere bento, 16px (`rounded-2xl`) per riquadri interni, immagini, card della lista e dialoghi, 12px (`rounded-xl`) per controlli, campi e miniature, cerchio pieno per avatar, pallini di stato e pillole. `rounded-md`/`rounded-lg` solo su chip e miniature ≤ 40px, mai su contenitori. Bordi da 1px quasi sempre in `border` semitrasparente; l'accento compare sul bordo solo in hover/focus/attivo.
 
 ## Components
 
@@ -288,23 +289,27 @@ Tattili e decisi: si abbassano leggermente alla pressione (scala 0.97).
 - Gli stili `hover:` valgono solo con un puntatore (`hoverOnlyWhenSupported`): sul telefono non restano accesi dopo il tocco. Transizioni di 150ms con la curva `ease-soft`, senza rimbalzo.
 
 ### Cards / Containers
-- **Corner Style:** 16px.
-- **Background:** card piena (`StatBox`) o card al 40% con sfocatura (`StyledSection`).
-- **Shadow Strategy:** separazione leggera; vedi Elevation.
-- **Border:** 1px `border` al 50–60%; in hover passa all'accento al 40%.
-- **Internal Padding:** 14–20px.
-- Titolo di sezione in Cinzel accento, separato da una linea sottile.
+Un solo guscio per entrambe le viste del personaggio (gioco ed editor): **`PlaySection`** (`play-view/PlaySection.tsx`). `StyledSection` dell'editor è un alias che lo renderizza (prop `action` → `aside`, `icon`).
+- **Superficie:** `.tile`, angoli 24px, padding 16px (20px da `sm`), nessun bordo.
+- **Titolo:** etichetta maiuscola con icona; a destra un'azione o un valore. Il titolo va a capo, mai troncato.
+- **Dentro:** riquadri `playInsetClass` (righe, valori, gruppi), gruppi di campi `fieldGroupClass` (stesso fondo, senza bordo), sottogruppi con titolo `playGroupTitleClass` (Cinzel) preceduti da `RuneDivider glyph="notch"`.
+- **Ritmo:** gap fra pannelli 12px (16px da `sm`), dentro un pannello 12px, fra sottogruppi 20px.
+- `.surface` (bordo + ombra) resta per la lista personaggi, le campagne e le card degli eroi.
 
 ### Inputs / Fields
-- **Style:** fondo `background` al 50% con sfocatura, bordo `border` al 50%, angoli 12px, padding 10px × 12px; etichetta sopra in stile Label.
-- **Focus:** bordo accento pieno e alone accento al 20% (2px); l'icona interna diventa accento.
-- **Hover:** bordo accento al 30%.
+Un'unica fonte: `components/ui/field.ts`.
+- **Sopra una `.tile` o in una finestra dell'editor** (`fieldControlOnTileClass`, usato da `StyledInput`, `StyledTextArea`, `StyledSelect` e dai form di oggetti, attacchi, incantesimi, compagni): fondo `background` al 60% (niente "buchi" pieni sulla tessera vetrata), contorno `border-strong` al 50%, angoli 12px, padding 10px × 12px, testo 16px; etichetta sopra in stile Label. `fieldNumericClass` ne è la variante numerica centrata; `fieldShellOnTileClass` è il guscio dei campi composti (`StatInput`, valore con passi +/−).
+- **Fuori dall'editor** (`fieldControlClass`/`fieldInputClass`, ricerca e form delle campagne): fondo pieno `background`, contorno `border-strong` al 60%.
+- **Focus:** bordo accento pieno e anello accento al 20% (2px); l'icona interna diventa accento.
+- **Hover:** contorno `border-strong` pieno.
 - **Disabled:** opacità 50%, cursore non consentito.
 - Input numerici senza frecce (`no-spinner`); i passi si fanno con pulsanti dedicati.
+- Caricatori d'immagine (ritratto, compagno): `rounded-2xl bg-input` senza bordo, anello d'accento solo in hover/focus.
 
 ### Navigation
 - **Header:** fisso, fondo all'85% con sfocatura (l'unico vetro a riposo, perché il contenuto vi scorre sotto), bordo inferiore `border`, nessuna ombra. Marchio Norse in accento con la runa in un riquadro, come link alla lista. Controlli: `Button` ghost o secondary, mai l'accento pieno (quello resta all'azione principale della pagina). Online non mostra nulla; offline compare una pillola `warning` calma, senza pulsazione. Avatar circolare con `Menu`; senza foto mostra l'iniziale.
-- **Tab (vista di gioco):** controllo segmentato (`TabButton variant="pill"`): contenitore incavato (`bg-input/60`, ombra interna) che scorre in orizzontale, voci da 40px; la voce attiva è una pillola con fondo accento al 15%, anello e luce d'accento; nella vista di gioco il contenitore è una pillola piena (`rounded-full`, card all'80% con sfocatura, senza bordo). Altrove (editor, finestra Campagne) resta la variante con barra di 2px sotto. Ruoli ARIA `tab` / `tabpanel`.
+- **Tab (vista di gioco ed editor):** `PillTabBar` (`play-view/PillTabBar.tsx`), sticky sotto l'header (`top-header`): pillola piena `rounded-full` (card all'80% con sfocatura, senza bordo) che scorre in orizzontale, voci `TabButton variant="pill"` da 40px; la voce attiva ha fondo accento al 15% e anello, con `.tab-indicator` che scorre sotto. Solo la finestra Campagne usa ancora la variante con barra di 2px sotto. Ruoli ARIA `tab` / `tabpanel`.
+- **Header dell'eroe:** `HeroHeader` (`play-view/HeroHeader.tsx`), condiviso: completo nella vista di gioco, `compact` nell'editor (ritratto piccolo, sottotitolo "Nuovo eroe"/"Modifica della scheda" e stato non salvato, azioni a destra: menu e Salva). In entrambi c'è l'`AstrolabeRing` di filigrana. Su telefono l'editor mostra Salva come pillola flottante in vetro in basso a destra.
 
 ### Dialogs & Toasts
 - **Modal** (`components/ui/Modal`): guscio unico delle finestre. Velo `scrim` al 70% sfocato; pannello card con bordo, ancorato in basso a tutta larghezza su mobile (entrata `sheetIn`, 240ms) e centrato da `sm` (`popIn`, 180ms); titolo Cinzel, chiusura da 44px, barra opzionale sotto il titolo (le tab della finestra Campagne), corpo scorrevole, piede opzionale per le azioni. Chiude con Esc, con il pulsante e toccando il velo; tiene il focus nel pannello e lo restituisce a chi l'ha aperto. Le finestre nuove usano questo guscio, non un `<dialog>` né un overlay scritto a mano.
@@ -324,7 +329,7 @@ Tattili e decisi: si abbassano leggermente alla pressione (scala 0.97).
 ### Vista di gioco
 - **Header dell'eroe**: `.tile` con `.hero-glow`, ritratto (anello d'accento `ring-2`) o segnaposto inciso, nome in `font-norse` 24–36px `font-black`, azioni a destra: "Combatti" (porta alla scheda Combattimento), Riposo lungo, Modifica, menu.
 - **Griglia bento della Panoramica** (`MainTabView`): 6 colonne su telefono, 12 da `lg`. I punti vita occupano tutta la larghezza (due righe da `lg`, 6 colonne); CA (`hero`) e Iniziativa sono tessere grandi (`BentoStat`, numero 60–72px, 3 colonne); Velocità, Competenza e Percezione passiva sono tessere compatte (`small`, numero 30–36px, 2 colonne). Sotto: condizioni, tiri contro la morte, dadi vita, difese, lingue. Gap 12px (16px da `sm`).
-- **Tessera bento** (`BentoStat`, locale a `MainTabView`): etichetta `text-label` maiuscola a sinistra, icona accento a destra, numero monospace `font-black` in basso; `StatBox` (`.frame-rune`) resta nell'editor.
+- **Tessera bento** (`BentoStat`, condivisa in `components/ui/BentoStat.tsx`): etichetta `text-label` maiuscola a sinistra, icona accento a destra (opzionale), numero monospace `font-black` in basso. Varianti: `hero` (CA), `small` (30–36px), `inset` (riquadro `playInsetClass` invece di una `.tile`, per i valori dentro un pannello: Statistiche di combattimento, Libro degli incantesimi) e `manual` (override: chip "Manuale" e numero in `warning`). `StatBox` e `.frame-rune` sono stati ritirati.
 - **Punti vita** (`.tile-danger`): numero da 96–128px (`text-8xl`/`sm:text-9xl`), barra da 12px con dieci tacche, luce del colore di stato e PV temporanei in accento; a 0 PV anello `destructive`. Campo quantità e scorciatoie +1/+5/+10 hanno fondo pieno, senza bordo; Danno / Cura / Temp sono pulsanti tinti (disattivati: opacità 60%).
 - **Tiri contro la morte**: tre `.check-rune` grandi (`data-size="lg"`) per riga, `data-tone` `success` / `destructive` (bordo tinto anche da vuote).
 - **Sigilli** (`.seal`): dadi vita, slot incantesimo, risorse e usi dei privilegi; rombo pieno con luce d'accento = disponibile, vuoto = speso; variante `data-size="lg"` (1.6rem) nella vista di gioco.
@@ -342,21 +347,18 @@ Tattili e decisi: si abbassano leggermente alla pressione (scala 0.97).
 - Opzioni (`printOptions.ts`, stile/valori/zoom salvati nel browser): valori **Compilata** o **A matita**, contenuto **Incantesimi** (riporta quelli della scheda; spenta, la sezione resta da compilare a mano), **Note** (riquadro "Note e appunti di campagna": al posto della sezione incantesimi se questi sono esclusi, altrimenti in una pagina in più; entrambe automatiche in base al personaggio) e Compagni, zoom Adatta/50–150% (CSS `zoom`, azzerato in stampa).
 
 ### Campi fuori dall'editor
-Ricerca e form delle campagne usano le classi di `components/ui/field.ts`: etichetta `text-label` maiuscola, campo con bordo `border-strong`, testo a 16px (sotto, iOS ingrandisce la pagina al focus), focus con bordo e anello in accento.
-
-### Stat Box (firma)
-Il valore di gioco come emblema: icona muted discreta in alto, numero monospace grande in `foreground` al centro, sotto-valore piccolo, etichetta maiuscola in muted sotto. In hover il filo interno e il rombo della cornice prendono l'accento.
+Ricerca e form delle campagne usano `fieldControlClass`/`fieldInputClass` di `components/ui/field.ts` (fondo pieno, contorno `border-strong`); l'editor del personaggio usa `fieldControlOnTileClass` (vedi Inputs / Fields). Testo a 16px ovunque (sotto, iOS ingrandisce la pagina al focus), focus con bordo e anello in accento.
 
 ## Do's and Don'ts
 
 ### Do:
 - **Do** usare solo i ruoli colore (`bg-card`, `text-accent`, `border-border/50`…) perché ogni tema funzioni.
 - **Do** aggiungere un nuovo token in tutti i blocchi `theme-*` di `src/index.css` e in `tailwind.config.js`.
-- **Do** usare `Button`, `Modal`, `Menu`, `StyledInput`, `StyledSection`, `StatBox`, `TabButton`, `Dialogs` prima di scrivere nuovi stili.
+- **Do** usare `Button`, `Modal`, `Menu`, `StyledInput`, `PlaySection`/`StyledSection`, `BentoStat`, `HeroHeader`, `PillTabBar`, `TabButton`, `Dialogs` prima di scrivere nuovi stili.
 - **Do** verificare il contrasto di un nuovo colore in tutti e sei i temi (testo ≥ 4.5:1, contorni dei controlli ≥ 3:1).
 - **Do** mostrare i valori di gioco in monospace bold ≥24px con etichetta sotto.
 - **Do** dare ai controlli della vista di gioco un bersaglio di almeno 40px (meglio 48px).
-- **Do** mantenere gli angoli a 12px per controlli e 16px per contenitori.
+- **Do** mantenere gli angoli a 12px per controlli, 16px per riquadri interni e 24px per le tessere.
 
 ### Don't:
 - **Don't** usare colori Tailwind fissi o esadecimali nei componenti.

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Spell } from '../../characterTypes';
-import { fieldCheckRowClass, fieldControlClass as inputClass, fieldGroupClass, fieldGroupTitleClass, fieldLabelClass as labelClass, fieldNumericClass } from '../../../../components/ui/field';
+import { fieldCheckRowClass, fieldControlOnTileClass as inputClass, fieldGroupClass, fieldGroupTitleClass, fieldLabelClass as labelClass, fieldNumericClass } from '../../../../components/ui/field';
 import { ABILITY_LABELS, schoolLabel } from '../../../../lib/labels';
 import { InlineForm } from '../ui/InlineForm';
 

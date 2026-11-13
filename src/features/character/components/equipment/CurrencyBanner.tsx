@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Currency } from '../../characterTypes';
 import { StyledSection } from '../ui/StyledInputs';
+import { StarIcon } from '../../../../components/ui/icons';
 import { StatInput } from '../StatInput';
 
 const COINS: { key: keyof Currency; label: string }[] = [
@@ -26,7 +27,7 @@ export const CurrencyBanner = ({
   }, [currency]);
 
   return (
-    <StyledSection
+    <StyledSection icon={<StarIcon className="text-muted-foreground" />}
       title="Monete"
       action={
         <p className="text-sm text-muted-foreground">

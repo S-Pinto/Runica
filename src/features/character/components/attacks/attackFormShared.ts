@@ -5,4 +5,4 @@ export const DAMAGE_TYPES = [
 
 
 /** Campi ed etichette dei form: le classi comuni di components/ui/field. */
-export { fieldControlClass as inputClass, fieldLabelClass as labelClass } from '../../../../components/ui/field';
+export { fieldControlOnTileClass as inputClass, fieldLabelClass as labelClass } from '../../../../components/ui/field';

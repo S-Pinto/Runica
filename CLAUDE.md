@@ -81,10 +81,10 @@ src/
         equipment/ attacks/ features/ spellbook/ character-list/   parti dei componenti omonimi
         play-view/          schede e tracker della vista di gioco (+ combat/, inventory/)
         print/              scheda stampabile (una pagina per file)
-        ui/                 input e box specifici del dominio
+        ui/                 input del dominio (StyledInputs) e BentoStat
   components/
     layout/AppHeader.tsx, SettingsModal.tsx, ErrorBoundary.tsx
-    ui/              kit condiviso (Button, Dialogs, Menu, TabButton, card, icons)
+    ui/              kit condiviso (Button, Dialogs, Menu, Modal, TabButton, SegmentedControl, RuneDivider, RuneOrnaments, field, icons)
   services/          authService, storageService, geminiService, campaignService
   api/               characterApi (chiamata PDF)
   data/              tabelle statiche (condizioni, proprietà armi)
@@ -109,14 +109,19 @@ functions/src/
 
 - Export **nominati** (`export const Nome = (...) => ...`); `default` solo per `App` e pochi casi storici. Un componente per file, file in PascalCase.
 - Le pagine stanno in `features/<area>/`; i pezzi riusabili solo nel dominio in `features/<area>/components/`; quelli generici in `src/components/ui/`.
-- Prima di creare un componente UI, controllare `src/components/ui/` (`Button` con `forwardRef`, `Menu`, `TabButton`, `Dialogs`, card, `icons.tsx`).
+- Prima di creare un componente UI, controllare `src/components/ui/` (`Button` con `forwardRef`, `Menu`, `Modal`, `TabButton`, `Dialogs`, `RuneDivider`, `icons.tsx`) e, per il personaggio, `PlaySection`, `BentoStat`, `HeroHeader`, `PillTabBar`.
 - Conferme e notifiche: `confirmDialog`, `alertDialog`, `toast` da `components/ui/Dialogs`. Mai `window.confirm`/`alert`.
 - Icone: aggiungerle in `components/ui/icons.tsx` (SVG inline con `IconProps`), niente librerie di icone.
 
 ### Stile
 
 - Solo classi Tailwind con i token del tema: `bg-background`, `bg-card`, `border-border`, `bg-input`, `text-text`, `text-text-muted`, `accent`, `destructive`, `success`, `warning`. **Niente colori hard-coded** (`zinc-800`, `#hex`): rompono i temi.
-- Vista di gioco (restyling in corso, branch `restyling-ui`): direzione bento senza bordi. Usare `.tile` / `.tile-hero` / `.tile-danger` (`src/index.css`) e `PlaySection`, non `.surface` né bordi; le tessere di valore sono `BentoStat` in `MainTabView`. Dettagli e regole (Borderless-Bento) in `DESIGN.md`.
+- Vista di gioco **ed editor** ("Modern Arcane", direzione bento senza bordi): stessi pezzi condivisi in entrambe le viste del personaggio.
+  - Pannelli: `PlaySection` (`.tile`); nell'editor `StyledSection` ne è l'alias. Niente `.surface`, bordi o card annidate dentro una tile: righe e valori in `playInsetClass`, gruppi di campi in `fieldGroupClass`, sottogruppi con `playGroupTitleClass` (Cinzel) e `RuneDivider glyph="notch"` (massimo due per scheda).
+  - Valori: `BentoStat` (`components/ui/BentoStat.tsx`; `inset` dentro un pannello, `manual` per gli override). `StatBox` e `.frame-rune` non esistono più.
+  - Header e tab: `HeroHeader` (`compact` nell'editor) e `PillTabBar` in `play-view/`.
+  - Campi sopra una tile: `fieldControlOnTileClass` / `fieldNumericClass` / `fieldShellOnTileClass` (`components/ui/field.ts`); `fieldControlClass` solo fuori dall'editor (campagne).
+  - `.surface` resta per lista personaggi, campagne e card degli eroi. Dettagli e regole (Borderless-Bento) in `DESIGN.md`.
 - Un nuovo token va aggiunto in tutti i blocchi `theme-*` di `src/index.css` e in `tailwind.config.js`.
 - Font: `font-norse` per i titoli, `font-cinzel` per gli accenti, `font-sans` (Inter) per il testo.
 - Input numerici: classe `no-spinner`.

@@ -7,6 +7,7 @@ import { useAuth } from '../../providers/AuthProvider';
 import { useCampaigns } from '../../providers/CampaignProvider';
 import { syncCharacterWithCampaigns, unpublishDeletedCharacter } from './campaignSync';
 import { describeDataError } from '../../lib/errors';
+import { createUserChangeDetector } from './editorSession';
 
 interface ICharacterContext {
   character: ICharacter | null;
@@ -68,12 +69,18 @@ export const CharacterProvider = ({ children }: { children: ReactNode }) => {
   const cloudCampaignIdsRef = useRef<ReadonlySet<string>>(new Set());
   cloudCampaignIdsRef.current = new Set(campaigns.map(c => c.id));
 
+  const userChangeDetector = useRef(createUserChangeDetector());
+
   useEffect(() => {
-    // Al cambio utente (login/logout) i dati dell'account precedente non devono restare visibili.
     setLoading(true);
     setLoadError(null);
-    setCharacters([]);
-    setCharacter(null);
+    // Al cambio utente (login/logout) i dati dell'account precedente non devono restare visibili.
+    // Al montaggio invece non si azzera nulla: l'effetto dell'editor (figlio) è già partito e
+    // su `/character/new` ha appena creato la scheda vuota (vedi `createUserChangeDetector`).
+    if (userChangeDetector.current(uid)) {
+      setCharacters([]);
+      setCharacter(null);
+    }
 
     let active = true;
     const unsubscribe = characterRepository.onCharactersSnapshot(
