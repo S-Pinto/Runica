@@ -289,10 +289,21 @@ Tattili e decisi: si abbassano leggermente alla pressione (scala 0.97).
 - **Tab (vista di gioco):** testo 14px semibold muted, attiva in accento con una barra di 2px sotto che si allarga e brilla; in hover la barra cresce dal centro. Ruoli ARIA `tab` / `tabpanel`.
 
 ### Dialogs & Toasts
-- **Modal** (`components/ui/Modal`): guscio unico delle finestre. Velo `scrim` al 70% sfocato; pannello card con bordo, ancorato in basso a tutta larghezza su mobile (entrata `sheetIn`, 240ms) e centrato da `sm` (`popIn`, 180ms); titolo Cinzel, chiusura da 44px, corpo scorrevole, piede opzionale per le azioni. Chiude con Esc, con il pulsante e toccando il velo; tiene il focus nel pannello e lo restituisce a chi l'ha aperto. Le finestre nuove usano questo guscio, non un `<dialog>` né un overlay scritto a mano.
+- **Modal** (`components/ui/Modal`): guscio unico delle finestre. Velo `scrim` al 70% sfocato; pannello card con bordo, ancorato in basso a tutta larghezza su mobile (entrata `sheetIn`, 240ms) e centrato da `sm` (`popIn`, 180ms); titolo Cinzel, chiusura da 44px, barra opzionale sotto il titolo (le tab della finestra Campagne), corpo scorrevole, piede opzionale per le azioni. Chiude con Esc, con il pulsante e toccando il velo; tiene il focus nel pannello e lo restituisce a chi l'ha aperto. Le finestre nuove usano questo guscio, non un `<dialog>` né un overlay scritto a mano.
 - **Conferma** (`confirmDialog`, `alertDialog`): stesso velo, larghezza massima 448px, pulsanti impilati su mobile e allineati a destra da `sm`; sta sopra le finestre (`z-dialog`).
 - **Toast:** card piena, angoli 12px, pallino colorato per variante; sopra la barra inferiore su mobile, in basso a destra da `sm`.
 - **Visore immagini** (`ImageModal`): fondo nero in ogni tema (eccezione alla Token-Only Rule: un'immagine si guarda sul nero).
+
+### Schede personaggio (lista e gruppo)
+`CharacterCard` e `SharedCharacterCard` hanno la stessa forma. Su telefono sono righe compatte (miniatura da 88px a sinistra, nome, punti vita, classe armatura) per vedere più eroi senza scorrere; da `sm` diventano card con il ritratto 16:10 in alto. Il nome sta sotto il ritratto, mai sovrapposto all'immagine.
+- Tutta la scheda apre il personaggio. Su telefono resta visibile solo il menu; da `sm` c'è anche "Gioca", secondario a riposo, che prende l'accento quando si punta la card.
+- Hover (solo con puntatore): la card sale di 2px, bordo in accento, `shadow-raised`; il ritratto scala a 1.03. Nessuna inclinazione, nemmeno durante il trascinamento.
+- Segnaposto del ritratto: fondo `input` piatto con le iniziali in Cinzel, senza sfumature né bagliori.
+- Barra dei punti vita: verde sopra metà, arancio fino a un quarto, rosso sotto (`hpBarTone`). L'etichetta è "Punti vita" ("PV" su telefono).
+- In una pagina con più schede l'unico fondo pieno in accento è l'azione della pagina ("Nuovo eroe"); a lista vuota passa all'invito al centro.
+
+### Campi fuori dall'editor
+Ricerca e form delle campagne usano le classi di `components/ui/field.ts`: etichetta `text-label` maiuscola, campo con bordo `border-strong`, testo a 16px (sotto, iOS ingrandisce la pagina al focus), focus con bordo e anello in accento.
 
 ### Stat Box (firma)
 Il valore di gioco come protagonista: numero monospace grande in `foreground`, sotto-valore piccolo accanto, etichetta in muted sotto, icona opzionale in un riquadro accento al 10%. Bordo che si accende in hover.
