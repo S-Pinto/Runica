@@ -16,7 +16,7 @@ const Vital = ({ label, children, className = '' }: { label: string; children: R
 );
 
 /** Pagina aggiuntiva: una per ogni compagno / evocazione (solo se il personaggio ne ha). Stesso linguaggio grafico delle pagine 1-2. */
-export const PrintPageCompanion = ({ companion, ownerName }: { companion: ICompanion; ownerName?: string }) => {
+export const PrintPageCompanion = ({ companion, ownerName, filled }: { companion: ICompanion; ownerName?: string; filled: boolean }) => {
     const skills = (companion.skills || []).filter((s) => s.proficient || s.expertise);
     const attackRows = Math.max(ATTACK_ROWS, companion.attacks?.length || 0);
     const items = (companion.equipment || []).map((it) => `${it.quantity > 1 ? `${it.quantity}× ` : ''}${it.name}`);
@@ -46,8 +46,8 @@ export const PrintPageCompanion = ({ companion, ownerName }: { companion: ICompa
                     <div className="vit-cell">
                         <div className="vit-title">Punti ferita</div>
                         <div className="hp-cols">
-                            <div className="hp-col"><div className="v" /><div className="lbl">Attuali</div></div>
-                            <div className="hp-col"><div className="v" /><div className="lbl">Temp</div></div>
+                            <div className="hp-col"><div className="v">{filled ? companion.hp?.current ?? '' : ''}</div><div className="lbl">Attuali</div></div>
+                            <div className="hp-col"><div className="v">{filled && companion.hp?.temporary ? companion.hp.temporary : ''}</div><div className="lbl">Temp</div></div>
                             <div className="hp-col"><div className="v">{companion.hp?.max || ''}</div><div className="lbl">Max</div></div>
                         </div>
                     </div>

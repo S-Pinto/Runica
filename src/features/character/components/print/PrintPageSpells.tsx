@@ -44,8 +44,16 @@ export const SpellTable = ({ spells, rows, title }: { spells: Spell[]; rows: num
     </Box>
 );
 
+interface PrintPageSpellsProps {
+    character: ICharacter;
+    /** Riporta slot spesi e monete correnti; altrimenti i campi variabili restano vuoti. */
+    filled: boolean;
+    /** Senza incantesimi (classi non incantatrici) la colonna sinistra diventa un grande riquadro per le note. */
+    showSpells: boolean;
+}
+
 /** Pagina 2: incantesimi, slot, aspetto, storia, linguaggi, equipaggiamento e monete. */
-export const PrintPageSpells = ({ character }: { character: ICharacter }) => {
+export const PrintPageSpells = ({ character, filled, showSpells }: PrintPageSpellsProps) => {
     const spells = getPrintSpells(character).slice(0, SPELL_ROWS_PAGE2);
     const ability = character.spellcastingAbility;
     const abilityMod = ability ? getMod(character.abilityScores[ability]) : 0;
@@ -57,7 +65,7 @@ export const PrintPageSpells = ({ character }: { character: ICharacter }) => {
     return (
         <section className="page">
             <div className="p2-grid">
-                <div className="col" style={{ gap: '2.5mm' }}>
+                {showSpells ? <div className="col" style={{ gap: '2.5mm' }}>
                     <div className="p2-top">
                         <Box className="sc-box">
                             <div className="sc-head">
@@ -80,11 +88,12 @@ export const PrintPageSpells = ({ character }: { character: ICharacter }) => {
                                             {levels.map((lv) => {
                                                 const max = character.spellSlots?.[lv]?.max || 0;
                                                 const diamonds = max > 0 ? Math.min(max, 6) : DEFAULT_SLOTS[lv];
+                                                const spent = filled ? Math.min(character.spellSlots?.[lv]?.used || 0, diamonds) : 0;
                                                 return (
                                                     <div key={lv} className="slot-line">
                                                         <span className="lv">Liv. {lv}</span>
                                                         <span className="tot">{max || ''}</span>
-                                                        <span className="dm">{Array.from({ length: diamonds }).map((_, i) => <span key={i}>{SVGs.diamond}</span>)}</span>
+                                                        <span className="dm">{Array.from({ length: diamonds }).map((_, i) => <span key={i}>{i < spent ? SVGs.diamondFilled : SVGs.diamond}</span>)}</span>
                                                     </div>
                                                 );
                                             })}
@@ -95,7 +104,12 @@ export const PrintPageSpells = ({ character }: { character: ICharacter }) => {
                         </div>
                     </div>
                     <SpellTable spells={spells} rows={SPELL_ROWS_PAGE2} title="Trucchetti e incantesimi preparati" />
-                </div>
+                </div> : (
+                    <div className="col" style={{ gap: '2.5mm' }}>
+                        <RunicFrieze />
+                        <Box title="Note e appunti di campagna" style={{ flex: 1 }}><div className="box-body grid-paper" /></Box>
+                    </div>
+                )}
 
                 <div className="side-col">
                     <Box title="Aspetto" style={{ flex: '1.1 1 0' }}><div className="box-body grid-paper" /></Box>
@@ -106,7 +120,7 @@ export const PrintPageSpells = ({ character }: { character: ICharacter }) => {
                             ) : null)}
                             {character.biography && <div className="story-bio">{storyFits ? character.biography : `${character.biography.slice(0, 260)}… (continua)`}</div>}
                         </div>
-                        <div className="lbl" style={{ marginTop: '1mm', borderBottom: '0.25mm solid #444', paddingBottom: '0.6mm' }}>Allineamento: <span style={{ color: '#111', fontSize: '6.4pt' }}>{character.alignment}</span></div>
+                        <div className="lbl" style={{ marginTop: '1mm', borderBottom: '0.25mm solid var(--ink-soft)', paddingBottom: '0.6mm' }}>Allineamento: <span style={{ color: 'var(--ink)', fontSize: '6.4pt' }}>{character.alignment}</span></div>
                     </Box>
                     <Box title="Linguaggi" style={{ flex: '0.7 1 0' }}>
                         <div className="box-body grid-paper" style={{ whiteSpace: 'pre-wrap', fontSize: '6.4pt' }}>{character.languages}</div>
@@ -125,7 +139,7 @@ export const PrintPageSpells = ({ character }: { character: ICharacter }) => {
                     </Box>
                     <Box title="Monete" className="coins">
                         <div className="coin-grid">
-                            {CURRENCY_KEYS.map((k) => <div key={k} className="coin"><div className="lbl">{k.toUpperCase()}</div><div className="coin-c"><div>{character.currency?.[k] || ''}</div></div></div>)}
+                            {CURRENCY_KEYS.map((k) => <div key={k} className="coin"><div className="lbl">{k.toUpperCase()}</div><div className="coin-c"><div>{filled ? character.currency?.[k] || '' : ''}</div></div></div>)}
                         </div>
                     </Box>
                 </div>

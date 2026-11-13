@@ -336,6 +336,11 @@ Tattili e decisi: si abbassano leggermente alla pressione (scala 0.97).
 - **Dadiera**: finestra `Modal` oppure pillola flottante in vetro (`.glass-pill`, 56px) in basso a destra con il d20 su un disco accento (su telefono solo il disco); aperta, il pannello si apre sopra la pillola (a tutta larghezza su telefono, 320px da `sm`). Il risultato sta in alto, il pulsante "Lancia" in basso, vicino al pollice.
 - **Icone**: niente emoji; `SwordIcon` è disegnata come due spade incrociate; il tipo di oggetto usa `SwordIcon`, `ShieldIcon`, `SparklesIcon`, `BackpackIcon`.
 
+### Stampa (`/character/:id/print`)
+- Attorno al foglio vale lo stile dell'app: barra sticky in vetro (`PrintToolbar`, come l'header) con indietro, titolo Cinzel, conteggio pagine e "Stampa / PDF" primario; i fogli stanno sul fondo del tema con la luce ambientale ed etichetta di pagina sopra ciascuno. Niente di tutto questo esce in stampa (`print:hidden`, `display: contents`).
+- Il foglio non segue il tema: i suoi colori sono variabili (`--ink`, `--pearl`, `--paper`…) in `printStyles` e negli ornamenti SVG (classi `o-ink`/`o-pearl`/`o-paper`/`o-solid`). Stili carta: **Inchiostro** (B/N, predefinito), **Grimorio** (carta calda, filetti seppia), **Alto contrasto** (solo nero).
+- Opzioni (`printOptions.ts`, stile/valori/zoom salvati nel browser): valori **Compilata** o **A matita**, pagine Incantesimi (automatico: senza incantesimi la colonna diventa "Note e appunti di campagna") e Compagni, zoom Adatta/50–150% (CSS `zoom`, azzerato in stampa).
+
 ### Campi fuori dall'editor
 Ricerca e form delle campagne usano le classi di `components/ui/field.ts`: etichetta `text-label` maiuscola, campo con bordo `border-strong`, testo a 16px (sotto, iOS ingrandisce la pagina al focus), focus con bordo e anello in accento.
 
