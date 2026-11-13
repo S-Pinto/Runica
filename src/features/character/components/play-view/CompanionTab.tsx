@@ -5,6 +5,7 @@ import { PlusCircleIcon, SparklesIcon } from '../../../../components/ui/icons';
 import { CompanionCard } from '../CompanionCard';
 import { CompanionSheetModal } from '../CompanionSheetModal';
 import { confirmDialog } from '../../../../components/ui/Dialogs';
+import { Button } from '../../../../components/ui/Button';
 
 interface CompanionTabProps {
   readOnly?: boolean;
@@ -118,19 +119,19 @@ export const CompanionTab: React.FC<CompanionTabProps> = ({ readOnly = false }) 
   if (!character) return null;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-cinzel font-bold text-foreground">Compagni ed evocazioni</h2>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex min-h-10 flex-wrap items-center justify-between gap-3">
+        <h2 className="font-cinzel text-headline text-foreground">Compagni ed evocazioni</h2>
         {!readOnly && (
-          <button onClick={handleAddCompanion} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-bold rounded-lg shadow-md hover:bg-primary/90 transition-colors">
-            <PlusCircleIcon className="w-5 h-5" />
+          <Button onClick={handleAddCompanion}>
+            <PlusCircleIcon className="h-5 w-5" />
             Aggiungi compagno
-          </button>
+          </Button>
         )}
       </div>
 
       {character.companions.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {character.companions.map(companion => (
             <CompanionCard 
               key={companion.id} 
@@ -144,16 +145,18 @@ export const CompanionTab: React.FC<CompanionTabProps> = ({ readOnly = false }) 
           ))}
         </div>
       ) : (
-        <div className="text-center py-16 px-6 bg-muted/20 rounded-lg border-2 border-dashed border-border">
-            <SparklesIcon className="mx-auto h-12 w-12 text-muted-foreground/50" />
-            <h3 className="mt-2 text-lg font-medium text-text">Nessun compagno</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Famigli, compagni animali ed evocazioni appariranno qui.</p>
+        <div className="rounded-2xl border border-dashed border-border-strong/50 px-6 py-12 text-center">
+            <SparklesIcon className="mx-auto h-8 w-8 text-muted-foreground" />
+            <h3 className="mt-3 font-cinzel text-title text-foreground">Nessun compagno</h3>
+            <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+              {readOnly
+                ? 'Famigli, compagni animali ed evocazioni si aggiungono da Modifica e compaiono qui.'
+                : 'Famigli, compagni animali ed evocazioni compariranno qui.'}
+            </p>
             {!readOnly && (
-              <div className="mt-6">
-                  <button onClick={handleAddCompanion} className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-bold rounded-lg shadow-md hover:bg-primary/90 transition-colors">
-                      <PlusCircleIcon className="w-5 h-5" /> Aggiungi il primo compagno
-                  </button>
-              </div>
+              <Button onClick={handleAddCompanion} className="mt-5">
+                <PlusCircleIcon className="h-5 w-5" /> Aggiungi il primo compagno
+              </Button>
             )}
         </div>
       )}

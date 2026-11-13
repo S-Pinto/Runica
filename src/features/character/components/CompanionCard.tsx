@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ICompanion } from '../characterTypes';
-import { SparklesIcon, EditIcon, TrashIcon, EllipsisVerticalIcon, HeartIcon, ShieldCheckIcon, ArrowTrendingUpIcon, BoltIcon, DocumentDuplicateIcon } from '../../../components/ui/icons';
+import { SparklesIcon, EditIcon, TrashIcon, EllipsisVerticalIcon, DocumentDuplicateIcon } from '../../../components/ui/icons';
 import { getModifier, formatModifier }  from '../utils/characterUtils';
 
 const getSpeedInMeters = (speed: string | number): string | null => {
@@ -45,49 +45,45 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, onEdit,
     return (
       <div
         onClick={onView}
-        className="bg-card-alt border border-border rounded-lg shadow-lg transition-all duration-300 relative overflow-hidden group cursor-pointer hover:shadow-accent/20 hover:border-accent/30 hover:scale-[1.02]"
+        className="group relative cursor-pointer overflow-hidden rounded-2xl border border-border bg-card transition-[transform,border-color,box-shadow] duration-200 ease-soft hover:-translate-y-0.5 hover:border-accent/60 hover:shadow-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         role="button"
         tabIndex={0}
         onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onView && onView()}
       >
-        <div className="w-full aspect-video bg-muted overflow-hidden">
+        <div className="aspect-[16/10] w-full overflow-hidden bg-input">
           {companion.imageUrl ? (
-            <img src={companion.imageUrl} alt={companion.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+            <img src={companion.imageUrl} alt={companion.name} className="h-full w-full object-cover transition-transform duration-500 ease-soft group-hover:scale-[1.03]" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-muted/50">
-              <SparklesIcon className="w-16 h-16 text-muted-foreground/30" />
+            <div className="flex h-full w-full items-center justify-center">
+              <SparklesIcon className="h-10 w-10 text-muted-foreground" />
             </div>
           )}
         </div>
         <div className="p-4">
-          <h3 className="text-xl font-cinzel font-bold text-accent truncate">{companion.name}</h3>
+          <h3 className="truncate font-cinzel text-headline text-foreground">{companion.name}</h3>
           <p className="text-sm text-muted-foreground capitalize">{companion.type || 'Compagno'}</p>
 
-          <div className="mt-4 grid grid-cols-2 gap-4 text-center">
+          <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3">
             <div title="Punti vita">
-              <HeartIcon className="w-6 h-6 mx-auto text-destructive/80 mb-1" />
-              <div className="font-bold text-xl sm:text-2xl text-foreground">{companion.hp.current} / {companion.hp.max}</div>
-              <div className="text-xs text-muted-foreground uppercase tracking-wider">PV</div>
+              <div className="font-mono text-2xl font-bold leading-none tabular-nums text-foreground">{companion.hp.current}<span className="text-base font-normal text-muted-foreground">/{companion.hp.max}</span></div>
+              <div className="mt-1 text-xs font-medium text-muted-foreground">Punti vita</div>
             </div>
             <div title="Classe Armatura">
-              <ShieldCheckIcon className="w-6 h-6 mx-auto text-accent/80 mb-1" />
-              <div className="font-bold text-2xl text-foreground">{companion.armorClass}</div>
-              <div className="text-xs text-muted-foreground uppercase tracking-wider">CA</div>
+              <div className="font-mono text-2xl font-bold leading-none tabular-nums text-foreground">{companion.armorClass}</div>
+              <div className="mt-1 text-xs font-medium text-muted-foreground">Classe Armatura</div>
             </div>
             <div title="Velocità">
-              <ArrowTrendingUpIcon className="w-6 h-6 mx-auto text-primary/80 mb-1" />
-              <div className="font-bold text-xl sm:text-2xl text-foreground">{companion.speed}{speedInMeters && <span className="text-base font-normal"> ({speedInMeters})</span>}</div>
-              <div className="text-xs text-muted-foreground uppercase tracking-wider">Velocità</div>
+              <div className="font-mono text-2xl font-bold leading-none tabular-nums text-foreground">{companion.speed}{speedInMeters && <span className="text-base font-normal text-muted-foreground"> · {speedInMeters}</span>}</div>
+              <div className="mt-1 text-xs font-medium text-muted-foreground">Velocità</div>
             </div>
             <div title="Iniziativa">
-              <BoltIcon className="w-6 h-6 mx-auto text-warning/80 mb-1" />
-              <div className="font-bold text-2xl text-foreground">{formatModifier(initiative)}</div>
-              <div className="text-xs text-muted-foreground uppercase tracking-wider">Iniziativa</div>
+              <div className="font-mono text-2xl font-bold leading-none tabular-nums text-foreground">{formatModifier(initiative)}</div>
+              <div className="mt-1 text-xs font-medium text-muted-foreground">Iniziativa</div>
             </div>
           </div>
 
-          <div className="w-full bg-muted rounded-full h-2.5 mt-4">
-            <div className={`${hpColor} h-2.5 rounded-full transition-all duration-500`} style={{ width: `${hpPercentage}%` }}></div>
+          <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-input">
+            <div className={`${hpColor} h-full rounded-full transition-[width] duration-300 ease-soft`} style={{ width: `${hpPercentage}%` }}></div>
           </div>
         </div>
       </div>

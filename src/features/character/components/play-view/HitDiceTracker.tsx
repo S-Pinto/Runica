@@ -3,6 +3,7 @@ import { useCharacter } from '../../CharacterProvider';
 import { getModifier, rollDiceExpression } from '../../utils/characterUtils';
 import { RefreshIcon } from '../../../../components/ui/icons';
 import { Button } from '../../../../components/ui/Button';
+import { PlaySection } from './PlaySection';
 
 export const HitDiceTracker = () => {
     const { character, updateCharacter } = useCharacter();
@@ -38,15 +39,16 @@ export const HitDiceTracker = () => {
     };
 
     return (
-        <section aria-labelledby="hit-dice-title" className="flex flex-col rounded-2xl border border-border/60 bg-card p-5 sm:p-6">
-            <div className="mb-5 flex items-center justify-between">
-                <h3 id="hit-dice-title" className="font-cinzel text-lg font-bold text-foreground">Dadi vita</h3>
-                <span className="font-mono text-sm text-muted-foreground">
-                    <span className="font-bold text-foreground">{remaining}</span>/{total} · {character.hitDice.total}
+        <PlaySection
+            title="Dadi vita"
+            className="flex flex-col"
+            aside={
+                <span className="font-mono text-sm tabular-nums text-muted-foreground">
+                    <span className="text-lg font-bold text-foreground">{remaining}</span>/{total} · {character.hitDice.total}
                 </span>
-            </div>
-
-            <div className="flex flex-wrap gap-3 p-1" role="group" aria-label="Dadi vita usati">
+            }
+        >
+            <div className="flex flex-wrap gap-1" role="group" aria-label="Dadi vita usati">
                 {Array.from({ length: total }).map((_, i) => {
                     const isUsed = i < used;
                     return (
@@ -56,15 +58,20 @@ export const HitDiceTracker = () => {
                             onClick={() => toggleDie(i)}
                             aria-pressed={isUsed}
                             aria-label={`Dado vita ${i + 1}: ${isUsed ? 'usato' : 'disponibile'}`}
-                            className={`h-6 w-6 m-1 rotate-45 rounded-md border-2 transition-all duration-300 ${
-                                isUsed ? 'border-border bg-muted/30 opacity-50' : 'border-accent/60 bg-accent/15 hover:bg-accent/30'
-                            }`}
-                        />
+                            className="group flex h-11 w-11 items-center justify-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                            <span
+                                aria-hidden
+                                className={`h-6 w-6 rotate-45 rounded-md border-2 transition-colors duration-150 ${
+                                    isUsed ? 'border-border-strong/50 bg-transparent' : 'border-accent bg-accent/20 group-hover:bg-accent/40'
+                                }`}
+                            />
+                        </button>
                     );
                 })}
             </div>
 
-            <div className="mt-auto flex gap-2 pt-6">
+            <div className="mt-auto flex gap-2 pt-4">
                 <Button onClick={spend} disabled={!canSpend} className="flex-1">
                     Tira e cura ({character.hitDice.total})
                 </Button>
@@ -78,6 +85,6 @@ export const HitDiceTracker = () => {
                     Cura: {lastRoll} PV
                 </p>
             )}
-        </section>
+        </PlaySection>
     );
 };

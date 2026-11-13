@@ -5,7 +5,7 @@ import { useCharacter } from './CharacterProvider';
 import { useCampaigns } from '../../providers/CampaignProvider';
 import { resolveCampaignName } from './rules/campaign';
 import { describeDataError } from '../../lib/errors';
-import { BackIcon, EditIcon, SparklesIcon, MoonIcon, SunIcon, PrinterIcon, EllipsisVerticalIcon, UserGroupIcon, HeartIcon, StarIcon, SwordIcon, UserCircleIcon, ShieldIcon } from '../../components/ui/icons';
+import { BackIcon, EditIcon, SparklesIcon, MoonIcon, SunIcon, PrinterIcon, DiceIcon, EllipsisVerticalIcon, UserGroupIcon, HeartIcon, StarIcon, SwordIcon, UserCircleIcon, ShieldIcon } from '../../components/ui/icons';
 import { Button } from '../../components/ui/Button';
 import { Menu, MenuItem } from '../../components/ui/Menu';
 import { AbilitiesDisplay } from './components/AbilitiesDisplay';
@@ -26,7 +26,7 @@ const SpellsTabView = lazy(() => import('./components/play-view/SpellsTabView'))
 const InventoryTabView = lazy(() => import('./components/play-view/InventoryTabView'));
 const BioTabView = lazy(() => import('./components/play-view/InfoTabView'));
 
-const TabLoadingSpinner = () => <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-accent"></div></div>;
+const TabLoadingSpinner = () => <div className="flex h-64 items-center justify-center" role="status" aria-label="Caricamento"><div className="h-8 w-8 animate-spin rounded-full border-2 border-border-strong border-t-accent" /></div>;
 
 
 const PLAY_TABS: { key: PlayTab; label: string; icon: FC<{ className?: string }> }[] = [
@@ -157,24 +157,18 @@ export const PlayView: FC = () => {
     const menuItems: MenuItem[] = [
         { label: 'Riposo breve', icon: <SunIcon />, onSelect: handleShortRest },
         { label: 'Stampa scheda', icon: <PrinterIcon />, onSelect: () => window.open(`/character/${characterId}/print`, '_blank') },
-        ...(diceMode === 'modal' ? [{ label: 'Apri dadiera', icon: <SparklesIcon />, onSelect: () => setIsDiceModalOpen(true) }] : []),
+        ...(diceMode === 'modal' ? [{ label: 'Apri dadiera', icon: <DiceIcon />, onSelect: () => setIsDiceModalOpen(true) }] : []),
     ];
 
     return (
-        <div className="mx-auto max-w-7xl space-y-6 p-4 pb-28 sm:p-6 sm:pb-28">
+        <div className="mx-auto max-w-7xl space-y-4 p-4 pb-28 sm:space-y-6 sm:p-6 sm:pb-28">
             {/* Identity header */}
-            <header className="relative overflow-hidden rounded-2xl border border-border/60 bg-card p-4 sm:p-5">
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_0%_0%,rgb(var(--color-accent)/0.14),transparent_55%)]" />
-                <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center">
-                    <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
-                        <button
-                            type="button"
-                            onClick={() => navigate('/')}
-                            aria-label="Torna ai tuoi eroi"
-                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        >
+            <header className="rounded-2xl border border-border bg-card p-3 sm:p-5">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+                    <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
+                        <Button variant="ghost" size="icon-lg" onClick={() => navigate('/')} aria-label="Torna ai tuoi eroi" className="-ml-1 sm:ml-0">
                             <BackIcon className="h-5 w-5" />
-                        </button>
+                        </Button>
                         {character.imageUrl ? (
                             <button
                                 type="button"
@@ -185,17 +179,17 @@ export const PlayView: FC = () => {
                                 <img
                                     src={character.imageUrl}
                                     alt=""
-                                    className="h-14 w-14 rounded-2xl border border-accent/50 object-cover shadow-[0_0_20px_rgb(var(--color-accent)/0.25)] transition-transform hover:scale-105 sm:h-16 sm:w-16"
+                                    className="h-14 w-14 rounded-2xl border border-border-strong/60 object-cover transition-colors duration-150 hover:border-accent sm:h-16 sm:w-16"
                                 />
                             </button>
                         ) : (
-                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-accent/40 bg-accent/10 font-cinzel text-xl font-bold text-accent sm:h-16 sm:w-16 sm:text-2xl">
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-border bg-input font-cinzel text-xl font-bold text-accent/70 sm:h-16 sm:w-16 sm:text-2xl">
                                 {(character.name || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase()).join('')}
                             </div>
                         )}
                         <div className="min-w-0">
-                            <h1 className="truncate font-cinzel text-2xl font-bold text-foreground sm:text-3xl">{character.name || 'Senza nome'}</h1>
-                            <p className="truncate text-sm capitalize text-muted-foreground">{subtitle}</p>
+                            <h1 className="line-clamp-2 break-words font-cinzel text-xl font-bold leading-tight text-foreground sm:line-clamp-1 sm:text-3xl">{character.name || 'Senza nome'}</h1>
+                            <p className="mt-0.5 line-clamp-2 text-sm capitalize text-muted-foreground sm:line-clamp-1">{subtitle}</p>
                             {resolveCampaignName(character, campaignNames) && (
                                 <span className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent">
                                     <UserGroupIcon className="h-3.5 w-3.5" />
@@ -216,7 +210,7 @@ export const PlayView: FC = () => {
                             label="Altre azioni"
                             trigger={<EllipsisVerticalIcon className="h-5 w-5" />}
                             items={menuItems}
-                            triggerClassName="flex h-10 w-10 items-center justify-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-accent/60 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            triggerClassName="flex h-10 w-11 shrink-0 items-center justify-center rounded-xl border border-border-strong/60 text-muted-foreground transition-colors duration-150 hover:border-accent/70 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         />
                     </div>
                 </div>

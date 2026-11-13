@@ -302,6 +302,15 @@ Tattili e decisi: si abbassano leggermente alla pressione (scala 0.97).
 - Barra dei punti vita: verde sopra metà, arancio fino a un quarto, rosso sotto (`hpBarTone`). L'etichetta è "Punti vita" ("PV" su telefono).
 - In una pagina con più schede l'unico fondo pieno in accento è l'azione della pagina ("Nuovo eroe"); a lista vuota passa all'invito al centro.
 
+### Vista di gioco
+- **Pannello** (`play-view/PlaySection`): guscio unico delle schede. Card piatta con bordo, padding 16px (20px da `sm`), titolo `text-title` in Cinzel accento con icona muted, azione o valore a destra. Dentro un pannello non si annidano altre card: righe e riquadri interni usano `playInsetClass` (bordo e fondo `background` al 40%), le etichette `playLabelClass` (`text-label` maiuscolo), i dati secondari `playChipClass`.
+- **Scelta esclusiva** (`components/ui/SegmentedControl`): modalità del tiro (normale, vantaggio, svantaggio) e filtri degli incantesimi; `radiogroup` con voci da 36px in un contenitore da 40px.
+- **Risorse a segni** (dadi vita, slot incantesimo, risorse personalizzate): il segno pieno in accento è una risorsa disponibile, quello vuoto è spesa; ogni segno ha un bersaglio di 40–44px.
+- **Valori**: monospace bold con cifre tabellari; l'etichetta sta sotto o sopra in `text-label`. Negli attacchi "Colpire" e "Danno" sono due colonne con il dettaglio del calcolo in piccolo sotto.
+- **Stati di gioco**: verde per successi e colpo critico, rosso per fallimenti, 1 naturale e condizioni attive. Nessun bagliore: basta il fondo pieno o tenue del colore di stato.
+- **Dadiera**: finestra `Modal` oppure pannello fisso in basso (a tutta larghezza su telefono, 320px da `sm`), secondo l'impostazione. Il risultato sta in alto, il pulsante "Lancia" in basso, vicino al pollice.
+- **Icone**: niente emoji; il tipo di oggetto usa `SwordIcon`, `ShieldIcon`, `SparklesIcon`, `BackpackIcon`.
+
 ### Campi fuori dall'editor
 Ricerca e form delle campagne usano le classi di `components/ui/field.ts`: etichetta `text-label` maiuscola, campo con bordo `border-strong`, testo a 16px (sotto, iOS ingrandisce la pagina al focus), focus con bordo e anello in accento.
 

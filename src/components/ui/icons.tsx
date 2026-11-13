@@ -407,3 +407,28 @@ export const ArrowPathIcon = (props: IconProps) => (
         <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
     </svg>
 );
+
+export const BookmarkIcon = (props: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path fillRule="evenodd" d="M6.32 2.577a49.255 49.255 0 0 1 11.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 0 1-1.085.67L12 18.089l-7.165 3.583A.75.75 0 0 1 3.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93Z" clipRule="evenodd" />
+    </svg>
+);
+
+/** Dado a venti facce visto di fronte. */
+export const DiceIcon = (props: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2.5l8.25 4.75v9.5L12 21.5l-8.25-4.75v-9.5L12 2.5zM12 2.5L7.5 15.25h9L12 2.5zM3.75 7.25l3.75 8M20.25 7.25l-3.75 8M7.5 15.25L12 21.5l4.5-6.25M3.75 16.75l3.75-1.5M20.25 16.75l-3.75-1.5" />
+    </svg>
+);
+
+export const SkullIcon = (props: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3a8 8 0 00-8 8c0 2.5 1.15 4.6 3 6v2.5a1 1 0 001 1h8a1 1 0 001-1V17c1.85-1.4 3-3.5 3-6a8 8 0 00-8-8zM10 20.5V18m4 2.5V18M9 13.25a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm6 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+    </svg>
+);
+
+export const BackpackIcon = (props: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 6V4.75A1.75 1.75 0 0110.75 3h2.5A1.75 1.75 0 0115 4.75V6m-6 0h6m-6 0a4 4 0 00-4 4v9a2 2 0 002 2h10a2 2 0 002-2v-9a4 4 0 00-4-4M8.5 21v-5a1 1 0 011-1h5a1 1 0 011 1v5M9.5 10.5h5" />
+    </svg>
+);

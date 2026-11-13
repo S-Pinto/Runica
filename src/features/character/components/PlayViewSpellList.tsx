@@ -1,15 +1,27 @@
 import { useState, useMemo } from 'react';
 import { Spell } from '../characterTypes';
 import { useCharacter } from '../CharacterProvider';
-import { SearchIcon, XCircleIcon } from '../../../components/ui/icons';
+import { SearchIcon, XMarkIcon, BookmarkIcon } from '../../../components/ui/icons';
+import { Button } from '../../../components/ui/Button';
+import { SegmentedControl, SegmentedOption } from '../../../components/ui/SegmentedControl';
+import { fieldInputClass } from '../../../components/ui/field';
 import { SpellCard } from './SpellCard';
+import { PlaySection, playEmptyClass } from './play-view/PlaySection';
 
+type CastingTimeFilter = 'all' | 'action' | 'bonus' | 'reaction';
+
+const CASTING_FILTERS: SegmentedOption<CastingTimeFilter>[] = [
+  { value: 'all', label: 'Tutti' },
+  { value: 'action', label: 'Azione' },
+  { value: 'bonus', label: 'Bonus' },
+  { value: 'reaction', label: 'Reazione' },
+];
 
 export const PlayViewSpellList = () => {
   const { character, updateCharacter } = useCharacter();
   const [expandedSpells, setExpandedSpells] = useState<Record<string, boolean>>({});
   const [searchTerm, setSearchTerm] = useState('');
-  const [castingTimeFilter, setCastingTimeFilter] = useState<'all' | 'action' | 'bonus' | 'reaction'>('all');
+  const [castingTimeFilter, setCastingTimeFilter] = useState<CastingTimeFilter>('all');
   const [showPreparedOnly, setShowPreparedOnly] = useState(false);
 
   const toggleExpand = (spellId: string) => {
@@ -39,7 +51,8 @@ export const PlayViewSpellList = () => {
         matchesFilter = spell.castingTime.toLowerCase().includes('reaction');
       }
 
-      const matchesPrepared = showPreparedOnly ? (spell.level === 0 || spell.prepared) : true; // Always show cantrips or if prepared check is off
+      // I trucchetti restano sempre visibili: non si preparano.
+      const matchesPrepared = showPreparedOnly ? (spell.level === 0 || spell.prepared) : true;
 
       return matchesSearch && matchesFilter && matchesPrepared;
     });
@@ -56,86 +69,51 @@ export const PlayViewSpellList = () => {
   if (!character) return null;
 
   return (
-    <div className="bg-card p-6 rounded-2xl border border-border/40 flex flex-col h-auto">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h3 className="text-2xl font-cinzel font-bold text-foreground">Libro degli incantesimi</h3>
+    <PlaySection title="Libro degli incantesimi">
+      <div className="space-y-3">
+        <div className="relative">
+          <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="search"
+            aria-label="Cerca incantesimi"
+            placeholder="Cerca incantesimi"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className={`${fieldInputClass} bg-background pl-10 pr-12 [&::-webkit-search-cancel-button]:hidden`}
+          />
+          {searchTerm && (
+            <Button variant="ghost" size="icon" onClick={() => setSearchTerm('')} aria-label="Cancella la ricerca" className="absolute right-1 top-1/2 -translate-y-1/2">
+              <XMarkIcon className="h-5 w-5" />
+            </Button>
+          )}
+        </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex bg-muted/30 p-1 rounded-lg border border-border/50">
-            <button
-              onClick={() => setCastingTimeFilter('all')}
-              className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${castingTimeFilter === 'all' ? 'bg-accent text-accent-foreground shadow-sm' : 'text-muted-foreground hover:bg-background/50 hover:text-foreground'}`}
-            >
-              Tutti
-            </button>
-            <button
-              onClick={() => setCastingTimeFilter('action')}
-              className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${castingTimeFilter === 'action' ? 'bg-accent/20 text-accent shadow-sm border border-accent/30' : 'text-muted-foreground hover:bg-background/50 hover:text-accent'}`}
-            >
-              Azione
-            </button>
-            <button
-              onClick={() => setCastingTimeFilter('bonus')}
-              className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${castingTimeFilter === 'bonus' ? 'bg-warning/20 text-warning shadow-sm border border-warning/30' : 'text-muted-foreground hover:bg-background/50 hover:text-warning'}`}
-            >
-              Bonus
-            </button>
-            <button
-              onClick={() => setCastingTimeFilter('reaction')}
-              className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${castingTimeFilter === 'reaction' ? 'bg-warning/20 text-warning shadow-sm border border-warning/30' : 'text-muted-foreground hover:bg-background/50 hover:text-warning'}`}
-            >
-              Reazione
-            </button>
-          </div>
-
-          <button
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <SegmentedControl label="Tempo di lancio" options={CASTING_FILTERS} value={castingTimeFilter} onChange={setCastingTimeFilter} className="sm:flex-1" />
+          <Button
+            variant="secondary"
             onClick={() => setShowPreparedOnly(!showPreparedOnly)}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all flex items-center gap-2 ${showPreparedOnly ? 'bg-accent text-accent-foreground border-accent' : 'bg-transparent border-border text-muted-foreground hover:border-accent hover:text-accent'}`}
+            aria-pressed={showPreparedOnly}
+            className={showPreparedOnly ? 'border-accent bg-accent/15 text-accent' : ''}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
-              <path fillRule="evenodd" d="M6.32 2.577a49.255 49.255 0 0 1 11.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 0 1-1.085.67L12 18.089l-7.165 3.583A.75.75 0 0 1 3.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93Z" clipRule="evenodd" />
-            </svg>
-            Solo preparati
-          </button>
+            <BookmarkIcon className="h-4 w-4" /> Solo preparati
+          </Button>
         </div>
       </div>
 
-      <div className="mb-8 relative group">
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <SearchIcon className="h-5 w-5 text-muted-foreground group-focus-within:text-accent transition-colors" />
-        </div>
-        <input
-          type="text"
-          placeholder="Cerca incantesimi..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full bg-background/50 backdrop-blur-sm p-3 pl-12 pr-12 rounded-xl border border-border/50 text-base focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none transition-all shadow-inner"
-        />
-        {searchTerm && (
-          <button
-            onClick={() => setSearchTerm('')}
-            className="absolute inset-y-0 right-0 pr-4 flex items-center"
-          >
-            <XCircleIcon className="h-5 w-5 text-muted-foreground hover:text-destructive transition-colors" />
-          </button>
-        )}
-      </div>
-
-      <div className="space-y-10">
+      <div className="mt-6 space-y-6">
         {character.spells.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-center text-muted-foreground text-sm py-8">Questo personaggio non conosce incantesimi.</p>
-          </div>
+          <p className={playEmptyClass}>Questo personaggio non conosce incantesimi.</p>
         ) : sortedLevels.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-center text-muted-foreground text-sm py-8">Nessun incantesimo corrisponde alla ricerca.</p>
-          </div>
+          <p className={playEmptyClass}>Nessun incantesimo corrisponde alla ricerca.</p>
         ) : (
           sortedLevels.map(level => (
             <div key={level}>
-              <h4 className="mb-3 border-b border-border pb-2 font-cinzel text-lg font-bold text-foreground">{level === 0 ? 'Trucchetti' : `Livello ${level}`}</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              <h4 className="mb-3 flex items-baseline justify-between border-b border-border pb-2 font-cinzel text-base font-bold text-foreground">
+                {level === 0 ? 'Trucchetti' : `Livello ${level}`}
+                <span className="font-mono text-xs font-normal text-muted-foreground">{spellsByLevel[level].length}</span>
+              </h4>
+              <div className="grid grid-cols-1 items-start gap-3 md:grid-cols-2">
                 {spellsByLevel[level].map(spell => (
                   <SpellCard
                     key={spell.id}
@@ -150,6 +128,6 @@ export const PlayViewSpellList = () => {
           ))
         )}
       </div>
-    </div>
+    </PlaySection>
   );
 };

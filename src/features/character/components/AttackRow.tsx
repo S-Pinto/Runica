@@ -1,6 +1,7 @@
 import React from 'react';
 import { Attack, AbilityScores } from '../characterTypes';
 import { WEAPON_MASTERIES } from '../../../data/weaponProperties';
+import { ChevronDownIcon } from '../../../components/ui/icons';
 
 type AttackRowVariant = 'card' | 'list';
 
@@ -138,7 +139,11 @@ export function getAttackSummary(
   };
 }
 
-export const AttackRow: React.FC<AttackRowProps> = ({
+const labelClass = 'text-label uppercase text-muted-foreground';
+const valueClass = 'mt-0.5 font-mono text-xl font-bold leading-tight tabular-nums text-foreground';
+const chipClass = 'rounded-md border border-border px-1.5 py-0.5 text-xs text-muted-foreground';
+
+export const AttackRow: React.FC<AttackRowProps & { isExpanded?: boolean }> = ({
   attack,
   actions,
   children,
@@ -146,112 +151,92 @@ export const AttackRow: React.FC<AttackRowProps> = ({
   onClick,
   abilityScores,
   proficiencyBonus,
+  isExpanded,
 }) => {
   const summary = getAttackSummary(attack, abilityScores, proficiencyBonus);
 
   const containerClasses = {
-    card: `bg-gradient-to-br from-card/80 via-card/60 to-card/40 hover:from-card/90 hover:to-card/50 backdrop-blur-md rounded-2xl border border-border/50 shadow-md hover:shadow-lg hover:border-accent/40 transition-all duration-300 relative overflow-hidden group ${onClick ? 'cursor-pointer' : ''}`,
-    list: 'border-b border-border/50 py-3 transition-all duration-300',
+    card: 'rounded-xl border border-border bg-background/40 transition-colors duration-150 hover:border-accent/40',
+    list: 'border-b border-border py-3',
   };
 
-  return (
-    <div className={containerClasses[variant]} onClick={onClick}>
-      <div className="absolute top-0 right-0 w-36 h-36 bg-accent/5 rounded-full blur-3xl -z-10 -mr-16 -mt-16 pointer-events-none group-hover:bg-accent/15 transition-colors duration-500" />
+  const name = <span className="min-w-0 break-words">{attack.name}</span>;
 
-      <div className="p-4 sm:p-5 flex flex-col gap-4">
-        {/* Top Header: Name and Action Buttons */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h4 className="min-w-0 flex-1 basis-40 break-words font-cinzel text-lg font-bold leading-tight text-foreground sm:text-xl">
-            {attack.name}
+  return (
+    <div className={containerClasses[variant]}>
+      <div className="flex flex-col gap-3 p-3 sm:p-4">
+        {/* Nome (apre i dettagli) e azioni */}
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+          <h4 className="min-w-0 flex-1 basis-40 text-base font-semibold leading-snug text-foreground">
+            {onClick ? (
+              <button
+                type="button"
+                onClick={onClick}
+                aria-expanded={isExpanded}
+                className="-mx-1 flex min-h-10 w-full items-center gap-1.5 rounded-lg px-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {name}
+                <ChevronDownIcon className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-150 ${isExpanded ? 'rotate-180' : ''}`} />
+              </button>
+            ) : name}
           </h4>
 
-          {actions && (
-            <div className="flex grow items-center gap-2 sm:grow-0">
-              {actions}
-            </div>
-          )}
+          {actions && <div className="flex grow items-center gap-2 sm:grow-0">{actions}</div>}
         </div>
 
-        {/* Stats Grid Section */}
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(13rem,1fr))] gap-3">
+        {/* Valori: il numero prima della parola */}
+        <dl className="grid grid-cols-2 gap-3">
           {summary.isSave ? (
-            <div className="bg-accent/10 border border-accent/30 rounded-xl p-3 flex items-center justify-between shadow-sm">
-              <span className="text-xs font-bold text-accent uppercase tracking-wider">🛡️ Tiro Salvezza</span>
-              <span className="text-sm font-black text-foreground">{summary.dcText}</span>
+            <div>
+              <dt className={labelClass}>Tiro salvezza</dt>
+              <dd className={valueClass}>{summary.dcText}</dd>
             </div>
           ) : (
-            <div className="bg-primary/10 border border-primary/30 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2 shadow-sm">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-primary uppercase tracking-wider">🎯 Colpire:</span>
-                <span className="text-sm sm:text-base font-black text-accent">{summary.rollToHitDice}</span>
-              </div>
+            <div>
+              <dt className={labelClass}>Colpire</dt>
+              <dd className={valueClass}>{summary.hitString}</dd>
               {summary.hitBreakdownParts.length > 0 && (
-                <div className="flex items-center gap-1">
-                  {summary.hitBreakdownParts.map((part, idx) => (
-                    <span key={idx} className="bg-primary/20 text-foreground font-bold px-2 py-0.5 rounded text-[11px] border border-primary/30">
-                      {part}
-                    </span>
-                  ))}
-                </div>
+                <dd className="mt-0.5 text-xs text-muted-foreground">{summary.hitBreakdownParts.join(' · ')}</dd>
               )}
             </div>
           )}
 
-          {!summary.isSave && (
-            <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2 shadow-sm">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-destructive uppercase tracking-wider">⚔️ Danno:</span>
-                <span className="text-sm sm:text-base font-black text-foreground">{summary.damageFormula}</span>
-                {summary.damageType && (
-                  <span className="text-[10px] uppercase font-bold text-foreground bg-destructive/30 px-1.5 py-0.5 rounded border border-destructive/40">
-                    {summary.damageType}
-                  </span>
-                )}
-              </div>
-              {summary.damageBreakdownParts.length > 0 && (
-                <div className="flex items-center gap-1">
-                  {summary.damageBreakdownParts.map((part, idx) => (
-                    <span key={idx} className="bg-destructive/20 text-foreground font-bold px-2 py-0.5 rounded text-[11px] border border-destructive/30">
-                      {part}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+          <div>
+            <dt className={labelClass}>Danno</dt>
+            <dd className={valueClass}>{summary.isSave ? summary.damageText : summary.damageFormula}</dd>
+            {!summary.isSave && (summary.damageType || summary.damageBreakdownParts.length > 0) && (
+              <dd className="mt-0.5 text-xs text-muted-foreground">
+                {[summary.damageType, ...summary.damageBreakdownParts].filter(Boolean).join(' · ')}
+              </dd>
+            )}
+          </div>
+        </dl>
 
-        {/* Extra Damage Badges */}
         {summary.additionalDamage && summary.additionalDamage.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {summary.additionalDamage.map((extra, idx) => (
-              <div key={idx} className="bg-accent/10 border border-accent/30 text-accent px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5">
-                <span>🔥 Extra:</span>
-                <span>+{extra.formula}</span>
-                <span className="text-[10px] uppercase">{extra.type}</span>
-              </div>
+              <span key={idx} className="rounded-md border border-accent/40 px-1.5 py-0.5 text-xs font-medium text-accent">
+                Extra <span className="font-mono">+{extra.formula}</span> {extra.type}
+              </span>
             ))}
           </div>
         )}
 
-        {/* Properties & Mastery Row */}
         {(attack.mastery || (attack.properties && attack.properties.length > 0)) && (
-          <div className="flex flex-wrap gap-2 items-center pt-1 border-t border-border/30">
+          <div className="flex flex-wrap items-center gap-1.5">
             {attack.mastery && (
-              <span className="bg-accent/15 text-accent px-2.5 py-1 rounded-lg border border-accent/30 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1 shadow-sm">
-                ✨ {WEAPON_MASTERIES[attack.mastery]?.name ?? attack.mastery}
+              <span className="rounded-md border border-accent/40 px-1.5 py-0.5 text-xs font-medium text-accent">
+                Maestria: {WEAPON_MASTERIES[attack.mastery]?.name ?? attack.mastery}
               </span>
             )}
             {attack.properties && attack.properties.map(p => (
-              <span key={p} className="bg-muted/40 text-muted-foreground px-2.5 py-1 rounded-lg border border-border/40 text-[10px] font-semibold uppercase tracking-wide">
-                {p}
-              </span>
+              <span key={p} className={chipClass}>{p}</span>
             ))}
           </div>
         )}
       </div>
 
-      {children && <div className="px-4 pb-4 pt-0 animate-in slide-in-from-top-2 fade-in duration-200">{children}</div>}
+      {children && <div className="px-3 pb-3 sm:px-4 sm:pb-4">{children}</div>}
     </div>
   );
 };

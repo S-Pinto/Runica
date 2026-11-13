@@ -1,7 +1,26 @@
-import React, { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { useCharacter } from '../../CharacterProvider';
 import { PhotoIcon } from '../../../../components/ui/icons';
 import { ImageModal } from '../../../../components/ui/ImageModal';
+import { fieldInputClass } from '../../../../components/ui/field';
+import { PlaySection, playLabelClass } from './PlaySection';
+
+const DisplayField = ({ label, value, className = '' }: { label: string; value: ReactNode; className?: string }) => (
+    <div className={`min-w-0 ${className}`}>
+        <dt className={playLabelClass}>{label}</dt>
+        <dd className="mt-1 break-words text-base text-foreground">{value || <span className="text-muted-foreground">–</span>}</dd>
+    </div>
+);
+
+/** Testo libero con la sua etichetta, dentro un pannello che ne raccoglie più d'uno. */
+const TextBlock = ({ label, content }: { label: string; content: string }) => (
+    <div>
+        <dt className={playLabelClass}>{label}</dt>
+        <dd className="mt-1.5 max-w-[70ch] whitespace-pre-wrap text-sm leading-relaxed text-text">
+            {content || <span className="text-muted-foreground">Nessuna informazione.</span>}
+        </dd>
+    </div>
+);
 
 const InfoTabView = () => {
     const { character, updateCharacter } = useCharacter();
@@ -9,84 +28,68 @@ const InfoTabView = () => {
 
     if (!character) return null;
 
-    const DisplayField = ({ label, value, className = '' }: { label: string, value: React.ReactNode, className?: string }) => (
-        <div className={`space-y-1 ${className}`}>
-            <label className="block text-xs font-bold text-accent uppercase tracking-widest opacity-80">{label}</label>
-            <div className="text-foreground font-medium text-sm sm:text-base border-b border-border/50 pb-1 min-h-[1.5em]">{value || <span className="text-muted-foreground/40 italic">--</span>}</div>
-        </div>
-    );
-
-    const InfoBlock = ({ title, content }: { title: string; content: string }) => (
-        <div className="bg-card/30 p-5 rounded-xl border border-accent/10 shadow-sm hover:border-accent/30 transition-colors flex max-h-[400px] flex-col overflow-hidden">
-            <h3 className="text-lg font-cinzel font-bold text-accent mb-3 border-b border-border/30 pb-2">{title}</h3>
-            <div className="text-foreground/90 whitespace-pre-wrap leading-relaxed overflow-y-auto pr-2 custom-scrollbar flex-1">{content || <span className="text-muted-foreground/50 italic">Nessuna informazione disponibile.</span>}</div>
-        </div>
-    );
+    const classLine = [character.class, character.level, character.subclass && `(${character.subclass})`].filter(Boolean).join(' ');
 
     return (
-        <div className="space-y-6 max-w-7xl mx-auto pb-8">
+        <div className="space-y-4 sm:space-y-6">
             <ImageModal
                 imageUrl={selectedImage?.url || ''}
                 altText={selectedImage?.alt || ''}
                 onClose={() => setSelectedImage(null)}
             />
-            {/* Identity Header Card */}
-            <div className="bg-card p-6 rounded-2xl border border-accent/20 shadow-lg">
-                <div className="flex flex-col md:flex-row gap-8 items-start">
-                    {/* Portrait Section */}
-                    <div className="flex-shrink-0 mx-auto md:mx-0">
-                        <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-accent/30 shadow-[0_0_15px_rgb(var(--color-accent)/0.2)] overflow-hidden bg-muted relative group cursor-pointer transition-transform hover:scale-105"
-                            onClick={() => character.imageUrl && setSelectedImage({ url: character.imageUrl, alt: character.name })}
+
+            <PlaySection title="Identità">
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+                    {character.imageUrl ? (
+                        <button
+                            type="button"
+                            onClick={() => setSelectedImage({ url: character.imageUrl ?? '', alt: character.name })}
+                            aria-label="Ingrandisci ritratto"
+                            className="h-28 w-28 shrink-0 overflow-hidden rounded-2xl border border-border-strong/60 transition-colors duration-150 hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-32 sm:w-32"
                         >
-                            {character.imageUrl ? (
-                                <img src={character.imageUrl} alt={character.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-accent/5">
-                                    <PhotoIcon className="w-16 h-16 text-accent/20" />
-                                </div>
-                            )}
+                            <img src={character.imageUrl} alt="" className="h-full w-full object-cover" />
+                        </button>
+                    ) : (
+                        <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-2xl bg-input text-muted-foreground sm:h-32 sm:w-32">
+                            <PhotoIcon className="h-10 w-10" />
                         </div>
-                    </div>
+                    )}
 
-                    {/* Info Grid */}
-                    <div className="flex-grow w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-6 gap-x-8">
-                        <DisplayField label="Nome del personaggio" value={<span className="font-cinzel font-bold text-xl text-accent">{character.name}</span>} className="sm:col-span-2" />
+                    <dl className="grid min-w-0 flex-1 grid-cols-2 gap-x-6 gap-y-4 lg:grid-cols-4">
+                        <DisplayField label="Nome" value={character.name} className="col-span-2" />
                         <DisplayField label="Giocatore" value={character.playerName} />
-                        <DisplayField label="PE" value={`${character.experiencePoints?.toLocaleString() || 0}`} />
-
-                        <DisplayField label="Classe e livello" value={`${character.class} ${character.level} ${character.subclass ? `(${character.subclass})` : ''}`} className="sm:col-span-2" />
+                        <DisplayField label="Punti esperienza" value={<span className="font-mono tabular-nums">{(character.experiencePoints || 0).toLocaleString('it-IT')}</span>} />
+                        <DisplayField label="Classe e livello" value={classLine} className="col-span-2" />
                         <DisplayField label="Razza" value={character.race} />
                         <DisplayField label="Background" value={character.background} />
-
                         <DisplayField label="Allineamento" value={character.alignment} />
-                        <DisplayField label="Lingue" value={character.languages} className="sm:col-span-3" />
-                    </div>
+                        <DisplayField label="Lingue" value={character.languages} className="col-span-2 lg:col-span-3" />
+                    </dl>
                 </div>
-            </div>
+            </PlaySection>
 
-            {/* Content Columns */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[600px]">
-                {/* Left Column: Personality */}
-                <div className="space-y-6 flex flex-col h-full">
-                    <InfoBlock title="Tratti caratteriali" content={character.personalityTraits} />
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 flex-1">
-                        <InfoBlock title="Ideali" content={character.ideals} />
-                        <InfoBlock title="Legami" content={character.bonds} />
-                        <InfoBlock title="Difetti" content={character.flaws} />
-                    </div>
-                </div>
+            <div className="grid grid-cols-1 items-start gap-4 sm:gap-6 lg:grid-cols-2">
+                <PlaySection title="Personalità">
+                    <dl className="space-y-5">
+                        <TextBlock label="Tratti caratteriali" content={character.personalityTraits} />
+                        <TextBlock label="Ideali" content={character.ideals} />
+                        <TextBlock label="Legami" content={character.bonds} />
+                        <TextBlock label="Difetti" content={character.flaws} />
+                    </dl>
+                </PlaySection>
 
-                {/* Right Column: Notes */}
-                <div className="space-y-6 flex flex-col h-full">
-                    <InfoBlock title="Note" content={character.notes} />
-                    <InfoBlock title="Note di campagna" content={character.dmNotes} />
-                    <div className="bg-card/30 p-5 rounded-xl border border-accent/10 shadow-sm hover:border-accent/30 transition-colors flex flex-col overflow-hidden h-full min-h-[300px]">
-                        <h3 className="text-lg font-cinzel font-bold text-accent mb-3 border-b border-border/30 pb-2 flex justify-between items-center">
-                            Biografia
-                        </h3>
+                <div className="grid grid-cols-1 gap-4 sm:gap-6">
+                    <PlaySection title="Note">
+                        <dl className="space-y-5">
+                            <TextBlock label="Personali" content={character.notes} />
+                            <TextBlock label="Di campagna" content={character.dmNotes} />
+                        </dl>
+                    </PlaySection>
+                    <PlaySection title="Biografia">
                         <textarea
-                            className="w-full h-full bg-transparent border-none resize-none focus:ring-0 text-foreground/90 leading-relaxed custom-scrollbar p-0 placeholder:text-muted-foreground/30"
-                            placeholder="Scrivi qui la biografia del personaggio..."
+                            aria-label="Biografia"
+                            className={`${fieldInputClass} min-h-48 resize-y bg-background leading-relaxed`}
+                            placeholder="Scrivi qui la storia del personaggio"
                             defaultValue={character.biography || ''}
                             onBlur={(e) => {
                                 if (character.biography !== e.target.value) {
@@ -94,7 +97,8 @@ const InfoTabView = () => {
                                 }
                             }}
                         />
-                    </div>
+                        <p className="mt-2 text-xs text-muted-foreground">Si salva quando esci dal campo.</p>
+                    </PlaySection>
                 </div>
             </div>
         </div>
