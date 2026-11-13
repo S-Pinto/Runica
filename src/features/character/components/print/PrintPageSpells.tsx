@@ -1,78 +1,129 @@
-import React, { useMemo } from 'react';
-import { ICharacter } from '../../characterTypes';
+import type { CSSProperties, ReactNode } from 'react';
+import { ICharacter, Spell, Currency } from '../../characterTypes';
+import { calculateSpellAttackBonus, calculateSpellSaveDC } from '../../rules/combat';
+import { ABILITY_LABELS, schoolLabel } from '../../../../lib/labels';
 import { SVGs } from './printStyles';
-import { fmtMod, getMod, getPrintProficiency } from './printUtils';
+import {
+    EQUIPMENT_ROWS_PAGE2, SPELL_ROWS_PAGE2, fmtMod, getAttunedItems, getMod, getPrintSpells, getStoryText,
+    hasMaterialComponent, STORY_CHARS_PAGE2,
+} from './printUtils';
 
-/** Pagina 2: caratteristica da incantatore, slot, risorse personalizzate e lista incantesimi. */
+const CURRENCY_KEYS: (keyof Currency)[] = ['cp', 'sp', 'ep', 'gp', 'pp'];
+
+const Box = ({ title, className = '', style, children }: { title?: string; className?: string; style?: CSSProperties; children: ReactNode }) => (
+    <div className={`box ${className}`} style={style}>
+        {title && <div className="box-title">{title}</div>}
+        {children}
+    </div>
+);
+
+const spellNote = (s: Spell) => [schoolLabel(s.school), s.damage && `${s.damage} ${s.damageType || ''}`.trim()].filter(Boolean).join(' · ');
+
+/** Tabella incantesimi con un numero fisso di righe (le righe in più restano vuote, da compilare a mano). */
+export const SpellTable = ({ spells, rows, title }: { spells: Spell[]; rows: number; title: string }) => (
+    <Box title={title} className="spells-box">
+        <div className="sp-head">
+            <span>Liv.</span><span>Nome</span><span>Lancio</span><span>Gittata</span><span>Conc. · Rit. · Mat.</span><span>Note</span>
+        </div>
+        <div className="sp-rows">
+            {Array.from({ length: rows }).map((_, i) => {
+                const s = spells[i];
+                return (
+                    <div key={i} className="sp-row">
+                        <span className="lv">{s ? s.level : ''}</span>
+                        <span className="nm">{s?.name}</span>
+                        <span>{s?.castingTime}</span>
+                        <span>{s?.range}</span>
+                        <span className="crm">
+                            <span className={s?.concentration ? 'on' : ''}>{s?.concentration ? SVGs.diamondFilled : SVGs.diamond}C</span>
+                            <span className={s?.ritual ? 'on' : ''}>{s?.ritual ? SVGs.diamondFilled : SVGs.diamond}R</span>
+                            <span className={s && hasMaterialComponent(s.components) ? 'on' : ''}>{s && hasMaterialComponent(s.components) ? SVGs.diamondFilled : SVGs.diamond}M</span>
+                        </span>
+                        <span className="note">{s && spellNote(s)}</span>
+                    </div>
+                );
+            })}
+        </div>
+    </Box>
+);
+
+/** Pagina 2: incantesimi, slot, aspetto, storia, linguaggi, equipaggiamento e monete. */
 export const PrintPageSpells = ({ character }: { character: ICharacter }) => {
-    const sortedSpells = useMemo(() => {
-        if (!character.spells) return [];
-        return [...character.spells].sort((a, b) => (a.level || 0) - (b.level || 0));
-    }, [character.spells]);
-
-    const pb = getPrintProficiency(character);
-    const hasCustomResources = character.customResources && character.customResources.length > 0;
-    const spellAbility = character.spellcastingAbility || 'intelligence';
-    const spellMod = getMod(character.abilityScores[spellAbility] || 10);
-    const saveDC = 8 + pb + spellMod;
-    const attackBonus = pb + spellMod;
+    const spells = getPrintSpells(character).slice(0, SPELL_ROWS_PAGE2);
+    const ability = character.spellcastingAbility;
+    const abilityMod = ability ? getMod(character.abilityScores[ability]) : 0;
+    const equipment = (character.equipment || []).slice(0, EQUIPMENT_ROWS_PAGE2);
+    const attuned = getAttunedItems(character).slice(0, 3);
+    const story = getStoryText(character);
+    const storyFits = story.length <= STORY_CHARS_PAGE2;
+    const slotLevels = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
     return (
-        <div className="page page-break">
-            <header className="spell-header-card">
-                <div className="spell-field"><div className="field-val">{character.class}</div><div className="field-lab">CLASS</div></div>
-                <div className="spell-field"><div className="field-val">{spellAbility.toUpperCase()}</div><div className="field-lab">ABILITY</div></div>
-                <div className="spell-field"><div className="field-val">{saveDC}</div><div className="field-lab">SAVE DC</div></div>
-                <div className="spell-field"><div className="field-val">{fmtMod(attackBonus)}</div><div className="field-lab">BONUS</div></div>
-            </header>
-            <div className="spells-content">
-                <div className="spells-left">
-                    <div className="section-card" style={{ padding: '4mm' }}>
-                        <div className="section-title">SPELL SLOTS</div>
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(lv => {
-                            const max = character.spellSlots?.[lv]?.max || 0;
-                            if (max === 0) return null;
-                            return (
-                                <div key={lv} className="slot-row">
-                                    <div className="lvl-label" style={{ fontWeight: 900, minWidth: '4mm' }}>{lv}</div>
-                                    <div className="slot-diamonds">{Array.from({ length: max }).map((_, i) => <span key={i}>{SVGs.diamond}</span>)}</div>
-                                </div>
-                            );
-                        })}
+        <section className="page">
+            <div className="p2-grid">
+                <div className="col" style={{ gap: '2.5mm' }}>
+                    <div className="p2-top">
+                        <Box className="sc-box">
+                            <div className="sc-head">
+                                <div className="lbl">Caratteristica da incantatore</div>
+                                <div className="serif" style={{ fontWeight: 700, fontSize: '8pt' }}>{ability ? ABILITY_LABELS[ability] : ''}</div>
+                            </div>
+                            <div className="sc-row"><div className="num">{ability ? fmtMod(abilityMod) : ''}</div><div className="t">Modificatore</div></div>
+                            <div className="sc-row"><div className="num">{ability ? calculateSpellSaveDC(character) : ''}</div><div className="t">CD salvezza</div></div>
+                            <div className="sc-row"><div className="num">{ability ? fmtMod(calculateSpellAttackBonus(character)) : ''}</div><div className="t">Bonus attacco</div></div>
+                        </Box>
+                        <Box title="Slot incantesimo" className="slots-box">
+                            <div className="slots-grid">
+                                {slotLevels.map((lv) => {
+                                    const max = character.spellSlots?.[lv]?.max || 0;
+                                    return (
+                                        <div key={lv} className="slot-line">
+                                            <span className="lv">Liv. {lv}</span>
+                                            <span className="tot">{max || ''}</span>
+                                            {Array.from({ length: Math.min(max, 4) }).map((_, i) => <span key={i}>{SVGs.diamond}</span>)}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </Box>
                     </div>
-                    {hasCustomResources && (
-                        <div className="section-card" style={{ padding: '4mm', marginTop: '6mm' }}>
-                            <div className="section-title">CUSTOM RESOURCES</div>
-                            {character.customResources.map((res, i) => (
-                                <div key={i} className="res-row">
-                                    <span className="font-serif res-name">{res.name}</span>
-                                    <div className="res-tracker">{Array.from({ length: res.max }).map((_, idx) => <span key={idx}>{SVGs.diamond}</span>)}</div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                    <SpellTable spells={spells} rows={SPELL_ROWS_PAGE2} title="Trucchetti e incantesimi preparati" />
                 </div>
-                <div className="spells-right">
-                    <div className="section-card">
-                        <div className="section-title">CANTRIPS & SPELLS</div>
-                        <table className="spell-detail-table">
-                            <thead><tr><th style={{ width: '5%' }}>LVL</th><th style={{ width: '30%' }}>NAME</th><th style={{ width: '20%' }}>TIME</th><th style={{ width: '20%' }}>RANGE</th><th style={{ width: '25%' }}>DURATION/COMP</th></tr></thead>
-                            <tbody>
-                                {sortedSpells.map((s, i) => (
-                                    <React.Fragment key={i}>
-                                        <tr className="spell-main-row">
-                                            <td className="lv-cell">{s.level}</td>
-                                            <td className="font-serif"><b>{s.name}</b></td>
-                                            <td>{s.castingTime}</td><td>{s.range}</td><td>{s.duration}{s.components ? ` (${s.components})` : ''}</td>
-                                        </tr>
-                                        <tr className="spell-desc-row"><td colSpan={5} className="spell-desc-cell">{s.description}</td></tr>
-                                    </React.Fragment>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+
+                <div className="side-col">
+                    <Box title="Aspetto" style={{ flex: '1.1 1 0' }}><div className="box-body grid-paper" /></Box>
+                    <Box title="Storia e personalità" style={{ flex: '2.1 1 0' }}>
+                        <div className="box-body grid-paper">
+                            {([['Tratti', character.personalityTraits], ['Ideali', character.ideals], ['Legami', character.bonds], ['Difetti', character.flaws]] as const).map(([l, v]) => v ? (
+                                <div key={l} className="story-item"><div className="lbl">{l}</div><div className="t">{v}</div></div>
+                            ) : null)}
+                            {character.biography && <div className="story-bio">{storyFits ? character.biography : `${character.biography.slice(0, 260)}… (continua)`}</div>}
+                        </div>
+                        <div className="lbl" style={{ marginTop: '1mm', borderBottom: '0.25mm solid #888', paddingBottom: '0.6mm' }}>Allineamento: <span style={{ color: '#111', fontSize: '6.4pt' }}>{character.alignment}</span></div>
+                    </Box>
+                    <Box title="Linguaggi" style={{ flex: '0.7 1 0' }}>
+                        <div className="box-body grid-paper" style={{ whiteSpace: 'pre-wrap', fontSize: '6.4pt' }}>{character.languages}</div>
+                    </Box>
+                    <Box title="Equipaggiamento" style={{ flex: '2.7 1 0' }}>
+                        <div className="box-body grid-paper">
+                            <ul className="equip-list">
+                                {equipment.map((it) => <li key={it.id}><span className="q">{it.quantity > 1 ? `${it.quantity}×` : ''}</span><span className="ell">{it.name}</span></li>)}
+                            </ul>
+                            {(character.equipment?.length || 0) > EQUIPMENT_ROWS_PAGE2 && <div className="lbl" style={{ marginTop: '0.8mm' }}>… elenco completo nella pagina di continuazione</div>}
+                        </div>
+                        <div className="attune">
+                            <div className="lbl">Sintonia con oggetti magici</div>
+                            {[0, 1, 2].map((i) => <div key={i} className="attune-row">{attuned[i] ? SVGs.diamondFilled : SVGs.diamond}<span className="ell">{attuned[i]?.name}</span></div>)}
+                        </div>
+                    </Box>
+                    <Box title="Monete" className="coins">
+                        <div className="coin-grid">
+                            {CURRENCY_KEYS.map((k) => <div key={k} className="coin"><div className="lbl">{k.toUpperCase()}</div><div className="c">{character.currency?.[k] || ''}</div></div>)}
+                        </div>
+                    </Box>
                 </div>
             </div>
-        </div>
+            <div className="p-foot"><span>Runica · {character.name}</span><span>Pagina 2</span></div>
+        </section>
     );
 };
