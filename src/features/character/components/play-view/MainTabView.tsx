@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useCharacter } from '../../CharacterProvider';
 import { getModifier, formatModifier } from '../../utils/characterUtils';
 import * as combat from '../../rules/combat';
-import { StatBox } from '../ui/StatBox';
+import { FC } from 'react';
 import { HPTracker } from './HPTracker';
 import { DeathSavesTracker } from './DeathSavesTracker';
 import { HitDiceTracker } from './HitDiceTracker';
@@ -32,6 +32,32 @@ const ConditionDetails = ({ description, bullets }: { description: string; bulle
                 {bullets.map((bullet, i) => <li key={i}>{bullet}</li>)}
             </ul>
         )}
+    </div>
+);
+
+interface BentoStatProps {
+    label: string;
+    value: string | number;
+    sub?: string;
+    icon: FC<{ className?: string }>;
+    className?: string;
+    /** Tessera d'accento (CA). */
+    hero?: boolean;
+    /** Tessera compatta (valori secondari). */
+    small?: boolean;
+}
+
+/** Tessera bento senza bordo: numero d'impatto, etichetta in maiuscoletto. */
+const BentoStat = ({ label, value, sub, icon: Icon, className = '', hero, small }: BentoStatProps) => (
+    <div className={`tile ${hero ? 'tile-hero' : ''} flex flex-col justify-between ${small ? 'gap-2 p-3 sm:p-4' : 'min-h-36 gap-3 p-4 sm:p-5'} ${className}`}>
+        <div className="flex items-center justify-between gap-2">
+            <p className="text-label font-semibold uppercase leading-tight tracking-widest text-muted-foreground">{label}</p>
+            <Icon className={`${small ? 'h-4 w-4' : 'h-5 w-5'} shrink-0 text-accent`} />
+        </div>
+        <div>
+            <span className={`block font-mono font-black leading-none tracking-tighter tabular-nums ${hero ? 'text-accent' : 'text-foreground'} ${small ? 'text-3xl sm:text-4xl' : 'text-6xl sm:text-7xl'}`}>{value}</span>
+            {sub && <span className="mt-1 block text-xs text-muted-foreground">{sub}</span>}
+        </div>
     </div>
 );
 
@@ -75,30 +101,19 @@ const MainTabView = () => {
     );
 
     return (
-        <div className="space-y-4 sm:space-y-6">
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-5 md:gap-4">
-                <StatBox
-                    label="Classe Armatura"
-                    value={armorClass}
-                    subValue={hasShield ? 'con scudo' : undefined}
-                    icon={ShieldIcon}
-                />
-                <StatBox label="Iniziativa" value={formatModifier(getModifier(character.abilityScores.dexterity))} icon={BoltIcon} />
-                <StatBox
-                    label="Velocità"
-                    value={character.speed}
-                    subValue={`ft · ${speedMeters} m`}
-                    icon={ForwardIcon}
-                />
-                <StatBox label="Competenza" value={formatModifier(character.proficiencyBonus)} icon={StarIcon} />
-                <StatBox label="Percezione passiva" value={passivePerception} icon={SearchIcon} className="col-span-2 md:col-span-1" />
+        <div className="space-y-3 sm:space-y-4">
+            {/* Bento: PV dominanti, poi CA e Iniziativa come tessere grandi, il resto compatto. */}
+            <div className="grid grid-cols-6 gap-3 sm:gap-4 lg:grid-cols-12">
+                <div className="col-span-6 lg:row-span-2"><HPTracker /></div>
+                <BentoStat hero className="col-span-3 lg:col-span-3" label="Classe Armatura" value={armorClass} sub={hasShield ? 'con scudo' : undefined} icon={ShieldIcon} />
+                <BentoStat className="col-span-3 lg:col-span-3" label="Iniziativa" value={formatModifier(getModifier(character.abilityScores.dexterity))} icon={BoltIcon} />
+                <BentoStat small className="col-span-2 lg:col-span-2" label="Velocità" value={character.speed} sub={`ft · ${speedMeters} m`} icon={ForwardIcon} />
+                <BentoStat small className="col-span-2 lg:col-span-2" label="Competenza" value={formatModifier(character.proficiencyBonus)} icon={StarIcon} />
+                <BentoStat small className="col-span-2 lg:col-span-2" label="Perc. passiva" value={passivePerception} icon={SearchIcon} />
             </div>
 
-            <div className="grid grid-cols-1 items-start gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-12">
-                {/* Colonna sinistra: punti vita e condizioni, ciò che cambia a ogni turno. */}
-                <div className="space-y-4 sm:space-y-6 lg:col-span-5">
-                    <HPTracker />
-
+            <div className="grid grid-cols-1 items-start gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-12">
+                <div className="space-y-3 sm:space-y-4 lg:col-span-5">
                     <PlaySection
                         title="Condizioni"
                         icon={<ExclamationTriangleIcon className={activeConditions.length > 0 ? 'text-warning' : 'text-muted-foreground'} />}
@@ -124,7 +139,7 @@ const MainTabView = () => {
                                     const condition = CONDITIONS[condName] || { name: condName, description: 'Nessuna descrizione disponibile.', bullets: [] };
                                     const isExpanded = expandedCondition === condName;
                                     return (
-                                        <li key={condName} className="overflow-hidden rounded-xl border border-destructive/40 bg-destructive/10">
+                                        <li key={condName} className="overflow-hidden rounded-2xl bg-destructive/15">
                                             <button
                                                 type="button"
                                                 onClick={() => setExpandedCondition(isExpanded ? null : condName)}
@@ -157,7 +172,7 @@ const MainTabView = () => {
                                     const isActive = activeConditions.includes(condKey);
                                     const isExpanded = expandedCondition === condKey;
                                     return (
-                                        <li key={condKey} className={`rounded-xl border transition-colors duration-150 ${isActive ? 'border-destructive/40 bg-destructive/10' : 'border-transparent'}`}>
+                                        <li key={condKey} className={`rounded-2xl transition-colors duration-150 ${isActive ? 'bg-destructive/15' : ''}`}>
                                             <div className="flex items-center gap-1 pr-1">
                                                 <button
                                                     type="button"
@@ -195,7 +210,7 @@ const MainTabView = () => {
                 </div>
 
                 {/* Colonna destra: risorse di sopravvivenza. */}
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:col-span-7">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:col-span-7">
                     <DeathSavesTracker />
                     <HitDiceTracker />
 

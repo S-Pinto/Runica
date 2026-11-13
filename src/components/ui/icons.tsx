@@ -151,7 +151,7 @@ export const SunIcon = (props: IconProps) => (
 
 export const SwordIcon = (props: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12.75m0 0l-3.75-3.75M12 15.75l3.75-3.75M6 18.75h12" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 4.5l11 11M12.5 17.5l5-5M16 16l3.5 3.5M19.5 4.5l-11 11M11.5 17.5l-5-5M8 16l-3.5 3.5" />
     </svg>
 );
 export const CheckIcon = (props: IconProps) => (

@@ -14,7 +14,7 @@ interface PlaySectionProps {
 export const playLabelClass = 'text-label uppercase text-muted-foreground';
 
 /** Riga o riquadro interno a un pannello: un gradino sotto la card, senza ombra. */
-export const playInsetClass = 'rounded-xl border border-border bg-background/40';
+export const playInsetClass = 'rounded-2xl bg-background/50';
 
 /** Messaggio di elenco vuoto dentro un pannello. */
 export const playEmptyClass = 'rounded-xl border border-dashed border-border-strong/50 px-4 py-6 text-center text-sm text-muted-foreground';
@@ -27,9 +27,9 @@ export const playChipClass = 'inline-flex items-center gap-1 rounded-md border b
  * un'eventuale azione a destra. Tutte le schede usano questo guscio.
  */
 export const PlaySection = ({ title, icon, aside, children, className = '' }: PlaySectionProps) => (
-    <section aria-label={title} className={`surface rounded-2xl p-4 sm:p-5 ${className}`}>
-        <div className="mb-4 flex min-h-10 items-center justify-between gap-3">
-            <h3 className="flex min-w-0 items-center gap-2 font-cinzel text-title text-accent">
+    <section aria-label={title} className={`tile p-4 sm:p-5 ${className}`}>
+        <div className="mb-3 flex min-h-9 items-center justify-between gap-3">
+            <h3 className="flex min-w-0 items-center gap-2 text-label font-semibold uppercase tracking-widest text-muted-foreground">
                 {icon && <span className="shrink-0 [&_svg]:h-5 [&_svg]:w-5">{icon}</span>}
                 <span className="truncate">{title}</span>
             </h3>

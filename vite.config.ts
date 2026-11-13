@@ -15,6 +15,9 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+          // Le URL riservate di Firebase (/__/auth/handler per il popup di login Google)
+          // non devono ricevere index.html dal service worker.
+          navigateFallbackDenylist: [/^\/__\//],
         },
         manifest: {
           name: env.VITE_APP_NAME,

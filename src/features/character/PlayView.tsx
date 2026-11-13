@@ -161,9 +161,9 @@ export const PlayView: FC = () => {
     ];
 
     return (
-        <div className="mx-auto max-w-7xl space-y-4 p-4 pb-28 sm:space-y-6 sm:p-6 sm:pb-28">
+        <div className="mx-auto max-w-7xl space-y-3 p-3 pb-28 sm:space-y-4 sm:p-6 sm:pb-28">
             {/* Identity header */}
-            <header className="surface hero-glow rounded-2xl p-3 sm:p-5">
+            <header className="tile hero-glow p-3 sm:p-5">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                     <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
                         <Button variant="ghost" size="icon-lg" onClick={() => navigate('/')} aria-label="Torna ai tuoi eroi" className="-ml-1 sm:ml-0">
@@ -179,7 +179,7 @@ export const PlayView: FC = () => {
                                 <img
                                     src={character.imageUrl}
                                     alt=""
-                                    className="h-14 w-14 rounded-2xl border border-border-strong/60 object-cover transition-colors duration-150 hover:border-accent sm:h-16 sm:w-16"
+                                    className="h-14 w-14 rounded-2xl object-cover ring-2 ring-accent/40 transition-shadow duration-150 hover:ring-accent sm:h-16 sm:w-16"
                                 />
                             </button>
                         ) : (
@@ -188,10 +188,10 @@ export const PlayView: FC = () => {
                             </div>
                         )}
                         <div className="min-w-0">
-                            <h1 className="line-clamp-2 break-words font-cinzel text-xl font-bold leading-tight text-foreground sm:line-clamp-1 sm:text-3xl">{character.name || 'Senza nome'}</h1>
+                            <h1 className="line-clamp-2 break-words font-norse text-2xl font-black leading-none tracking-tight text-foreground sm:line-clamp-1 sm:text-4xl">{character.name || 'Senza nome'}</h1>
                             <p className="mt-0.5 line-clamp-2 text-sm capitalize text-muted-foreground sm:line-clamp-1">{subtitle}</p>
                             {resolveCampaignName(character, campaignNames) && (
-                                <span className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent">
+                                <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-medium text-accent">
                                     <UserGroupIcon className="h-3.5 w-3.5" />
                                     {resolveCampaignName(character, campaignNames)}
                                 </span>
@@ -200,6 +200,9 @@ export const PlayView: FC = () => {
                     </div>
 
                     <div className="flex items-center gap-2">
+                        <Button variant="secondary" onClick={() => handleTabChange('combat')} className="flex-1 sm:flex-none" title="Vai al combattimento">
+                            <SwordIcon className="h-4 w-4" /> <span className="hidden sm:inline">Combatti</span>
+                        </Button>
                         <Button variant="secondary" onClick={handleLongRest} className="flex-1 sm:flex-none" title="Ripristina PV, slot e cariche">
                             <MoonIcon className="h-4 w-4" /> <span>Riposo<span className="hidden sm:inline"> lungo</span></span>
                         </Button>
@@ -210,7 +213,7 @@ export const PlayView: FC = () => {
                             label="Altre azioni"
                             trigger={<EllipsisVerticalIcon className="h-5 w-5" />}
                             items={menuItems}
-                            triggerClassName="flex h-10 w-11 shrink-0 items-center justify-center rounded-xl border border-border-strong/60 text-muted-foreground transition-colors duration-150 hover:border-accent/70 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            triggerClassName="flex h-10 w-11 shrink-0 items-center justify-center rounded-xl bg-foreground/10 text-muted-foreground transition-colors duration-150 hover:bg-accent/20 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         />
                     </div>
                 </div>
@@ -218,7 +221,7 @@ export const PlayView: FC = () => {
 
             {/* Sticky section navigation (sits under the app header: --header-offset) */}
             <nav className="sticky top-header z-40 py-2">
-                <div ref={tabContainerRef} role="tablist" aria-label="Sezioni della scheda" className="no-scrollbar flex gap-1 overflow-x-auto rounded-2xl border border-foreground/10 bg-card/95 p-1 shadow-raised backdrop-blur-xl sm:inline-flex sm:max-w-full">
+                <div ref={tabContainerRef} role="tablist" aria-label="Sezioni della scheda" className="no-scrollbar flex gap-1 overflow-x-auto rounded-full bg-card/80 p-1 shadow-raised backdrop-blur-xl sm:inline-flex sm:max-w-full">
                     {PLAY_TABS.map(tab => (
                         <TabButton
                             key={tab.key}
