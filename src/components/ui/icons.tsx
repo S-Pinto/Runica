@@ -2,6 +2,19 @@ import React from 'react';
 
 type IconProps = React.SVGProps<SVGSVGElement>;
 
+/** Marchio: la runa Raido (ᚱ) disegnata, così è identica su ogni dispositivo. */
+export const RuneMarkIcon = (props: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" {...props}>
+        <path strokeLinecap="square" strokeLinejoin="miter" d="M8.5 3.5v17M8.5 4l7.5 4.75-7.5 4.75 7.5 7" />
+    </svg>
+);
+
+export const CloudOffIcon = (props: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.4 8.6a4.5 4.5 0 00-2.6 2.1A4.5 4.5 0 006.75 19.5h11.4M10.6 6.4a5.25 5.25 0 014.97 2a3 3 0 013.76 3.84 3.75 3.75 0 011.9 5.36M3.75 3.75l16.5 16.5" />
+    </svg>
+);
+
 export const XMarkIcon = (props: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

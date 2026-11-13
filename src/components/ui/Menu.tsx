@@ -15,12 +15,15 @@ interface MenuProps {
   triggerClassName?: string;
   align?: 'start' | 'end';
   placement?: 'top' | 'bottom';
+  /** Intestazione non selezionabile sopra le voci (es. l'utente connesso). */
+  header?: ReactNode;
 }
 
 /** Small dropdown menu: opens on click, closes on outside click, Esc or selection. */
-export const Menu = ({ label, trigger, items, triggerClassName = '', align = 'end', placement = 'bottom' }: MenuProps) => {
+export const Menu = ({ label, trigger, items, triggerClassName = '', align = 'end', placement = 'bottom', header }: MenuProps) => {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   useEffect(() => {
@@ -30,7 +33,10 @@ export const Menu = ({ label, trigger, items, triggerClassName = '', align = 'en
       if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Escape') {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
         const idx = itemRefs.current.findIndex((el) => el === document.activeElement);
@@ -56,6 +62,7 @@ export const Menu = ({ label, trigger, items, triggerClassName = '', align = 'en
       onKeyDown={(e) => e.stopPropagation()}
     >
       <button
+        ref={triggerRef}
         type="button"
         aria-label={label}
         aria-haspopup="menu"
@@ -68,10 +75,11 @@ export const Menu = ({ label, trigger, items, triggerClassName = '', align = 'en
       {open && (
         <div
           role="menu"
-          className={`absolute z-30 min-w-44 rounded-xl border border-border bg-card/95 backdrop-blur-xl p-1 shadow-2xl animate-popIn ${
-            align === 'end' ? 'right-0' : 'left-0'
+          className={`absolute z-30 min-w-44 rounded-xl border border-border bg-card p-1 shadow-raised animate-popIn ${
+            align === 'end' ? 'right-0 origin-top-right' : 'left-0 origin-top-left'
           } ${placement === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'}`}
         >
+          {header && <div className="mb-1 border-b border-border px-3 py-2.5">{header}</div>}
           {items.map((item, i) => (
             <button
               key={item.label}
@@ -84,10 +92,10 @@ export const Menu = ({ label, trigger, items, triggerClassName = '', align = 'en
                 setOpen(false);
                 item.onSelect();
               }}
-              className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors focus:outline-none [&_svg]:h-4 [&_svg]:w-4 ${
+              className={`flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors duration-150 focus:outline-none [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 ${
                 item.destructive
                   ? 'text-destructive hover:bg-destructive/10 focus:bg-destructive/10'
-                  : 'text-text hover:bg-muted/40 focus:bg-muted/40'
+                  : 'text-text hover:bg-muted/60 focus:bg-muted/60'
               }`}
             >
               {item.icon}
