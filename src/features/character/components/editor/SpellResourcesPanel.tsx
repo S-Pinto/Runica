@@ -1,5 +1,7 @@
 import { ICharacter } from '../../characterTypes';
 import { useCharacter } from '../../CharacterProvider';
+import { RuneDivider } from '../../../../components/ui/RuneDivider';
+import { fieldGroupClass, fieldGroupTitleClass } from '../../../../components/ui/field';
 import { StyledSection } from '../ui/StyledInputs';
 import { StatInput } from '../StatInput';
 import { Spellbook } from '../Spellbook';
@@ -20,25 +22,24 @@ export const SpellResourcesPanel = ({ character }: { character: ICharacter }) =>
     return (
         <>
             <StyledSection title="Slot incantesimo e risorse">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="bg-background/20 rounded-xl p-4 border border-border/40">
-                        <label className="block text-xs font-bold text-accent uppercase tracking-widest mb-4">Slot incantesimo massimi</label>
-                        <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(120px,1fr))]">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
+                    <div className={fieldGroupClass}>
+                        <h4 className={`${fieldGroupTitleClass} mb-3`}>Slot massimi per livello</h4>
+                        <div className="grid grid-cols-[repeat(auto-fill,minmax(112px,1fr))] gap-3">
                             {Array.from({ length: 9 }, (_, i) => i + 1).map((level) => (
-                                <StatInput key={level} label={`Lvl ${level}`} value={character.spellSlots[level]?.max ?? 0} onChange={(val) => handleSpellSlotChange(level, Number(val))} />
+                                <StatInput key={level} label={`Livello ${level}`} value={character.spellSlots[level]?.max ?? 0} onChange={(val) => handleSpellSlotChange(level, Number(val))} />
                             ))}
                         </div>
                     </div>
-                    <div className="bg-background/20 rounded-xl p-4 border border-border/40">
-                        <label className="block text-xs font-bold text-accent uppercase tracking-widest mb-4">Risorse personalizzate</label>
+                    <div className={fieldGroupClass}>
                         <CustomResourceEditor character={character} onUpdateCharacter={updateCharacter} />
                     </div>
                 </div>
             </StyledSection>
 
-            <div className="pt-2">
-                <Spellbook />
-            </div>
+            <RuneDivider />
+
+            <Spellbook />
         </>
     );
 };

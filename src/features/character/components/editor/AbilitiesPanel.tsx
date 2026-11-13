@@ -3,6 +3,7 @@ import { useCharacter } from '../../CharacterProvider';
 import { getModifier, formatModifier } from '../../utils/characterUtils';
 import { ABILITY_LABELS, skillLabel } from '../../../../lib/labels';
 import { StyledSection } from '../ui/StyledInputs';
+import { StatInput } from '../StatInput';
 import { ABILITIES } from './constants';
 
 interface AbilitiesPanelProps {
@@ -45,32 +46,31 @@ const SkillRow = ({ skill, abilityModifier, proficiencyBonus }: { skill: Skill; 
         });
     };
 
+    const name = skillLabel(skill.name);
     const skillBonus = abilityModifier + (skill.proficient ? proficiencyBonus : 0) + (skill.expertise ? proficiencyBonus : 0);
     return (
-        <div className="group flex items-center justify-between p-2 rounded-lg hover:bg-muted/10 transition-colors">
-            <div className="flex items-center gap-3">
-                <div className="flex gap-1">
-                    {/* Proficient Checkbox */}
-                    <label
-                        className={`w-4 h-4 rounded-full border flex items-center justify-center cursor-pointer transition-all ${skill.proficient ? 'bg-primary border-primary' : 'border-muted-foreground/40 hover:border-primary/50'}`}
-                        title="Competenza"
-                    >
-                        <input type="checkbox" className="hidden" checked={skill.proficient} onChange={() => handleSkillProficiencyChange(skill.name)} />
-                        {skill.proficient && <div className="w-1.5 h-1.5 rounded-full bg-primary-foreground" />}
-                    </label>
-                    {/* Expertise Checkbox */}
-                    <label
-                        className={`w-4 h-4 rounded-full border flex items-center justify-center cursor-pointer transition-all ${skill.expertise ? 'bg-accent border-accent' : 'border-muted-foreground/40 hover:border-accent/50'}`}
-                        title="Maestria (competenza doppia)"
-                    >
-                        <input type="checkbox" className="hidden" checked={skill.expertise} onChange={() => handleSkillExpertiseChange(skill.name)} />
-                        {skill.expertise && <div className="w-1.5 h-1.5 rounded-full bg-accent-foreground" />}
-                    </label>
-                </div>
-                <span className={`text-sm transition-colors ${skill.proficient ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>{skillLabel(skill.name)}</span>
+        <li className="flex min-h-10 items-center gap-3">
+            <div className="flex shrink-0 gap-2">
+                <input
+                    type="checkbox"
+                    className="check-rune"
+                    checked={skill.proficient}
+                    onChange={() => handleSkillProficiencyChange(skill.name)}
+                    aria-label={`${name}: competenza`}
+                    title="Competenza"
+                />
+                <input
+                    type="checkbox"
+                    className="check-rune"
+                    checked={skill.expertise}
+                    onChange={() => handleSkillExpertiseChange(skill.name)}
+                    aria-label={`${name}: maestria`}
+                    title="Maestria (competenza doppia)"
+                />
             </div>
-            <span className={`font-mono font-bold text-sm ${skill.proficient ? 'text-accent' : 'text-muted-foreground/70'}`}>{formatModifier(skillBonus)}</span>
-        </div>
+            <span className={`min-w-0 flex-1 truncate text-sm ${skill.proficient ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>{name}</span>
+            <span className={`font-mono text-sm font-bold tabular-nums ${skill.proficient ? 'text-accent' : 'text-muted-foreground'}`}>{formatModifier(skillBonus)}</span>
+        </li>
     );
 };
 
@@ -97,79 +97,57 @@ const AbilityCard = ({ character, abilityKey, proficiencyBonus }: { character: I
     const relevantSkills = character.skills.filter(s => s.ability === abilityKey);
 
     return (
-        <StyledSection
-            className="!p-0 overflow-hidden flex flex-col h-full border-accent/20 hover:border-accent/40 transition-colors duration-300"
-        >
-            {/* Header Card */}
-            <div className="bg-accent/10 p-4 border-b border-accent/20 flex items-center justify-between relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-                    {/* Icona opzionale o pattern qui */}
-                    <span className="text-6xl font-cinzel font-bold">{abilityKey.charAt(0).toUpperCase()}</span>
+        <StyledSection title={ABILITY_LABELS[abilityKey]} className="flex h-full flex-col">
+            {/* Il modificatore è il valore che si usa al tavolo: sta in cornice, il punteggio accanto si modifica. */}
+            <div className="flex items-end gap-3">
+                <div className="frame-rune flex h-[4.25rem] w-24 shrink-0 flex-col items-center justify-center">
+                    <span className="font-mono text-numeric tabular-nums text-foreground">{formatModifier(abilityModifier)}</span>
+                    <span className="mt-1 text-xs text-muted-foreground">Modificatore</span>
                 </div>
-
-                <div className="z-10">
-                    <h3 className="text-xl font-cinzel font-bold text-accent">{ABILITY_LABELS[abilityKey]}</h3>
-                    <div className="text-xs text-muted-foreground font-bold tracking-widest uppercase">Punteggio</div>
-                </div>
-
-                <div className="z-10 flex flex-col items-center bg-background/50 backdrop-blur-md rounded-xl border border-accent/30 p-2 shadow-sm min-w-[70px]">
-                    <span className="text-2xl font-bold text-foreground">{formatModifier(abilityModifier)}</span>
-                    <div className="w-8 h-[1px] bg-accent/50 my-1"></div>
-                    <input
-                        type="number"
-                        value={abilityScore}
-                        onChange={(e) => handleAbilityScoreChange(abilityKey, Number(e.target.value))}
-                        className="w-12 text-center bg-transparent text-sm font-bold text-muted-foreground focus:outline-none focus:text-accent no-spinner"
-                    />
-                </div>
+                <StatInput
+                    label="Punteggio"
+                    value={abilityScore}
+                    onChange={(val) => handleAbilityScoreChange(abilityKey, Number(val))}
+                />
             </div>
 
-            {/* Content */}
-            <div className="p-4 space-y-4 flex-grow bg-card/20">
-                {/* Saving Throw */}
-                <div className={`
-                    flex items-center justify-between p-3 rounded-xl border transition-all duration-200
-                    ${savingThrow.proficient
-                        ? 'bg-accent/10 border-accent/30 shadow-sm'
-                        : 'bg-background/30 border-border/40 hover:bg-background/50'}
-                `}>
-                    <label htmlFor={`saving-throw-${abilityKey}`} className="flex items-center gap-3 cursor-pointer select-none">
-                        <div className={`
-                            w-5 h-5 rounded-md flex items-center justify-center border transition-colors
-                            ${savingThrow.proficient ? 'bg-accent border-accent text-accent-foreground' : 'border-muted-foreground/50 text-transparent'}
-                        `}>
-                            <input
-                                type="checkbox"
-                                id={`saving-throw-${abilityKey}`}
-                                className="hidden"
-                                checked={savingThrow.proficient}
-                                onChange={() => handleSavingThrowProficiencyChange(abilityKey)}
-                            />
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                        </div>
-                        <span className={`text-sm font-bold uppercase tracking-wider ${savingThrow.proficient ? 'text-accent' : 'text-muted-foreground'}`}>Tiro salvezza</span>
-                    </label>
-                    <span className="font-mono font-bold text-lg">{formatModifier(savingThrowBonus)}</span>
-                </div>
+            <label
+                htmlFor={`saving-throw-${abilityKey}`}
+                className={`mt-4 flex min-h-11 cursor-pointer select-none items-center gap-3 rounded-xl border px-3 transition-colors duration-150 ${
+                    savingThrow.proficient ? 'border-accent/50 bg-accent/10' : 'border-border bg-background/40 hover:border-border-strong'
+                }`}
+            >
+                <input
+                    type="checkbox"
+                    id={`saving-throw-${abilityKey}`}
+                    className="check-rune"
+                    checked={savingThrow.proficient}
+                    onChange={() => handleSavingThrowProficiencyChange(abilityKey)}
+                />
+                <span className={`flex-1 text-sm font-semibold ${savingThrow.proficient ? 'text-foreground' : 'text-muted-foreground'}`}>Tiro salvezza</span>
+                <span className={`font-mono text-lg font-bold tabular-nums ${savingThrow.proficient ? 'text-accent' : 'text-foreground'}`}>{formatModifier(savingThrowBonus)}</span>
+            </label>
 
-                {/* Skills Divider */}
-                {relevantSkills.length > 0 && <div className="h-px bg-border/40 w-full my-2"></div>}
-
-                {/* Skills List */}
-                <div className="space-y-2">
+            {relevantSkills.length > 0 && (
+                <ul className="mt-3 border-t border-border pt-2">
                     {relevantSkills.map(skill => (
                         <SkillRow key={skill.name} skill={skill} abilityModifier={abilityModifier} proficiencyBonus={proficiencyBonus} />
                     ))}
-                </div>
-            </div>
+                </ul>
+            )}
         </StyledSection>
     );
 };
 
 export const AbilitiesPanel = ({ character, proficiencyBonus }: AbilitiesPanelProps) => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {ABILITIES.map(abilityKey => (
-            <AbilityCard key={abilityKey} character={character} abilityKey={abilityKey} proficiencyBonus={proficiencyBonus} />
-        ))}
+    <div className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+            Accanto a ogni abilità, la prima casella segna la competenza, la seconda la maestria (competenza doppia).
+        </p>
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {ABILITIES.map(abilityKey => (
+                <AbilityCard key={abilityKey} character={character} abilityKey={abilityKey} proficiencyBonus={proficiencyBonus} />
+            ))}
+        </div>
     </div>
 );

@@ -1,6 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ICompanion } from '../characterTypes';
-import { XMarkIcon, SaveIcon, PhotoIcon, EditIcon } from '../../../components/ui/icons';
+import React, { useState, useCallback } from 'react';
+import { ICompanion, AbilityScores } from '../characterTypes';
+import { SaveIcon, PhotoIcon, EditIcon } from '../../../components/ui/icons';
+import { Button } from '../../../components/ui/Button';
+import { Modal } from '../../../components/ui/Modal';
+import { SegmentedControl } from '../../../components/ui/SegmentedControl';
+import { ABILITY_LABELS, ABILITY_SHORT } from '../../../lib/labels';
 import { useAuth } from '../../../providers/AuthProvider';
 import { useCharacter } from '../CharacterProvider';
 import { ImageUploader } from './ImageUploader';
@@ -24,57 +28,44 @@ interface CompanionSheetModalProps {
   onSetReadOnly?: (isReadOnly: boolean) => void;
 }
 
-const DisplayField = ({ label, value, className = '' }: { label: string, value: React.ReactNode, className?: string }) => (
-  <div>
-    <label className="block text-sm font-medium text-muted-foreground">{label}</label>
-    <div className={`mt-1 block w-full bg-input/50 border border-transparent rounded-md py-2 px-3 text-foreground/80 sm:text-sm min-h-[42px] flex items-center ${className}`}>
-      {value || <span className="text-muted-foreground/50">N/A</span>}
-    </div>
+const sectionTitleClass = 'mb-2 text-label uppercase text-muted-foreground';
+
+/** Valore in sola lettura dentro la cornice incisa: numero prima, etichetta sotto. */
+const ReadStat = ({ label, value }: { label: string, value: React.ReactNode }) => (
+  <div className="frame-rune px-3 py-3 text-center">
+    <div className="font-mono text-2xl font-bold leading-none tabular-nums text-foreground">{value || '–'}</div>
+    <div className="mt-1.5 text-xs text-muted-foreground">{label}</div>
   </div>
 );
 
-const StatDisplay = ({ label, value }: { label: string, value: number }) => {
-  const modifier = formatModifier(getModifier(value));
-  return (
-    <div className="flex flex-col items-center gap-1 bg-background/40 p-2 rounded-xl border border-border/50 shadow-inner">
-      <div className="text-xl font-bold text-accent h-7 flex items-center drop-shadow-[0_0_8px_rgb(var(--color-accent)/0.3)]">{modifier}</div>
-      <div className="text-3xl font-bold text-foreground font-mono">
-        {value}
-      </div>
-      <label className="block text-[10px] font-bold uppercase tracking-tighter text-muted-foreground mt-1">{label}</label>
-    </div>
-  );
-};
-
-const ModalTabButton = ({ label, isActive, onClick }: { label: string, isActive: boolean, onClick: () => void }) => (
-  <button
-    onClick={onClick}
-    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${isActive
-      ? 'bg-accent/20 text-accent'
-      : 'text-muted-foreground hover:bg-muted/50'
-      }`}
-  >
-    {label}
-  </button>
+const AbilityDisplay = ({ ability, value }: { ability: keyof AbilityScores, value: number }) => (
+  <div className="rounded-xl border border-border bg-background/40 px-2 py-2.5 text-center" title={ABILITY_LABELS[ability]}>
+    <div className="font-mono text-2xl font-bold leading-none tabular-nums text-foreground">{formatModifier(getModifier(value))}</div>
+    <div className="mt-1 font-mono text-xs tabular-nums text-muted-foreground">{value}</div>
+    <div className="mt-1 text-label uppercase text-muted-foreground">{ABILITY_SHORT[ability]}</div>
+  </div>
 );
+
+type SheetTab = 'overview' | 'combat' | 'notes';
+
+const SHEET_TABS: { value: SheetTab; label: string }[] = [
+  { value: 'overview', label: 'Panoramica' },
+  { value: 'combat', label: 'Combattimento' },
+  { value: 'notes', label: 'Tratti e note' },
+];
 
 export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ companion, onSave, onClose, readOnly = false, onSetReadOnly }) => {
   const [data, setData] = useState<ICompanion>(companion);
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const [isUploaderOpen, setIsUploaderOpen] = useState(false);
   const { currentUser } = useAuth();
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const { character } = useCharacter(); // Get the main character to associate the companion
-  const [activeTab, setActiveTab] = useState<'overview' | 'combat' | 'notes'>('overview');
+  const [activeTab, setActiveTab] = useState<SheetTab>('overview');
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSave = useCallback(debounce((updatedCompanion: ICompanion) => {
     if (readOnly) onSave(updatedCompanion, false);
   }, 1000), [readOnly, onSave]);
-
-  useEffect(() => {
-    dialogRef.current?.showModal();
-  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -117,8 +108,7 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
 
   const handleImageUpload = async (dataUrl: string) => {
     if (!currentUser || !character) {
-      const message = "User or character not found. Cannot upload image.";
-      throw new Error(message);
+      throw new Error('Accedi per caricare un ritratto.');
     }
     try {
       const imageUrl = await storageService.uploadCompanionPortrait(dataUrl, currentUser.uid, character.id, data.id);
@@ -131,7 +121,7 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
     } catch (error) {
       console.error("Failed to upload companion image:", error);
       // Propagate the error so the uploader can display it
-      throw new Error("Error uploading image. Please try again.");
+      throw new Error('Caricamento non riuscito. Riprova.');
     }
   };
 
@@ -141,72 +131,64 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
 
   const dexModifier = getModifier(data.abilityScores.dexterity);
 
+  const abilityKeys = Object.keys(data.abilityScores) as (keyof AbilityScores)[];
+  const canOpenPortrait = readOnly ? !!data.imageUrl : true;
+
   return (
-    // Modale a schermo intero su mobile, finestra su desktop.
-    // Aggiunto flex flex-col per una gestione flessibile dell'altezza.
-    <dialog ref={dialogRef} onClose={onClose} className="bg-card text-foreground p-0 sm:rounded-lg shadow-2xl w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-3xl border border-border backdrop-filter backdrop-blur-sm backdrop:bg-black/80 flex flex-col focus:outline-none">
-      {/* Header con Flexbox per allineare il titolo a sinistra e i pulsanti a destra */}
-      <header className="flex items-center justify-between p-4 border-b border-border sticky top-0 bg-card z-10 flex-shrink-0">
-        <h3 className="text-xl font-cinzel font-bold text-accent truncate min-w-0 pr-4">{readOnly ? data.name : 'Modifica compagno'}</h3>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {readOnly && onSetReadOnly && (
-            <button onClick={handleEdit} className="flex items-center gap-2 p-2 sm:px-4 sm:py-2 bg-secondary text-secondary-foreground font-bold rounded-lg shadow-md hover:bg-secondary/90 transition-colors">
-              <EditIcon className="w-5 h-5" />
-              <span className="hidden sm:inline">Modifica</span>
-            </button>
-          )}
-          {!readOnly && (
-            // Pulsante adattivo: icona su mobile, icona + testo su schermi più grandi
-            <button onClick={handleSave} className="flex items-center gap-2 p-2 sm:px-4 sm:py-2 bg-primary text-primary-foreground font-bold rounded-lg shadow-md hover:bg-primary/90 transition-colors">
-              <SaveIcon className="w-5 h-5" />
-              <span className="hidden sm:inline">Salva</span>
-            </button>
-          )}
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-muted transition-colors"><XMarkIcon className="w-6 h-6" /></button>
-        </div>
-      </header>
-
-      {/* flex-1 e overflow-y-auto per far sì che il contenuto occupi lo spazio rimanente e sia scrollabile */}
-      <div className="p-4 sm:p-6 overflow-y-auto flex-1">
-        <div className="flex items-center gap-2 mb-6 border-b border-border pb-4">
-          <ModalTabButton label="Panoramica" isActive={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
-          <ModalTabButton label="Combattimento" isActive={activeTab === 'combat'} onClick={() => setActiveTab('combat')} />
-          <ModalTabButton label="Tratti e note" isActive={activeTab === 'notes'} onClick={() => setActiveTab('notes')} />
-        </div>
-
+    <>
+      <Modal
+        open
+        onClose={onClose}
+        title={readOnly ? data.name || 'Compagno' : 'Modifica compagno'}
+        size="xl"
+        toolbar={
+          <div className="px-4 py-2.5 sm:px-5">
+            <SegmentedControl label="Sezioni della scheda del compagno" options={SHEET_TABS} value={activeTab} onChange={setActiveTab} />
+          </div>
+        }
+        footer={
+          readOnly ? (
+            onSetReadOnly && (
+              <Button variant="secondary" onClick={handleEdit}>
+                <EditIcon className="h-4 w-4" /> Modifica
+              </Button>
+            )
+          ) : (
+            <>
+              <Button variant="ghost" onClick={onClose}>Annulla</Button>
+              <Button onClick={handleSave}>
+                <SaveIcon className="h-4 w-4" /> Salva compagno
+              </Button>
+            </>
+          )
+        }
+      >
         <div hidden={activeTab !== 'overview'} className="space-y-6">
-          {/* Sezione superiore riorganizzata per centrare ritratto e nome */}
-          <div className="flex flex-col items-center gap-4 text-center">
-            <div className="flex-shrink-0 group relative">
-              <label className="block text-sm font-medium text-muted-foreground mb-1">Ritratto</label>
-              <div
-                onClick={() => {
-                  if (readOnly && data.imageUrl) setIsImageModalOpen(true);
-                  else if (!readOnly) setIsUploaderOpen(true);
-                }}
-                className={`w-32 h-32 bg-muted rounded-lg overflow-hidden border border-border ${(!readOnly || data.imageUrl) && 'cursor-pointer hover:border-accent transition-colors'}`}
-              >
-                {data.imageUrl ? (
-                  <img src={data.imageUrl} alt={data.name} className="w-full h-full object-cover" />
-                ) : (
-                  <PhotoIcon className="w-full h-full text-muted-foreground p-4" />
-                )}
-                {!readOnly && (
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
-                    <span className="text-white text-xs">Cambia</span>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="w-full max-w-md space-y-2">
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-5">
+            <button
+              type="button"
+              disabled={!canOpenPortrait}
+              onClick={() => (readOnly ? setIsImageModalOpen(true) : setIsUploaderOpen(true))}
+              aria-label={readOnly ? 'Ingrandisci ritratto' : data.imageUrl ? 'Cambia ritratto' : 'Carica ritratto'}
+              className="group relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl border border-border-strong/60 bg-input transition-colors duration-150 enabled:hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+            >
+              {data.imageUrl ? (
+                <img src={data.imageUrl} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <PhotoIcon className="mx-auto h-10 w-10 text-muted-foreground" />
+              )}
+              {!readOnly && (
+                <span className="absolute inset-x-0 bottom-0 bg-background/85 py-1 text-center text-xs font-semibold text-foreground transition-colors duration-150 group-hover:text-accent">
+                  {data.imageUrl ? 'Cambia' : 'Carica'}
+                </span>
+              )}
+            </button>
+            <div className="w-full min-w-0 flex-1 space-y-3">
               {readOnly ? (
-                <>
-                  {/* Rimosso il DisplayField per il nome in modalità read-only per evitare duplicati con il titolo */}
-                  <DisplayField label="Tipo" value={data.type} className="justify-center" />
-                </>
+                <p className="text-center text-sm text-muted-foreground sm:pt-2 sm:text-left">{data.type || 'Tipo non indicato'}</p>
               ) : (
                 <>
-                  <StyledInput label="Nome" name="name" value={data.name} onChange={handleChange} className="text-2xl font-bold text-center" />
+                  <StyledInput label="Nome" name="name" value={data.name} onChange={handleChange} />
                   <StyledInput label="Tipo" name="type" value={data.type} onChange={handleChange} placeholder="Es. famiglio, bestia" />
                 </>
               )}
@@ -215,40 +197,41 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
 
           <CompanionHpManager hp={data.hp} onHpChange={handleHpManagerChange} />
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {readOnly ? <DisplayField label="Classe Armatura" value={data.armorClass} /> : <StyledInput label="Classe Armatura" name="armorClass" type="number" value={data.armorClass} onChange={handleChange} />}
-            {readOnly ? <DisplayField label="Velocità" value={data.speed} /> : <StyledInput label="Velocità" name="speed" value={data.speed} onChange={handleChange} />}
-            <DisplayField label="Iniziativa" value={formatModifier(dexModifier)} />
-            {readOnly ? <DisplayField label="PV massimi" value={data.hp.max} /> : <StyledInput label="PV massimi" type="number" value={data.hp.max} onChange={(e: any) => handleHpFieldChange('max', parseInt(e.target.value) || 0)} />}
-          </div>
+          {readOnly ? (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <ReadStat label="Classe Armatura" value={data.armorClass} />
+              <ReadStat label="Iniziativa" value={formatModifier(dexModifier)} />
+              <ReadStat label="Velocità" value={data.speed} />
+              <ReadStat label="PV massimi" value={data.hp.max} />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <StyledInput label="Classe Armatura" name="armorClass" type="number" value={data.armorClass} onChange={handleChange} />
+              <StyledInput label="Velocità" name="speed" value={data.speed} onChange={handleChange} />
+              <StyledInput label="PV massimi" name="hpMax" type="number" value={data.hp.max} onChange={(e) => handleHpFieldChange('max', parseInt(e.target.value) || 0)} />
+              <ReadStat label="Iniziativa" value={formatModifier(dexModifier)} />
+            </div>
+          )}
 
           <div>
-            <h4 className="text-md font-semibold text-muted-foreground mb-2">Caratteristiche</h4>
-            {/* Griglia reattiva per le statistiche per evitare sovrapposizioni su mobile */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-y-4 gap-x-2 sm:gap-4">
-              {readOnly ? (
-                Object.keys(data.abilityScores).map(key => (
-                  <StatDisplay
-                    key={key}
-                    label={key.substring(0, 3).toUpperCase()}
-                    value={data.abilityScores[key as keyof typeof data.abilityScores]}
-                  />
-                ))
+            <h4 className={sectionTitleClass}>Caratteristiche</h4>
+            <div className={`grid gap-3 ${readOnly ? 'grid-cols-3 sm:grid-cols-6' : 'grid-cols-2 sm:grid-cols-3'}`}>
+              {abilityKeys.map(key => readOnly ? (
+                <AbilityDisplay key={key} ability={key} value={data.abilityScores[key]} />
               ) : (
-                Object.keys(data.abilityScores).map(key => (
-                  <StatInput
-                    key={key}
-                    label={key.substring(0, 3).toUpperCase()}
-                    value={data.abilityScores[key as keyof typeof data.abilityScores]}
-                    onChange={(newValue) => handleAbilityScoreChange(key, Number(newValue))}
-                  />
-                ))
-              )}
+                <StatInput
+                  key={key}
+                  label={ABILITY_LABELS[key] ?? key}
+                  value={data.abilityScores[key]}
+                  onChange={(newValue) => handleAbilityScoreChange(key, Number(newValue))}
+                  showModifier
+                />
+              ))}
             </div>
           </div>
 
           <div>
-            <h4 className="text-md font-semibold text-muted-foreground mb-2">Abilità</h4>
+            <h4 className={sectionTitleClass}>Abilità</h4>
             <CompanionSkillSelector companion={data} onChange={handleSkillChange} readOnly={readOnly} />
           </div>
         </div>
@@ -260,23 +243,23 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
 
         <div hidden={activeTab !== 'notes'} className="space-y-6">
           <CompanionFeatureEditor companion={data} setCompanion={setData} readOnly={readOnly} />
-          <div>
-            <label className="block text-sm font-medium text-muted-foreground">Note aggiuntive</label>
-            {readOnly ? (
-              <div className="mt-1 p-3 bg-input/50 rounded-md min-h-[200px] text-foreground/80 whitespace-pre-wrap">{data.notes || <span className="text-muted-foreground/50">Nessuna nota.</span>}</div>
-            ) : (
-              <StyledTextArea
-                label="Note (storia, dettagli…)"
-                name="notes"
-                value={data.notes}
-                onChange={handleChange}
-                rows={12}
-                placeholder="Capacità speciali, storia, resistenze, immunità…"
-              />
-            )}
-          </div>
+          {readOnly ? (
+            <div>
+              <h4 className={sectionTitleClass}>Note</h4>
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-text">{data.notes || <span className="text-muted-foreground">Nessuna nota.</span>}</p>
+            </div>
+          ) : (
+            <StyledTextArea
+              label="Note"
+              name="notes"
+              value={data.notes}
+              onChange={handleChange}
+              rows={10}
+              placeholder="Storia, resistenze, immunità, dettagli…"
+            />
+          )}
         </div>
-      </div>
+      </Modal>
       <ImageUploader
         isOpen={isUploaderOpen}
         onClose={() => setIsUploaderOpen(false)}
@@ -285,10 +268,10 @@ export const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({ compan
       {isImageModalOpen && data.imageUrl && (
         <ImageModal
           imageUrl={data.imageUrl}
-          altText={`Portrait for ${data.name}`}
+          altText={`Ritratto di ${data.name}`}
           onClose={() => setIsImageModalOpen(false)}
         />
       )}
-    </dialog>
+    </>
   );
 };

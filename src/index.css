@@ -50,6 +50,9 @@
     --shadow-floating: 0 28px 64px -20px rgb(var(--color-shadow) / 0.85);
     /* Luce dell'accento: solo come risposta a uno stato (hover, attivo). */
     --shadow-glow: 0 8px 24px -8px rgb(var(--color-accent) / 0.55);
+
+    /* Grana della pagina: opacità del velo di rumore (vedi body::after). */
+    --grain-opacity: 0.02;
   }
 
   @media (min-width: 640px) {
@@ -103,6 +106,9 @@
     --color-accent: 226 233 240;
     --color-accent-dark: 190 197 205;
     --color-accent-foreground: 10 11 13;
+
+    /* Sul nero puro la grana si nota prima: un filo in meno. */
+    --grain-opacity: 0.015;
   }
 
   /* Zaffiro: blu d'abisso, accento ghiaccio. */
@@ -213,6 +219,33 @@
     padding-right: env(safe-area-inset-right, 0px);
   }
 
+  /*
+    Grana: un velo di rumore fisso sopra tutta l'interfaccia, come la fibra
+    della pergamena o la pietra incisa. Il rumore è una maschera SVG, il colore
+    è `foreground` del tema (chiaro sui temi scuri, bruno su Pergamena), così
+    ogni tema ha la sua grana senza immagini dedicate. Non riceve mai il tocco.
+  */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    pointer-events: none;
+    background-color: rgb(var(--color-foreground));
+    opacity: var(--grain-opacity);
+    -webkit-mask-image: var(--grain-mask);
+    mask-image: var(--grain-mask);
+    -webkit-mask-size: 200px 200px;
+    mask-size: 200px 200px;
+    --grain-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 3.2 0 0 0 -1.1'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  @media print {
+    body::after {
+      display: none;
+    }
+  }
+
   h1, h2, h3, h4 {
     text-wrap: balance;
   }
@@ -270,6 +303,163 @@ input[type="number"],
 .no-spinner {
   -moz-appearance: textfield;
   appearance: textfield;
+}
+
+@layer components {
+  /*
+    Cornice incisa: il contorno dei blocchi chiave (Classe Armatura, Iniziativa,
+    Velocità, Punti vita). Doppio filo (bordo marcato + filo interno a 3px) e
+    una chiave a rombo in accento al centro del lato alto. Nessuna luce: in
+    hover il filo interno prende l'accento e il rombo si riempie.
+    Il contenitore non deve avere overflow nascosto (il rombo sporge di 4px).
+  */
+  .frame-rune {
+    position: relative;
+    border: 1px solid rgb(var(--color-border-strong) / 0.6);
+    border-radius: 1rem;
+    background-color: rgb(var(--color-card));
+  }
+  .frame-rune::before {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border: 1px solid rgb(var(--color-border));
+    border-radius: calc(1rem - 4px);
+    pointer-events: none;
+    transition: border-color 150ms var(--ease-out);
+  }
+  .frame-rune::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    width: 7px;
+    height: 7px;
+    margin-left: -3.5px;
+    transform: rotate(45deg);
+    border: 1px solid rgb(var(--color-accent));
+    background-color: rgb(var(--color-card));
+    pointer-events: none;
+    transition: background-color 150ms var(--ease-out);
+  }
+  @media (hover: hover) {
+    .frame-rune:hover::before {
+      border-color: rgb(var(--color-accent) / 0.5);
+    }
+    .frame-rune:hover::after {
+      background-color: rgb(var(--color-accent));
+    }
+  }
+  /* Stato critico (es. personaggio a terra): la cornice passa al rosso. */
+  .frame-rune[data-tone='destructive'] {
+    border-color: rgb(var(--color-destructive) / 0.6);
+  }
+  .frame-rune[data-tone='destructive']::after {
+    border-color: rgb(var(--color-destructive));
+    background-color: rgb(var(--color-destructive));
+  }
+
+  /*
+    Sigillo: il segno di una risorsa (slot incantesimo, dadi vita, usi).
+    Rombo pieno in accento con un punto inciso = disponibile; rombo vuoto =
+    speso. Sta dentro un bersaglio da 40–44px (il pulsante porta `group`).
+  */
+  .seal {
+    position: relative;
+    display: block;
+    width: 1.25rem;
+    height: 1.25rem;
+    transform: rotate(45deg);
+    border: 1.5px solid rgb(var(--color-border-strong) / 0.7);
+    border-radius: 3px;
+    transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out), transform 150ms var(--ease-out);
+  }
+  .seal::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 6px;
+    height: 6px;
+    border-radius: 1px;
+    background-color: rgb(var(--color-accent-foreground));
+    transform: scale(0);
+    transition: transform 150ms var(--ease-out);
+  }
+  .seal[data-on='true'] {
+    border-color: rgb(var(--color-accent));
+    background-color: rgb(var(--color-accent));
+  }
+  .seal[data-on='true']::after {
+    transform: scale(1);
+  }
+  .group:active .seal {
+    transform: rotate(45deg) scale(0.86);
+  }
+  @media (hover: hover) {
+    .group:hover .seal {
+      border-color: rgb(var(--color-accent));
+    }
+    .group:hover .seal[data-on='true'] {
+      background-color: rgb(var(--color-accent-dark));
+      border-color: rgb(var(--color-accent-dark));
+    }
+  }
+
+  /*
+    Casella di scelta: quadrato con bordo marcato; il segno è un rombo, lo
+    stesso motivo di separatori e sigilli. Sostituisce la spunta di
+    @tailwindcss/forms, che usa un bianco fisso sopra l'accento.
+  */
+  .check-rune {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-grid;
+    place-content: center;
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0;
+    padding: 0;
+    border: 1px solid rgb(var(--color-border-strong));
+    border-radius: 6px;
+    background-color: rgb(var(--color-background));
+    background-image: none;
+    cursor: pointer;
+    transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out);
+  }
+  .check-rune::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 1px;
+    background-color: rgb(var(--color-accent-foreground));
+    transform: rotate(45deg) scale(0);
+    transition: transform 120ms var(--ease-out);
+  }
+  .check-rune:checked,
+  .check-rune:checked:hover,
+  .check-rune:checked:focus {
+    border-color: rgb(var(--color-accent));
+    background-color: rgb(var(--color-accent));
+    background-image: none;
+  }
+  .check-rune:checked::after {
+    transform: rotate(45deg) scale(1);
+  }
+  .check-rune:focus {
+    --tw-ring-offset-width: 0px;
+    --tw-ring-color: rgb(var(--color-accent) / 0.35);
+  }
+  .check-rune:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  @media (hover: hover) {
+    .check-rune:not(:checked):not(:disabled):hover {
+      border-color: rgb(var(--color-accent));
+    }
+  }
 }
 
 @layer utilities {

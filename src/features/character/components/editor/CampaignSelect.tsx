@@ -2,6 +2,8 @@ import React from 'react';
 import { ICharacter } from '../../characterTypes';
 import { useCampaigns } from '../../../../providers/CampaignProvider';
 import { UserGroupIcon } from '../../../../components/ui/icons';
+import { Button } from '../../../../components/ui/Button';
+import { fieldControlClass, fieldLabelClass } from '../../../../components/ui/field';
 
 interface CampaignSelectProps {
     character: ICharacter;
@@ -19,11 +21,9 @@ export const CampaignSelect = ({ character, setCharacter, onOpenManager }: Campa
     const currentIsKnown = !character.campaignId || options.some((o) => o.id === character.campaignId);
 
     return (
-        <div className="col-span-1">
-            <label htmlFor="character-campaign" className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground/90">
-                Campagna
-            </label>
-            <div className="flex gap-1.5">
+        <div>
+            <label htmlFor="character-campaign" className={fieldLabelClass}>Campagna</label>
+            <div className="flex gap-2">
                 <select
                     id="character-campaign"
                     value={character.campaignId || ''}
@@ -40,7 +40,7 @@ export const CampaignSelect = ({ character, setCharacter, onOpenManager }: Campa
                             campaignName: selected ? selected.name : undefined,
                         } : null);
                     }}
-                    className="min-w-0 flex-1 rounded-xl border border-border/70 bg-background/50 px-2.5 py-2 text-xs font-semibold text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
+                    className={`${fieldControlClass} min-w-0 flex-1`}
                 >
                     <option value="">Nessuna campagna</option>
                     {!currentIsKnown && (
@@ -49,17 +49,18 @@ export const CampaignSelect = ({ character, setCharacter, onOpenManager }: Campa
                     {options.map((o) => (
                         <option key={o.id} value={o.id}>{o.name}</option>
                     ))}
-                    <option value="NEW">+ Gestisci campagne…</option>
+                    <option value="NEW">Gestisci campagne…</option>
                 </select>
-                <button
-                    type="button"
+                <Button
+                    variant="secondary"
+                    size="icon-lg"
                     onClick={onOpenManager}
-                    className="flex flex-shrink-0 items-center justify-center rounded-xl border border-accent/40 bg-accent/20 p-2.5 font-bold text-accent transition-all hover:bg-accent/30"
                     title="Gestisci o unisciti a una campagna"
                     aria-label="Gestisci campagne"
+                    className="h-[46px] w-[46px]"
                 >
-                    <UserGroupIcon className="h-4 w-4" />
-                </button>
+                    <UserGroupIcon className="h-5 w-5" />
+                </Button>
             </div>
         </div>
     );

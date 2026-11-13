@@ -12,6 +12,10 @@ interface StatInputProps {
   showModifier?: boolean;
 }
 
+const stepClass =
+  'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-[background-color,color,transform] duration-150 ease-soft hover:bg-muted hover:text-foreground active:scale-[0.94] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+
+/** Valore numerico con passi +/−: il numero resta modificabile da tastiera. */
 export const StatInput: React.FC<StatInputProps> = ({ label, value, onChange, placeholder, className = '', inputClassName = '', showModifier }) => {
   const handleIncrement = () => onChange((Number(value) || 0) + 1);
 
@@ -22,39 +26,35 @@ export const StatInput: React.FC<StatInputProps> = ({ label, value, onChange, pl
     }
   };
 
-  const modifier = formatModifier(getModifier(Number(value)));
   const inputId = useId();
 
-  // Pulsanti + e - ben definiti e ampi per mobile (w-9 h-9 min-w-[36px])
-  const buttonClasses = "w-9 h-9 sm:w-8 sm:h-8 bg-secondary/80 hover:bg-accent text-secondary-foreground hover:text-accent-foreground rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-accent/40 flex items-center justify-center font-bold active:scale-95 shadow-sm flex-shrink-0";
-
   return (
-    <div className={`flex flex-col items-center gap-1.5 w-full min-w-[100px] ${className}`}>
-      {label && <label htmlFor={inputId} className="block text-xs font-bold uppercase tracking-wider text-muted-foreground/90 select-none">{label}</label>}
-
-      {showModifier && (
-        <div className="bg-accent/20 border border-accent/40 text-accent text-xs font-bold px-2 py-0.5 rounded shadow-sm z-10">
-          {modifier}
+    <div className={`w-full min-w-[104px] ${className}`}>
+      {(label || showModifier) && (
+        <div className="mb-1.5 flex items-baseline justify-between gap-2">
+          {label && <label htmlFor={inputId} className="min-w-0 truncate text-label uppercase text-muted-foreground">{label}</label>}
+          {showModifier && <span className="font-mono text-xs font-bold tabular-nums text-accent">{formatModifier(getModifier(Number(value)))}</span>}
         </div>
       )}
 
-      <div className="relative flex items-center justify-between w-full bg-background/50 backdrop-blur-sm border border-border/70 rounded-xl p-1 shadow-sm group focus-within:border-accent/60 focus-within:ring-2 focus-within:ring-accent/20 transition-all duration-200 hover:bg-background/70">
-        <button type="button" onClick={handleDecrement} className={buttonClasses} aria-label="Diminuisci">
-          <MinusIcon className="w-4 h-4" />
+      <div className="flex items-center rounded-xl border border-border-strong/60 bg-background p-0.5 transition-colors duration-150 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/30 hover:border-border-strong">
+        <button type="button" onClick={handleDecrement} className={stepClass} aria-label={label ? `Diminuisci ${label}` : 'Diminuisci'}>
+          <MinusIcon className="h-4 w-4" />
         </button>
         <input
           id={inputId}
           type="number"
+          inputMode="numeric"
           value={value}
           onChange={(e) => {
             const rawValue = e.target.value;
             onChange(rawValue === '' ? '' : parseInt(rawValue, 10));
           }}
           placeholder={placeholder}
-          className={`no-spinner flex-1 min-w-0 w-full bg-transparent border-0 px-0 py-1 text-center tabular-nums text-xl sm:text-2xl font-bold text-foreground focus:ring-0 focus:outline-none placeholder:text-muted-foreground/30 ${inputClassName}`}
+          className={`no-spinner w-full min-w-0 flex-1 border-0 bg-transparent px-0 py-1 text-center font-mono text-xl font-bold tabular-nums text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0 ${inputClassName}`}
         />
-        <button type="button" onClick={handleIncrement} className={buttonClasses} aria-label="Aumenta">
-          <PlusIcon className="w-4 h-4" />
+        <button type="button" onClick={handleIncrement} className={stepClass} aria-label={label ? `Aumenta ${label}` : 'Aumenta'}>
+          <PlusIcon className="h-4 w-4" />
         </button>
       </div>
     </div>

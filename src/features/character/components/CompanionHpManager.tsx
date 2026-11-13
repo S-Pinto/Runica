@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { HeartIcon, PlusIcon, MinusIcon } from '../../../components/ui/icons';
 import { StatInput } from './StatInput';
+import { hpActionClass } from './play-view/hpActions';
 
 export interface HpData {
     current: number;
@@ -52,35 +53,34 @@ export const CompanionHpManager: React.FC<CompanionHpManagerProps> = ({ hp, onHp
     const hpColor = hpPercentage > 50 ? 'bg-success' : hpPercentage > 25 ? 'bg-warning' : 'bg-destructive';
 
     return (
-        <div className="bg-muted/30 p-4 rounded-lg border border-border space-y-3">
-            <div className="flex justify-between items-center text-lg font-bold">
-                <span className="text-muted-foreground text-sm uppercase">Punti vita</span>
-                <div>
-                    <span>{hp.current}</span>
-                    {hp.temporary > 0 && <span className="text-accent"> + {hp.temporary}</span>}
-                    <span className="text-muted-foreground"> / {hp.max || '??'}</span>
-                </div>
+        <div className="frame-rune space-y-3 p-4">
+            <div className="flex items-baseline justify-between gap-3">
+                <span className="text-label uppercase text-muted-foreground">Punti vita</span>
+                <span className="font-mono text-2xl font-bold tabular-nums text-foreground" aria-live="polite">
+                    {hp.current}
+                    {hp.temporary > 0 && <span className="text-accent"> +{hp.temporary}</span>}
+                    <span className="text-base font-normal text-muted-foreground"> / {hp.max || '–'}</span>
+                </span>
             </div>
-            <div className="w-full bg-muted rounded-full h-2.5">
-                <div className={`${hpColor} h-2.5 rounded-full transition-all duration-500`} style={{ width: `${hpPercentage}%` }}></div>
+            <div className="h-2 overflow-hidden rounded-full bg-input" role="progressbar" aria-label="Punti vita" aria-valuemin={0} aria-valuemax={hp.max} aria-valuenow={hp.current}>
+                <div className={`${hpColor} h-full transition-[width] duration-300 ease-soft`} style={{ width: `${Math.min(100, hpPercentage)}%` }} />
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 items-center">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <StatInput
                     value={adjustment}
                     onChange={(val) => setAdjustment(val === '' ? '' : Number(val))}
-                    placeholder="Valore"
-                    inputClassName="w-16"
-                    showModifier={false}
+                    placeholder="0"
+                    className="sm:w-40 sm:shrink-0"
                 />
-                <div className="flex gap-2 w-full sm:w-auto">
-                    <button onClick={() => handleApply(-(Number(adjustment) || 0))} className="flex-1 sm:flex-auto flex items-center justify-center gap-2 px-3 py-2 bg-destructive/15 text-destructive font-bold rounded-lg shadow-md hover:bg-destructive/25 transition-colors">
-                        <MinusIcon className="w-5 h-5" /> Danno
+                <div className="grid flex-1 grid-cols-3 gap-2">
+                    <button type="button" onClick={() => handleApply(-(Number(adjustment) || 0))} className={`${hpActionClass.damage} h-11`}>
+                        <MinusIcon className="h-4 w-4" /> Danno
                     </button>
-                    <button onClick={() => handleApply(Number(adjustment) || 0)} className="flex-1 sm:flex-auto flex items-center justify-center gap-2 px-3 py-2 bg-success/15 text-success font-bold rounded-lg shadow-md hover:bg-success/25 transition-colors">
-                        <PlusIcon className="w-5 h-5" /> Cura
+                    <button type="button" onClick={() => handleApply(Number(adjustment) || 0)} className={`${hpActionClass.heal} h-11`}>
+                        <PlusIcon className="h-4 w-4" /> Cura
                     </button>
-                    <button onClick={handleTempHp} className="flex-1 sm:flex-auto flex items-center justify-center gap-2 px-3 py-2 bg-accent/15 text-accent font-bold rounded-lg shadow-md hover:bg-accent/25 transition-colors">
-                        <HeartIcon className="w-5 h-5" /> Temp
+                    <button type="button" onClick={handleTempHp} className={`${hpActionClass.temp} h-11`} title="Imposta i punti vita temporanei">
+                        <HeartIcon className="h-4 w-4" /> Temp
                     </button>
                 </div>
             </div>

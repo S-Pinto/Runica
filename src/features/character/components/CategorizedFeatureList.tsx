@@ -3,6 +3,7 @@ import { Feature, FeatureCategory } from '../characterTypes';
 import { useCharacter } from '../CharacterProvider';
 import { FeatureForm } from './features/FeatureForm';
 import { CategorySection } from './features/CategorySection';
+import { StyledSection } from './ui/StyledInputs';
 
 
 const DEFAULT_FEATURE: Omit<Feature, 'id'> = {
@@ -66,78 +67,41 @@ const CategorizedFeatureListContent = () => {
         return categorized;
     }, [character.featuresAndTraits]);
 
-    return (
-        <div className="bg-card/80 p-4 rounded-lg border border-border flex flex-col h-full">
-            <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-cinzel text-accent">Privilegi e tratti</h3>
-            </div>
+    const section = (category: FeatureCategory) => (
+        <CategorySection
+            category={category}
+            features={featuresByCategory[category]}
+            onEdit={setEditingFeature}
+            onDelete={handleDeleteFeature}
+            onAdd={handleAddFeature}
+        />
+    );
 
+    return (
+        <StyledSection title="Privilegi e tratti">
             {editingFeature && (
                 <FeatureForm
+                    key={'id' in editingFeature ? editingFeature.id : `new-${editingFeature.category}`}
                     initialData={editingFeature}
                     onSave={handleSaveFeature}
                     onCancel={() => setEditingFeature(null)}
                 />
             )}
 
-            <div className="space-y-4 overflow-y-auto pr-2 -mr-2 flex-grow">
-                <CategorySection
-                    category="class"
-                    features={featuresByCategory['class']}
-                    onEdit={setEditingFeature}
-                    onDelete={handleDeleteFeature}
-                    onAdd={handleAddFeature}
-                />
+            <div className="space-y-3">
+                {section('class')}
+                {section('racial')}
 
-                <CategorySection
-                    category="racial"
-                    features={featuresByCategory['racial']}
-                    onEdit={setEditingFeature}
-                    onDelete={handleDeleteFeature}
-                    onAdd={handleAddFeature}
-                />
-
-                {/* Feats Group */}
-                <div className="bg-card/40 backdrop-blur-sm rounded-xl border border-accent/30 overflow-hidden">
-                    <div className="p-3 bg-accent/5 border-b border-accent/20">
-                        <h4 className="font-cinzel text-base font-bold text-accent flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-                            Talenti
-                        </h4>
-                    </div>
-                    <div className="p-3 space-y-3">
-                        <CategorySection
-                            category="feat-origin"
-                            features={featuresByCategory['feat-origin']}
-                            onEdit={setEditingFeature}
-                            onDelete={handleDeleteFeature}
-                            onAdd={handleAddFeature}
-                        />
-                        <CategorySection
-                            category="feat-general"
-                            features={featuresByCategory['feat-general']}
-                            onEdit={setEditingFeature}
-                            onDelete={handleDeleteFeature}
-                            onAdd={handleAddFeature}
-                        />
-                        <CategorySection
-                            category="feat-combat"
-                            features={featuresByCategory['feat-combat']}
-                            onEdit={setEditingFeature}
-                            onDelete={handleDeleteFeature}
-                            onAdd={handleAddFeature}
-                        />
-                        <CategorySection
-                            category="feat-epic"
-                            features={featuresByCategory['feat-epic']}
-                            onEdit={setEditingFeature}
-                            onDelete={handleDeleteFeature}
-                            onAdd={handleAddFeature}
-                        />
-                    </div>
-                </div>
+                <h4 className="flex items-center gap-3 pt-2 text-label uppercase text-muted-foreground">
+                    Talenti
+                    <span aria-hidden className="h-px flex-1 bg-border" />
+                </h4>
+                {section('feat-origin')}
+                {section('feat-general')}
+                {section('feat-combat')}
+                {section('feat-epic')}
             </div>
-        </div>
+        </StyledSection>
     );
 };
 

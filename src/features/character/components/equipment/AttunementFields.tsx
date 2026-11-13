@@ -1,41 +1,44 @@
 import { EquipmentItem } from '../../characterTypes';
+import { fieldCheckRowClass, fieldGroupClass, fieldGroupTitleClass, fieldNumericClass } from '../../../../components/ui/field';
 import { FormFieldsProps, inputClass, labelClass } from './formShared';
 
 /** Sintonizzazione e cariche attive (con tipo di reset). */
 export const AttunementFields = ({ formData, onChange }: FormFieldsProps) => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 bg-accent/10 rounded-lg border border-accent/30">
-    <div className="space-y-2">
-      <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-accent">
-        <input
-          type="checkbox"
-          checked={formData.requiresAttunement || false}
-          onChange={e => onChange('requiresAttunement', e.target.checked)}
-          className="rounded border-accent/50 bg-background/60 text-accent focus:ring-accent"
-        />
-        <span>🔮 Richiede Sintonizzazione</span>
-      </label>
-      {formData.requiresAttunement && (
-        <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-accent pl-4">
+  <div className={fieldGroupClass}>
+    <h5 className={`${fieldGroupTitleClass} mb-2`}>Sintonizzazione e cariche</h5>
+    <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+      <div>
+        <label className={fieldCheckRowClass}>
           <input
             type="checkbox"
-            checked={formData.isAttuned || false}
-            onChange={e => onChange('isAttuned', e.target.checked)}
-            className="rounded border-accent/50 bg-background/60 text-accent"
+            className="check-rune"
+            checked={formData.requiresAttunement || false}
+            onChange={e => onChange('requiresAttunement', e.target.checked)}
           />
-          <span>Sintonizzato Attualmente</span>
+          Richiede sintonizzazione
         </label>
-      )}
-    </div>
+        {formData.requiresAttunement && (
+          <label className={`${fieldCheckRowClass} pl-7`}>
+            <input
+              type="checkbox"
+              className="check-rune"
+              checked={formData.isAttuned || false}
+              onChange={e => onChange('isAttuned', e.target.checked)}
+            />
+            Sintonizzato ora
+          </label>
+        )}
+      </div>
 
-    <div className="space-y-2">
-      <div className="flex gap-2">
-        <div className="flex-1">
-          <label htmlFor="maxCharges" className={labelClass}>Cariche Max / Usi</label>
+      <div className="flex gap-3">
+        <div className="min-w-0 flex-1">
+          <label htmlFor="maxCharges" className={labelClass}>Cariche massime</label>
           <input
             id="maxCharges"
             type="number"
+            inputMode="numeric"
             min="0"
-            placeholder="es. 1"
+            placeholder="0"
             value={formData.charges?.max || ''}
             onChange={e => {
               const max = parseInt(e.target.value) || 0;
@@ -49,22 +52,22 @@ export const AttunementFields = ({ formData, onChange }: FormFieldsProps) => (
                 onChange('charges', undefined);
               }
             }}
-            className={inputClass}
+            className={fieldNumericClass}
           />
         </div>
         {formData.charges && formData.charges.max > 0 && (
-          <div className="flex-1">
-            <label htmlFor="resetType" className={labelClass}>Reset al</label>
+          <div className="min-w-0 flex-1">
+            <label htmlFor="resetType" className={labelClass}>Si ricaricano</label>
             <select
               id="resetType"
               value={formData.charges.resetType}
               onChange={e => onChange('charges', { ...formData.charges!, resetType: e.target.value as NonNullable<EquipmentItem['charges']>['resetType'] })}
               className={inputClass}
             >
-              <option value="longRest">Riposo Lungo</option>
-              <option value="shortRest">Riposo Breve</option>
-              <option value="dawn">Alba</option>
-              <option value="none">Nessun Reset</option>
+              <option value="longRest">Al riposo lungo</option>
+              <option value="shortRest">Al riposo breve</option>
+              <option value="dawn">All'alba</option>
+              <option value="none">Mai</option>
             </select>
           </div>
         )}

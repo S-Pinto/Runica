@@ -3,12 +3,14 @@ import { createPortal } from 'react-dom';
 import { Button } from './Button';
 import { XMarkIcon } from './icons';
 
-type ModalSize = 'sm' | 'md' | 'lg';
+type ModalSize = 'sm' | 'md' | 'lg' | 'xl';
 
 const SIZES: Record<ModalSize, string> = {
   sm: 'sm:max-w-sm',
   md: 'sm:max-w-md',
   lg: 'sm:max-w-lg',
+  // Schede complete (compagno): più colonne da `sm`.
+  xl: 'sm:max-w-3xl',
 };
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';

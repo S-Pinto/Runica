@@ -4,6 +4,7 @@ import { useCharacterEditor } from './hooks/useCharacterEditor';
 import { SparklesIcon, BackIcon, UserGroupIcon, HeartIcon, StarIcon, SwordIcon, ShieldIcon, UserCircleIcon } from '../../components/ui/icons';
 import { Button } from '../../components/ui/Button';
 import { TabButton } from '../../components/ui/TabButton';
+import { RuneDivider } from '../../components/ui/RuneDivider';
 import { EquipmentList } from './components/EquipmentList';
 import { AttackList } from './components/AttackList';
 import { CategorizedFeatureList } from './components/CategorizedFeatureList';
@@ -50,7 +51,8 @@ export const CharacterSheet: React.FC = () => {
 
     if (error) {
         return (
-            <div className="mx-auto flex max-w-md flex-col items-center gap-4 px-4 py-24 text-center">
+            <div className="mx-auto flex max-w-md flex-col items-center gap-5 px-4 py-24 text-center">
+                <RuneDivider glyph="knot" className="w-full" />
                 <p className="font-cinzel text-2xl font-bold text-foreground">{error}</p>
                 <Button variant="secondary" onClick={() => navigate('/')}>
                     <BackIcon className="h-4 w-4" /> Torna ai tuoi eroi
@@ -70,7 +72,7 @@ export const CharacterSheet: React.FC = () => {
     }
 
     return (
-        <div className="mx-auto max-w-7xl space-y-6 p-4 pb-24 sm:p-6">
+        <div className="mx-auto max-w-7xl space-y-4 p-4 pb-24 sm:space-y-6 sm:p-6 sm:pb-24">
             <EditorHeader
                 character={character}
                 isNewCharacter={isNewCharacter}
@@ -81,65 +83,56 @@ export const CharacterSheet: React.FC = () => {
                 onDelete={handleDelete}
             />
 
-            <div>
-                <nav className="mb-6 border-b border-border">
-                    <div role="tablist" aria-label="Sezioni della scheda" className="no-scrollbar flex overflow-x-auto">
-                        {TABS.map(tab => (
-                            <TabButton
-                                key={tab.key}
-                                id={`tab-${tab.key}`}
-                                label={tab.label}
-                                icon={tab.icon}
-                                isActive={activeTab === tab.key}
-                                onClick={() => handleTabChange(tab.key)}
-                                controls={`panel-${tab.key}`} />
-                        ))}
-                    </div>
-                </nav>
+            <nav className="-mx-4 border-b border-border px-2 sm:mx-0 sm:px-0">
+                <div role="tablist" aria-label="Sezioni della scheda" className="no-scrollbar flex overflow-x-auto">
+                    {TABS.map(tab => (
+                        <TabButton
+                            key={tab.key}
+                            id={`tab-${tab.key}`}
+                            label={tab.label}
+                            icon={tab.icon}
+                            isActive={activeTab === tab.key}
+                            onClick={() => handleTabChange(tab.key)}
+                            controls={`panel-${tab.key}`} />
+                    ))}
+                </div>
+            </nav>
 
-                <TabPanel tabKey="main" activeTab={activeTab} className="space-y-6">
-                    <IdentitySection character={character} isNewCharacter={isNewCharacter} />
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div className="space-y-6">
-                            <VitalsSection character={character} />
-                        </div>
-                        <div className="space-y-6">
-                            <CombatStatsSection character={character} initiative={initiative} proficiencyBonus={proficiencyBonus} />
-                        </div>
-                    </div>
-                </TabPanel>
+            <TabPanel tabKey="main" activeTab={activeTab} className="space-y-4 sm:space-y-6">
+                <IdentitySection character={character} isNewCharacter={isNewCharacter} />
+                <RuneDivider />
+                <div className="grid grid-cols-1 items-start gap-4 sm:gap-6 lg:grid-cols-2">
+                    <VitalsSection character={character} />
+                    <CombatStatsSection character={character} initiative={initiative} proficiencyBonus={proficiencyBonus} />
+                </div>
+            </TabPanel>
 
-                <TabPanel tabKey="stats" activeTab={activeTab}>
-                    <AbilitiesPanel character={character} proficiencyBonus={proficiencyBonus} />
-                </TabPanel>
+            <TabPanel tabKey="stats" activeTab={activeTab}>
+                <AbilitiesPanel character={character} proficiencyBonus={proficiencyBonus} />
+            </TabPanel>
 
-                <TabPanel tabKey="combat" activeTab={activeTab} className="min-h-[60vh]">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-                        <div className="space-y-6">
-                            <AttackList />
-                        </div>
-                        <div className="space-y-6">
-                            <CategorizedFeatureList />
-                        </div>
-                    </div>
-                </TabPanel>
+            <TabPanel tabKey="combat" activeTab={activeTab} className="min-h-[60vh]">
+                <div className="grid grid-cols-1 items-start gap-4 sm:gap-6 lg:grid-cols-2">
+                    <AttackList />
+                    <CategorizedFeatureList />
+                </div>
+            </TabPanel>
 
-                <TabPanel tabKey="bio" activeTab={activeTab} className="min-h-[60vh]">
-                    <BioPanel character={character} />
-                </TabPanel>
+            <TabPanel tabKey="spells" activeTab={activeTab} className="min-h-[60vh] space-y-4 sm:space-y-6">
+                <SpellResourcesPanel character={character} />
+            </TabPanel>
 
-                <TabPanel tabKey="inventory" activeTab={activeTab} className="min-h-[60vh]">
-                    <EquipmentList />
-                </TabPanel>
+            <TabPanel tabKey="inventory" activeTab={activeTab} className="min-h-[60vh]">
+                <EquipmentList />
+            </TabPanel>
 
-                <TabPanel tabKey="spells" activeTab={activeTab} className="min-h-[60vh] space-y-6">
-                    <SpellResourcesPanel character={character} />
-                </TabPanel>
+            <TabPanel tabKey="bio" activeTab={activeTab} className="min-h-[60vh]">
+                <BioPanel character={character} />
+            </TabPanel>
 
-                <TabPanel tabKey="companions" activeTab={activeTab} className="min-h-[60vh]">
-                    <CompanionTab />
-                </TabPanel>
-            </div>
+            <TabPanel tabKey="companions" activeTab={activeTab} className="min-h-[60vh]">
+                <CompanionTab />
+            </TabPanel>
         </div>
     );
 };

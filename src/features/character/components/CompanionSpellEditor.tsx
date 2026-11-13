@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { ICompanion, Spell } from '../characterTypes';
 import { PlusIcon, TrashIcon } from '../../../components/ui/icons';
+import { fieldControlClass } from '../../../components/ui/field';
 
 interface CompanionSpellEditorProps {
     companion: ICompanion;
@@ -25,7 +26,9 @@ const createNewSpell = (): Spell => ({
 const SortButton = ({ label, onClick, isActive }: { label: string, onClick: () => void, isActive: boolean }) => (
     <button
         onClick={onClick}
-        className={`px-2 py-1 text-xs rounded-md transition-colors ${isActive ? 'bg-accent text-accent-foreground' : 'bg-muted/50 hover:bg-muted'
+        type="button"
+        aria-pressed={isActive}
+        className={`h-8 rounded-lg border px-2.5 text-xs font-semibold transition-colors duration-150 ${isActive ? 'border-accent bg-accent/15 text-accent' : 'border-border-strong/50 text-muted-foreground hover:text-foreground'
             }`}
     >
         {label}
@@ -56,7 +59,7 @@ export const CompanionSpellEditor: React.FC<CompanionSpellEditorProps> = ({ comp
         return (
             <div className="space-y-2">
                 <div className="flex justify-between items-center mb-2">
-                    <h4 className="text-md font-semibold text-muted-foreground">Incantesimi e capacità speciali</h4>
+                    <h4 className="text-label uppercase text-muted-foreground">Incantesimi e capacità speciali</h4>
                     <div className="flex gap-1">
                         <SortButton label="Livello" onClick={() => setSortOrder('level')} isActive={sortOrder === 'level'} />
                         <SortButton label="Alfabetico" onClick={() => setSortOrder('alpha')} isActive={sortOrder === 'alpha'} />
@@ -64,20 +67,20 @@ export const CompanionSpellEditor: React.FC<CompanionSpellEditorProps> = ({ comp
                 </div>
                 <div className="space-y-4">
                     {sortedSpells.length === 0 ? (
-                        <p className="text-muted-foreground text-sm text-center italic">Nessuna capacità speciale.</p>
+                        <p className="text-sm text-muted-foreground">Nessuna capacità speciale.</p>
                     ) : (
                         sortedSpells.map((spell) => (
-                            <div key={spell.id} className="text-sm p-3 bg-background rounded-lg border border-border">
+                            <div key={spell.id} className="rounded-xl border border-border bg-background/40 p-3 text-sm">
                                 <p className="font-bold text-foreground">{spell.name}</p>
-                                <div className="text-xs text-muted-foreground/80 mt-1">
+                                <div className="mt-1 text-xs text-muted-foreground">
                                     {(spell.level > 0) ? `Level ${spell.level} ${spell.school}` : spell.school || 'Capacità speciale'}
                                 </div>
-                                <div className="text-xs text-muted-foreground/80 mt-1 space-x-2">
+                                <div className="mt-1 text-xs text-muted-foreground space-x-2">
                                     {spell.castingTime && <span><span className="font-semibold">Lancio:</span> {spell.castingTime}</span>}
                                     {spell.range && <span>| <span className="font-semibold">Gittata:</span> {spell.range}</span>}
                                     {spell.duration && <span>| <span className="font-semibold">Durata:</span> {spell.duration}</span>}
                                 </div>
-                                <p className="text-sm text-foreground/90 whitespace-pre-wrap mt-2">{spell.description}</p>
+                                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-text">{spell.description}</p>
                             </div>
                         ))
                     )}
@@ -116,12 +119,12 @@ export const CompanionSpellEditor: React.FC<CompanionSpellEditorProps> = ({ comp
         setCompanion(prev => ({ ...prev, spells: prev.spells.filter(spell => spell.id !== spellId) }));
     };
 
-    const inputClass = "w-full bg-input border border-border rounded-md py-1 px-2 text-sm focus:ring-1 focus:ring-ring focus:outline-none";
+    const inputClass = fieldControlClass;
 
     return (
         <div className="space-y-2">
             <div className="flex justify-between items-center mb-2">
-                <h4 className="text-md font-semibold text-muted-foreground">Incantesimi e capacità speciali</h4>
+                <h4 className="text-label uppercase text-muted-foreground">Incantesimi e capacità speciali</h4>
                 <div className="flex gap-1">
                     <SortButton label="Livello" onClick={() => setSortOrder('level')} isActive={sortOrder === 'level'} />
                     <SortButton label="Alfabetico" onClick={() => setSortOrder('alpha')} isActive={sortOrder === 'alpha'} />
@@ -129,7 +132,7 @@ export const CompanionSpellEditor: React.FC<CompanionSpellEditorProps> = ({ comp
             </div>
             <div className="space-y-4">
                 {companion.spells.length === 0 ? (
-                    <p className="text-muted-foreground text-sm text-center italic">Nessuna capacità speciale.</p>
+                    <p className="text-sm text-muted-foreground">Nessuna capacità speciale.</p>
                 ) : (
                     <>
                         {/* Renderizza prima gli incantesimi esistenti e ordinati */}
@@ -157,7 +160,7 @@ export const CompanionSpellEditor: React.FC<CompanionSpellEditorProps> = ({ comp
                         )}
                     </>
                 )}
-                <button onClick={addSpell} className="w-full flex items-center justify-center gap-1 text-sm text-accent hover:text-primary transition-colors py-1 border border-dashed border-border rounded-md">
+                <button onClick={addSpell} type="button" className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-border-strong/60 text-sm font-semibold text-text transition-colors duration-150 hover:border-accent/70 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                     <PlusIcon className="w-4 h-4" /> Aggiungi incantesimo o capacità
                 </button>
             </div>
@@ -173,10 +176,10 @@ interface SpellFormProps {
 }
 
 const SpellForm: React.FC<SpellFormProps> = ({ spell, onSpellChange, onDelete, inputClass }) => (
-    <div className="p-3 bg-background rounded-lg border border-border space-y-2">
+    <div className="space-y-2 rounded-xl border border-border bg-background/40 p-3">
         <div className="flex justify-between items-start gap-2">
-            <input type="text" placeholder="Nome dell'incantesimo o capacità" value={spell.name} onChange={(e) => onSpellChange(spell.id, 'name', e.target.value)} className={`${inputClass} font-bold`} />
-            <button onClick={() => onDelete(spell.id)} className="p-1.5 text-muted-foreground hover:text-destructive transition-colors flex-shrink-0"><TrashIcon className="w-4 h-4" /></button>
+            <input type="text" placeholder="Nome dell'incantesimo o capacità" value={spell.name} onChange={(e) => onSpellChange(spell.id, 'name', e.target.value)} className={`${inputClass} font-semibold`} />
+            <button onClick={() => onDelete(spell.id)} type="button" aria-label="Elimina" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors duration-150 hover:bg-muted/60 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><TrashIcon className="w-4 h-4" /></button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
             <input type="number" placeholder="Livello (0 per i trucchetti)" value={spell.level} onChange={(e) => onSpellChange(spell.id, 'level', e.target.value)} className={`${inputClass} no-spinner`} />
@@ -191,7 +194,7 @@ const SpellForm: React.FC<SpellFormProps> = ({ spell, onSpellChange, onDelete, i
             value={spell.description}
             onChange={(e) => onSpellChange(spell.id, 'description', e.target.value)}
             rows={3}
-            className={`${inputClass} text-xs resize-y`}
+            className={`${inputClass} resize-y leading-relaxed`}
         />
     </div>
 );
