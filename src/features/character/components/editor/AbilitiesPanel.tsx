@@ -3,6 +3,7 @@ import { useCharacter } from '../../CharacterProvider';
 import { getModifier, formatModifier } from '../../utils/characterUtils';
 import { ABILITY_LABELS, skillLabel } from '../../../../lib/labels';
 import { StyledSection } from '../ui/StyledInputs';
+import { StarIcon } from '../../../../components/ui/icons';
 import { StatInput } from '../StatInput';
 import { ABILITIES } from './constants';
 
@@ -97,7 +98,7 @@ const AbilityCard = ({ character, abilityKey, proficiencyBonus }: { character: I
     const relevantSkills = character.skills.filter(s => s.ability === abilityKey);
 
     return (
-        <StyledSection title={ABILITY_LABELS[abilityKey]} className="flex h-full flex-col">
+        <StyledSection icon={<StarIcon className="text-muted-foreground" />} title={ABILITY_LABELS[abilityKey]} className="flex h-full flex-col">
             {/* Il modificatore è il valore che si usa al tavolo: sta in cornice, il punteggio accanto si modifica. */}
             <div className="flex items-end gap-3">
                 <div className="frame-rune flex h-[4.25rem] w-24 shrink-0 flex-col items-center justify-center">
@@ -144,7 +145,7 @@ export const AbilitiesPanel = ({ character, proficiencyBonus }: AbilitiesPanelPr
         <p className="text-sm text-muted-foreground">
             Accanto a ogni abilità, la prima casella segna la competenza, la seconda la maestria (competenza doppia).
         </p>
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
             {ABILITIES.map(abilityKey => (
                 <AbilityCard key={abilityKey} character={character} abilityKey={abilityKey} proficiencyBonus={proficiencyBonus} />
             ))}

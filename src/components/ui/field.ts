@@ -15,6 +15,13 @@ export const fieldInputClass =
 /** Campo dentro una card o una finestra (input, select, textarea). */
 export const fieldControlClass = `${fieldInputClass} bg-background`;
 
+/**
+ * Campo sopra una `.tile` vetrata: fondo semitrasparente (niente "buchi" pieni),
+ * contorno marcato a riposo, bordo e anello in accento al focus.
+ */
+export const fieldControlOnTileClass =
+  'w-full rounded-xl border border-border-strong/50 bg-background/60 px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground transition-colors duration-150 hover:border-border-strong focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 disabled:cursor-not-allowed disabled:opacity-50';
+
 /** Campo per un valore di gioco: cifre tabellari, centrato. */
 export const fieldNumericClass = `${fieldControlClass} no-spinner text-center font-mono font-bold`;
 

@@ -22,7 +22,7 @@ export const PersonalityGenerator = ({ character }: { character: ICharacter }) =
     };
 
     return (
-        <StyledSection title="Genera la personalità">
+        <StyledSection icon={<SparklesIcon className="text-muted-foreground" />} title="Genera la personalità">
             <p className="mb-4 text-sm text-muted-foreground">
                 L'IA propone tratti, ideali, legami e difetti per questo personaggio e sostituisce il testo già scritto in quei campi.
             </p>

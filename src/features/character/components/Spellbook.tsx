@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Spell } from '../characterTypes';
 import { useCharacter } from '../CharacterProvider';
 import { calculateSpellSaveDC, calculateSpellAttackBonus } from '../rules/combat';
-import { PlusIcon, MagnifyingGlassIcon } from '../../../components/ui/icons';
+import { PlusIcon, MagnifyingGlassIcon, BookmarkIcon } from '../../../components/ui/icons';
 import { Button } from '../../../components/ui/Button';
 import { fieldControlClass } from '../../../components/ui/field';
 import { ABILITY_SHORT } from '../../../lib/labels';
@@ -100,7 +100,7 @@ const SpellbookContent = () => {
 
 
   return (
-    <StyledSection
+    <StyledSection icon={<BookmarkIcon className="text-muted-foreground" />}
       title="Libro degli incantesimi"
       action={
         <Button variant="secondary" onClick={() => setEditingSpell('new')} disabled={editingSpell !== null}>

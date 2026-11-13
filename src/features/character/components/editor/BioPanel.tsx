@@ -1,5 +1,6 @@
 import { ICharacter } from '../../characterTypes';
 import { StyledTextArea, StyledSection } from '../ui/StyledInputs';
+import { EditIcon, UserCircleIcon } from '../../../../components/ui/icons';
 import { useFieldChange } from '../../hooks/useFieldChange';
 import { PersonalityGenerator } from './PersonalityGenerator';
 
@@ -7,9 +8,9 @@ export const BioPanel = ({ character }: { character: ICharacter }) => {
     const handleFieldChange = useFieldChange();
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-6">
-                <StyledSection title="Personalità">
+        <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2">
+            <div className="space-y-3 sm:space-y-4">
+                <StyledSection icon={<UserCircleIcon className="text-muted-foreground" />} title="Personalità">
                     <div className="space-y-4">
                         <StyledTextArea label="Tratti caratteriali" name="personalityTraits" value={character.personalityTraits} onChange={handleFieldChange} />
                         <StyledTextArea label="Ideali" name="ideals" value={character.ideals} onChange={handleFieldChange} />
@@ -18,10 +19,10 @@ export const BioPanel = ({ character }: { character: ICharacter }) => {
                     </div>
                 </StyledSection>
             </div>
-            <div className="space-y-6">
+            <div className="space-y-3 sm:space-y-4">
                 <PersonalityGenerator character={character} />
 
-                <StyledSection title="Note di campagna">
+                <StyledSection icon={<EditIcon className="text-muted-foreground" />} title="Note di campagna">
                     <div className="space-y-4">
                         <StyledTextArea label="Note generali" name="notes" value={character.notes} onChange={handleFieldChange} placeholder="Eventi e diario della campagna…" className="min-h-[200px]" />
                         <StyledTextArea label="Note del DM" subLabel="Riservate" name="dmNotes" value={character.dmNotes} onChange={handleFieldChange} placeholder="Note private…" />

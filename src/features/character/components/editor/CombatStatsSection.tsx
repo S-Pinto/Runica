@@ -3,7 +3,7 @@ import { ICharacter } from '../../characterTypes';
 import { useCharacter } from '../../CharacterProvider';
 import { getModifier, formatModifier } from '../../utils/characterUtils';
 import { ABILITY_LABELS } from '../../../../lib/labels';
-import { BoltIcon, StarIcon } from '../../../../components/ui/icons';
+import { BoltIcon, StarIcon, ShieldIcon } from '../../../../components/ui/icons';
 import { StyledSection, StyledSelect } from '../ui/StyledInputs';
 import { StatBox } from '../ui/StatBox';
 import { StatInput } from '../StatInput';
@@ -30,7 +30,7 @@ export const CombatStatsSection = ({ character, initiative, proficiencyBonus }: 
     }, [character.spellcastingAbility, character.abilityScores, proficiencyBonus]);
 
     return (
-        <StyledSection title="Statistiche di combattimento">
+        <StyledSection icon={<ShieldIcon className="text-muted-foreground" />} title="Statistiche di combattimento">
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <StatBox label="Iniziativa" value={formatModifier(initiative)} icon={BoltIcon} />
                 <StatBox label="Competenza" value={formatModifier(proficiencyBonus)} icon={StarIcon} />

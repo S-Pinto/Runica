@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 import { fieldControlClass } from '../../../../components/ui/field';
+import { PlaySection } from '../play-view/PlaySection';
 
 interface StyledInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label: string;
@@ -67,24 +68,19 @@ export const StyledSelect: React.FC<StyledSelectProps> = ({ label, subLabel, cla
 
 interface StyledSectionProps {
     title?: string;
+    /** Icona accanto al titolo, come nei pannelli della vista di gioco. */
+    icon?: ReactNode;
     children: ReactNode;
     className?: string;
     action?: ReactNode;
 }
 
 /**
- * Sezione dell'editor: card piatta con bordo. Il titolo è inciso in Cinzel e
- * un filo lo prolunga fino al margine (o fino all'azione a destra).
+ * Sezione dell'editor: stesso guscio della vista di gioco (`PlaySection`, tessera
+ * `.tile` senza bordo, titolo in maiuscoletto con icona e azione a destra).
  */
-export const StyledSection: React.FC<StyledSectionProps> = ({ title, children, className = '', action }) => (
-    <section aria-label={title} className={`surface p-4 sm:p-5 ${className}`}>
-        {title && (
-            <div className="mb-4 flex min-h-10 items-center gap-3">
-                <h3 className="min-w-0 truncate font-cinzel text-title text-accent">{title}</h3>
-                <span aria-hidden className="h-px min-w-4 flex-1 bg-border" />
-                {action && <div className="flex shrink-0 items-center gap-2">{action}</div>}
-            </div>
-        )}
+export const StyledSection: React.FC<StyledSectionProps> = ({ title, icon, children, className = '', action }) => (
+    <PlaySection title={title} icon={icon} aside={action} className={className}>
         {children}
-    </section>
+    </PlaySection>
 );

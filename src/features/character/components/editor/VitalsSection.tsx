@@ -3,7 +3,7 @@ import { ICharacter, AbilityScores } from '../../characterTypes';
 import { useCharacter } from '../../CharacterProvider';
 import { ABILITY_LABELS, ABILITY_SHORT } from '../../../../lib/labels';
 import { CONDITIONS } from '../../../../data/conditions';
-import { XMarkIcon } from '../../../../components/ui/icons';
+import { XMarkIcon, HeartIcon } from '../../../../components/ui/icons';
 import { fieldCheckRowClass, fieldChipClass, fieldGroupClass, fieldGroupTitleClass } from '../../../../components/ui/field';
 import { getArmorClassBreakdown } from '../../rules/combat';
 import { StyledInput, StyledTextArea, StyledSection } from '../ui/StyledInputs';
@@ -179,7 +179,7 @@ const DefensesAndConditions = ({ character }: VitalsSectionProps) => {
 };
 
 export const VitalsSection = ({ character }: VitalsSectionProps) => (
-    <StyledSection title="Vita e difesa">
+    <StyledSection icon={<HeartIcon className="text-muted-foreground" />} title="Vita e difesa">
         <div className="space-y-5">
             <HitPointsCard character={character} />
             <UnarmoredDefenseCard character={character} />

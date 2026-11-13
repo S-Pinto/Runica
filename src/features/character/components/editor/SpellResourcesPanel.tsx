@@ -3,6 +3,7 @@ import { useCharacter } from '../../CharacterProvider';
 import { RuneDivider } from '../../../../components/ui/RuneDivider';
 import { fieldGroupClass, fieldGroupTitleClass } from '../../../../components/ui/field';
 import { StyledSection } from '../ui/StyledInputs';
+import { SparklesIcon } from '../../../../components/ui/icons';
 import { StatInput } from '../StatInput';
 import { Spellbook } from '../Spellbook';
 import { CustomResourceEditor } from '../CustomResourceEditor';
@@ -21,7 +22,7 @@ export const SpellResourcesPanel = ({ character }: { character: ICharacter }) =>
 
     return (
         <>
-            <StyledSection title="Slot incantesimo e risorse">
+            <StyledSection icon={<SparklesIcon className="text-muted-foreground" />} title="Slot incantesimo e risorse">
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
                     <div className={fieldGroupClass}>
                         <h4 className={`${fieldGroupTitleClass} mb-3`}>Slot massimi per livello</h4>

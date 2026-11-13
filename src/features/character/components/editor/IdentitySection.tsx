@@ -4,7 +4,7 @@ import { useCharacter } from '../../CharacterProvider';
 import { useAuth } from '../../../../providers/AuthProvider';
 import * as storageService from '../../../../services/storageService';
 import { toast } from '../../../../components/ui/Dialogs';
-import { PhotoIcon } from '../../../../components/ui/icons';
+import { PhotoIcon, UserCircleIcon } from '../../../../components/ui/icons';
 import { StyledInput, StyledSection } from '../ui/StyledInputs';
 import { StatInput } from '../StatInput';
 import { ImageUploader } from '../ImageUploader';
@@ -39,7 +39,7 @@ export const IdentitySection = ({ character, isNewCharacter }: IdentitySectionPr
 
     return (
         <>
-            <StyledSection title="Identità">
+            <StyledSection icon={<UserCircleIcon className="text-muted-foreground" />} title="Identità">
                 <div className="flex flex-col gap-5 sm:flex-row sm:gap-6">
                     {/* Ritratto: tutta la cornice apre il caricamento. */}
                     <div className="flex shrink-0 flex-col items-center gap-2 sm:items-start">

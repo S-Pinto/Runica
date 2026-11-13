@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Attack } from '../characterTypes';
 import { useCharacter } from '../CharacterProvider';
-import { PlusIcon } from '../../../components/ui/icons';
+import { PlusIcon, SwordIcon } from '../../../components/ui/icons';
 import { Button } from '../../../components/ui/Button';
 import { StyledSection } from './ui/StyledInputs';
 import { RowActions } from './ui/InlineForm';
@@ -46,7 +46,7 @@ const AttackListContent = () => {
   );
 
   return (
-    <StyledSection
+    <StyledSection icon={<SwordIcon className="text-muted-foreground" />}
       title="Attacchi e trucchetti"
       action={
         <Button variant="secondary" onClick={() => setEditingId('new')} disabled={editingId !== null}>
