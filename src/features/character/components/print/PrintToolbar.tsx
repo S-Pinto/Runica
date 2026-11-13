@@ -1,7 +1,7 @@
-import type { ReactNode } from 'react';
+import { ReactNode, useId, useState } from 'react';
 import { Button } from '../../../../components/ui/Button';
 import { SegmentedControl } from '../../../../components/ui/SegmentedControl';
-import { ArrowLeftIcon, CheckIcon, MinusIcon, PlusIcon, PrinterIcon, RuneMarkIcon } from '../../../../components/ui/icons';
+import { ArrowLeftIcon, CheckIcon, ChevronDownIcon, MinusIcon, PlusIcon, PrinterIcon, RuneMarkIcon, SettingsIcon } from '../../../../components/ui/icons';
 import { PaperStyle, PrintPreferences, ValuesMode, stepZoom } from './printOptions';
 
 const PAPER_OPTIONS = [
@@ -61,6 +61,9 @@ export const PrintToolbar = ({
 }: PrintToolbarProps) => {
     const set = <K extends keyof PrintPreferences>(key: K, value: PrintPreferences[K]) => onPrefsChange({ [key]: value });
     const percent = `${Math.round(scale * 100)}%`;
+    /** Sotto lg le opzioni stanno dietro il pulsante "Opzioni"; da lg sono sempre aperte. */
+    const [optionsOpen, setOptionsOpen] = useState(false);
+    const panelId = useId();
 
     return (
         <header className="sticky top-0 z-header border-b border-border bg-background/85 backdrop-blur-md print:hidden">
@@ -75,15 +78,27 @@ export const PrintToolbar = ({
                     </p>
                     <h1 className="truncate font-cinzel text-lg font-bold leading-tight text-foreground">{name || 'Scheda personaggio'}</h1>
                 </div>
-                <Button onClick={() => window.print()} title='Nella finestra di stampa scegli "Salva come PDF" per esportarla'>
+                <Button
+                    variant="secondary"
+                    className="lg:hidden"
+                    aria-expanded={optionsOpen}
+                    aria-controls={panelId}
+                    aria-label="Opzioni di stampa"
+                    onClick={() => setOptionsOpen((o) => !o)}
+                >
+                    <SettingsIcon className="h-5 w-5" aria-hidden />
+                    <span className="hidden sm:inline">Opzioni</span>
+                    <ChevronDownIcon className={`hidden h-4 w-4 transition-transform duration-150 sm:block ${optionsOpen ? 'rotate-180' : ''}`} aria-hidden />
+                </Button>
+                <Button onClick={() => window.print()} aria-label="Stampa o salva PDF" title='Nella finestra di stampa scegli "Salva come PDF" per esportarla' className="max-sm:w-11 max-sm:px-0">
                     <PrinterIcon className="h-5 w-5" aria-hidden />
-                    <span>Stampa<span className="hidden sm:inline"> / PDF</span></span>
+                    <span className="hidden sm:inline">Stampa / PDF</span>
                 </Button>
             </div>
 
-            <div className="border-t border-border/60">
-                {/* Su schermi stretti la riga scorre: la dissolvenza a destra segnala che c'è altro. */}
-                <div className="no-scrollbar mx-auto flex max-w-7xl items-end gap-5 overflow-x-auto pb-2.5 pl-4 pr-10 pt-2 [mask-image:linear-gradient(to_right,black_calc(100%-2rem),transparent)] sm:pl-6 lg:pr-6 lg:[mask-image:none]">
+            <div id={panelId} className={`border-t border-border/60 lg:block ${optionsOpen ? 'block' : 'hidden'}`}>
+                {/* I gruppi vanno a capo invece di uscire dalla finestra. */}
+                <div className="mx-auto flex max-w-7xl flex-wrap items-end gap-x-5 gap-y-3 px-4 pb-3 pt-2 sm:px-6">
                     <OptionGroup label="Carta" hint="Inchiostro: bianco e nero, risparmia toner. Grimorio: carta calda e filetti seppia, per PDF o stampa a colori. Alto contrasto: solo nero pieno.">
                         <SegmentedControl label="Stile carta" options={PAPER_OPTIONS} value={prefs.paper} onChange={(v) => set('paper', v)} className="w-auto [&>button]:flex-none [&>button]:px-3" />
                     </OptionGroup>

@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { ReactNode, RefObject, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getCharacter } from '../../characterRepository';
 import { ICharacter } from '../../characterTypes';
@@ -20,14 +20,22 @@ interface SheetPage {
     node: ReactNode;
 }
 
-/** Larghezza della finestra, aggiornata al ridimensionamento (serve allo zoom "adatta"). */
-const useViewportWidth = () => {
-    const [width, setWidth] = useState(() => window.innerWidth);
+/**
+ * Larghezza visibile dell'area di anteprima (serve allo zoom "adatta").
+ * Si misura il contenitore e non window.innerWidth, che include la barra di scorrimento verticale
+ * e farebbe uscire il foglio di qualche pixel a destra.
+ */
+const useContainerWidth = (ref: RefObject<HTMLElement | null>, ready: boolean) => {
+    const [width, setWidth] = useState(() => document.documentElement.clientWidth);
     useEffect(() => {
-        const onResize = () => setWidth(window.innerWidth);
-        window.addEventListener('resize', onResize);
-        return () => window.removeEventListener('resize', onResize);
-    }, []);
+        const el = ref.current;
+        if (!el) return;
+        const update = () => setWidth(el.clientWidth);
+        update();
+        const observer = new ResizeObserver(update);
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [ref, ready]);
     return width;
 };
 
@@ -42,7 +50,8 @@ export const PrintableCharacterSheet = () => {
     const [spellsOverride, setSpellsOverride] = useState<boolean | null>(null);
     const [notesOverride, setNotesOverride] = useState<boolean | null>(null);
     const [showCompanions, setShowCompanions] = useState(true);
-    const viewportWidth = useViewportWidth();
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const viewportWidth = useContainerWidth(scrollRef, !!character);
 
     useEffect(() => {
         if (!characterId) return;
@@ -122,7 +131,7 @@ export const PrintableCharacterSheet = () => {
                 onShowCompanionsChange={setShowCompanions}
                 onClose={handleClose}
             />
-            <div className="sheet-scroll">
+            <div className="sheet-scroll" ref={scrollRef}>
                 <main className="sheet-stack" style={{ zoom: scale }}>
                     {pages.map((page, i) => (
                         <div key={page.key} className="page-frame">
