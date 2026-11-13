@@ -20,6 +20,8 @@ interface ModalProps {
   /** Icona opzionale accanto al titolo. */
   icon?: ReactNode;
   children: ReactNode;
+  /** Barra fissa sotto il titolo (es. le tab): non scorre con il contenuto. */
+  toolbar?: ReactNode;
   /** Azioni fisse in fondo al pannello (non scorrono con il contenuto). */
   footer?: ReactNode;
   size?: ModalSize;
@@ -31,7 +33,7 @@ interface ModalProps {
  * pannello e lo restituisce a chi l'ha aperto. `confirmDialog` e i toast
  * restano sopra (vedi zIndex in tailwind.config.js).
  */
-export const Modal = ({ open, onClose, title, icon, children, footer, size = 'md' }: ModalProps) => {
+export const Modal = ({ open, onClose, title, icon, children, toolbar, footer, size = 'md' }: ModalProps) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
 
@@ -96,6 +98,7 @@ export const Modal = ({ open, onClose, title, icon, children, footer, size = 'md
             <XMarkIcon className="h-5 w-5" />
           </Button>
         </header>
+        {toolbar && <div className="shrink-0 border-b border-border">{toolbar}</div>}
         <div className="flex-1 overflow-y-auto overscroll-contain p-5">{children}</div>
         {footer && <footer className="flex shrink-0 flex-col-reverse gap-2 border-t border-border p-4 sm:flex-row sm:justify-end">{footer}</footer>}
       </div>

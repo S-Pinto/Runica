@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { XMarkIcon, UserGroupIcon } from '../../../components/ui/icons';
+import { UserGroupIcon } from '../../../components/ui/icons';
 import { confirmDialog, toast } from '../../../components/ui/Dialogs';
+import { Modal } from '../../../components/ui/Modal';
+import { TabButton } from '../../../components/ui/TabButton';
 import { useAuth } from '../../../providers/AuthProvider';
 import { useCampaigns } from '../../../providers/CampaignProvider';
 import * as campaignService from '../../../services/campaignService';
@@ -92,60 +94,52 @@ export const CampaignManagerModal = ({ isOpen, onClose, onSelectCampaign, select
   };
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: 'list', label: `Le mie campagne (${campaigns.length + localCampaigns.length})` },
-    { id: 'create', label: '+ Nuova' },
+    { id: 'list', label: `Le mie (${campaigns.length + localCampaigns.length})` },
+    { id: 'create', label: 'Nuova' },
     ...(user ? [{ id: 'join' as const, label: 'Unisciti con un codice' }] : []),
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex animate-fadeIn items-center justify-center bg-black/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Campagne">
-      <div className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-2xl">
-        <header className="flex items-center justify-between border-b border-border bg-background/50 px-6 py-4">
-          <div className="flex items-center gap-2 text-accent">
-            <UserGroupIcon className="h-6 w-6" />
-            <h3 className="font-cinzel text-xl font-bold">Campagne</h3>
-          </div>
-          <button onClick={onClose} aria-label="Chiudi" className="rounded-lg p-1 transition-colors hover:bg-muted">
-            <XMarkIcon className="h-6 w-6" />
-          </button>
-        </header>
-
-        <div className="no-scrollbar flex gap-4 overflow-x-auto border-b border-border bg-background/20 px-6 pt-3" role="tablist">
+    <Modal
+      open
+      onClose={onClose}
+      title="Campagne"
+      icon={<UserGroupIcon />}
+      size="lg"
+      toolbar={
+        <div className="no-scrollbar flex overflow-x-auto px-1" role="tablist" aria-label="Sezioni delle campagne">
           {tabs.map((tab) => (
-            <button
+            <TabButton
               key={tab.id}
-              role="tab"
-              aria-selected={activeTab === tab.id}
+              id={`campaign-tab-${tab.id}`}
+              controls="campaign-tabpanel"
+              label={tab.label}
+              isActive={activeTab === tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`shrink-0 whitespace-nowrap border-b-2 pb-3 text-sm font-semibold transition-all ${
-                activeTab === tab.id ? 'border-accent text-accent' : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {tab.label}
-            </button>
+            />
           ))}
         </div>
-
-        <div className="flex-1 overflow-y-auto p-6">
-          {activeTab === 'list' && (
-            <CampaignListTab
-              uid={uid}
-              campaigns={campaigns}
-              localCampaigns={localCampaigns}
-              loading={loading}
-              loadError={loadError}
-              selectedCampaignId={selectedCampaignId}
-              onSelectCampaign={onSelectCampaign}
-              onShareLocal={handleShareLocal}
-              onDeleteLocal={handleDeleteLocal}
-              onCreate={() => setActiveTab('create')}
-              onClose={onClose}
-            />
-          )}
-          {activeTab === 'create' && <CampaignCreateForm isShared={!!user} onCreate={handleCreate} />}
-          {activeTab === 'join' && user && <CampaignJoinForm onJoin={handleJoin} />}
-        </div>
+      }
+    >
+      <div id="campaign-tabpanel" role="tabpanel" aria-labelledby={`campaign-tab-${activeTab}`}>
+        {activeTab === 'list' && (
+          <CampaignListTab
+            uid={uid}
+            campaigns={campaigns}
+            localCampaigns={localCampaigns}
+            loading={loading}
+            loadError={loadError}
+            selectedCampaignId={selectedCampaignId}
+            onSelectCampaign={onSelectCampaign}
+            onShareLocal={handleShareLocal}
+            onDeleteLocal={handleDeleteLocal}
+            onCreate={() => setActiveTab('create')}
+            onClose={onClose}
+          />
+        )}
+        {activeTab === 'create' && <CampaignCreateForm isShared={!!user} onCreate={handleCreate} />}
+        {activeTab === 'join' && user && <CampaignJoinForm onJoin={handleJoin} />}
       </div>
-    </div>
+    </Modal>
   );
 };

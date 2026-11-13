@@ -24,10 +24,17 @@ interface CampaignListTabProps {
     onClose: () => void;
 }
 
-const cardClass = (selected: boolean) =>
-    `flex flex-col gap-2 rounded-xl border p-4 transition-all ${
-        selected ? 'border-accent bg-accent/10' : 'border-border bg-background/30 hover:border-accent/40'
-    }`;
+/** Nome della campagna, con il segno "Associata" se è quella del personaggio. */
+const CampaignTitle = ({ name, selected }: { name: string; selected: boolean }) => (
+    <div className="flex min-w-0 items-center gap-2">
+        <h4 className="truncate font-cinzel text-title font-bold text-foreground">{name}</h4>
+        {selected && (
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-accent/15 px-2 py-0.5 text-xs font-semibold text-accent">
+                <CheckIcon className="h-3 w-3" /> Associata
+            </span>
+        )}
+    </div>
+);
 
 export const CampaignListTab = ({
     uid, campaigns, localCampaigns, loading, loadError, selectedCampaignId,
@@ -58,73 +65,85 @@ export const CampaignListTab = ({
     const selectButton = (choice: CampaignChoice) =>
         onSelectCampaign && (
             <Button
-                size="sm"
-                variant={selectedCampaignId === choice.id ? 'primary' : 'secondary'}
-                className="w-full"
+                variant="secondary"
+                className="flex-1"
                 onClick={() => {
                     onSelectCampaign(selectedCampaignId === choice.id ? null : choice);
                     onClose();
                 }}
             >
-                {selectedCampaignId === choice.id ? 'Associata (tocca per rimuovere)' : 'Associa al personaggio'}
+                {selectedCampaignId === choice.id ? 'Rimuovi dal personaggio' : 'Associa al personaggio'}
             </Button>
         );
 
     if (loading) {
-        return <p className="py-8 text-center text-sm text-muted-foreground">Caricamento campagne…</p>;
+        return (
+            <div className="space-y-4" aria-busy="true" aria-label="Caricamento campagne">
+                {[0, 1].map((i) => (
+                    <div key={i} className="space-y-3">
+                        <div className="h-5 w-1/2 animate-pulse rounded bg-muted/50" />
+                        <div className="h-10 animate-pulse rounded-xl bg-muted/40" />
+                    </div>
+                ))}
+            </div>
+        );
     }
 
     const isEmpty = campaigns.length === 0 && localCampaigns.length === 0;
 
     return (
-        <div className="space-y-5">
+        <div className="space-y-6">
             {loadError && <p role="alert" className="text-sm text-destructive">{loadError}</p>}
 
             {isEmpty && (
-                <div className="space-y-3 py-8 text-center text-muted-foreground">
-                    <p>Nessuna campagna al momento.</p>
-                    <Button variant="secondary" onClick={onCreate}>Crea la prima campagna</Button>
+                <div className="py-8 text-center">
+                    <p className="font-semibold text-foreground">Nessuna campagna</p>
+                    <p className="mx-auto mt-1 max-w-xs text-sm text-muted-foreground">
+                        Una campagna riunisce i personaggi del gruppo. Creane una{uid ? ' o unisciti con il codice del DM' : ''}.
+                    </p>
+                    <Button className="mt-5" onClick={onCreate}>Crea una campagna</Button>
                 </div>
             )}
 
             {campaigns.length > 0 && (
-                <ul className="space-y-3">
+                <ul className="divide-y divide-border">
                     {campaigns.map((camp) => {
                         const role = getRole(camp, uid);
+                        const members = `${camp.memberUids.length} ${camp.memberUids.length === 1 ? 'membro' : 'membri'}`;
                         return (
-                            <li key={camp.id} className={cardClass(selectedCampaignId === camp.id)}>
+                            <li key={camp.id} className="space-y-3 py-4 first:pt-0 last:pb-0">
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">
-                                        <h4 className="truncate font-cinzel text-lg font-bold text-accent">{camp.name}</h4>
-                                        <p className="text-xs text-muted-foreground">
-                                            {role ? ROLE_LABELS[role] : ''} · {camp.memberUids.length} {camp.memberUids.length === 1 ? 'membro' : 'membri'}
+                                        <CampaignTitle name={camp.name} selected={selectedCampaignId === camp.id} />
+                                        <p className="text-sm text-muted-foreground">
+                                            {role ? `${ROLE_LABELS[role]} · ${members}` : members}
                                         </p>
                                         {camp.description && (
-                                            <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{camp.description}</p>
+                                            <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{camp.description}</p>
                                         )}
                                     </div>
                                     {role === 'dm' && (
                                         <button
                                             type="button"
                                             onClick={() => copyCode(camp.inviteCode)}
-                                            className="flex shrink-0 items-center gap-1 rounded border border-accent/30 bg-muted/60 px-2.5 py-1 text-xs text-accent transition-all hover:bg-accent/20"
-                                            title="Copia il codice d'invito"
+                                            aria-label={`Copia il codice d'invito ${camp.inviteCode}`}
+                                            className="flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border-strong/60 px-2.5 font-mono text-xs font-bold tracking-widest text-foreground transition-colors duration-150 hover:border-accent/70 hover:text-accent"
                                         >
                                             {copied === camp.inviteCode ? <CheckIcon className="h-3.5 w-3.5 text-success" /> : <CopyIcon className="h-3.5 w-3.5" />}
-                                            <span className="font-mono">{camp.inviteCode}</span>
+                                            {camp.inviteCode}
                                         </button>
                                     )}
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex flex-col gap-2 sm:flex-row">
                                     <Link
                                         to={`/campaign/${camp.id}`}
                                         onClick={onClose}
-                                        className="inline-flex h-8 flex-1 items-center justify-center rounded-lg border border-border bg-card px-3 text-xs font-semibold text-text transition-colors hover:border-accent/60 hover:text-accent"
+                                        className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-border-strong/60 bg-card px-4 text-sm font-semibold text-text transition-colors duration-150 hover:border-accent/70 hover:text-accent"
                                     >
                                         Apri campagna
                                     </Link>
+                                    {selectButton({ id: camp.id, name: camp.name })}
                                 </div>
-                                {selectButton({ id: camp.id, name: camp.name })}
                             </li>
                         );
                     })}
@@ -132,30 +151,32 @@ export const CampaignListTab = ({
             )}
 
             {localCampaigns.length > 0 && (
-                <section aria-label="Campagne solo su questo dispositivo" className="space-y-3">
-                    <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Solo su questo dispositivo</h5>
-                    <ul className="space-y-3">
+                <section aria-label="Campagne solo su questo dispositivo">
+                    <h5 className="mb-3 text-label uppercase text-muted-foreground">Solo su questo dispositivo</h5>
+                    <ul className="divide-y divide-border">
                         {localCampaigns.map((camp) => (
-                            <li key={camp.id} className={cardClass(selectedCampaignId === camp.id)}>
+                            <li key={camp.id} className="space-y-3 py-4 first:pt-0 last:pb-0">
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">
-                                        <h4 className="truncate font-cinzel text-lg font-bold text-text">{camp.name}</h4>
+                                        <CampaignTitle name={camp.name} selected={selectedCampaignId === camp.id} />
                                         {camp.description && (
-                                            <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{camp.description}</p>
+                                            <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{camp.description}</p>
                                         )}
                                     </div>
-                                    <Button size="sm" variant="ghost" aria-label={`Elimina ${camp.name}`} onClick={() => onDeleteLocal(camp)}>
+                                    <Button size="icon" variant="ghost" aria-label={`Elimina ${camp.name}`} onClick={() => onDeleteLocal(camp)}>
                                         <TrashIcon className="h-4 w-4" />
                                     </Button>
                                 </div>
-                                {uid ? (
-                                    <Button size="sm" variant="secondary" disabled={sharingId === camp.id} onClick={() => share(camp)}>
-                                        <ShareIcon className="h-4 w-4" /> {sharingId === camp.id ? 'Condivisione…' : 'Condividi con altri giocatori'}
-                                    </Button>
-                                ) : (
-                                    <p className="text-xs text-muted-foreground">Accedi per condividerla.</p>
-                                )}
-                                {selectButton({ id: camp.id, name: camp.name })}
+                                <div className="flex flex-col gap-2 sm:flex-row">
+                                    {uid ? (
+                                        <Button variant="secondary" className="flex-1" disabled={sharingId === camp.id} onClick={() => share(camp)}>
+                                            <ShareIcon className="h-4 w-4" /> {sharingId === camp.id ? 'Condivisione…' : 'Condividi con il gruppo'}
+                                        </Button>
+                                    ) : (
+                                        <p className="flex-1 self-center text-sm text-muted-foreground">Accedi per condividerla.</p>
+                                    )}
+                                    {selectButton({ id: camp.id, name: camp.name })}
+                                </div>
                             </li>
                         ))}
                     </ul>
