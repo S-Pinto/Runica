@@ -1,5 +1,6 @@
 import { ICharacter, Spell } from '../../characterTypes';
-import { SpellTable } from './PrintPageSpells';
+import { CampaignNotesBox, SpellTable } from './PrintPageSpells';
+import { RunicFrieze } from './PrintOrnaments';
 import { SPELL_ROWS_CONTINUATION } from './printUtils';
 
 /** Continuazione degli incantesimi: compare solo se non entrano nella pagina 2. */
@@ -7,6 +8,15 @@ export const PrintPageSpellsContinuation = ({ character, spells, part }: { chara
     <section className="page">
         <SpellTable spells={spells} rows={SPELL_ROWS_CONTINUATION} title={`Incantesimi (continua ${part})`} />
         <div className="p-foot"><span>Runica · {character.name}</span><span>Continuazione</span></div>
+    </section>
+);
+
+/** Pagina intera per note e appunti di campagna (quando la pagina 2 tiene la sezione incantesimi). */
+export const PrintPageCampaignNotes = ({ character }: { character: ICharacter }) => (
+    <section className="page">
+        <RunicFrieze />
+        <CampaignNotesBox />
+        <div className="p-foot"><span>Runica · {character.name}</span><span>Note di campagna</span></div>
     </section>
 );
 

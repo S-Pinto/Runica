@@ -48,13 +48,20 @@ interface PrintPageSpellsProps {
     character: ICharacter;
     /** Riporta slot spesi e monete correnti; altrimenti i campi variabili restano vuoti. */
     filled: boolean;
-    /** Senza incantesimi (classi non incantatrici) la colonna sinistra diventa un grande riquadro per le note. */
-    showSpells: boolean;
+    /** Riporta nella tabella gli incantesimi della scheda; altrimenti le righe restano vuote, da compilare a mano. */
+    insertSpells: boolean;
+    /** La colonna sinistra diventa il riquadro "Note e appunti di campagna" al posto della sezione incantesimi. */
+    notesColumn: boolean;
 }
 
+/** Grande riquadro a quadretti per note e appunti di campagna (colonna di pagina 2 o pagina dedicata). */
+export const CampaignNotesBox = () => (
+    <Box title="Note e appunti di campagna" style={{ flex: 1 }}><div className="box-body grid-paper" /></Box>
+);
+
 /** Pagina 2: incantesimi, slot, aspetto, storia, linguaggi, equipaggiamento e monete. */
-export const PrintPageSpells = ({ character, filled, showSpells }: PrintPageSpellsProps) => {
-    const spells = getPrintSpells(character).slice(0, SPELL_ROWS_PAGE2);
+export const PrintPageSpells = ({ character, filled, insertSpells, notesColumn }: PrintPageSpellsProps) => {
+    const spells = insertSpells ? getPrintSpells(character).slice(0, SPELL_ROWS_PAGE2) : [];
     const ability = character.spellcastingAbility;
     const abilityMod = ability ? getMod(character.abilityScores[ability]) : 0;
     const equipment = (character.equipment || []).slice(0, EQUIPMENT_ROWS_PAGE2);
@@ -65,7 +72,7 @@ export const PrintPageSpells = ({ character, filled, showSpells }: PrintPageSpel
     return (
         <section className="page">
             <div className="p2-grid">
-                {showSpells ? <div className="col" style={{ gap: '2.5mm' }}>
+                {!notesColumn ? <div className="col" style={{ gap: '2.5mm' }}>
                     <div className="p2-top">
                         <Box className="sc-box">
                             <div className="sc-head">
@@ -107,7 +114,7 @@ export const PrintPageSpells = ({ character, filled, showSpells }: PrintPageSpel
                 </div> : (
                     <div className="col" style={{ gap: '2.5mm' }}>
                         <RunicFrieze />
-                        <Box title="Note e appunti di campagna" style={{ flex: 1 }}><div className="box-body grid-paper" /></Box>
+                        <CampaignNotesBox />
                     </div>
                 )}
 

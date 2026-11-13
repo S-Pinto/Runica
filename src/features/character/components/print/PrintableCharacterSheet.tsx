@@ -5,7 +5,7 @@ import { ICharacter } from '../../characterTypes';
 import { SharedStyles } from './printStyles';
 import { PrintPageCore } from './PrintPageCore';
 import { PrintPageSpells } from './PrintPageSpells';
-import { PrintPageNotes, PrintPageSpellsContinuation } from './PrintPageOverflow';
+import { PrintPageCampaignNotes, PrintPageNotes, PrintPageSpellsContinuation } from './PrintPageOverflow';
 import { PrintPageCompanion } from './PrintPageCompanion';
 import { PrintToolbar } from './PrintToolbar';
 import {
@@ -40,6 +40,7 @@ export const PrintableCharacterSheet = () => {
     const [prefs, setPrefs] = useState<PrintPreferences>(loadPrintPreferences);
     /** null = automatico (dipende dal personaggio). */
     const [spellsOverride, setSpellsOverride] = useState<boolean | null>(null);
+    const [notesOverride, setNotesOverride] = useState<boolean | null>(null);
     const [showCompanions, setShowCompanions] = useState(true);
     const viewportWidth = useViewportWidth();
 
@@ -62,7 +63,12 @@ export const PrintableCharacterSheet = () => {
     const updatePrefs = (patch: Partial<PrintPreferences>) => setPrefs((prev) => ({ ...prev, ...patch }));
 
     const printSpells = useMemo(() => (character ? getPrintSpells(character) : []), [character]);
-    const showSpells = spellsOverride ?? (character ? characterHasSpells(character.spellcastingAbility, printSpells.length) : true);
+    const hasSpells = character ? characterHasSpells(character.spellcastingAbility, printSpells.length) : true;
+    /** Inserisce gli incantesimi della scheda (altrimenti la sezione resta da compilare a mano). */
+    const showSpells = spellsOverride ?? hasSpells;
+    /** Riquadro note di campagna: al posto della sezione incantesimi se questi sono esclusi, altrimenti in una pagina propria. */
+    const showCampaignNotes = notesOverride ?? !hasSpells;
+    const notesColumn = showCampaignNotes && !showSpells;
     const filled = prefs.values === 'filled';
     const scale = prefs.zoom === 'fit' ? fitZoom(viewportWidth) : prefs.zoom;
 
@@ -76,18 +82,19 @@ export const PrintableCharacterSheet = () => {
         const showNotes = showEquipment || showStory || !!character.notes?.trim();
         return [
             { key: 'core', label: 'Personaggio e combattimento', node: <PrintPageCore character={character} filled={filled} /> },
-            { key: 'spells', label: showSpells ? 'Incantesimi e inventario' : 'Note e inventario', node: <PrintPageSpells character={character} filled={filled} showSpells={showSpells} /> },
+            { key: 'spells', label: notesColumn ? 'Note e inventario' : 'Incantesimi e inventario', node: <PrintPageSpells character={character} filled={filled} insertSpells={showSpells} notesColumn={notesColumn} /> },
             ...spellChunks.map((chunk, i) => ({
                 key: `spells-${i}`, label: 'Incantesimi (seguito)',
                 node: <PrintPageSpellsContinuation character={character} spells={chunk} part={i + 1} />,
             })),
+            ...(showCampaignNotes && !notesColumn ? [{ key: 'campaign-notes', label: 'Note di campagna', node: <PrintPageCampaignNotes character={character} /> }] : []),
             ...(showNotes ? [{ key: 'notes', label: 'Continuazione', node: <PrintPageNotes character={character} showEquipment={showEquipment} showStory={showStory} /> }] : []),
             ...(showCompanions ? (character.companions || []).map((comp) => ({
                 key: `comp-${comp.id}`, label: `Compagno · ${comp.name || 'senza nome'}`,
                 node: <PrintPageCompanion companion={comp} ownerName={character.name} filled={filled} />,
             })) : []),
         ];
-    }, [character, printSpells, showSpells, showCompanions, filled]);
+    }, [character, printSpells, showSpells, showCampaignNotes, notesColumn, showCompanions, filled]);
 
     /** Aperta in una nuova scheda: la chiude; aperta nella stessa finestra (PWA, popup bloccato): torna al personaggio. */
     const handleClose = () => {
@@ -109,6 +116,8 @@ export const PrintableCharacterSheet = () => {
                 scale={scale}
                 showSpells={showSpells}
                 onShowSpellsChange={setSpellsOverride}
+                showNotes={showCampaignNotes}
+                onShowNotesChange={setNotesOverride}
                 showCompanions={character.companions?.length ? showCompanions : null}
                 onShowCompanionsChange={setShowCompanions}
                 onClose={handleClose}

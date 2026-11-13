@@ -47,6 +47,8 @@ interface PrintToolbarProps {
     scale: number;
     showSpells: boolean;
     onShowSpellsChange: (on: boolean) => void;
+    showNotes: boolean;
+    onShowNotesChange: (on: boolean) => void;
     /** null se il personaggio non ha compagni (l'interruttore non compare). */
     showCompanions: boolean | null;
     onShowCompanionsChange: (on: boolean) => void;
@@ -55,7 +57,7 @@ interface PrintToolbarProps {
 
 /** Barra dell'anteprima di stampa: vetro sticky come l'header dell'app, scompare in stampa. */
 export const PrintToolbar = ({
-    name, pageCount, prefs, onPrefsChange, scale, showSpells, onShowSpellsChange, showCompanions, onShowCompanionsChange, onClose,
+    name, pageCount, prefs, onPrefsChange, scale, showSpells, onShowSpellsChange, showNotes, onShowNotesChange, showCompanions, onShowCompanionsChange, onClose,
 }: PrintToolbarProps) => {
     const set = <K extends keyof PrintPreferences>(key: K, value: PrintPreferences[K]) => onPrefsChange({ [key]: value });
     const percent = `${Math.round(scale * 100)}%`;
@@ -88,8 +90,9 @@ export const PrintToolbar = ({
                     <OptionGroup label="Valori" hint="Compilata: PF, dadi vita, slot e usi spesi, ispirazione e monete di adesso. A matita: campi variabili vuoti da aggiornare al tavolo.">
                         <SegmentedControl label="Valori correnti" options={VALUE_OPTIONS} value={prefs.values} onChange={(v) => set('values', v)} className="w-auto [&>button]:flex-none [&>button]:px-3" />
                     </OptionGroup>
-                    <OptionGroup label="Pagine">
+                    <OptionGroup label="Contenuto" hint="Incantesimi: riporta quelli della scheda (spenta, la sezione resta da compilare a mano). Note: riquadro per gli appunti di campagna, al posto degli incantesimi se esclusi, altrimenti in una pagina in più.">
                         <PageToggle label="Incantesimi" on={showSpells} onChange={onShowSpellsChange} />
+                        <PageToggle label="Note" on={showNotes} onChange={onShowNotesChange} />
                         {showCompanions !== null && <PageToggle label="Compagni" on={showCompanions} onChange={onShowCompanionsChange} />}
                     </OptionGroup>
                     <OptionGroup label="Zoom">
