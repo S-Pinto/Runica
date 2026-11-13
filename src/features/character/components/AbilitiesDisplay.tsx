@@ -2,6 +2,7 @@ import { FC } from 'react';
 import { AbilityScores } from '../characterTypes';
 import { useCharacter } from '../CharacterProvider';
 import { ABILITY_LABELS, ABILITY_SHORT, skillLabel } from '../../../lib/labels';
+import { getSavingThrowBreakdown } from '../rules/combat';
 
 const ABILITIES: (keyof AbilityScores)[] = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
 
@@ -35,7 +36,7 @@ export const AbilitiesDisplay: FC<{ readOnly?: boolean }> = () => {
                     const score = abilityScores[key] ?? 10;
                     const mod = getModifier(score);
                     const save = savingThrows[key] ?? { proficient: false };
-                    const saveBonus = mod + (save.proficient ? proficiencyBonus : 0);
+                    const saveBonus = getSavingThrowBreakdown(character, key).total;
                     const relevantSkills = (skills || []).filter((s) => s.ability === key);
 
                     return (

@@ -4,7 +4,8 @@ import { useCharacter } from '../../CharacterProvider';
 import { ABILITY_LABELS, ABILITY_SHORT } from '../../../../lib/labels';
 import { CONDITIONS } from '../../../../data/conditions';
 import { XMarkIcon } from '../../../../components/ui/icons';
-import { fieldChipClass, fieldGroupClass, fieldGroupTitleClass } from '../../../../components/ui/field';
+import { fieldCheckRowClass, fieldChipClass, fieldGroupClass, fieldGroupTitleClass } from '../../../../components/ui/field';
+import { getArmorClassBreakdown } from '../../rules/combat';
 import { StyledInput, StyledTextArea, StyledSection } from '../ui/StyledInputs';
 import { StatInput } from '../StatInput';
 import { ABILITIES } from './constants';
@@ -83,6 +84,45 @@ const UnarmoredDefenseCard = ({ character }: VitalsSectionProps) => {
     );
 };
 
+/** CA calcolata con il dettaglio, e la possibilità di impostarla a mano (homebrew, decisioni del DM). */
+const ArmorClassCard = ({ character }: VitalsSectionProps) => {
+    const { updateCharacter } = useCharacter();
+    const ac = getArmorClassBreakdown(character);
+
+    return (
+        <div className={fieldGroupClass}>
+            <h4 className={`${fieldGroupTitleClass} mb-3`}>Classe Armatura</h4>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
+                <div className="min-w-0 flex-1">
+                    <p className="text-sm text-text">
+                        Calcolata <span className="font-mono text-lg font-bold tabular-nums text-foreground">{ac.computed}</span>
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                        {ac.parts.map((p, i) => `${i === 0 ? p.value : `${p.value >= 0 ? '+' : ''}${p.value}`} ${p.label}`).join(' · ')}
+                    </p>
+                    {ac.inactiveBonuses.length > 0 && (
+                        <p className="mt-0.5 text-xs text-warning">Esclusi finché non sei in sintonia: {ac.inactiveBonuses.map(i => i.name).join(', ')}.</p>
+                    )}
+                    <label className={`${fieldCheckRowClass} mt-2`}>
+                        <input
+                            type="checkbox"
+                            className="check-rune"
+                            checked={ac.manual}
+                            onChange={e => updateCharacter({ armorClassOverride: e.target.checked ? ac.computed : null })}
+                        />
+                        Imposta a mano
+                    </label>
+                </div>
+                {ac.manual && (
+                    <div className="sm:w-36 sm:shrink-0">
+                        <StatInput label="CA manuale" value={ac.total} onChange={(val) => updateCharacter({ armorClassOverride: Number(val) || 0 })} />
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
 const DefensesAndConditions = ({ character }: VitalsSectionProps) => {
     const { setCharacter } = useCharacter();
 
@@ -143,6 +183,7 @@ export const VitalsSection = ({ character }: VitalsSectionProps) => (
         <div className="space-y-5">
             <HitPointsCard character={character} />
             <UnarmoredDefenseCard character={character} />
+            <ArmorClassCard character={character} />
             <DefensesAndConditions character={character} />
         </div>
     </StyledSection>

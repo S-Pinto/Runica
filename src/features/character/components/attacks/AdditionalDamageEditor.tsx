@@ -2,7 +2,7 @@ import { Attack } from '../../characterTypes';
 import { TrashIcon, PlusIcon } from '../../../../components/ui/icons';
 import { Button } from '../../../../components/ui/Button';
 import { fieldNumericClass } from '../../../../components/ui/field';
-import { DAMAGE_TYPES, inputClass } from './attackFormShared';
+import { DamageTypeSelect } from '../equipment/DamageTypeSelect';
 
 type AdditionalDamage = NonNullable<Attack['additionalDamage']>;
 
@@ -24,17 +24,12 @@ export const AdditionalDamageEditor = ({ extras, onChange }: { extras: Additiona
             onChange={e => update(idx, { formula: e.target.value })}
             className={`${fieldNumericClass} min-w-0 flex-1`}
           />
-          <select
+          <DamageTypeSelect
             aria-label={`Danno extra ${idx + 1}: tipo`}
             value={extra.type}
-            onChange={e => update(idx, { type: e.target.value })}
-            className={`${inputClass} min-w-0 flex-1`}
-          >
-            <option value="">Tipo di danno</option>
-            {DAMAGE_TYPES.map(type => (
-              <option key={type} value={type}>{type}</option>
-            ))}
-          </select>
+            onChange={type => update(idx, { type })}
+            className="min-w-0 flex-1"
+          />
           <Button
             variant="ghost"
             size="icon-lg"

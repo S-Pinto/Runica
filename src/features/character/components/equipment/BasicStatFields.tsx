@@ -1,45 +1,32 @@
-import { fieldGroupClass, fieldNumericClass } from '../../../../components/ui/field';
+import { fieldNumericClass } from '../../../../components/ui/field';
 import { EquipmentFormData, FormFieldsProps, inputClass, labelClass } from './formShared';
 
-/** Danno / bonus al colpire di un'arma semplice e CA / bonus CA di armature e oggetti magici. */
-export const WeaponBasicFields = ({ formData, onChange }: FormFieldsProps) => (
-  <div className={`${fieldGroupClass} grid grid-cols-1 gap-3 sm:grid-cols-3`}>
-    <div>
-      <label htmlFor="damage" className={labelClass}>Formula del danno</label>
-      <input id="damage" type="text" placeholder="1d8" value={formData.damage || ''} onChange={e => onChange('damage', e.target.value)} className={fieldNumericClass} />
-    </div>
-    <div>
-      <label htmlFor="damageType" className={labelClass}>Tipo di danno</label>
-      <input id="damageType" type="text" placeholder="Tagliente" value={formData.damageType || ''} onChange={e => onChange('damageType', e.target.value)} className={inputClass} />
-    </div>
-    <div>
-      <label htmlFor="attackBonus" className={labelClass}>Bonus magico</label>
-      <input id="attackBonus" type="text" placeholder="+1" value={formData.attackBonus || ''} onChange={e => onChange('attackBonus', e.target.value)} className={fieldNumericClass} />
-    </div>
-  </div>
-);
-
-export const ArmorBasicFields = ({ formData, onChange }: FormFieldsProps) => (
-  <div className={`${fieldGroupClass} grid grid-cols-1 gap-3 sm:grid-cols-3`}>
-    {formData.itemType === 'armor' && (
+/** Tipo e CA di armature e scudi, requisito di Forza delle armature. Il bonus magico alla CA è nelle proprietà passive. */
+export const ArmorBasicFields = ({ formData, onChange }: FormFieldsProps) => {
+  if (formData.itemType !== 'armor' && formData.itemType !== 'shield') return null;
+  const isArmor = formData.itemType === 'armor';
+  return (
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      {isArmor && (
+        <div>
+          <label htmlFor="armorType" className={labelClass}>Tipo di armatura</label>
+          <select id="armorType" value={['light', 'medium', 'heavy'].includes(formData.armorType || '') ? formData.armorType : 'light'} onChange={e => onChange('armorType', (e.target.value || undefined) as EquipmentFormData['armorType'])} className={inputClass}>
+            <option value="light">Leggera (+ DES)</option>
+            <option value="medium">Media (+ DES fino a +2)</option>
+            <option value="heavy">Pesante (niente DES)</option>
+          </select>
+        </div>
+      )}
       <div>
-        <label htmlFor="armorType" className={labelClass}>Tipo di armatura</label>
-        <select id="armorType" value={formData.armorType || 'light'} onChange={e => onChange('armorType', (e.target.value || undefined) as EquipmentFormData['armorType'])} className={inputClass}>
-          <option value="light">Leggera</option>
-          <option value="medium">Media</option>
-          <option value="heavy">Pesante</option>
-        </select>
+        <label htmlFor="armorClass" className={labelClass}>{isArmor ? 'CA base' : 'Bonus dello scudo'}</label>
+        <input id="armorClass" type="number" inputMode="numeric" placeholder={isArmor ? '14' : '2'} value={formData.armorClass || ''} onChange={e => onChange('armorClass', parseInt(e.target.value) || undefined)} className={fieldNumericClass} />
       </div>
-    )}
-    {(formData.itemType === 'armor' || formData.itemType === 'shield') && (
-      <div>
-        <label htmlFor="armorClass" className={labelClass}>{formData.itemType === 'shield' ? 'Bonus dello scudo' : 'CA base'}</label>
-        <input id="armorClass" type="number" inputMode="numeric" placeholder={formData.itemType === 'shield' ? '2' : '14'} value={formData.armorClass || ''} onChange={e => onChange('armorClass', parseInt(e.target.value) || undefined)} className={fieldNumericClass} />
-      </div>
-    )}
-    <div>
-      <label htmlFor="bonusAC" className={labelClass}>Bonus magico alla CA</label>
-      <input id="bonusAC" type="number" inputMode="numeric" placeholder="1" value={formData.bonusAC || ''} onChange={e => onChange('bonusAC', parseInt(e.target.value) || undefined)} className={fieldNumericClass} />
+      {isArmor && (
+        <div>
+          <label htmlFor="strengthRequirement" className={labelClass}>Forza richiesta</label>
+          <input id="strengthRequirement" type="number" inputMode="numeric" placeholder="—" value={formData.strengthRequirement || ''} onChange={e => onChange('strengthRequirement', parseInt(e.target.value) || undefined)} className={fieldNumericClass} />
+        </div>
+      )}
     </div>
-  </div>
-);
+  );
+};

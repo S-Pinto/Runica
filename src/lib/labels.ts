@@ -55,6 +55,26 @@ export const SPELL_SCHOOL_LABELS: Record<string, string> = {
   Transmutation: 'Trasmutazione',
 };
 
-export const abilityLabel = (key: string) => ABILITY_LABELS[key as keyof AbilityScores] ?? key;
+/** Tipi di danno (chiavi inglesi salvate nei dati). */
+export const DAMAGE_TYPE_LABELS: Record<string, string> = {
+  Acid: 'Acido',
+  Bludgeoning: 'Contundente',
+  Cold: 'Freddo',
+  Fire: 'Fuoco',
+  Force: 'Forza',
+  Lightning: 'Fulmine',
+  Necrotic: 'Necrotico',
+  Piercing: 'Perforante',
+  Poison: 'Veleno',
+  Psychic: 'Psichico',
+  Radiant: 'Radioso',
+  Slashing: 'Tagliente',
+  Thunder: 'Tuono',
+};
+
+/** Etichetta italiana di un tipo di danno; un testo libero (es. "tagliente") resta com'è. */
+export const damageTypeLabel = (key: string | undefined) => (key ? DAMAGE_TYPE_LABELS[key] ?? key : '');
+
+export const abilityLabel =(key: string) => ABILITY_LABELS[key as keyof AbilityScores] ?? key;
 export const skillLabel = (name: string) => SKILL_LABELS[name] ?? name;
 export const schoolLabel = (name: string) => SPELL_SCHOOL_LABELS[name] ?? name;

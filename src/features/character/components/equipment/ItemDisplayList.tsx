@@ -3,6 +3,8 @@ import { EquipmentItem } from '../../characterTypes';
 import { TrashIcon, EditIcon, ChevronDownIcon } from '../../../../components/ui/icons';
 import { Button } from '../../../../components/ui/Button';
 import { playChipClass, playEmptyClass } from '../play-view/PlaySection';
+import { damageTypeLabel } from '../../../../lib/labels';
+import { itemArmorValue, itemKindLabel, weaponPropertyLabel } from '../../utils/itemLabels';
 
 export const ItemDisplayList = ({
   title,
@@ -38,10 +40,13 @@ export const ItemDisplayList = ({
       <ul className="grid grid-cols-1 items-start gap-3 md:grid-cols-2">
         {items.map(item => {
           const open = expandedItem === item.id;
+          const armorValue = itemArmorValue(item);
           const stats = [
+            itemKindLabel(item),
             `Q.tà ${item.quantity}`,
             item.damage && `Danni ${item.damage}`,
-            item.armorClass ? `CA ${item.armorClass}` : '',
+            armorValue ? `CA ${armorValue}` : '',
+            item.requiresAttunement ? (item.isAttuned ? 'In sintonia' : 'Sintonia richiesta') : '',
           ].filter(Boolean).join(' · ');
           return (
             <li key={item.id} className="rounded-2xl bg-background/50 transition-colors duration-150 hover:bg-background/70">
@@ -82,9 +87,11 @@ export const ItemDisplayList = ({
               {open && (
                 <div className="animate-fadeIn space-y-2 border-t border-foreground/10 px-3 py-3">
                   <div className="flex flex-wrap gap-1.5">
-                    {item.armorType && <span className={playChipClass}>Tipo: {item.armorType}</span>}
-                    {item.armorClass && <span className={playChipClass}>CA {item.armorClass}</span>}
-                    {item.damage && <span className={playChipClass}>Danni {item.damage} {item.damageType}</span>}
+                    <span className={playChipClass}>{itemKindLabel(item)}</span>
+                    {armorValue && <span className={playChipClass}>CA {armorValue}</span>}
+                    {!!item.bonusAC && <span className={playChipClass}>CA magica +{item.bonusAC}</span>}
+                    {item.damage && <span className={playChipClass}>Danni {item.damage} {damageTypeLabel(item.damageType)}</span>}
+                    {(item.properties || []).map(p => <span key={p} className={playChipClass}>{weaponPropertyLabel(p)}</span>)}
                   </div>
                   <p className="whitespace-pre-wrap text-sm leading-relaxed text-text">
                     {item.description || <span className="text-muted-foreground">Nessuna descrizione.</span>}

@@ -1,166 +1,43 @@
 import React from 'react';
-import { Attack, AbilityScores } from '../characterTypes';
 import { WEAPON_MASTERIES } from '../../../data/weaponProperties';
+import { damageTypeLabel } from '../../../lib/labels';
 import { ChevronDownIcon } from '../../../components/ui/icons';
+import { formatActionHit, formatPart, type ResolvedAction } from '../rules/attacks';
+import { weaponPropertyLabel } from '../utils/itemLabels';
 
 type AttackRowVariant = 'card' | 'list';
 
 interface AttackRowProps {
-  attack: Attack & { sourceName?: string; uses?: { max: number; current: number }; recovery?: string };
+  action: ResolvedAction;
   actions?: React.ReactNode;
   children?: React.ReactNode;
   variant?: AttackRowVariant;
   onClick?: () => void;
-  abilityScores?: AbilityScores;
-  proficiencyBonus?: number;
+  isExpanded?: boolean;
 }
 
-const ABILITY_MAP: Record<string, keyof AbilityScores> = {
-  str: 'strength',
-  dex: 'dexterity',
-  con: 'constitution',
-  int: 'intelligence',
-  wis: 'wisdom',
-  cha: 'charisma',
+const SOURCE_LABELS: Record<ResolvedAction['source'], string | null> = {
+  weapon: "Dall'inventario",
+  item: 'Oggetto magico',
+  spell: 'Trucchetto',
+  feat: 'Privilegio',
+  custom: null,
 };
-
-const ABILITY_LABELS: Record<string, string> = {
-  strength: 'FOR',
-  dexterity: 'DES',
-  constitution: 'COS',
-  intelligence: 'INT',
-  wisdom: 'SAG',
-  charisma: 'CAR',
-};
-
-function combineDamageFormula(baseDamage: string, modifier: number): string {
-  let cleanDmg = (baseDamage || '1d6').trim();
-  const match = cleanDmg.match(/^(.*?)(?:\s*([\+\-])\s*(\d+))?$/);
-  if (match) {
-    const dicePart = match[1].trim();
-    const sign = match[2];
-    const existingNum = match[3] ? parseInt(match[3], 10) * (sign === '-' ? -1 : 1) : 0;
-    const totalMod = existingNum + modifier;
-
-    if (totalMod === 0) {
-      return dicePart.replace(/\s*\+\s*/g, ' + ').replace(/\s*\-\s*/g, ' - ');
-    }
-    const finalSign = totalMod > 0 ? '+' : '-';
-    return `${dicePart.replace(/\s*\+\s*/g, ' + ').replace(/\s*\-\s*/g, ' - ')} ${finalSign} ${Math.abs(totalMod)}`;
-  }
-  if (modifier === 0) return cleanDmg;
-  const finalSign = modifier > 0 ? '+' : '-';
-  return `${cleanDmg} ${finalSign} ${Math.abs(modifier)}`;
-}
-
-export function getAttackSummary(
-  attack: Attack,
-  abilityScores?: AbilityScores,
-  proficiencyBonus?: number
-) {
-  if (attack.saveAbility) {
-    return {
-      isSave: true,
-      dcText: `CD ${attack.bonus || 10} ${ABILITY_LABELS[ABILITY_MAP[attack.saveAbility.toLowerCase()] || attack.saveAbility] || attack.saveAbility.toUpperCase()}`,
-      damageText: attack.damage ? `${attack.damage} ${attack.damageType || ''}`.trim() : '–',
-      additionalDamage: attack.additionalDamage,
-      hitBreakdownParts: [],
-      damageBreakdownParts: [],
-    };
-  }
-
-  // To Hit breakdown & total
-  let hitBonus = 0;
-  const hitParts: string[] = [];
-
-  if (attack.attackAbility && abilityScores) {
-    const key = ABILITY_MAP[attack.attackAbility.toLowerCase()] || (attack.attackAbility as keyof AbilityScores);
-    if (abilityScores[key] !== undefined) {
-      const mod = Math.floor((abilityScores[key] - 10) / 2);
-      hitBonus += mod;
-      const label = ABILITY_LABELS[key] || attack.attackAbility.toUpperCase();
-      hitParts.push(`${mod >= 0 ? '+' : ''}${mod} ${label}`);
-    }
-  }
-
-  if (attack.isProficient && proficiencyBonus) {
-    hitBonus += proficiencyBonus;
-    hitParts.push(`+${proficiencyBonus} Comp.`);
-  }
-
-  if (attack.bonus) {
-    const parsed = parseInt(attack.bonus.replace('+', ''), 10);
-    if (!isNaN(parsed) && parsed !== 0) {
-      hitBonus += parsed;
-      hitParts.push(`${parsed > 0 ? '+' : ''}${parsed} Magico`);
-    }
-  }
-
-  const hitString = hitBonus >= 0 ? `+${hitBonus}` : `${hitBonus}`;
-  const rollToHitDice = `1d20 ${hitString}`;
-
-  // Damage breakdown & total
-  let dmgMod = 0;
-  const dmgParts: string[] = [];
-
-  if (attack.damageAbility && abilityScores) {
-    const key = ABILITY_MAP[attack.damageAbility.toLowerCase()] || (attack.damageAbility as keyof AbilityScores);
-    if (abilityScores[key] !== undefined) {
-      const mod = Math.floor((abilityScores[key] - 10) / 2);
-      dmgMod += mod;
-      if (mod !== 0) {
-        const label = ABILITY_LABELS[key] || attack.damageAbility.toUpperCase();
-        dmgParts.push(`${mod >= 0 ? '+' : ''}${mod} ${label}`);
-      }
-    }
-  }
-
-  let magicBonus = 0;
-  if (attack.bonus) {
-    const parsed = parseInt(attack.bonus.replace('+', ''), 10);
-    if (!isNaN(parsed) && parsed !== 0) {
-      magicBonus = parsed;
-      dmgParts.push(`${magicBonus > 0 ? '+' : ''}${magicBonus} Magico`);
-    }
-  }
-
-  const damageFormula = combineDamageFormula(attack.damage || '1d6', dmgMod + magicBonus);
-
-  return {
-    isSave: false,
-    hitBonus,
-    hitString,
-    rollToHitDice,
-    hitBreakdownParts: hitParts,
-    damageFormula,
-    damageBreakdownParts: dmgParts,
-    damageType: attack.damageType || '',
-    additionalDamage: attack.additionalDamage,
-  };
-}
 
 const labelClass = 'text-label uppercase text-muted-foreground';
 const valueClass = 'mt-0.5 font-mono text-xl font-bold leading-tight tabular-nums text-foreground';
 const chipClass = 'rounded-md bg-foreground/10 px-1.5 py-0.5 text-xs text-muted-foreground';
+const accentChipClass = 'rounded-md bg-accent/15 px-1.5 py-0.5 text-xs font-medium text-accent';
 
-export const AttackRow: React.FC<AttackRowProps & { isExpanded?: boolean }> = ({
-  attack,
-  actions,
-  children,
-  variant = 'card',
-  onClick,
-  abilityScores,
-  proficiencyBonus,
-  isExpanded,
-}) => {
-  const summary = getAttackSummary(attack, abilityScores, proficiencyBonus);
-
+/** Riga di un'azione risolta: "Colpire" (o CD) e "Danno" con il dettaglio del calcolo sotto. */
+export const AttackRow: React.FC<AttackRowProps> = ({ action, actions, children, variant = 'card', onClick, isExpanded }) => {
   const containerClasses = {
     card: 'rounded-2xl bg-background/50 transition-colors duration-150 hover:bg-background/70',
     list: 'border-b border-foreground/10 py-3',
   };
-
-  const name = <span className="min-w-0 break-words">{attack.name}</span>;
+  const source = SOURCE_LABELS[action.source];
+  const name = <span className="min-w-0 break-words">{action.name}</span>;
+  const damageSub = [damageTypeLabel(action.damageType), ...action.damageParts.map(formatPart)].filter(Boolean).join(' · ');
 
   return (
     <div className={containerClasses[variant]}>
@@ -181,57 +58,63 @@ export const AttackRow: React.FC<AttackRowProps & { isExpanded?: boolean }> = ({
             ) : name}
           </h4>
 
-          {actions && <div className="flex grow items-center gap-2 sm:grow-0">{actions}</div>}
+          {actions && <div className="flex grow flex-wrap items-center gap-2 sm:grow-0">{actions}</div>}
         </div>
 
         {/* Valori: il numero prima della parola */}
-        <dl className="grid grid-cols-2 gap-3">
-          {summary.isSave ? (
+        {(action.roll !== 'none' || action.damage) && (
+          <dl className="grid grid-cols-2 gap-3">
+            {action.roll === 'save' ? (
+              <div>
+                <dt className={labelClass}>Tiro salvezza</dt>
+                <dd className={valueClass}>{formatActionHit(action)}</dd>
+              </div>
+            ) : action.roll === 'attack' ? (
+              <div>
+                <dt className={labelClass}>Colpire</dt>
+                <dd className={valueClass}>{formatActionHit(action)}</dd>
+                {action.hitParts.length > 0 && (
+                  <dd className="mt-0.5 text-xs text-muted-foreground">{action.hitParts.map(formatPart).join(' · ')}</dd>
+                )}
+              </div>
+            ) : <div />}
+
             <div>
-              <dt className={labelClass}>Tiro salvezza</dt>
-              <dd className={valueClass}>{summary.dcText}</dd>
-            </div>
-          ) : (
-            <div>
-              <dt className={labelClass}>Colpire</dt>
-              <dd className={valueClass}>{summary.hitString}</dd>
-              {summary.hitBreakdownParts.length > 0 && (
-                <dd className="mt-0.5 text-xs text-muted-foreground">{summary.hitBreakdownParts.join(' · ')}</dd>
+              <dt className={labelClass}>Danno</dt>
+              <dd className={valueClass}>{action.damage || '–'}</dd>
+              {damageSub && <dd className="mt-0.5 text-xs text-muted-foreground">{damageSub}</dd>}
+              {action.damage && action.additionalDamage.map((extra, idx) => (
+                <dd key={idx} className="mt-0.5 font-mono text-sm font-semibold tabular-nums text-accent">
+                  + {extra.formula} <span className="font-sans text-xs font-medium">{damageTypeLabel(extra.type)}</span>
+                </dd>
+              ))}
+              {action.versatileDamage && (
+                <dd className="mt-0.5 text-xs text-muted-foreground">
+                  A due mani <span className="font-mono text-foreground">{action.versatileDamage}</span>
+                </dd>
               )}
             </div>
-          )}
-
-          <div>
-            <dt className={labelClass}>Danno</dt>
-            <dd className={valueClass}>{summary.isSave ? summary.damageText : summary.damageFormula}</dd>
-            {!summary.isSave && (summary.damageType || summary.damageBreakdownParts.length > 0) && (
-              <dd className="mt-0.5 text-xs text-muted-foreground">
-                {[summary.damageType, ...summary.damageBreakdownParts].filter(Boolean).join(' · ')}
-              </dd>
-            )}
-          </div>
-        </dl>
-
-        {summary.additionalDamage && summary.additionalDamage.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {summary.additionalDamage.map((extra, idx) => (
-              <span key={idx} className="rounded-md bg-accent/15 px-1.5 py-0.5 text-xs font-medium text-accent">
-                Extra <span className="font-mono">+{extra.formula}</span> {extra.type}
-              </span>
-            ))}
-          </div>
+          </dl>
         )}
 
-        {(attack.mastery || (attack.properties && attack.properties.length > 0)) && (
+        {(source || action.mastery || action.properties.length > 0 || action.uses || action.ammo || action.attunementMissing) && (
           <div className="flex flex-wrap items-center gap-1.5">
-            {attack.mastery && (
-              <span className="rounded-md bg-accent/15 px-1.5 py-0.5 text-xs font-medium text-accent">
-                Maestria: {WEAPON_MASTERIES[attack.mastery]?.name ?? attack.mastery}
+            {source && <span className={chipClass}>{source}</span>}
+            {action.attunementMissing && (
+              <span className="rounded-md bg-warning/15 px-1.5 py-0.5 text-xs font-medium text-warning">Senza sintonia: niente bonus magici</span>
+            )}
+            {action.uses && (
+              <span className={chipClass}>Usi <span className="font-mono text-foreground">{action.uses.current}/{action.uses.max}</span></span>
+            )}
+            {action.ammo && (
+              <span className={action.ammo.quantity > 0 ? chipClass : 'rounded-md bg-destructive/15 px-1.5 py-0.5 text-xs font-medium text-destructive'}>
+                {action.ammo.name} <span className="font-mono">×{action.ammo.quantity}</span>
               </span>
             )}
-            {attack.properties && attack.properties.map(p => (
-              <span key={p} className={chipClass}>{p}</span>
-            ))}
+            {action.mastery && (
+              <span className={accentChipClass}>Maestria: {WEAPON_MASTERIES[action.mastery]?.name ?? action.mastery}</span>
+            )}
+            {action.properties.map(p => <span key={p} className={chipClass}>{weaponPropertyLabel(p)}</span>)}
           </div>
         )}
       </div>

@@ -64,6 +64,7 @@ export const createNewCharacter = (now: number = Date.now()): ICharacter => {
             7: { max: 0, used: 0 }, 8: { max: 0, used: 0 }, 9: { max: 0, used: 0 },
         },
         customResources: [],
+        optionalRules: { encumbrance: false, ammunition: false, weightUnit: 'kg' },
         imageUrl: '',
         companions: [],
     };

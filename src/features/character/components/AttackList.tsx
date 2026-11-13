@@ -7,6 +7,8 @@ import { StyledSection } from './ui/StyledInputs';
 import { RowActions } from './ui/InlineForm';
 import { playEmptyClass } from './play-view/PlaySection';
 import { AttackRow } from './AttackRow';
+import { AttackForm } from './attacks/AttackForm';
+import { buildCharacterActions } from '../rules/attacks';
 
 const DEFAULT_ATTACK: Omit<Attack, 'id'> = {
   name: '',
@@ -14,13 +16,10 @@ const DEFAULT_ATTACK: Omit<Attack, 'id'> = {
   damage: '1d4',
 };
 
-import { AttackForm } from './attacks/AttackForm';
-
 const AttackListContent = () => {
   const { character: maybeCharacter, updateCharacter } = useCharacter();
   const character = maybeCharacter!;
-  const [editingAttack, setEditingAttack] = useState<Attack | 'new' | null>(null);
-
+  const [editingId, setEditingId] = useState<string | 'new' | null>(null);
 
   const handleSaveAttack = (attackData: Attack | Omit<Attack, 'id'>) => {
     let updatedAttacks: Attack[];
@@ -31,86 +30,69 @@ const AttackListContent = () => {
       updatedAttacks = [...character.attacks, newAttack];
     }
     updateCharacter({ attacks: updatedAttacks });
-    setEditingAttack(null);
+    setEditingId(null);
   };
 
   const handleDeleteAttack = (attackId: string) => {
-    const updatedAttacks = character.attacks.filter(f => f.id !== attackId);
-    updateCharacter({ attacks: updatedAttacks });
+    updateCharacter({ attacks: character.attacks.filter(f => f.id !== attackId) });
   };
 
-  const sortedAttacks = useMemo(() => {
-    const custom = character.attacks || [];
-    const equippedWeapons: Attack[] = (character.equipment || [])
-      .filter(item => item.equipped && (item.itemType === 'weapon' || Boolean(item.damage)))
-      .map(item => ({
-        id: item.id,
-        name: item.name,
-        bonus: item.attackBonus || '+0',
-        damage: item.damage || '1d6',
-        damageType: item.damageType || 'Slashing',
-        mastery: item.mastery || '',
-        properties: item.properties || [],
-        attackAbility: item.attackAbility || 'str',
-        damageAbility: item.damageAbility || 'str',
-        isProficient: item.isProficient ?? true,
-      }));
-
-    const all = [...custom];
-    equippedWeapons.forEach(wAtk => {
-      if (!all.some(a => a.id === wAtk.id || a.name.toLowerCase() === wAtk.name.toLowerCase())) {
-        all.push(wAtk);
-      }
-    });
-    return all.sort((a, b) => a.name.localeCompare(b.name));
-  }, [character.attacks, character.equipment]);
+  // Stesso motore della vista di gioco e della stampa. Armi, trucchetti e poteri degli oggetti
+  // si modificano dalla loro fonte (inventario, incantesimi): qui sono in sola lettura.
+  const actions = useMemo(
+    () => buildCharacterActions(character, { include: ['weapon', 'item', 'spell', 'custom'] })
+      .sort((a, b) => a.name.localeCompare(b.name)),
+    [character],
+  );
 
   return (
     <StyledSection
       title="Attacchi e trucchetti"
       action={
-        <Button variant="secondary" onClick={() => setEditingAttack('new')} disabled={editingAttack !== null}>
+        <Button variant="secondary" onClick={() => setEditingId('new')} disabled={editingId !== null}>
           <PlusIcon className="h-4 w-4" /> Aggiungi
         </Button>
       }
     >
       <div className="space-y-3">
-        {sortedAttacks.length === 0 && editingAttack !== 'new' && (
-          <p className={playEmptyClass}>Nessun attacco. Le armi equipaggiate nell'inventario compaiono qui da sole.</p>
+        {actions.length === 0 && editingId !== 'new' && (
+          <p className={playEmptyClass}>Nessun attacco. Le armi equipaggiate nell'inventario e i trucchetti con danni compaiono qui da soli.</p>
         )}
-        {sortedAttacks.map(attack =>
-          editingAttack && typeof editingAttack === 'object' && editingAttack.id === attack.id ? (
-            <AttackForm
-              key={attack.id}
-              initialData={editingAttack}
-              character={character}
-              onSave={handleSaveAttack}
-              onCancel={() => setEditingAttack(null)}
-            />
-          ) : (
+        {actions.map(action => {
+          const attack = action.editable ? character.attacks.find(a => a.id === action.sourceId) : undefined;
+          if (attack && editingId === attack.id) {
+            return (
+              <AttackForm
+                key={action.id}
+                initialData={attack}
+                character={character}
+                onSave={handleSaveAttack}
+                onCancel={() => setEditingId(null)}
+              />
+            );
+          }
+          return (
             <AttackRow
-              key={attack.id}
-              attack={attack}
-              abilityScores={character.abilityScores}
-              proficiencyBonus={character.proficiencyBonus}
-              actions={
+              key={action.id}
+              action={action}
+              actions={attack ? (
                 <RowActions
                   name={attack.name}
-                  disabled={editingAttack !== null}
-                  onEdit={() => setEditingAttack(attack)}
+                  disabled={editingId !== null}
+                  onEdit={() => setEditingId(attack.id)}
                   onDelete={() => handleDeleteAttack(attack.id)}
                 />
-              }
+              ) : undefined}
             />
-          )
-        )}
+          );
+        })}
 
-        {editingAttack === 'new' && (
+        {editingId === 'new' && (
           <AttackForm
             initialData={DEFAULT_ATTACK}
             character={character}
             onSave={handleSaveAttack}
-            onCancel={() => setEditingAttack(null)}
+            onCancel={() => setEditingId(null)}
           />
         )}
       </div>

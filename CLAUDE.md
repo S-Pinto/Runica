@@ -16,7 +16,7 @@ npm test                 # Vitest (una esecuzione); npm run test:watch per il wa
 
 CI: `.github/workflows/ci.yml` (su PR e push su `main`) esegue type-check frontend + `functions/`, test Vitest e build. I workflow `firebase-hosting-*` si occupano solo di build e deploy.
 
-Deploy: GitHub Actions su merge (`.github/workflows/`), oppure `npm run deploy:live` / `deploy:staging`. Dettagli in `DEPLOYMENT_GUIDE.md`. I test (Vitest, ambiente `node`, file `*.test.ts` accanto al codice) coprono `rules/` (progression, rest, combat, characterData).
+Deploy: GitHub Actions su merge (`.github/workflows/`), oppure `npm run deploy:live` / `deploy:staging`. Dettagli in `DEPLOYMENT_GUIDE.md`. I test (Vitest, ambiente `node`, file `*.test.ts` accanto al codice) coprono `rules/` (progression, rest, combat, attacks, equipment, encumbrance, characterData, più `equipmentFlow.test.ts` di integrazione).
 
 ## Stack
 
@@ -73,7 +73,8 @@ src/
       migrationActions.ts     dialoghi di conferma/toast della migrazione (UI)
       characterTypes.ts     ICharacter e tipi collegati
       hooks/                useCharacterEditor, useFieldChange, useCharacterOrdering, useCharacterActions, usePlayViewAutosave, useDiceMode
-      rules/                regole pure: progression, rest, combat, defaults, characterData, equipment
+      rules/                regole pure: progression, rest, combat (CA, competenza, CD), attacks (motore unico delle azioni e dei tiri),
+                            equipment (classificazione, sintonia, cariche, munizioni, poteri degli oggetti), itemEffects (proprietà passive degli oggetti: difese, bonus, sensi, lingue, avvisi), encumbrance (carico), defaults, characterData
       utils/
       components/           editor e card (armi, equip., incantesimi, compagni…)
         editor/             sezioni dell'editor di CharacterSheet
@@ -122,7 +123,10 @@ functions/src/
 
 ### Logica e dati
 
-- Regole di gioco come **funzioni pure** in `features/character/rules/`; i valori derivati devono rispettare gli override manuali in `character.automation.*`.
+- Regole di gioco come **funzioni pure** in `features/character/rules/`; i valori derivati devono rispettare gli override manuali in `character.automation.*` (la CA ha `armorClassOverride`).
+- Attacchi: Combattimento, editor e Stampa passano tutti da `buildCharacterActions` (`rules/attacks.ts`); non ricostruire righe d'attacco a mano.
+- Oggetti complessi: danni extra in `additionalDamage` (un blocco per tipo, tutti raddoppiati col critico), poteri in `powers` (anche su armature ed elmi; il formato vecchio a un solo potere si legge con `getItemPowers` e diventa `powers` al salvataggio del form), proprietà passive in `effects` (attive con `isItemActive`; gli avvisi valgono appena equipaggiato). Il bonus magico alla CA resta in `bonusAC`. Gli oggetti si classificano con `isWeapon`/`isBodyArmor`/`isShield` (`rules/equipment.ts`), che leggono anche i formati vecchi (`armorType: 'weapon' | 'magic'`, bonus magico delle armi in `armorClass`).
+- Regole opzionali per personaggio (`optionalRules`: carico, munizioni), spente di default: spente, i relativi campi non compaiono.
 - Accesso a Firebase tramite `getFirebase()` / i service, non importando `firebaseConfig` nei componenti.
 - Testo mostrato all'utente: etichette italiane da `lib/labels.ts`; nei dati restano le chiavi inglesi.
 - Funzioni cloud: nuove funzioni in v2 (`firebase-functions/v2/https`), regione `europe-west1`, controllo `request.auth` obbligatorio, segreti con `secrets: [...]`.

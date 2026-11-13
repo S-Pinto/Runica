@@ -9,10 +9,24 @@ const TERM = /([+-]?)\s*(?:(\d*)d(\d+)|(\d+))/gi;
  * Parses and rolls a dice expression such as "1d8+4", "2d6 - 1", "d20+5" or "1d6+1d4+2".
  * Returns the total and a readable breakdown, e.g. "[3+5] + 4 = 12".
  */
-export const rollDiceExpression = (diceString: string): { total: number; pretty: string } => {
-    if (!diceString || typeof diceString !== 'string') return { total: 0, pretty: 'Formula non valida' };
+/** Generatore casuale in [0, 1): iniettabile nei test. */
+export type Rng = () => number;
+
+export interface DiceRoll {
+    total: number;
+    pretty: string;
+    /** Ogni dado tirato, nell'ordine. */
+    dice: number[];
+    /** Somma delle costanti (con segno). */
+    modifier: number;
+}
+
+export const rollDiceExpression = (diceString: string, rng: Rng = Math.random): DiceRoll => {
+    if (!diceString || typeof diceString !== 'string') return { total: 0, pretty: 'Formula non valida', dice: [], modifier: 0 };
 
     let total = 0;
+    let modifier = 0;
+    const dice: number[] = [];
     const prettyParts: string[] = [];
     for (const m of diceString.matchAll(TERM)) {
         const sign = m[1] === '-' ? -1 : 1;
@@ -20,19 +34,21 @@ export const rollDiceExpression = (diceString: string): { total: number; pretty:
             const count = Math.min(100, m[2] ? parseInt(m[2], 10) : 1);
             const faces = parseInt(m[3], 10);
             if (!count || !faces) continue;
-            const rolls = Array.from({ length: count }, () => Math.floor(Math.random() * faces) + 1);
+            const rolls = Array.from({ length: count }, () => Math.floor(rng() * faces) + 1);
+            dice.push(...rolls);
             const sub = rolls.reduce((a, b) => a + b, 0);
             total += sign * sub;
             prettyParts.push(`${sign < 0 ? '- ' : prettyParts.length ? '+ ' : ''}[${rolls.join('+')}]`);
         } else if (m[4]) {
             const n = parseInt(m[4], 10);
             total += sign * n;
+            modifier += sign * n;
             prettyParts.push(`${sign < 0 ? '- ' : prettyParts.length ? '+ ' : ''}${n}`);
         }
     }
 
-    if (prettyParts.length === 0) return { total: 0, pretty: 'Formula non valida' };
-    return { total, pretty: `${prettyParts.join(' ')} = ${total}` };
+    if (prettyParts.length === 0) return { total: 0, pretty: 'Formula non valida', dice: [], modifier: 0 };
+    return { total, pretty: `${prettyParts.join(' ')} = ${total}`, dice, modifier };
 };
 
 /** Doubles every dice term ("2d6+3" -> "4d6+3"), for critical hits. */

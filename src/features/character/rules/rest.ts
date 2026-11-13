@@ -2,7 +2,13 @@
  * Rest rules (D&D 5e, 2024 rules where they differ from 2014).
  * Pure functions: they return the fields to update, the caller persists them.
  */
-import { ICharacter } from '../characterTypes';
+import { ChargeResetType, EquipmentItem, ICharacter } from '../characterTypes';
+
+/** Ricarica gli usi propri dei poteri degli oggetti che si ricaricano con `resets`. */
+const rechargePowers = (item: EquipmentItem, resets: (r: ChargeResetType) => boolean): EquipmentItem =>
+  item.powers?.some((p) => p.uses && resets(p.uses.recovery))
+    ? { ...item, powers: item.powers.map((p) => (p.uses && resets(p.uses.recovery) ? { ...p, uses: { ...p.uses, current: p.uses.max } } : p)) }
+    : item;
 
 const isShort = (r?: string) => r === 'short' || r === 'shortRest';
 const isLongOrShort = (r?: string) => r === 'short' || r === 'shortRest' || r === 'long' || r === 'longRest';
@@ -21,7 +27,7 @@ export function shortRestUpdate(c: ICharacter): Partial<ICharacter> {
       if (item.uses && isShort(item.recovery)) {
         next = { ...next, uses: { ...item.uses, current: item.uses.max } };
       }
-      return next;
+      return rechargePowers(next, (r) => r === 'shortRest');
     }),
   };
 }
@@ -54,7 +60,7 @@ export function longRestUpdate(c: ICharacter): Partial<ICharacter> {
       if (item.uses && isLongOrShort(item.recovery)) {
         next = { ...next, uses: { ...item.uses, current: item.uses.max } };
       }
-      return next;
+      return rechargePowers(next, (r) => r !== 'none');
     }),
   };
 }

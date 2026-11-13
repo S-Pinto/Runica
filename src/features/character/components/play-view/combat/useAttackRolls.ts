@@ -1,129 +1,65 @@
 import React, { useState } from 'react';
-import { Attack, AbilityScores } from '../../../characterTypes';
-import { rollDiceExpression, doubleDice } from '../../../utils/characterUtils';
-import { getAttackSummary } from '../../AttackRow';
+import { rollAttack, rollDamage, type DamageRollPart, type ResolvedAction, type RollMode } from '../../../rules/attacks';
+
+export type { RollMode };
 
 export interface RollResult {
     value: string;
     breakdown?: string;
     isCrit: boolean;
     isFail: boolean;
+    /** Danni: un parziale per tipo, per applicare resistenze e immunità. */
+    parts?: DamageRollPart[];
 }
 
-export type AttackResults = Record<string, { atk: RollResult[], dmg: RollResult[] }>;
-export type RollMode = 'normal' | 'advantage' | 'disadvantage';
+export type AttackResults = Record<string, { atk: RollResult[]; dmg: RollResult[] }>;
 
-const ABILITY_MAP: Record<string, string> = {
-    str: 'strength',
-    dex: 'dexterity',
-    con: 'constitution',
-    int: 'intelligence',
-    wis: 'wisdom',
-    cha: 'charisma'
-};
+interface UseAttackRollsOptions {
+    /** Chiamato a ogni tiro per colpire di un'arma con munizioni collegate. */
+    onAttackRolled?: (action: ResolvedAction) => void;
+}
 
-/** Stato e logica dei tiri per colpire e dei danni nella scheda di combattimento. */
-export const useAttackRolls = (abilityScores: AbilityScores, proficiencyBonus: number) => {
+/**
+ * Stato dei tiri per colpire e dei danni nella scheda di combattimento. I calcoli sono in `rules/attacks`.
+ * Un 20 naturale rende critico solo il primo tiro di danni successivo; `forceCrit` fa lo stesso a mano
+ * (critico concesso dal DM, Colpo assassino…) per il prossimo tiro di danni di qualunque azione.
+ */
+export const useAttackRolls = ({ onAttackRolled }: UseAttackRollsOptions = {}) => {
     const [results, setResults] = useState<AttackResults>({});
+    const [pendingCrit, setPendingCrit] = useState<Record<string, boolean>>({});
+    const [forceCrit, setForceCrit] = useState(false);
     const [rollMode, setRollMode] = useState<RollMode>('normal');
 
-    const handleAttackRoll = (e: React.MouseEvent, attack: Attack) => {
+    const push = (id: string, key: 'atk' | 'dmg', roll: RollResult) =>
+        setResults(prev => ({ ...prev, [id]: { atk: prev[id]?.atk || [], dmg: prev[id]?.dmg || [], [key]: [...(prev[id]?.[key] || []), roll] } }));
+
+    const handleAttackRoll = (e: React.MouseEvent, action: ResolvedAction) => {
         e.stopPropagation();
-
-        // Advantage/disadvantage: roll two d20 and keep the higher/lower one.
-        const first = Math.floor(Math.random() * 20) + 1;
-        const second = rollMode === 'normal' ? first : Math.floor(Math.random() * 20) + 1;
-        const d20Roll = rollMode === 'advantage' ? Math.max(first, second) : rollMode === 'disadvantage' ? Math.min(first, second) : first;
-        let total = d20Roll;
-        const breakdownParts = [rollMode === 'normal' ? `d20(${d20Roll})` : `d20 ${rollMode === 'advantage' ? 'vantaggio' : 'svantaggio'}(${first}|${second} → ${d20Roll})`];
-
-        // 1. Ability Modifier
-        if (attack.attackAbility && abilityScores) {
-            const abilityKey = (ABILITY_MAP[attack.attackAbility.toLowerCase()] || attack.attackAbility) as keyof AbilityScores;
-            const score = abilityScores[abilityKey] || 10;
-            const modifier = Math.floor((score - 10) / 2);
-            if (modifier !== 0) {
-                total += modifier;
-                const sign = modifier >= 0 ? '+' : '';
-                breakdownParts.push(`${sign}${modifier}(${attack.attackAbility.toUpperCase()})`);
-            }
-        }
-
-        // 2. Proficiency
-        if (attack.isProficient) {
-            total += proficiencyBonus;
-            breakdownParts.push(`+${proficiencyBonus}(comp.)`);
-        }
-
-        // 3. Custom/Magic Bonus
-        const cleanBonus = attack.bonus?.toString().replace(/\s/g, '') || '0';
-        let magicBonus = parseInt(cleanBonus, 10);
-        if (isNaN(magicBonus)) {
-            const match = attack.bonus?.match(/[+-]?\d+/);
-            magicBonus = match ? parseInt(match[0], 10) : 0;
-        }
-
-        if (magicBonus !== 0) {
-            total += magicBonus;
-            const sign = magicBonus >= 0 ? '+' : '';
-            breakdownParts.push(`${sign}${magicBonus}(magico)`);
-        }
-
-        const breakdown = breakdownParts.join(' + ').replace(/\+ \+/g, '+ ').replace(/\+ -/g, '- '); // Clean up signs
-
-        const newRoll: RollResult = {
-            value: total.toString(),
-            breakdown,
-            isCrit: d20Roll === 20,
-            isFail: d20Roll === 1,
-        };
-        setResults(prev => ({ ...prev, [attack.id]: { ...prev[attack.id], atk: [...(prev[attack.id]?.atk || []), newRoll] } }));
+        const r = rollAttack(action, rollMode);
+        push(action.id, 'atk', { value: String(r.total), breakdown: r.breakdown, isCrit: r.isCrit, isFail: r.isFumble });
+        setPendingCrit(prev => ({ ...prev, [action.id]: r.isCrit }));
+        onAttackRolled?.(action);
     };
 
-    const handleDamageRoll = (e: React.MouseEvent, attack: Attack) => {
+    const handleDamageRoll = (e: React.MouseEvent, action: ResolvedAction, versatile = false) => {
         e.stopPropagation();
-
-        // Same formula the card shows (dice + ability modifier + magic bonus), so display and roll agree.
-        const summary = getAttackSummary(attack, abilityScores, proficiencyBonus);
-        const baseFormula: string = (summary.isSave ? attack.damage : summary.damageFormula) || attack.damage || '';
-
-        // A natural 20 on the latest attack roll doubles every damage die.
-        const lastAttack = results[attack.id]?.atk?.slice(-1)[0];
-        const isCrit = !summary.isSave && !!lastAttack?.isCrit;
-        const formula = isCrit ? doubleDice(baseFormula) : baseFormula;
-
-        const main = rollDiceExpression(formula);
-        let totalDamage = main.total;
-        const details = [`${main.total} ${attack.damageType || ''}`.trim()];
-        const breakdownParts = [`${main.pretty}${attack.damageType ? ` (${attack.damageType})` : ''}`];
-
-        (attack.additionalDamage || []).forEach(extra => {
-            const extraResult = rollDiceExpression(isCrit ? doubleDice(extra.formula) : extra.formula);
-            totalDamage += extraResult.total;
-            details.push(`${extraResult.total} ${extra.type}`);
-            breakdownParts.push(`${extraResult.pretty} (${extra.type})`);
-        });
-
-        const valueString = details.length > 1
-            ? `${totalDamage} (${details.join(' + ')})`
-            : `${totalDamage} ${attack.damageType || ''}`.trim();
-
-        const newRoll: RollResult = {
-            value: valueString,
-            breakdown: (isCrit ? 'Critico, dadi raddoppiati: ' : '') + breakdownParts.join(' + '),
-            isCrit,
-            isFail: false,
-        };
-        setResults(prev => ({ ...prev, [attack.id]: { ...prev[attack.id], dmg: [...(prev[attack.id]?.dmg || []), newRoll] } }));
+        const crit = forceCrit || (action.roll === 'attack' && !!pendingCrit[action.id]);
+        const r = rollDamage(action, { crit, versatile });
+        push(action.id, 'dmg', { value: String(r.total), breakdown: r.breakdown, isCrit: r.isCrit, isFail: false, parts: r.parts });
+        if (crit) {
+            setPendingCrit(prev => ({ ...prev, [action.id]: false }));
+            setForceCrit(false);
+        }
     };
 
-    const clearResults = (attackId: string) => {
+    const clearResults = (actionId: string) => {
         setResults(prev => {
-            const newState = { ...prev };
-            delete newState[attackId];
-            return newState;
+            const next = { ...prev };
+            delete next[actionId];
+            return next;
         });
+        setPendingCrit(prev => ({ ...prev, [actionId]: false }));
     };
 
-    return { results, rollMode, setRollMode, handleAttackRoll, handleDamageRoll, clearResults };
+    return { results, rollMode, setRollMode, handleAttackRoll, handleDamageRoll, clearResults, pendingCrit, forceCrit, setForceCrit };
 };

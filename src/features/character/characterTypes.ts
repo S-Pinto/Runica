@@ -91,7 +91,7 @@ export interface Attack {
   properties?: string[];
   saveAbility?: string; // 'str', 'dex', 'con', etc. or null if attack roll
   damageType?: string; // 'fire', 'slashing', etc.
-  additionalDamage?: { formula: string; type: string }[];
+  additionalDamage?: DamageBlock[];
   damageAbility?: string; // 'str', 'dex', etc. to add to damage
   attackAbility?: string; // 'str', 'dex', etc. for hit roll
   isProficient?: boolean; // add proficiency bonus to hit?
@@ -117,6 +117,62 @@ export type ItemCategory =
 
 export type ChargeResetType = 'longRest' | 'shortRest' | 'dawn' | 'none';
 
+/** Blocco di danno con il suo tipo (chiave inglese, es. 'Fire', o testo libero). */
+export interface DamageBlock {
+  formula: string;
+  type: string;
+}
+
+export type ItemRarity = 'common' | 'uncommon' | 'rare' | 'veryRare' | 'legendary' | 'artifact';
+export type DefenseKind = 'resistance' | 'immunity' | 'vulnerability';
+
+/** Proprietà passive: valgono con l'oggetto equipaggiato e, se la richiede, in sintonia. */
+export interface ItemEffects {
+  defenses?: { kind: DefenseKind; damageType: string }[];
+  /** In piedi, come `character.speed` (anche negativo). */
+  speedBonus?: number;
+  initiativeBonus?: number;
+  saveBonuses?: { ability: keyof AbilityScores | 'all'; value: number }[];
+  /** Distanza in piedi (mostrata anche in metri). */
+  senses?: { name: string; range?: number }[];
+  languages?: string[];
+  /** Avvisi tattici in Combattimento: valgono appena l'oggetto è equipaggiato, anche senza sintonia. */
+  notes?: string[];
+}
+
+/** Potere attivabile di un oggetto: incantesimo, capacità o attacco completo. */
+export interface ItemPower {
+  id: string;
+  name: string;
+  description?: string;
+  activation?: 'action' | 'bonus' | 'reaction' | 'free';
+  roll: 'attack' | 'save' | 'none';
+  /** 'spell' = caratteristica da incantatore; 'none' = nessuna. Assente = 'spell'. */
+  attackAbility?: keyof AbilityScores | 'spell' | 'none';
+  /** Default: vero. */
+  isProficient?: boolean;
+  attackBonus?: number;
+  saveAbility?: keyof AbilityScores;
+  /** Assente = CD da incantatore. */
+  saveDC?: number;
+  damage?: string;
+  damageType?: string;
+  /** Assente = come per colpire (se non è da incantatore). */
+  damageAbility?: keyof AbilityScores | 'none';
+  additionalDamage?: DamageBlock[];
+  /** Usi propri del potere (es. 1/riposo breve)… */
+  uses?: { current: number; max: number; recovery: ChargeResetType };
+  /** …oppure cariche dell'oggetto consumate a ogni uso. */
+  chargeCost?: number;
+}
+
+/** Proprietà nominata o pezzo di storia dell'oggetto. */
+export interface ItemTrait {
+  id: string;
+  name: string;
+  description: string;
+}
+
 export interface EquipmentItem {
   id: string;
   name: string;
@@ -130,7 +186,7 @@ export interface EquipmentItem {
   attackBonus?: string; // e.g. "+1"
   mastery?: string; // e.g. "Flex", "Vex", "Sap"
   properties?: string[];
-  additionalDamage?: { formula: string; type: string }[];
+  additionalDamage?: DamageBlock[];
   attackAbility?: string; // "str", "dex"
   damageAbility?: string;
   isProficient?: boolean;
@@ -150,6 +206,25 @@ export interface EquipmentItem {
   uses?: { current: number; max: number };
   recovery?: 'short' | 'long' | 'shortRest' | 'longRest' | 'none';
   bonusAC?: number;
+
+  // --- Armi: danno a due mani e munizioni; peso ---
+  /** Danno impugnando a due mani un'arma Versatile (es. "1d10"). */
+  versatileDamage?: string;
+  /** Oggetto dell'inventario consumato a ogni tiro per colpire (regola opzionale delle munizioni). */
+  ammoItemId?: string;
+  /** Peso di un'unità, nell'unità di `optionalRules.weightUnit` (regola opzionale del carico). */
+  weight?: number;
+
+  // --- Oggetti complessi e homebrew ---
+  rarity?: ItemRarity;
+  /** Sottotipo libero: "Elmo", "Piastre", "Spadone"… */
+  subtype?: string;
+  /** Proprietà nominate e storia (titolo + descrizione). */
+  traits?: ItemTrait[];
+  effects?: ItemEffects;
+  powers?: ItemPower[];
+  /** Armature pesanti: con FOR inferiore la velocità cala di 10 ft. */
+  strengthRequirement?: number;
 }
 
 export interface Currency {
@@ -165,6 +240,15 @@ export interface CustomResource {
   name: string;
   max: number;
   used: number;
+}
+
+/** Regole opzionali, spente di default: molte campagne non le usano. */
+export interface OptionalRules {
+  /** Peso degli oggetti e capacità di carico (FOR × 15 lb, cioè FOR × 7,5 kg). */
+  encumbrance?: boolean;
+  /** Le armi a munizioni consumano l'oggetto collegato a ogni tiro per colpire. */
+  ammunition?: boolean;
+  weightUnit?: 'kg' | 'lb';
 }
 
 export interface UnarmoredDefense {
@@ -192,6 +276,9 @@ export interface ICharacter {
   };
   skills: Skill[];
   unarmoredDefense: UnarmoredDefense;
+  /** CA impostata a mano: se è un numero sostituisce il calcolo (null o assente = automatica). */
+  armorClassOverride?: number | null;
+  optionalRules?: OptionalRules;
   initiative: number;
   speed: number;
   hp: {

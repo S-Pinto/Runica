@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
 import { useCharacter } from '../../CharacterProvider';
 import { getModifier, formatModifier } from '../../utils/characterUtils';
+import { DefensesPanel, LanguagesPanel } from './DefensesPanel';
 import * as combat from '../../rules/combat';
 import { FC } from 'react';
 import { HPTracker } from './HPTracker';
 import { DeathSavesTracker } from './DeathSavesTracker';
 import { HitDiceTracker } from './HitDiceTracker';
-import { PlaySection, playLabelClass } from './PlaySection';
+import { PlaySection } from './PlaySection';
 import { Button } from '../../../../components/ui/Button';
 import {
     ShieldIcon,
@@ -14,7 +15,6 @@ import {
     StarIcon,
     SearchIcon,
     ForwardIcon,
-    ShieldCheckIcon,
     ExclamationTriangleIcon,
     PlusIcon,
     XMarkIcon,
@@ -56,7 +56,7 @@ const BentoStat = ({ label, value, sub, icon: Icon, className = '', hero, small 
         </div>
         <div>
             <span className={`block font-mono font-black leading-none tracking-tighter tabular-nums ${hero ? 'text-accent' : 'text-foreground'} ${small ? 'text-3xl sm:text-4xl' : 'text-6xl sm:text-7xl'}`}>{value}</span>
-            {sub && <span className="mt-1 block text-xs text-muted-foreground">{sub}</span>}
+            {sub && <span className="mt-1 block line-clamp-3 text-xs text-muted-foreground" title={sub}>{sub}</span>}
         </div>
     </div>
 );
@@ -78,15 +78,25 @@ const MainTabView = () => {
         return 10 + wisdomMod + bonus;
     }, [character]);
 
-    const armorClass = useMemo(() => (character ? combat.calculateArmorClass(character) : 10), [character]);
+    const armorClass = useMemo(() => (character ? combat.getArmorClassBreakdown(character) : null), [character]);
 
-    const hasShield = useMemo(() => {
-        return character?.equipment?.some(item => item.equipped && item.armorType === 'shield');
-    }, [character]);
+    // Dettaglio sotto la CA: da dove viene il numero (o che è manuale), così si verifica al tavolo.
+    const armorClassSub = useMemo(() => {
+        if (!armorClass) return undefined;
+        if (armorClass.manual) return `Manuale · calcolata ${armorClass.computed}`;
+        const parts = armorClass.parts.map((p, i) => (i === 0 ? `${p.value} ${p.label}` : `${p.value >= 0 ? '+' : ''}${p.value} ${p.label}`));
+        const inactive = armorClass.inactiveBonuses.length > 0 ? ` · ${armorClass.inactiveBonuses.map(i => i.name).join(', ')}: serve la sintonia` : '';
+        return parts.join(' · ') + inactive;
+    }, [armorClass]);
 
     if (!character) return null;
 
-    const speedMeters = Math.round(character.speed * 0.3);
+    const speed = combat.getSpeedBreakdown(character);
+    const initiative = combat.getInitiativeBreakdown(character);
+    const speedMeters = Math.round(speed.total * 0.3);
+    const extraParts = (parts: { label: string; value: number }[]) => parts.map(p => `${p.label} ${formatModifier(p.value)}`).join(' · ');
+    const speedSub = [`ft · ${speedMeters} m`, extraParts(speed.parts.slice(1))].filter(Boolean).join(' · ');
+    const initiativeSub = initiative.parts.length > 1 ? extraParts(initiative.parts) : undefined;
     const activeConditions = character.conditions || [];
 
     const toggleCondition = (key: string) => {
@@ -96,18 +106,14 @@ const MainTabView = () => {
         updateCharacter({ conditions: next });
     };
 
-    const languages = (
-        <p className="whitespace-pre-wrap text-sm leading-relaxed text-text">{character.languages || 'Nessuna'}</p>
-    );
-
     return (
         <div className="space-y-3 sm:space-y-4">
             {/* Bento: PV dominanti, poi CA e Iniziativa come tessere grandi, il resto compatto. */}
             <div className="grid grid-cols-6 gap-3 sm:gap-4 lg:grid-cols-12">
                 <div className="col-span-6 lg:row-span-2"><HPTracker /></div>
-                <BentoStat hero className="col-span-3 lg:col-span-3" label="Classe Armatura" value={armorClass} sub={hasShield ? 'con scudo' : undefined} icon={ShieldIcon} />
-                <BentoStat className="col-span-3 lg:col-span-3" label="Iniziativa" value={formatModifier(getModifier(character.abilityScores.dexterity))} icon={BoltIcon} />
-                <BentoStat small className="col-span-2 lg:col-span-2" label="Velocità" value={character.speed} sub={`ft · ${speedMeters} m`} icon={ForwardIcon} />
+                <BentoStat hero className="col-span-3 lg:col-span-3" label="Classe Armatura" value={armorClass?.total ?? 10} sub={armorClassSub} icon={ShieldIcon} />
+                <BentoStat className="col-span-3 lg:col-span-3" label="Iniziativa" value={formatModifier(initiative.total)} sub={initiativeSub} icon={BoltIcon} />
+                <BentoStat small className="col-span-2 lg:col-span-2" label="Velocità" value={speed.total} sub={speedSub} icon={ForwardIcon} />
                 <BentoStat small className="col-span-2 lg:col-span-2" label="Competenza" value={formatModifier(character.proficiencyBonus)} icon={StarIcon} />
                 <BentoStat small className="col-span-2 lg:col-span-2" label="Perc. passiva" value={passivePerception} icon={SearchIcon} />
             </div>
@@ -206,7 +212,7 @@ const MainTabView = () => {
                     </PlaySection>
 
                     {/* Su desktop le lingue riempiono la colonna dei punti vita. */}
-                    <PlaySection title="Lingue" className="hidden lg:block">{languages}</PlaySection>
+                    <LanguagesPanel character={character} className="hidden lg:block" />
                 </div>
 
                 {/* Colonna destra: risorse di sopravvivenza. */}
@@ -214,24 +220,9 @@ const MainTabView = () => {
                     <DeathSavesTracker />
                     <HitDiceTracker />
 
-                    <PlaySection title="Difese" icon={<ShieldCheckIcon className="text-muted-foreground" />} className="sm:col-span-2">
-                        <dl className="grid gap-4 sm:grid-cols-2">
-                            <div>
-                                <dt className={playLabelClass}>Resistenze <span className="font-normal normal-case tracking-normal">· danni dimezzati</span></dt>
-                                <dd className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-                                    {character.defenses?.resistances || <span className="text-muted-foreground">Nessuna</span>}
-                                </dd>
-                            </div>
-                            <div>
-                                <dt className={playLabelClass}>Immunità <span className="font-normal normal-case tracking-normal">· nessun danno</span></dt>
-                                <dd className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-                                    {character.defenses?.immunities || <span className="text-muted-foreground">Nessuna</span>}
-                                </dd>
-                            </div>
-                        </dl>
-                    </PlaySection>
+                    <DefensesPanel character={character} className="sm:col-span-2" />
 
-                    <PlaySection title="Lingue" className="sm:col-span-2 lg:hidden">{languages}</PlaySection>
+                    <LanguagesPanel character={character} className="sm:col-span-2 lg:hidden" />
                 </div>
             </div>
         </div>
