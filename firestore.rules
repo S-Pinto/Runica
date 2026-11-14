@@ -185,7 +185,7 @@ service cloud.firestore {
         allow delete: if signedIn() && (request.auth.uid == memberUid || isCampaignOwner(campaignId));
       }
 
-      // Proiezione party. I campi numerici v1 sono ammessi solo finché la campagna non è narrativa.
+      // Proiezione party (schema v2): identità e stato narrativo, mai numeri (stanno in liveStats).
       match /sharedCharacters/{characterId} {
         allow read: if isCampaignMember(campaignId);
 
@@ -193,7 +193,7 @@ service cloud.firestore {
             && request.resource.data.ownerUid == request.auth.uid
             && (request.method == 'create' || resource.data.ownerUid == request.auth.uid)
             && isCampaignMember(campaignId)
-            && isValidSharedCharacter(request.resource.data, campaignId);
+            && isValidSharedCharacter(request.resource.data);
 
         // Lo ritira il proprietario del personaggio, oppure il DM.
         allow delete: if signedIn() && (resource.data.ownerUid == request.auth.uid || isCampaignOwner(campaignId));
@@ -268,12 +268,12 @@ service cloud.firestore {
       }
     }
 
-    function isValidSharedCharacter(data, campaignId) {
+    function isValidSharedCharacter(data) {
       return data.keys().hasOnly([
                'ownerUid', 'name', 'class', 'subclass', 'race', 'level',
                'vitals', 'conditions', 'heroicInspiration', 'schemaVersion',
-               'portraitUrl', 'portraitSource', 'lastUpdated',
-               'hpCurrent', 'hpMax', 'hpTemp', 'armorClass'])
+               'portraitUrl', 'portraitSource', 'lastUpdated'])
+          && data.schemaVersion == 2
           && isShortString(data.name, 200)
           && isOptionalShortString(data, 'class', 200)
           && isOptionalShortString(data, 'subclass', 200)
@@ -281,9 +281,7 @@ service cloud.firestore {
           && data.level is number
           && (!('vitals' in data) || data.vitals in ['healthy', 'wounded', 'critical', 'down'])
           && (!('conditions' in data) || (data.conditions is list && data.conditions.size() <= 30))
-          && (!('heroicInspiration' in data) || data.heroicInspiration is bool)
-          && (!data.keys().hasAny(['hpCurrent', 'hpMax', 'hpTemp', 'armorClass'])
-              || partyVitalsMode(campaignId) != 'narrative');
+          && (!('heroicInspiration' in data) || data.heroicInspiration is bool);
     }
 
     function isNumberMap(value, keys) {

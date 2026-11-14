@@ -1,6 +1,7 @@
 # Roadmap — Campagne al tavolo (DM Live Board e Party Hub)
 
-> Stato: **approvata** (incluse le 4 decisioni aperte del §6). **Step 1, 2 e 3 fatti** (branch `feature-campaigns`); Step 4 da fare.
+> Stato: **approvata** (incluse le 4 decisioni aperte del §6). **Step 1–4 fatti** (branch `feature-campaigns`): schema `sharedCharacters` solo v2, nessun codice di transizione
+> della Fase G. Le rifiniture non necessarie al rilascio sono nel §5 "Dopo lo Step 4".
 > Ambito analizzato: `firestore.rules`, `storage.rules`, `services/campaignService.ts`, `providers/CampaignProvider.tsx`,
 > `features/character/rules/campaign.ts`, `campaignSync.ts`, `CharacterProvider.tsx`, `hooks/usePlayViewAutosave.ts`,
 > `features/campaign/**`, `components/CampaignManagerModal.tsx` e `components/campaign/**`, `routes/index.tsx`,
@@ -138,18 +139,18 @@ interface ISharedCharacter {
   conditions: string[];                                   // chiavi inglesi, etichette da labels.ts
   heroicInspiration: boolean;
   lastUpdated: number;
-  schemaVersion: 2;
-  // Campi v1 (hpCurrent, hpMax, hpTemp, armorClass): non più scritti dai client v2.
+  schemaVersion: 2;                                       // obbligatorio: le regole rifiutano tutto il resto
 }
 ```
 
 `narrativeVitals(current, max)`: `down` a 0 PF, `critical` ≤ 25 %, `wounded` ≤ 50 % (= *Sanguinante* 2024), altrimenti
 `healthy`. Soglie in `rules/campaign.ts`, testate.
 
-Transizione: le regole accettano ancora i campi v1 **solo** se `settings.partyVitals != 'narrative'`
-(i PWA non aggiornati continuano a funzionare); quando il DM passa a *narrativo*, il suo client elimina i documenti
-`sharedCharacters` senza `schemaVersion == 2` (il DM può già cancellarli) e i proprietari li ripubblicano in v2 alla
-prossima apertura. I campi v1 si tolgono dalle regole nello Step 4.
+Transizione (Step 1–3, **chiusa nello Step 4**): le regole accettavano i campi v1 finché la campagna non era
+narrativa e il client del DM eliminava i riepiloghi v1 al passaggio a *narrativo*. Dallo Step 4 le regole accettano solo
+le chiavi v2 con `schemaVersion == 2`, in qualunque modalità. Un documento v1 rimasto nel database si rimpiazza da solo:
+la prima pubblicazione di ogni sessione (`publishCharacter`, anche dalla vista di gioco) riscrive il riepilogo **per
+intero** (`setDoc` senza merge, ritratto incluso), e un merge su un documento v1 verrebbe comunque rifiutato.
 
 ### 2.5 `liveStats/{characterId}` — proiezione *tavolo* (nuova)
 
@@ -404,20 +405,47 @@ Fatto: `PartyHub` (proprio eroe in cima con "Apri la tua scheda", compagni numer
 **Fatto quando**: un giocatore in modalità narrativa vede solo gli stati Sano/Ferito/Critico/A terra (verificato anche
 con una lettura diretta di `liveStats` negata dalle regole), scrive in bacheca, cambia PG e il DM vede il cambio.
 
-### Step 4 — Rifinitura e pulizia
+### Step 4 — Pulizia della transizione — fatto
 
-1. Rimuovere dalle regole i campi v1 di `sharedCharacters` e il codice di transizione; `ISharedCharacter` senza campi v1.
-2. Ritratti: decidere copia in campagna vs URL originale in base alla verifica dello Step 1; pulizia dei ritratti
+Fatto:
+- **Regole**: `isValidSharedCharacter` accetta solo le chiavi v2 e richiede `schemaVersion == 2`, in qualunque modalità
+  (non dipende più da `partyVitalsMode`). Test con l'emulatore aggiornati: campi v1 e versioni diverse rifiutati sempre;
+  un documento v1 rimasto si sostituisce con una scrittura completa, mentre un merge viene rifiutato (33 test).
+- **Tipi**: `ISharedCharacter` senza `hpCurrent`/`hpMax`/`hpTemp`/`armorClass`, `schemaVersion` obbligatorio.
+- **Codice di transizione rimosso**: `LEGACY_SHARED_KEYS` e `legacySharedIds` (`rules/campaign.ts`, con il test),
+  `legacyDeletes` e `deleteSharedCharacters` (`campaignService`), pulizia dei riepiloghi v1 al passaggio a narrativo
+  (`useCampaignAdmin`, che non riceve più `shared`).
+- **Scrittura del riepilogo** (`writeProjections`): con il ritratto noto `setDoc` completo, senza merge; dalla vista di
+  gioco `mergeFields` sui soli campi della proiezione (il ritratto resta). `publishLiveIfChanged` fa una pubblicazione
+  completa alla prima scrittura della sessione, così nessun campo fuori schema sopravvive.
+- **`PartyMemberTile`**: tutta la tessera apre il dettaglio (DM) o la scheda (il proprio eroe nel Party Hub, `openLabel`),
+  non solo nome e ritratto. Il clic si gestisce sul contenitore e si ignora solo se parte da un controllo interno
+  (ispirazione, link in fondo); `cursor-pointer` per iOS Safari, `touch-manipulation`; il pulsante sull'identità resta
+  per tastiera e lettori di schermo. Verificato a 375 px: ogni punto della tessera arriva al contenitore, nessun doppio
+  avvio dal pulsante del nome, ispirazione e "Apri la tua scheda" mantengono la propria azione.
+
+Da sapere:
+- I PWA rimasti alla Fase G (riepiloghi v1) non possono più scrivere `sharedCharacters` finché non si aggiornano
+  (`autoUpdate`); le regole vanno pubblicate insieme al client (`npm run deploy:rules` o job `deploy_rules` da `main`).
+- Un riepilogo v1 di un personaggio che il proprietario non riapre più resta leggibile ai membri con i vecchi numeri
+  finché non viene ripubblicato, ritirato o la campagna eliminata. Accettato: i numeri v1 erano già visibili al gruppo.
+- Restano volutamente i fallback che non sono transitori: `settings` assente → default (`getCampaignSettings`),
+  campagne locali per la modalità senza login, redirect `/campaign/:id` → `/campaigns/:id` per i link già condivisi.
+
+### Dopo lo Step 4 — rifiniture (non bloccanti)
+
+Fuori dall'ambito della pulizia, da pianificare quando servono:
+
+1. Ritratti: decidere copia in campagna vs URL originale in base alla verifica dello Step 1; pulizia dei ritratti
    orfani (giocatore rimosso: il suo client ritira il PG alla prossima apertura) o funzione v2 `onDocumentDeleted`.
-3. Scadenza degli inviti configurabile dal DM (nessuna / 7 giorni) e pulizia periodica delle `dmActions` scadute
+2. Scadenza degli inviti configurabile dal DM (nessuna / 7 giorni) e pulizia periodica delle `dmActions` scadute
    (lato client del DM all'apertura, oppure TTL policy di Firestore su `expiresAt`).
-4. Accessibilità e resa: `aria-live="polite"` sui cambi di PF della board, `prefers-reduced-motion` per le barre,
-   contrasto degli stati narrativi in tutti e 6 i temi, test a 375 px e su tablet orizzontale.
-5. Prestazioni: verificare il numero di letture per sessione (abbonamenti chiusi all'uscita, niente listener
+3. Accessibilità e resa: `aria-live="polite"` sui cambi di PF della board, `prefers-reduced-motion` per le barre,
+   contrasto degli stati narrativi in tutti e 6 i temi, prova su tablet orizzontale.
+4. Prestazioni: verificare il numero di letture per sessione (abbonamenti chiusi all'uscita, niente listener
    duplicati tra `CampaignProvider` e `useCampaignLive`).
-6. Aggiornare `DESIGN.md` (Live Board, Party Hub, `PartyMemberTile`, stati narrativi) e `CLAUDE.md`.
-
-**Fatto quando**: nessun campo v1 residuo, nessun listener orfano, regole e documentazione allineate.
+5. `DESIGN.md`: Live Board, Party Hub, `PartyMemberTile` (tessera interamente tappabile), stati narrativi.
+6. Flusso completo con due account reali (DM e giocatore) su staging.
 
 ---
 
