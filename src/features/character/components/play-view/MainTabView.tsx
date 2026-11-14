@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useCharacter } from '../../CharacterProvider';
-import { getModifier, formatModifier } from '../../utils/characterUtils';
+import { formatModifier } from '../../utils/characterUtils';
 import { DefensesPanel, LanguagesPanel } from './DefensesPanel';
 import * as combat from '../../rules/combat';
 import { HPTracker } from './HPTracker';
@@ -40,17 +40,7 @@ const MainTabView = () => {
     const [isEditingConditions, setIsEditingConditions] = useState(false);
     const [expandedCondition, setExpandedCondition] = useState<string | null>(null);
 
-    const passivePerception = useMemo(() => {
-        if (!character) return 10;
-        const wisdomMod = getModifier(character.abilityScores.wisdom);
-        const perceptionSkill = character.skills.find(s => s.name === 'Perception');
-        let bonus = 0;
-        if (perceptionSkill) {
-            if (perceptionSkill.expertise) bonus = character.proficiencyBonus * 2;
-            else if (perceptionSkill.proficient) bonus = character.proficiencyBonus;
-        }
-        return 10 + wisdomMod + bonus;
-    }, [character]);
+    const passivePerception = useMemo(() => (character ? combat.getPassiveScore(character, 'Perception') : 10), [character]);
 
     const armorClass = useMemo(() => (character ? combat.getArmorClassBreakdown(character) : null), [character]);
 

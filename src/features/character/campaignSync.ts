@@ -1,9 +1,13 @@
-// Aggiorna il riepilogo condiviso dei personaggi nelle campagne dopo un salvataggio.
+// Aggiorna le proiezioni dei personaggi nelle campagne (party in `sharedCharacters`, numeri in `liveStats`).
 // Best effort: un errore qui non deve mai far fallire il salvataggio della scheda.
 import type { ICharacter } from './characterTypes';
 import * as campaignService from '../../services/campaignService';
-import { planCampaignSync } from './rules/campaign';
+import { buildLiveStats, buildSharedCharacter, planCampaignSync, projectionFingerprint } from './rules/campaign';
 
+const fingerprintOf = (character: ICharacter, uid: string) =>
+    projectionFingerprint(buildSharedCharacter(character, uid), buildLiveStats(character, uid));
+
+/** Dopo un salvataggio dall'editor: ritira dalla campagna precedente e pubblica tutto (ritratto incluso). */
 export const syncCharacterWithCampaigns = async (
     uid: string,
     previousCampaignId: string | undefined,
@@ -16,10 +20,34 @@ export const syncCharacterWithCampaigns = async (
             await campaignService.unpublishCharacter(plan.unpublishFrom, character.id, uid);
         }
         if (plan.publishTo) {
+            campaignService.rememberPublished(plan.publishTo, character.id, fingerprintOf(character, uid));
             await campaignService.publishCharacter(plan.publishTo, character, uid);
         }
     } catch (error) {
+        if (plan.publishTo) campaignService.forgetPublished(plan.publishTo, character.id);
         console.warn('Sincronizzazione con la campagna non riuscita', error);
+    }
+};
+
+/**
+ * Dopo un salvataggio automatico della vista di gioco: aggiorna PF, condizioni, slot e il resto
+ * solo se le proiezioni sono cambiate dall'ultima pubblicazione (niente scritture inutili).
+ */
+export const publishLiveIfChanged = async (
+    uid: string,
+    character: ICharacter,
+    cloudCampaignIds: ReadonlySet<string>,
+): Promise<void> => {
+    const campaignId = character.campaignId;
+    if (!campaignId || !cloudCampaignIds.has(campaignId)) return;
+    const fingerprint = fingerprintOf(character, uid);
+    if (campaignService.getPublishedFingerprint(campaignId, character.id) === fingerprint) return;
+    campaignService.rememberPublished(campaignId, character.id, fingerprint);
+    try {
+        await campaignService.publishLiveProjection(campaignId, character, uid);
+    } catch (error) {
+        campaignService.forgetPublished(campaignId, character.id);
+        console.warn('Aggiornamento dal vivo della campagna non riuscito', error);
     }
 };
 

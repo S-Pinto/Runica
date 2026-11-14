@@ -1,19 +1,34 @@
-import { createBrowserRouter, Outlet } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet, useParams } from 'react-router-dom';
 
 import App from '../App'; // Il nostro layout principale
 
 // Importa le tue pagine dalla cartella 'features'
 import { CharacterProvider } from '../features/character/CharacterProvider';
+import { useCampaignActions } from '../features/character/hooks/useCampaignActions';
 import { CharacterList } from '../features/character/CharacterList';
 import { CharacterSheet } from '../features/character/CharacterSheet';
 import { PlayView } from '../features/character/PlayView';
 import { LoginPage } from '../features/auth/LoginPage';
 import { AccountPage } from '../features/auth/AccountPage';
 import { CampaignPage } from '../features/campaign/CampaignPage';
+import { JoinCampaignPage } from '../features/campaign/JoinCampaignPage';
 import { ErrorBoundary, NotFound } from '../components/ErrorBoundary'; // Importa i tuoi componenti
+
+/** Vecchio percorso `/campaign/:id` (Fase G): rimanda a `/campaigns/:id`. */
+const LegacyCampaignRedirect = () => {
+  const { campaignId } = useParams<{ campaignId: string }>();
+  return <Navigate to={`/campaigns/${campaignId ?? ''}`} replace />;
+};
+
+/** Azioni del DM (ispirazione, riposi) ricevute in qualunque rotta personaggio. */
+const CampaignActionsListener = () => {
+  useCampaignActions();
+  return null;
+};
 
 const CharacterLayout = () => (
   <CharacterProvider>
+    <CampaignActionsListener />
     <Outlet />
   </CharacterProvider>
 );
@@ -49,11 +64,20 @@ export const router = createBrowserRouter([
             path: 'character/:characterId',
             element: <PlayView />,
           },
+          // Campagne dentro CharacterLayout: la scelta del personaggio dopo l'unione usa useCharacter().
+          {
+            path: 'campaigns/join',
+            element: <JoinCampaignPage />,
+          },
+          {
+            path: 'campaigns/:campaignId',
+            element: <CampaignPage />,
+          },
         ],
       },
       {
         path: 'campaign/:campaignId',
-        element: <CampaignPage />,
+        element: <LegacyCampaignRedirect />,
       },
       {
         path: 'login',

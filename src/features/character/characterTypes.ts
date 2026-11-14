@@ -344,9 +344,22 @@ export interface ICampaign {
   ownerUid: string;
   /** Tutti i membri, DM incluso: serve a query e regole di sicurezza. */
   memberUids: string[];
+  /** Codice nudo (6 caratteri, id di `campaignInvites`); si mostra come `RUN-XXXXXX`. */
   inviteCode: string;
   createdAt: number;
   updatedAt: number;
+  /** Assente nelle campagne create prima della v2: valgono i default di `getCampaignSettings`. */
+  settings?: ICampaignSettings;
+  schemaVersion?: number;
+}
+
+/** Cosa vedono i giocatori dei compagni: numeri (`liveStats`) o solo lo stato narrativo. */
+export type PartyVitalsMode = 'numeric' | 'narrative';
+
+export interface ICampaignSettings {
+  partyVitals: PartyVitalsMode;
+  /** I giocatori possono scrivere in bacheca. */
+  playerPosts: boolean;
 }
 
 export type CampaignRole = 'dm' | 'player';
@@ -360,9 +373,29 @@ export interface ICampaignMember {
   joinedAt: number;
   /** Codice usato per entrare: le regole lo verificano contro `campaignInvites`. */
   joinCode?: string;
+  /** Il personaggio con cui il membro siede al tavolo. */
+  activeCharacterId?: string;
 }
 
-/** `campaigns/{id}/sharedCharacters/{characterId}`: riepilogo visibile ai membri. */
+/** `campaignInvites/{code}`: risolve un codice nella campagna, con un'anteprima per chi entra. */
+export interface ICampaignInvite {
+  code: string;
+  campaignId: string;
+  ownerUid: string;
+  createdAt: number;
+  campaignName?: string;
+  dmName?: string;
+  /** Millisecondi; assente = non scade. */
+  expiresAt?: number;
+}
+
+/** Stato di salute mostrato al gruppo in modalità narrativa. */
+export type NarrativeVitals = 'healthy' | 'wounded' | 'critical' | 'down';
+
+/**
+ * `campaigns/{id}/sharedCharacters/{characterId}`: proiezione *party*, leggibile da tutti i membri.
+ * Dalla v2 non contiene numeri (stanno in `liveStats`); i campi v1 restano opzionali per i documenti vecchi.
+ */
 export interface ISharedCharacter {
   id: string;
   ownerUid: string;
@@ -371,15 +404,75 @@ export interface ISharedCharacter {
   subclass: string;
   race: string;
   level: number;
-  hpCurrent: number;
-  hpMax: number;
-  hpTemp: number;
-  armorClass: number;
+  vitals?: NarrativeVitals;
+  conditions?: string[];
+  heroicInspiration?: boolean;
   /** Copia del ritratto nello Storage della campagna. */
   portraitUrl?: string;
   /** URL del ritratto originale da cui è stata fatta la copia. */
   portraitSource?: string;
   lastUpdated: number;
+  schemaVersion?: number;
+  /** Campi v1, non più scritti. */
+  hpCurrent?: number;
+  hpMax?: number;
+  hpTemp?: number;
+  armorClass?: number;
+}
+
+/**
+ * `campaigns/{id}/liveStats/{characterId}`: proiezione *tavolo* con i numeri.
+ * La leggono il DM, il proprietario e, in modalità numerica, il gruppo.
+ */
+export interface ILiveStats {
+  id: string;
+  ownerUid: string;
+  hp: { current: number; max: number; temp: number };
+  armorClass: number;
+  /** Piedi, come `character.speed`. */
+  speed: number;
+  passives: { perception: number; insight: number; investigation: number };
+  /** null se il personaggio non ha una caratteristica da incantatore. */
+  spellSaveDC: number | null;
+  heroicInspiration: boolean;
+  /** Solo i livelli con almeno uno slot. */
+  spellSlots: Record<string, { max: number; used: number }>;
+  conditions: string[];
+  deathSaves: { successes: number; failures: number };
+  hitDice: { total: string; used: number };
+  /** Ultime azioni del DM già applicate (o rifiutate), per lo stato "in attesa". */
+  appliedActionIds: string[];
+  lastUpdated: number;
+}
+
+export type DmActionType = 'grantInspiration' | 'revokeInspiration' | 'shortRest' | 'longRest';
+
+/** `campaigns/{id}/dmActions/{actionId}`: azione del DM che il client del giocatore applica. */
+export interface IDmAction {
+  id: string;
+  type: DmActionType;
+  /** Id dei personaggi destinatari. */
+  targets: string[];
+  createdBy: string;
+  createdAt: number;
+  expiresAt: number;
+}
+
+/** `campaigns/{id}/board/{postId}` */
+export interface IBoardPost {
+  id: string;
+  authorUid: string;
+  authorName: string;
+  text: string;
+  pinned: boolean;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/** `campaigns/{id}/dmPrivate/notes`: solo il DM. */
+export interface IDmNotes {
+  text: string;
+  updatedAt: number;
 }
 
 /** Campagna salvata solo nel browser (prima della Fase G). Si può condividere con un tap. */

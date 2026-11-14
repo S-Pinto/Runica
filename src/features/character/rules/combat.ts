@@ -105,6 +105,25 @@ export const calculateSpellSaveDC = (character: ICharacter): number =>
 export const calculateSpellAttackBonus = (character: ICharacter): number =>
     getProficiencyBonus(character) + (character ? spellAbilityMod(character) : 0);
 
+// ---------- Punteggi passivi ----------
+
+export type PassiveSkill = 'Perception' | 'Insight' | 'Investigation';
+
+/** Punteggio passivo di un'abilità: 10 + caratteristica + competenza (doppia con la maestria). */
+export const getPassiveScore = (c: ICharacter, skillName: PassiveSkill): number => {
+    const skill = c?.skills?.find((s) => s.name === skillName);
+    const ability = skill?.ability ?? (skillName === 'Investigation' ? 'intelligence' : 'wisdom');
+    const prof = getProficiencyBonus(c);
+    const bonus = skill?.expertise ? prof * 2 : skill?.proficient ? prof : 0;
+    return 10 + getModifier(c?.abilityScores?.[ability] ?? 10) + bonus;
+};
+
+export const getPassiveScores = (c: ICharacter) => ({
+    perception: getPassiveScore(c, 'Perception'),
+    insight: getPassiveScore(c, 'Insight'),
+    investigation: getPassiveScore(c, 'Investigation'),
+});
+
 // ---------- Velocità, iniziativa e tiri salvezza con i bonus degli oggetti ----------
 
 export interface ValueBreakdown {

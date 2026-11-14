@@ -1,23 +1,27 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../providers/AuthProvider';
 import { GoogleIcon } from '../../components/ui/icons';
+import { sanitizeNextPath } from '../character/rules/campaign';
 
 export const LoginPage: React.FC = () => {
   const { currentUser, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // `?next=/campaigns/join?code=…`: dopo l'accesso si torna dove si era (solo percorsi interni).
+  const next = sanitizeNextPath(searchParams.get('next')) ?? '/';
 
   useEffect(() => {
-    // If user is already logged in, redirect to home
+    // Già loggato: vai alla destinazione.
     if (currentUser) {
-      navigate('/');
+      navigate(next, { replace: true });
     }
-  }, [currentUser, navigate]);
+  }, [currentUser, navigate, next]);
 
   const handleSignIn = async () => {
     try {
       await signInWithGoogle();
-      navigate('/'); // Redirect to character list after sign-in
+      navigate(next, { replace: true });
     } catch (error) {
       console.error("Error during sign-in:", error);
     }

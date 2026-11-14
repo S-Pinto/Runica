@@ -5,7 +5,7 @@ import * as characterRepository from './characterRepository';
 import { promptAndMigrateLocalCharacters } from './migrationActions';
 import { useAuth } from '../../providers/AuthProvider';
 import { useCampaigns } from '../../providers/CampaignProvider';
-import { syncCharacterWithCampaigns, unpublishDeletedCharacter } from './campaignSync';
+import { publishLiveIfChanged, syncCharacterWithCampaigns, unpublishDeletedCharacter } from './campaignSync';
 import { describeDataError } from '../../lib/errors';
 import { createUserChangeDetector } from './editorSession';
 
@@ -21,6 +21,8 @@ interface ICharacterContext {
   saveCharacter: (character: ICharacter) => Promise<ICharacter>;
   saveCharacterOrder: (characters: ICharacter[]) => Promise<void>;
   duplicateCharacter: (character: ICharacter) => Promise<ICharacter>;
+  /** Aggiorna le proiezioni della campagna dopo un salvataggio fatto fuori da `saveCharacter` (vista di gioco). */
+  publishLive: (character: ICharacter) => void;
 }
 
 const CharacterContext = createContext<ICharacterContext | undefined>(undefined);
@@ -165,6 +167,12 @@ export const CharacterProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  const publishLive = useCallback((saved: ICharacter) => {
+    if (uidRef.current) {
+      void publishLiveIfChanged(uidRef.current, saved, cloudCampaignIdsRef.current);
+    }
+  }, []);
+
   const duplicateCharacter = useCallback(async (char: ICharacter): Promise<ICharacter> => {
     const cloned = await characterRepository.duplicateCharacter(char);
     setCharacters(prev => sortCharacters([...prev, cloned]));
@@ -173,7 +181,7 @@ export const CharacterProvider = ({ children }: { children: ReactNode }) => {
 
   const value = {
     character, setCharacter, updateCharacter,
-    characters, loading, loadError, deleteCharacter, saveCharacter, saveCharacterOrder, duplicateCharacter
+    characters, loading, loadError, deleteCharacter, saveCharacter, saveCharacterOrder, duplicateCharacter, publishLive
   };
 
   return (

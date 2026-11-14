@@ -6,3 +6,6 @@ node_modules
 .env.staging
 # Build output
 dist
+
+# Log degli emulatori Firebase
+*-debug.log

@@ -10,6 +10,7 @@ import { CampaignManagerModal } from './components/CampaignManagerModal';
 import { CharacterListSkeleton } from './components/character-list/CharacterListSkeleton';
 import { CharacterListToolbar } from './components/character-list/CharacterListToolbar';
 import { CharacterGrid } from './components/character-list/CharacterGrid';
+import { CampaignChips } from './components/character-list/CampaignChips';
 import { NoFilterResults, FirstHeroPrompt } from './components/character-list/CharacterListEmptyStates';
 import { useCharacterOrdering } from './hooks/useCharacterOrdering';
 import { useCharacterActions } from './hooks/useCharacterActions';
@@ -98,6 +99,8 @@ export const CharacterList: React.FC = () => {
           )}
         </div>
       </header>
+
+      <CampaignChips />
 
       <RuneDivider glyph="notch" />
 

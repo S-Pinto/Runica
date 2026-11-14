@@ -3,7 +3,8 @@
  * Stored data keeps the English keys (e.g. skill.name === 'Perception');
  * use these maps only when rendering.
  */
-import type { AbilityScores } from '../features/character/characterTypes';
+import type { AbilityScores, DmActionType } from '../features/character/characterTypes';
+import { CONDITIONS } from '../data/conditions';
 
 export const ABILITY_LABELS: Record<keyof AbilityScores, string> = {
   strength: 'Forza',
@@ -78,3 +79,14 @@ export const damageTypeLabel = (key: string | undefined) => (key ? DAMAGE_TYPE_L
 export const abilityLabel =(key: string) => ABILITY_LABELS[key as keyof AbilityScores] ?? key;
 export const skillLabel = (name: string) => SKILL_LABELS[name] ?? name;
 export const schoolLabel = (name: string) => SPELL_SCHOOL_LABELS[name] ?? name;
+
+/** Azioni rapide del DM (`dmActions.type`). */
+export const DM_ACTION_LABELS: Record<DmActionType, string> = {
+  grantInspiration: 'Ispirazione Eroica',
+  revokeInspiration: 'Ispirazione revocata',
+  shortRest: 'Riposo breve',
+  longRest: 'Riposo lungo',
+};
+
+/** Nome italiano di una condizione (le chiavi salvate restano in inglese). */
+export const conditionLabel = (key: string) => CONDITIONS[key]?.name ?? key;

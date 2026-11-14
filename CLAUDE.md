@@ -12,9 +12,13 @@ npm run build:staging    # build con .env.staging
 npm run build:live       # build con .env.production
 npm run typecheck        # type-check di frontend e functions/
 npm test                 # Vitest (una esecuzione); npm run test:watch per il watch
+npm run test:rules       # regole Firestore con l'emulatore (Java + firebase CLI)
+npm run deploy:rules     # pubblica firestore.rules (database runica-db) e storage.rules
 ```
 
-CI: `.github/workflows/ci.yml` (su PR e push su `main`) esegue type-check frontend + `functions/`, test Vitest e build. I workflow `firebase-hosting-*` si occupano solo di build e deploy.
+CI: `.github/workflows/ci.yml` (su PR e push su `main`) esegue type-check frontend + `functions/`, test Vitest e build, più il job `firestore-rules` (emulatore, `tests/rules/`). I workflow `firebase-hosting-*` si occupano di build e deploy; da `main` pubblicano anche le regole se la variabile di repository `DEPLOY_FIREBASE_RULES` è `true`. Staging e produzione condividono progetto e database: le regole si pubblicano solo da `main` (o a mano).
+
+Test delle regole in locale su Windows: se l'emulatore esce con "Unable to establish loopback connection", impostare `JAVA_TOOL_OPTIONS=-Djdk.net.unixdomain.tmpdir=C:/tmp/jdk-uds` (cartella esistente, percorso corto).
 
 Deploy: GitHub Actions su merge (`.github/workflows/`), oppure `npm run deploy:live` / `deploy:staging`. Dettagli in `DEPLOYMENT_GUIDE.md`. I test (Vitest, ambiente `node`, file `*.test.ts` accanto al codice) coprono `rules/` (progression, rest, combat, attacks, equipment, encumbrance, characterData, più `equipmentFlow.test.ts` di integrazione).
 
@@ -53,7 +57,9 @@ ThemeProvider            tema salvato nel browser ('app-theme')
 | `/character/new` | `CharacterSheet` | `App` → `CharacterLayout` |
 | `/character/:characterId/edit` | `CharacterSheet` | `App` → `CharacterLayout` |
 | `/character/:characterId` | `PlayView` | `App` → `CharacterLayout` |
-| `/login`, `/account` | `LoginPage`, `AccountPage` | `App` |
+| `/campaigns/join?code=RUN-XXXXXX` | `JoinCampaignPage` | `App` → `CharacterLayout` |
+| `/campaigns/:campaignId` | `CampaignPage` (`/campaign/:id` rimanda qui) | `App` → `CharacterLayout` |
+| `/login?next=…`, `/account` | `LoginPage`, `AccountPage` | `App` |
 | `*` | `NotFound` | `App` (`errorElement`: `ErrorBoundary`) |
 
 `App.tsx` è il layout: `AppHeader` + `<Outlet/>` + `SettingsModal`. Non esiste una protezione centrale delle rotte: senza login l'app lavora in modalità locale.
@@ -99,7 +105,7 @@ functions/src/
 
 - **Firestore**: `users/{uid}/characters/{characterId}`; le regole permettono accesso solo al proprietario.
 - **Storage**: `users/{uid}/profile.jpg`, `users/{uid}/character-portraits/{id}`, `users/{uid}/characters/{id}/companions/{cid}/portrait.jpg`, `.../items/{itemId}/image.jpg`: lettura e scrittura solo del proprietario, con limiti di dimensione. Eccezione: `campaigns/{cid}/portraits/{uid}/{characterId}`, copia del ritratto per i membri della campagna (scrive il proprietario, leggono i membri via `firestore.exists` su `members/{uid}`).
-- **Firestore, campagne** (Fase G): `campaigns/{id}` (DM = `ownerUid`, `memberUids`, `inviteCode`), `campaigns/{id}/members/{uid}` (ruolo `dm`/`player`), `campaigns/{id}/sharedCharacters/{characterId}` (riepilogo pubblicato dal proprietario, mai la scheda intera), `campaignInvites/{codice}` (codice → campagna, leggibile con `get`, mai `list`). L'unione richiede un `members/{uid}` con `joinCode` valido nello stesso batch dell'aggiornamento di `memberUids`.
+- **Firestore, campagne** (Fase G + `ROADMAP_CAMPAIGNS.md`): `campaigns/{id}` (DM = `ownerUid`, `memberUids`, `inviteCode`, `settings` con `partyVitals` numerico/narrativo e `playerPosts`), `members/{uid}` (ruolo, `activeCharacterId`; il proprio documento si legge anche da non membri), `sharedCharacters/{characterId}` (proiezione *party*: identità, stato narrativo, condizioni, ispirazione; i campi numerici v1 sono ammessi solo in modalità numerica), `liveStats/{characterId}` (proiezione *tavolo* con i numeri: DM e proprietario, il gruppo solo in modalità numerica), `dmActions`, `board`, `dmPrivate` (regole pronte, UI negli step 2–3), `campaignInvites/{codice}` (codice nudo di 6 caratteri, mostrato come `RUN-XXXXXX`; `get` sì, `list` mai; anteprima `campaignName`/`dmName`, `expiresAt` opzionale). L'unione richiede un `members/{uid}` con `joinCode` valido e non scaduto nello stesso batch dell'aggiornamento di `memberUids`. Le proiezioni si calcolano in `rules/campaign.ts` e si scrivono da `campaignSync.ts`: dall'editor (`saveCharacter`) e dalla vista di gioco (`usePlayViewAutosave` → `publishLive`, solo se l'impronta cambia).
 - **Browser (localStorage)**: personaggi in modalità offline/senza login, campagne locali storiche e quelle create senza login (`campaignService`, `ILocalCampaign`, condivisibili dopo il login), tema.
 - Quando si legge un documento si fa merge con `createNewCharacter()` per riempire i campi mancanti: aggiungere un campo a `ICharacter` richiede un default lì.
 
@@ -147,7 +153,7 @@ functions/src/
 6. ~~`characterService` mescolava I/O, regole e UI~~ — risolto nella Fase D.
 7. ~~File molto grandi~~ — risolto nella Fase F (nessun componente sopra ~300 righe; restano `icons.tsx`, un elenco di icone, e `characterTypes.ts`, solo tipi).
 8. ~~Residui~~ — risolti nella Fase C (file inutilizzati rimossi, `firebaseConfig` unito in `getFirebase`, refuso e classe mancante corretti, README riscritto).
-9. Copertura test limitata a `rules/` (il repository Firebase non è testato). Nessun ESLint.
+9. Copertura test limitata a `rules/` e alle regole Firestore (`tests/rules/`, emulatore); repository e service Firebase non sono testati. Nessun ESLint.
 
 ## Roadmap del refactor
 
@@ -200,5 +206,8 @@ Ogni fase è indipendente: si può fare in qualsiasi ordine, con un branch e una
 - UI: `CampaignManagerModal` (le mie / nuova / unisciti, con "Condividi" per le campagne locali), nuova rotta `/campaign/:campaignId` (`features/campaign/`: gruppo, membri, codice, modifica/elimina per il DM, abbandona per il giocatore), `CampaignSelect` e filtro della lista per id.
 - Non fatto / da sapere: nessun test delle regole con l'emulatore Firestore (il progetto non ne ha uno) e nessun test del servizio; le regole vanno distribuite (`firebase deploy --only firestore:rules,storage`); la copia del ritratto richiede che il bucket permetta la lettura via SDK (CORS), altrimenti il riepilogo si pubblica senza ritratto; `firestore.exists` in `storage.rules` punta al database `runica-db`; il DM non si trasferisce; la scheda completa dei giocatori non è visibile al DM (solo il riepilogo).
 - **Fatto quando**: due utenti diversi vedono la stessa campagna.
+
+### Campagne al tavolo — in corso
+Piano completo e stato degli step in `ROADMAP_CAMPAIGNS.md` (Step 1 fatto: schema, regole con test, inviti `RUN-XXXXXX` e link, join con scelta del personaggio, sincronizzazione dal vivo; Step 2–3 fatti: `/campaigns/:id` smista fra `DmLiveBoard` e `PartyHub`, azioni del DM applicate da `useCampaignActions` in `CharacterLayout`, bacheca e note segrete; resta lo Step 4).
 
 Dipendenze consigliate, non obbligatorie: B prima di D/F rende il refactor più sicuro; D semplifica E.

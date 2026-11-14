@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UserGroupIcon } from '../../../components/ui/icons';
 import { confirmDialog, toast } from '../../../components/ui/Dialogs';
 import { Modal } from '../../../components/ui/Modal';
@@ -9,6 +10,7 @@ import * as campaignService from '../../../services/campaignService';
 import { describeDataError } from '../../../lib/errors';
 import { useCharacter } from '../CharacterProvider';
 import type { ILocalCampaign } from '../characterTypes';
+import { formatInviteCode } from '../rules/campaign';
 import { CampaignListTab, type CampaignChoice } from './campaign/CampaignListTab';
 import { CampaignCreateForm } from './campaign/CampaignCreateForm';
 import { CampaignJoinForm } from './campaign/CampaignJoinForm';
@@ -27,6 +29,7 @@ export const CampaignManagerModal = ({ isOpen, onClose, onSelectCampaign, select
   const { campaigns, localCampaigns, loading, loadError, refreshLocalCampaigns } = useCampaigns();
   const { characters, saveCharacter } = useCharacter();
   const [activeTab, setActiveTab] = useState<Tab>('list');
+  const navigate = useNavigate();
 
   if (!isOpen) return null;
 
@@ -55,6 +58,9 @@ export const CampaignManagerModal = ({ isOpen, onClose, onSelectCampaign, select
       const joined = await campaignService.joinCampaignByCode(user, code);
       setActiveTab('list');
       toast.success(`Ti sei unito alla campagna "${joined.name}".`);
+      onClose();
+      // Subito la scelta del personaggio con cui sedersi al tavolo.
+      navigate(`/campaigns/${joined.id}`, { state: { pickCharacter: true } });
     } catch (error) {
       toast.error(error instanceof campaignService.CampaignError
         ? error.message
@@ -75,7 +81,7 @@ export const CampaignManagerModal = ({ isOpen, onClose, onSelectCampaign, select
         await campaignService.publishCharacter(created.id, updated, user.uid).catch(() => undefined);
       }
       if (selectedCampaignId === local.id) onSelectCampaign?.({ id: created.id, name: created.name });
-      toast.success(`"${created.name}" è ora condivisa. Codice d'invito: ${created.inviteCode}`);
+      toast.success(`"${created.name}" è ora condivisa. Codice d'invito: ${formatInviteCode(created.inviteCode)}`);
     } catch (error) {
       toast.error(describeDataError(error, 'Impossibile condividere la campagna.'));
     }

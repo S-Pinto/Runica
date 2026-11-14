@@ -318,7 +318,7 @@ Un'unica fonte: `components/ui/field.ts`.
 - **Visore immagini** (`ImageModal`): fondo nero in ogni tema (eccezione alla Token-Only Rule: un'immagine si guarda sul nero).
 
 ### Schede personaggio (lista e gruppo)
-`CharacterCard` e `SharedCharacterCard` hanno la stessa forma. Su telefono sono righe compatte (miniatura da 88px a sinistra, nome, punti vita, classe armatura) per vedere più eroi senza scorrere; da `sm` diventano card con il ritratto 16:10 in alto. Il nome sta sotto il ritratto, mai sovrapposto all'immagine.
+`CharacterCard` (lista degli eroi). Su telefono sono righe compatte (miniatura da 88px a sinistra, nome, punti vita, classe armatura) per vedere più eroi senza scorrere; da `sm` diventano card con il ritratto 16:10 in alto. Il nome sta sotto il ritratto, mai sovrapposto all'immagine.
 - Tutta la scheda apre il personaggio. Su telefono resta visibile solo il menu; da `sm` c'è anche "Gioca", secondario a riposo, che prende l'accento quando si punta la card.
 - Hover (solo con puntatore): la card sale di 2px, bordo in accento, `shadow-raised`; il ritratto scala a 1.03. Nessuna inclinazione, nemmeno durante il trascinamento.
 - Segnaposto del ritratto (`.portrait-rune` + `.monogram`): reticolo a rombi sottilissimo, luce calda d'accento in alto a sinistra e monogramma Cinzel inciso (ombra chiara sotto, scura sopra). Stesso segnaposto nell'header della vista di gioco.
@@ -340,6 +340,15 @@ Un'unica fonte: `components/ui/field.ts`.
 - **Stati di gioco**: verde per successi e colpo critico, rosso per fallimenti, 1 naturale e condizioni attive. Nessun bagliore: basta il fondo pieno o tenue del colore di stato.
 - **Dadiera**: finestra `Modal` oppure pillola flottante in vetro (`.glass-pill`, 56px) in basso a destra con il d20 su un disco accento (su telefono solo il disco); aperta, il pannello si apre sopra la pillola (a tutta larghezza su telefono, 320px da `sm`). Il risultato sta in alto, il pulsante "Lancia" in basso, vicino al pollice.
 - **Icone**: niente emoji; `SwordIcon` è disegnata come due spade incrociate; il tipo di oggetto usa `SwordIcon`, `ShieldIcon`, `SparklesIcon`, `BackpackIcon`.
+
+### Campagne al tavolo (`/campaigns/:id`)
+Stessi pezzi della vista di gioco, niente `.surface`: `HeroHeader` (nome della campagna, ruolo, dettaglio e pillola **Dal vivo** `success` / **Offline** `warning`, calma, senza pulsazione), `PillTabBar`, `PlaySection`.
+- **Live Board del DM** (`DmLiveBoard`): tab Tavolo · Bacheca · Note segrete · Gruppo. Sul Tavolo una barra d'azioni in vetro (`.glass-pill`, sticky sotto i tab: unico controllo che galleggia) con Ispirazione ▾, Riposo breve, Riposo lungo; ordinamento per nome o PF più bassi (`SegmentedControl`); griglia di tessere a 1 colonna su telefono, 2 da `md`, 3 da `xl`.
+- **`PartyMemberTile`**: una `PlaySection` per eroe. Riga identità (ritratto 48px o segnaposto inciso, nome Cinzel, classe · razza, giocatore) che apre il dettaglio (`Modal`), interruttore dell'ispirazione da 44px (accento al 20% con anello quando attiva); PF in monospace con `HpBar` (`md`, condivisa con `HPTracker`); `BentoStat inset small` per CA, Velocità e CD; passive in una riga `playInsetClass`; slot come sigilli; condizioni come chip `destructive`; tiri contro la morte solo a 0 PF; "aggiornato … fa" (in `warning` oltre 10 minuti) e chip "… in attesa" per le azioni non ancora applicate. A 0 PF anello `destructive`.
+- **Stati narrativi** (`VitalsBadge`, `VitalsBar`): chip Sano `success`, Ferito `warning`, Critico e A terra `destructive`, più una barra a quattro gradini senza numeri; il colore non è mai l'unica informazione.
+- **Party Hub del giocatore** (`PartyHub`): tab Gruppo · Bacheca; il proprio eroe in cima (con "Apri la tua scheda"), poi "I compagni" con `RuneDivider glyph="notch"`. Nel sottotitolo "siedi come …" ▾ apre il cambio di personaggio.
+- **Bacheca** (`CampaignBoard`): composizione in un pannello, messaggi in righe `playInsetClass` (i fissati con anello d'accento e puntina), azioni nel menu "⋯".
+- **Toast con azione** (`toast.action`): pulsante testuale in accento a destra ("Annulla", "Riposa"), dura 10 s.
 
 ### Stampa (`/character/:id/print`)
 - Attorno al foglio vale lo stile dell'app: barra sticky in vetro (`PrintToolbar`, come l'header) con indietro, titolo Cinzel, conteggio pagine e "Stampa / PDF" primario; i fogli stanno sul fondo del tema con la luce ambientale ed etichetta di pagina sopra ciascuno. Niente di tutto questo esce in stampa (`print:hidden`, `display: contents`).

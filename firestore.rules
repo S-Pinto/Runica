@@ -29,14 +29,18 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------------
-    // Campagne condivise (Fase G)
+    // Campagne condivise (Fase G + ROADMAP_CAMPAIGNS Step 1)
     //
-    //   campaigns/{id}                      DM = ownerUid, elenco membri in memberUids
-    //   campaigns/{id}/members/{uid}        ruolo e nome visibile di ogni membro
-    //   campaigns/{id}/sharedCharacters/{c} riepilogo del personaggio (mai la scheda intera)
+    //   campaigns/{id}                      DM = ownerUid, elenco membri in memberUids, settings
+    //   campaigns/{id}/members/{uid}        ruolo, nome visibile, personaggio attivo
+    //   campaigns/{id}/sharedCharacters/{c} proiezione party: identità e stato narrativo (tutti i membri)
+    //   campaigns/{id}/liveStats/{c}        proiezione tavolo: numeri (DM, proprietario; gruppo se "numeric")
+    //   campaigns/{id}/dmActions/{a}        azioni del DM che i client dei giocatori applicano
+    //   campaigns/{id}/board/{p}            bacheca condivisa
+    //   campaigns/{id}/dmPrivate/{doc}      note segrete del DM
     //   campaignInvites/{codice}            codice d'invito -> campagna (get, mai list)
     //
-    // Le schede in users/{uid}/characters restano private: i membri vedono solo il riepilogo.
+    // Le schede in users/{uid}/characters restano private: nessuno le legge o le scrive tranne il proprietario.
     // ---------------------------------------------------------------------
 
     function campaignDoc(campaignId) {
@@ -51,22 +55,55 @@ service cloud.firestore {
       return /databases/$(database)/documents/campaignInvites/$(code);
     }
 
+    function campaignData(campaignId) {
+      return get(campaignDoc(campaignId)).data;
+    }
+
     // Membro della campagna secondo lo stato corrente (prima della scrittura).
     function isCampaignMember(campaignId) {
-      return signedIn() && request.auth.uid in get(campaignDoc(campaignId)).data.memberUids;
+      return signedIn() && request.auth.uid in campaignData(campaignId).memberUids;
     }
 
     function isCampaignOwner(campaignId) {
-      return signedIn() && get(campaignDoc(campaignId)).data.ownerUid == request.auth.uid;
+      return signedIn() && campaignData(campaignId).ownerUid == request.auth.uid;
+    }
+
+    // Modalità di visibilità dei numeri al gruppo; le campagne senza settings valgono 'numeric'.
+    function partyVitalsMode(campaignId) {
+      return campaignData(campaignId).get('settings', {}).get('partyVitals', 'numeric');
+    }
+
+    function playerPostsAllowed(campaignId) {
+      return campaignData(campaignId).get('settings', {}).get('playerPosts', true) == true;
     }
 
     function isShortString(value, maxLen) {
       return value is string && value.size() <= maxLen;
     }
 
+    function isOptionalShortString(data, key, maxLen) {
+      return !(key in data) || isShortString(data[key], maxLen);
+    }
+
     function isValidCampaignText(data) {
       return isShortString(data.name, 120) && data.name.size() > 0
           && (!('description' in data) || isShortString(data.description, 2000));
+    }
+
+    function isValidSettings(data) {
+      return !('settings' in data) || (
+        data.settings is map
+          && data.settings.keys().hasOnly(['partyVitals', 'playerPosts'])
+          && data.settings.get('partyVitals', 'numeric') in ['numeric', 'narrative']
+          && data.settings.get('playerPosts', true) is bool
+      );
+    }
+
+    // Invito esistente, non scaduto e diretto a questa campagna.
+    function isLiveInvite(code, campaignId) {
+      let invite = get(inviteDoc(code)).data;
+      return invite.campaignId == campaignId
+          && (!('expiresAt' in invite) || invite.expiresAt > request.time.toMillis());
     }
 
     // Il membro che sta per unirsi (scritto nello stesso batch) presenta un codice
@@ -75,7 +112,7 @@ service cloud.firestore {
       let member = getAfter(memberDoc(campaignId, userId)).data;
       return member.role == 'player'
           && member.joinCode is string
-          && get(inviteDoc(member.joinCode)).data.campaignId == campaignId;
+          && isLiveInvite(member.joinCode, campaignId);
     }
 
     match /campaigns/{campaignId} {
@@ -83,21 +120,23 @@ service cloud.firestore {
 
       // Solo chi crea è il DM e il primo membro; il codice d'invito è creato nello stesso batch.
       allow create: if signedIn()
-          && request.resource.data.keys().hasOnly(['name', 'description', 'ownerUid', 'memberUids', 'inviteCode', 'createdAt', 'updatedAt'])
+          && request.resource.data.keys().hasOnly(['name', 'description', 'ownerUid', 'memberUids', 'inviteCode', 'createdAt', 'updatedAt', 'settings', 'schemaVersion'])
           && request.resource.data.ownerUid == request.auth.uid
           && request.resource.data.memberUids == [request.auth.uid]
           && isShortString(request.resource.data.inviteCode, 12)
-          && isValidCampaignText(request.resource.data);
+          && isValidCampaignText(request.resource.data)
+          && isValidSettings(request.resource.data);
 
       allow update: if signedIn() && (
-          // Il DM modifica i dettagli, rigenera il codice o rimuove membri (mai se stesso).
+          // Il DM modifica dettagli e impostazioni, rigenera il codice o rimuove membri (mai se stesso).
           (resource.data.ownerUid == request.auth.uid
             && request.resource.data.ownerUid == resource.data.ownerUid
             && request.resource.data.diff(resource.data).affectedKeys()
-                 .hasOnly(['name', 'description', 'inviteCode', 'memberUids', 'updatedAt'])
+                 .hasOnly(['name', 'description', 'inviteCode', 'memberUids', 'updatedAt', 'settings', 'schemaVersion'])
             && request.resource.data.memberUids.hasAll([resource.data.ownerUid])
             && resource.data.memberUids.hasAll(request.resource.data.memberUids)
-            && isValidCampaignText(request.resource.data))
+            && isValidCampaignText(request.resource.data)
+            && isValidSettings(request.resource.data))
           // Un giocatore entra: aggiunge solo se stesso, con un codice valido.
           || (!(request.auth.uid in resource.data.memberUids)
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberUids', 'updatedAt'])
@@ -117,31 +156,36 @@ service cloud.firestore {
       allow delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
 
       match /members/{memberUid} {
-        allow read: if isCampaignMember(campaignId);
+        // Il proprio documento si legge anche da non membri: "sei già nel gruppo?" senza dedurlo da un errore.
+        allow get: if signedIn() && (request.auth.uid == memberUid || isCampaignMember(campaignId));
+        allow list: if isCampaignMember(campaignId);
 
         // Il DM crea il proprio documento insieme alla campagna; i giocatori entrano con un codice.
         allow create: if signedIn() && request.auth.uid == memberUid
-            && request.resource.data.keys().hasOnly(['role', 'displayName', 'photoURL', 'joinedAt', 'joinCode'])
+            && request.resource.data.keys().hasOnly(['role', 'displayName', 'photoURL', 'joinedAt', 'joinCode', 'activeCharacterId'])
             && isShortString(request.resource.data.displayName, 120)
+            && isOptionalShortString(request.resource.data, 'activeCharacterId', 128)
             && (
               (request.resource.data.role == 'dm'
                 && getAfter(campaignDoc(campaignId)).data.ownerUid == request.auth.uid)
               || (request.resource.data.role == 'player'
                 && request.resource.data.joinCode is string
-                && get(inviteDoc(request.resource.data.joinCode)).data.campaignId == campaignId
+                && isLiveInvite(request.resource.data.joinCode, campaignId)
                 && request.auth.uid in getAfter(campaignDoc(campaignId)).data.memberUids)
             );
 
-        // Ognuno aggiorna solo nome e foto del proprio profilo.
+        // Ognuno aggiorna solo nome, foto e personaggio attivo del proprio profilo.
         allow update: if signedIn() && request.auth.uid == memberUid
             && request.resource.data.role == resource.data.role
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'photoURL'])
-            && isShortString(request.resource.data.displayName, 120);
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'photoURL', 'activeCharacterId'])
+            && isShortString(request.resource.data.displayName, 120)
+            && isOptionalShortString(request.resource.data, 'activeCharacterId', 128);
 
         // Si esce da soli, oppure il DM rimuove un giocatore.
         allow delete: if signedIn() && (request.auth.uid == memberUid || isCampaignOwner(campaignId));
       }
 
+      // Proiezione party. I campi numerici v1 sono ammessi solo finché la campagna non è narrativa.
       match /sharedCharacters/{characterId} {
         allow read: if isCampaignMember(campaignId);
 
@@ -149,34 +193,149 @@ service cloud.firestore {
             && request.resource.data.ownerUid == request.auth.uid
             && (request.method == 'create' || resource.data.ownerUid == request.auth.uid)
             && isCampaignMember(campaignId)
-            && request.resource.data.keys().hasOnly([
-                 'ownerUid', 'name', 'class', 'subclass', 'race', 'level',
-                 'hpCurrent', 'hpMax', 'hpTemp', 'armorClass',
-                 'portraitUrl', 'portraitSource', 'lastUpdated'])
-            && isShortString(request.resource.data.name, 200)
-            && request.resource.data.level is number
-            && request.resource.data.hpCurrent is number
-            && request.resource.data.hpMax is number
-            && request.resource.data.armorClass is number;
+            && isValidSharedCharacter(request.resource.data, campaignId);
 
         // Lo ritira il proprietario del personaggio, oppure il DM.
         allow delete: if signedIn() && (resource.data.ownerUid == request.auth.uid || isCampaignOwner(campaignId));
       }
+
+      // Proiezione tavolo con i numeri.
+      match /liveStats/{characterId} {
+        allow read: if signedIn() && (
+            (resource != null && resource.data.ownerUid == request.auth.uid)
+            || isCampaignOwner(campaignId)
+            || (isCampaignMember(campaignId) && partyVitalsMode(campaignId) != 'narrative'));
+
+        allow create, update: if signedIn()
+            && request.resource.data.ownerUid == request.auth.uid
+            && (request.method == 'create' || resource.data.ownerUid == request.auth.uid)
+            && isCampaignMember(campaignId)
+            && isValidLiveStats(request.resource.data);
+
+        allow delete: if signedIn() && (resource.data.ownerUid == request.auth.uid || isCampaignOwner(campaignId));
+      }
+
+      // Azioni del DM: le crea solo lui, le leggono i membri, i client dei giocatori le applicano.
+      match /dmActions/{actionId} {
+        allow read: if isCampaignMember(campaignId);
+        allow create: if isCampaignOwner(campaignId)
+            && request.resource.data.keys().hasOnly(['type', 'targets', 'createdBy', 'createdAt', 'expiresAt'])
+            && request.resource.data.type in ['grantInspiration', 'revokeInspiration', 'shortRest', 'longRest']
+            && request.resource.data.targets is list
+            && request.resource.data.targets.size() > 0
+            && request.resource.data.targets.size() <= 12
+            && request.resource.data.createdBy == request.auth.uid
+            && request.resource.data.createdAt is number
+            && request.resource.data.expiresAt is number
+            && request.resource.data.expiresAt > request.resource.data.createdAt
+            && request.resource.data.expiresAt - request.resource.data.createdAt <= 86400000;
+        allow update: if false;
+        allow delete: if isCampaignOwner(campaignId);
+      }
+
+      // Bacheca: i membri scrivono (se il DM lo permette), il DM fissa ed elimina.
+      match /board/{postId} {
+        allow read: if isCampaignMember(campaignId);
+        allow create: if isCampaignMember(campaignId)
+            && request.resource.data.keys().hasOnly(['authorUid', 'authorName', 'text', 'pinned', 'createdAt', 'updatedAt'])
+            && request.resource.data.authorUid == request.auth.uid
+            && isShortString(request.resource.data.authorName, 120)
+            && isShortString(request.resource.data.text, 4000)
+            && request.resource.data.text.size() > 0
+            && request.resource.data.pinned is bool
+            && request.resource.data.createdAt is number
+            && request.resource.data.updatedAt is number
+            && (isCampaignOwner(campaignId) || (playerPostsAllowed(campaignId) && request.resource.data.pinned == false));
+        allow update: if signedIn() && (
+            (resource.data.authorUid == request.auth.uid
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'updatedAt'])
+              && isShortString(request.resource.data.text, 4000)
+              && request.resource.data.text.size() > 0)
+            || (isCampaignOwner(campaignId)
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pinned', 'updatedAt'])
+              && request.resource.data.pinned is bool)
+          );
+        allow delete: if signedIn() && (resource.data.authorUid == request.auth.uid || isCampaignOwner(campaignId));
+      }
+
+      // Note segrete: solo il DM, in lettura e in scrittura.
+      match /dmPrivate/{docId} {
+        allow read, delete: if isCampaignOwner(campaignId);
+        allow create, update: if isCampaignOwner(campaignId)
+            && request.resource.data.keys().hasOnly(['text', 'updatedAt'])
+            && isShortString(request.resource.data.text, 20000)
+            && request.resource.data.updatedAt is number;
+      }
+    }
+
+    function isValidSharedCharacter(data, campaignId) {
+      return data.keys().hasOnly([
+               'ownerUid', 'name', 'class', 'subclass', 'race', 'level',
+               'vitals', 'conditions', 'heroicInspiration', 'schemaVersion',
+               'portraitUrl', 'portraitSource', 'lastUpdated',
+               'hpCurrent', 'hpMax', 'hpTemp', 'armorClass'])
+          && isShortString(data.name, 200)
+          && isOptionalShortString(data, 'class', 200)
+          && isOptionalShortString(data, 'subclass', 200)
+          && isOptionalShortString(data, 'race', 200)
+          && data.level is number
+          && (!('vitals' in data) || data.vitals in ['healthy', 'wounded', 'critical', 'down'])
+          && (!('conditions' in data) || (data.conditions is list && data.conditions.size() <= 30))
+          && (!('heroicInspiration' in data) || data.heroicInspiration is bool)
+          && (!data.keys().hasAny(['hpCurrent', 'hpMax', 'hpTemp', 'armorClass'])
+              || partyVitalsMode(campaignId) != 'narrative');
+    }
+
+    function isNumberMap(value, keys) {
+      return value is map && value.keys().hasOnly(keys) && value.keys().hasAll(keys);
+    }
+
+    function isValidLiveStats(data) {
+      return data.keys().hasOnly([
+               'ownerUid', 'hp', 'armorClass', 'speed', 'passives', 'spellSaveDC', 'heroicInspiration',
+               'spellSlots', 'conditions', 'deathSaves', 'hitDice', 'appliedActionIds', 'lastUpdated'])
+          && isNumberMap(data.hp, ['current', 'max', 'temp'])
+          && data.hp.current is number && data.hp.max is number && data.hp.temp is number
+          && data.armorClass is number
+          && data.speed is number
+          && isNumberMap(data.passives, ['perception', 'insight', 'investigation'])
+          && (data.spellSaveDC == null || data.spellSaveDC is number)
+          && data.heroicInspiration is bool
+          && data.spellSlots is map && data.spellSlots.size() <= 10
+          && data.conditions is list && data.conditions.size() <= 30
+          && isNumberMap(data.deathSaves, ['successes', 'failures'])
+          && data.hitDice is map && data.hitDice.keys().hasOnly(['total', 'used'])
+          && (!('appliedActionIds' in data) || (data.appliedActionIds is list && data.appliedActionIds.size() <= 30))
+          && data.lastUpdated is number;
     }
 
     // Il codice è l'id del documento: si legge con get() da un utente autenticato, ma non si elenca.
+    // Un codice inesistente restituisce "non esiste" (non un errore di permessi); uno scaduto è negato.
     match /campaignInvites/{code} {
-      allow get: if signedIn();
+      allow get: if signedIn()
+          && (resource == null
+              || !('expiresAt' in resource.data)
+              || resource.data.expiresAt > request.time.toMillis()
+              || resource.data.ownerUid == request.auth.uid);
       allow list: if false;
 
       // Solo il DM crea l'invito, nello stesso batch della campagna (o alla rigenerazione).
       allow create: if signedIn()
-          && request.resource.data.keys().hasOnly(['campaignId', 'ownerUid', 'createdAt'])
+          && request.resource.data.keys().hasOnly(['campaignId', 'ownerUid', 'createdAt', 'campaignName', 'dmName', 'expiresAt'])
           && request.resource.data.ownerUid == request.auth.uid
+          && isOptionalShortString(request.resource.data, 'campaignName', 120)
+          && isOptionalShortString(request.resource.data, 'dmName', 120)
+          && (!('expiresAt' in request.resource.data) || request.resource.data.expiresAt is number)
           && getAfter(campaignDoc(request.resource.data.campaignId)).data.ownerUid == request.auth.uid
           && getAfter(campaignDoc(request.resource.data.campaignId)).data.inviteCode == code;
 
-      allow update: if false;
+      // Il DM tiene allineata l'anteprima (nome) e la scadenza.
+      allow update: if signedIn()
+          && resource.data.ownerUid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['campaignName', 'dmName', 'expiresAt'])
+          && isOptionalShortString(request.resource.data, 'campaignName', 120)
+          && isOptionalShortString(request.resource.data, 'dmName', 120)
+          && (!('expiresAt' in request.resource.data) || request.resource.data.expiresAt is number);
       allow delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
     }
   }
