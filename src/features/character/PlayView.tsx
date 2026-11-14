@@ -54,7 +54,7 @@ export const PlayView: FC = () => {
     const { characterId } = useParams<{ characterId: string }>();
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
-    const { character, setCharacter, updateCharacter } = useCharacter();
+    const { character, setCharacter, updateCharacter, publishLive } = useCharacter();
     const { campaignNames } = useCampaigns();
     const [error, setError] = useState<string | null>(null);
     
@@ -89,7 +89,7 @@ export const PlayView: FC = () => {
         loadCharacter();
     }, [characterId, setCharacter]);
 
-    usePlayViewAutosave(character);
+    usePlayViewAutosave(character, publishLive);
 
     const handleLongRest = async () => {
         if (!character) return;

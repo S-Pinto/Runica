@@ -1,20 +1,42 @@
-import type { ISharedCharacter } from '../../character/characterTypes';
+import type { ILiveStats, ISharedCharacter, NarrativeVitals } from '../../character/characterTypes';
 import { ShieldOutlineIcon } from '../../../components/ui/icons';
 import { hpBarTone, hpPercent, initials } from '../../character/utils/characterDisplay';
+import { NARRATIVE_VITALS_LABELS, narrativeVitals } from '../../character/rules/campaign';
 
 interface SharedCharacterCardProps {
     character: ISharedCharacter;
+    /** Numeri dal vivo, se il ruolo e le impostazioni della campagna permettono di leggerli. */
+    live?: ILiveStats;
     /** Nome del giocatore a cui appartiene il personaggio. */
     ownerName?: string;
     isMine: boolean;
 }
 
+const VITALS_TONE: Record<NarrativeVitals, string> = {
+    healthy: 'bg-success/15 text-success',
+    wounded: 'bg-warning/15 text-warning',
+    critical: 'bg-destructive/15 text-destructive',
+    down: 'bg-destructive/25 text-destructive',
+};
+
+/** Numeri da mostrare: dal vivo, oppure i campi v1 dei riepiloghi pubblicati prima della v2. */
+const numbersOf = (character: ISharedCharacter, live?: ILiveStats) => {
+    if (live) return { current: live.hp.current, max: live.hp.max, temp: live.hp.temp, armorClass: live.armorClass };
+    if (typeof character.hpCurrent === 'number' && typeof character.hpMax === 'number') {
+        return { current: character.hpCurrent, max: character.hpMax, temp: character.hpTemp ?? 0, armorClass: character.armorClass };
+    }
+    return null;
+};
+
 /**
  * Riepilogo di un personaggio condiviso: solo i dati che il proprietario pubblica.
  * Stessa forma della scheda nella lista (riga su telefono, card da `sm`), senza azioni.
+ * Senza numeri leggibili mostra lo stato narrativo (Sano / Ferito / Critico / A terra).
  */
-export const SharedCharacterCard = ({ character, ownerName, isMine }: SharedCharacterCardProps) => {
-    const percent = hpPercent(character.hpCurrent, character.hpMax);
+export const SharedCharacterCard = ({ character, live, ownerName, isMine }: SharedCharacterCardProps) => {
+    const numbers = numbersOf(character, live);
+    const vitals = character.vitals ?? (numbers ? narrativeVitals(numbers.current, numbers.max) : 'healthy');
+    const percent = numbers ? hpPercent(numbers.current, numbers.max) : 0;
     const subtitle = [character.race, character.class].filter(Boolean).join(' · ') || 'Avventuriero';
 
     return (
@@ -47,32 +69,42 @@ export const SharedCharacterCard = ({ character, ownerName, isMine }: SharedChar
                         </p>
                     )}
                 </div>
-                <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="min-w-0 flex-1">
-                        <div className="mb-1.5 flex items-baseline justify-between gap-2">
-                            <span className="text-label uppercase text-muted-foreground">
-                                <span className="sm:hidden">PV</span>
-                                <span className="hidden sm:inline">Punti vita</span>
-                            </span>
-                            <span className="font-mono text-sm font-bold text-foreground">
-                                {character.hpCurrent}
-                                <span className="font-normal text-muted-foreground">/{character.hpMax}</span>
-                                {character.hpTemp > 0 && <span className="ml-1 text-accent">+{character.hpTemp}</span>}
-                            </span>
+                {numbers ? (
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="min-w-0 flex-1">
+                            <div className="mb-1.5 flex items-baseline justify-between gap-2">
+                                <span className="text-label uppercase text-muted-foreground">
+                                    <span className="sm:hidden">PV</span>
+                                    <span className="hidden sm:inline">Punti vita</span>
+                                </span>
+                                <span className="font-mono text-sm font-bold text-foreground">
+                                    {numbers.current}
+                                    <span className="font-normal text-muted-foreground">/{numbers.max}</span>
+                                    {numbers.temp > 0 && <span className="ml-1 text-accent">+{numbers.temp}</span>}
+                                </span>
+                            </div>
+                            <div className="h-1.5 overflow-hidden rounded-full bg-input" role="progressbar"
+                                aria-label="Punti vita" aria-valuemin={0} aria-valuemax={numbers.max} aria-valuenow={numbers.current}>
+                                <div className={`h-full rounded-full transition-[width] duration-500 ease-soft ${hpBarTone(percent)}`} style={{ width: `${percent}%` }} />
+                            </div>
                         </div>
-                        <div className="h-1.5 overflow-hidden rounded-full bg-input" role="progressbar"
-                            aria-label="Punti vita" aria-valuemin={0} aria-valuemax={character.hpMax} aria-valuenow={character.hpCurrent}>
-                            <div className={`h-full rounded-full transition-[width] duration-500 ease-soft ${hpBarTone(percent)}`} style={{ width: `${percent}%` }} />
-                        </div>
+                        {typeof numbers.armorClass === 'number' && (
+                            <div className="relative flex h-10 w-9 shrink-0 items-center justify-center" title="Classe Armatura">
+                                <ShieldOutlineIcon aria-hidden className="absolute inset-0 h-full w-full text-border-strong" />
+                                <span className="relative font-mono text-sm font-bold text-foreground">
+                                    <span className="sr-only">Classe Armatura </span>
+                                    {numbers.armorClass}
+                                </span>
+                            </div>
+                        )}
                     </div>
-                    <div className="relative flex h-10 w-9 shrink-0 items-center justify-center" title="Classe Armatura">
-                        <ShieldOutlineIcon aria-hidden className="absolute inset-0 h-full w-full text-border-strong" />
-                        <span className="relative font-mono text-sm font-bold text-foreground">
-                            <span className="sr-only">Classe Armatura </span>
-                            {character.armorClass}
+                ) : (
+                    <p>
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${VITALS_TONE[vitals]}`}>
+                            <span className="sr-only">Stato: </span>{NARRATIVE_VITALS_LABELS[vitals]}
                         </span>
-                    </div>
-                </div>
+                    </p>
+                )}
             </div>
         </li>
     );

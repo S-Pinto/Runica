@@ -31,6 +31,16 @@ oppure con `firebase apps:sdkconfig WEB --project runica-heros-folio`.
 > Questi valori non sono segreti in senso stretto (finiscono comunque nel codice del sito pubblicato):
 > la sicurezza dei dati dipende da `firestore.rules` e `storage.rules`.
 
+### Regole di sicurezza (Firestore `runica-db` e Storage)
+
+Le regole **non** partono con il deploy dell'hosting di staging: staging e produzione usano lo stesso progetto e lo stesso database, quindi pubblicarle cambia anche la produzione.
+
+```bash
+npm run deploy:rules     # = firebase deploy --only firestore:rules,storage
+```
+
+`npm run deploy:live` le pubblica insieme all'hosting di produzione. In GitHub Actions il job `deploy_rules` (solo su `main`) si attiva con la variabile di repository `DEPLOY_FIREBASE_RULES=true` e richiede che il service account `FIREBASE_SERVICE_ACCOUNT_RUNICA_HEROS_FOLIO` abbia il ruolo **Firebase Rules Admin**. Prima di pubblicarle: `npm run test:rules`.
+
 Senza le variabili Firebase l'app funziona in **modalità offline** (personaggi salvati solo nel browser).
 
 ## Sviluppo in locale

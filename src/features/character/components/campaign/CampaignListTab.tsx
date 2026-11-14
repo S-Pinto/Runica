@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import type { ICampaign, ILocalCampaign } from '../../characterTypes';
 import { CheckIcon, CopyIcon, ShareIcon, TrashIcon } from '../../../../components/ui/icons';
 import { Button } from '../../../../components/ui/Button';
-import { getRole, ROLE_LABELS } from '../../rules/campaign';
+import { formatInviteCode, getRole, ROLE_LABELS } from '../../rules/campaign';
 
 export interface CampaignChoice {
     id: string;
@@ -125,18 +125,18 @@ export const CampaignListTab = ({
                                     {role === 'dm' && (
                                         <button
                                             type="button"
-                                            onClick={() => copyCode(camp.inviteCode)}
-                                            aria-label={`Copia il codice d'invito ${camp.inviteCode}`}
+                                            onClick={() => copyCode(formatInviteCode(camp.inviteCode))}
+                                            aria-label={`Copia il codice d'invito ${formatInviteCode(camp.inviteCode)}`}
                                             className="flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border-strong/60 px-2.5 font-mono text-xs font-bold tracking-widest text-foreground transition-colors duration-150 hover:border-accent/70 hover:text-accent"
                                         >
-                                            {copied === camp.inviteCode ? <CheckIcon className="h-3.5 w-3.5 text-success" /> : <CopyIcon className="h-3.5 w-3.5" />}
-                                            {camp.inviteCode}
+                                            {copied === formatInviteCode(camp.inviteCode) ? <CheckIcon className="h-3.5 w-3.5 text-success" /> : <CopyIcon className="h-3.5 w-3.5" />}
+                                            {formatInviteCode(camp.inviteCode)}
                                         </button>
                                     )}
                                 </div>
                                 <div className="flex flex-col gap-2 sm:flex-row">
                                     <Link
-                                        to={`/campaign/${camp.id}`}
+                                        to={`/campaigns/${camp.id}`}
                                         onClick={onClose}
                                         className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-border-strong/60 bg-card px-4 text-sm font-semibold text-text transition-colors duration-150 hover:border-accent/70 hover:text-accent"
                                     >

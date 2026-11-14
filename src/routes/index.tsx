@@ -1,4 +1,4 @@
-import { createBrowserRouter, Outlet } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet, useParams } from 'react-router-dom';
 
 import App from '../App'; // Il nostro layout principale
 
@@ -10,7 +10,14 @@ import { PlayView } from '../features/character/PlayView';
 import { LoginPage } from '../features/auth/LoginPage';
 import { AccountPage } from '../features/auth/AccountPage';
 import { CampaignPage } from '../features/campaign/CampaignPage';
+import { JoinCampaignPage } from '../features/campaign/JoinCampaignPage';
 import { ErrorBoundary, NotFound } from '../components/ErrorBoundary'; // Importa i tuoi componenti
+
+/** Vecchio percorso `/campaign/:id` (Fase G): rimanda a `/campaigns/:id`. */
+const LegacyCampaignRedirect = () => {
+  const { campaignId } = useParams<{ campaignId: string }>();
+  return <Navigate to={`/campaigns/${campaignId ?? ''}`} replace />;
+};
 
 const CharacterLayout = () => (
   <CharacterProvider>
@@ -49,11 +56,20 @@ export const router = createBrowserRouter([
             path: 'character/:characterId',
             element: <PlayView />,
           },
+          // Campagne dentro CharacterLayout: la scelta del personaggio dopo l'unione usa useCharacter().
+          {
+            path: 'campaigns/join',
+            element: <JoinCampaignPage />,
+          },
+          {
+            path: 'campaigns/:campaignId',
+            element: <CampaignPage />,
+          },
         ],
       },
       {
         path: 'campaign/:campaignId',
-        element: <CampaignPage />,
+        element: <LegacyCampaignRedirect />,
       },
       {
         path: 'login',

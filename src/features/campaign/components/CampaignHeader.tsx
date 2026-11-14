@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import type { ICampaign, CampaignRole } from '../../character/characterTypes';
 import { Button } from '../../../components/ui/Button';
-import { ArrowPathIcon, CheckIcon, CopyIcon, TrashIcon } from '../../../components/ui/icons';
+import { ArrowPathIcon, CheckIcon, CopyIcon, ShareIcon, TrashIcon } from '../../../components/ui/icons';
 import { fieldInputClass, fieldLabelClass } from '../../../components/ui/field';
-import { ROLE_LABELS } from '../../character/rules/campaign';
+import { buildInviteLink, formatInviteCode, ROLE_LABELS } from '../../character/rules/campaign';
 
 interface CampaignHeaderProps {
     campaign: ICampaign;
@@ -20,7 +20,7 @@ export const CampaignHeader = ({ campaign, role, onSave, onRegenerateCode, onDel
     const [name, setName] = useState(campaign.name);
     const [description, setDescription] = useState(campaign.description ?? '');
     const [busy, setBusy] = useState(false);
-    const [copied, setCopied] = useState(false);
+    const [copied, setCopied] = useState<'code' | 'link' | null>(null);
 
     const run = async (action: () => Promise<void>) => {
         setBusy(true);
@@ -31,14 +31,30 @@ export const CampaignHeader = ({ campaign, role, onSave, onRegenerateCode, onDel
         }
     };
 
-    const copyCode = async () => {
+    const displayCode = formatInviteCode(campaign.inviteCode);
+    const inviteLink = buildInviteLink(window.location.origin, campaign.inviteCode);
+
+    const copy = async (text: string, what: 'code' | 'link') => {
         try {
-            await navigator.clipboard.writeText(campaign.inviteCode);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
+            await navigator.clipboard.writeText(text);
+            setCopied(what);
+            setTimeout(() => setCopied(null), 2000);
         } catch {
             // Appunti non disponibili: il codice resta visibile.
         }
+    };
+
+    const shareLink = async () => {
+        if (typeof navigator.share === 'function') {
+            try {
+                await navigator.share({ title: campaign.name, text: `Unisciti a «${campaign.name}» su Runica · codice ${displayCode}`, url: inviteLink });
+                return;
+            } catch (error) {
+                // Condivisione annullata: niente da fare. Altri errori: si ripiega sulla copia.
+                if ((error as { name?: string })?.name === 'AbortError') return;
+            }
+        }
+        await copy(inviteLink, 'link');
     };
 
     if (editing) {
@@ -101,11 +117,14 @@ export const CampaignHeader = ({ campaign, role, onSave, onRegenerateCode, onDel
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-3 surface p-4">
                     <div>
                         <p className="text-label uppercase text-muted-foreground">Codice d'invito</p>
-                        <p className="mt-1 font-mono text-2xl font-bold tracking-widest text-foreground">{campaign.inviteCode}</p>
+                        <p className="mt-1 font-mono text-2xl font-bold tracking-widest text-foreground">{displayCode}</p>
                     </div>
-                    <div className="flex gap-2 sm:ml-auto">
-                        <Button variant="secondary" onClick={copyCode}>
-                            {copied ? <CheckIcon className="h-4 w-4 text-success" /> : <CopyIcon className="h-4 w-4" />} {copied ? 'Copiato' : 'Copia'}
+                    <div className="flex flex-wrap gap-2 sm:ml-auto">
+                        <Button onClick={() => void shareLink()}>
+                            {copied === 'link' ? <CheckIcon className="h-4 w-4" /> : <ShareIcon className="h-4 w-4" />} {copied === 'link' ? 'Link copiato' : 'Condividi link'}
+                        </Button>
+                        <Button variant="secondary" onClick={() => void copy(displayCode, 'code')}>
+                            {copied === 'code' ? <CheckIcon className="h-4 w-4 text-success" /> : <CopyIcon className="h-4 w-4" />} {copied === 'code' ? 'Copiato' : 'Copia codice'}
                         </Button>
                         <Button variant="ghost" disabled={busy} onClick={() => void run(onRegenerateCode)}>
                             <ArrowPathIcon className="h-4 w-4" /> Nuovo codice

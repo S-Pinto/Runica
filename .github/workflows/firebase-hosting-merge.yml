@@ -104,3 +104,26 @@ jobs:
           channelId: live
           projectId: runica-heros-folio
           target: live
+
+  # Regole di Firestore (database `runica-db`) e Storage, solo da `main`: staging e produzione
+  # condividono lo stesso progetto e lo stesso database, quindi un deploy da `feature` cambierebbe
+  # le regole di produzione. Si attiva con la variabile di repository DEPLOY_FIREBASE_RULES=true,
+  # dopo aver dato al service account il ruolo "Firebase Rules Admin" (roles/firebaserules.admin).
+  deploy_rules:
+    if: ${{ github.ref == 'refs/heads/main' && vars.DEPLOY_FIREBASE_RULES == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Deploy delle regole (Firestore runica-db + Storage)
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_RUNICA_HEROS_FOLIO }}
+        run: |
+          printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/firebase-sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-sa.json"
+          npx --yes firebase-tools@14 deploy --only firestore:rules,storage --project runica-heros-folio --non-interactive
+          rm -f "$RUNNER_TEMP/firebase-sa.json"

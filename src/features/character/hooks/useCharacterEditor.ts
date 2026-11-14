@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate, useBlocker } from 'react-router-dom';
 import { ICharacter } from '../characterTypes';
 import { useCharacter } from '../CharacterProvider';
+import { useCampaigns } from '../../../providers/CampaignProvider';
 import * as characterRepository from '../characterRepository';
 import { createNewCharacter } from '../rules/defaults';
 import { resolveEditorTarget } from '../editorSession';
@@ -17,6 +18,9 @@ export const useCharacterEditor = (activeTab: string) => {
     const { characterId } = useParams<{ characterId: string }>();
     const navigate = useNavigate();
     const { character, setCharacter, deleteCharacter, saveCharacter } = useCharacter();
+    const { campaignNames } = useCampaigns();
+    const campaignNamesRef = useRef(campaignNames);
+    campaignNamesRef.current = campaignNames;
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -58,8 +62,15 @@ export const useCharacterEditor = (activeTab: string) => {
             try {
                 if (isMounted) setError(null);
                 const target = resolveEditorTarget(characterId);
+                // `/character/new?campaign=<id>` (dalla scelta del personaggio dopo l'unione): eroe già associato.
+                const presetCampaignId = target.kind === 'new' ? new URLSearchParams(window.location.search).get('campaign') : null;
                 const loadedData = target.kind === 'new'
-                    ? createNewCharacter()
+                    ? {
+                        ...createNewCharacter(),
+                        ...(presetCampaignId
+                            ? { campaignId: presetCampaignId, campaignName: campaignNamesRef.current.get(presetCampaignId) }
+                            : {}),
+                    }
                     : await characterRepository.getCharacter(target.id);
 
                 if (!loadedData) {
