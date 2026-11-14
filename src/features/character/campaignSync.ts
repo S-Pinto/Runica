@@ -32,6 +32,7 @@ export const syncCharacterWithCampaigns = async (
 /**
  * Dopo un salvataggio automatico della vista di gioco: aggiorna PF, condizioni, slot e il resto
  * solo se le proiezioni sono cambiate dall'ultima pubblicazione (niente scritture inutili).
+ * La prima pubblicazione della sessione è completa: riscrive il riepilogo per intero, ritratto incluso.
  */
 export const publishLiveIfChanged = async (
     uid: string,
@@ -41,10 +42,12 @@ export const publishLiveIfChanged = async (
     const campaignId = character.campaignId;
     if (!campaignId || !cloudCampaignIds.has(campaignId)) return;
     const fingerprint = fingerprintOf(character, uid);
-    if (campaignService.getPublishedFingerprint(campaignId, character.id) === fingerprint) return;
+    const previous = campaignService.getPublishedFingerprint(campaignId, character.id);
+    if (previous === fingerprint) return;
     campaignService.rememberPublished(campaignId, character.id, fingerprint);
     try {
-        await campaignService.publishLiveProjection(campaignId, character, uid);
+        if (previous === undefined) await campaignService.publishCharacter(campaignId, character, uid);
+        else await campaignService.publishLiveProjection(campaignId, character, uid);
     } catch (error) {
         campaignService.forgetPublished(campaignId, character.id);
         console.warn('Aggiornamento dal vivo della campagna non riuscito', error);

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
 import type { IDmAction, ILiveStats, ISharedCharacter } from '../../character/characterTypes';
 import { PlaySection, playChipClass } from '../../character/components/play-view/PlaySection';
 import { HpBar } from '../../character/components/play-view/HpBar';
@@ -22,8 +22,10 @@ interface PartyMemberTileProps {
     /** Azioni del DM ancora da applicare per questo personaggio (solo DM). */
     pending?: IDmAction[];
     now: number;
-    /** Apre il dettaglio (DM). */
+    /** Tocco sulla tessera: dettaglio (DM) o scheda (il proprio eroe). */
     onOpen?: () => void;
+    /** Etichetta accessibile dell'apertura (predefinita: "Dettagli di <nome>"). */
+    openLabel?: string;
     /** Concede o revoca l'Ispirazione Eroica (DM). */
     onToggleInspiration?: () => void;
     /** Contenuto in fondo (es. "Apri la tua scheda"). */
@@ -39,13 +41,16 @@ const Portrait = ({ character }: { character: ISharedCharacter }) =>
         </span>
     );
 
+/** Controlli interni con un'azione propria: un tocco su di loro non apre la tessera. */
+const INTERACTIVE = 'button, a, input, select, textarea, label, [role="button"]';
+
 /**
  * Tessera di un membro del gruppo al tavolo. Con `live` mostra i numeri (PF con barra, CA, ecc.);
  * senza, solo lo stato narrativo (Sano / Ferito / Critico / A terra), condizioni e ispirazione:
  * in modalità narrativa i numeri dei compagni non sono nemmeno nel DOM.
  */
 export const PartyMemberTile = ({
-    character, live, ownerName, isMine, variant = 'compact', pending = [], now, onOpen, onToggleInspiration, footer,
+    character, live, ownerName, isMine, variant = 'compact', pending = [], now, onOpen, openLabel, onToggleInspiration, footer,
 }: PartyMemberTileProps) => {
     const inspired = live?.heroicInspiration ?? character.heroicInspiration ?? false;
     const conditions = live?.conditions ?? character.conditions ?? [];
@@ -55,6 +60,14 @@ export const PartyMemberTile = ({
     const stale = isStale(updatedAt, now);
     const subtitle = [character.class && `${character.class} ${character.level}`, character.race].filter(Boolean).join(' · ') || `Livello ${character.level}`;
     const name = character.name || 'Senza nome';
+
+    // Tutta la tessera apre, non solo nome e ritratto: il clic arriva al contenitore da qualunque punto
+    // (PF, statistiche, condizioni), tranne dai controlli interni con un'azione propria.
+    // Il pulsante sull'identità resta per tastiera e lettori di schermo.
+    const handleTileClick = (event: MouseEvent<HTMLDivElement>) => {
+        if (!onOpen || (event.target as Element).closest(INTERACTIVE)) return;
+        onOpen();
+    };
 
     const identity = (
         <>
@@ -70,14 +83,23 @@ export const PartyMemberTile = ({
     );
 
     return (
-        <PlaySection as="div" className={`flex h-full flex-col gap-3 ${isDown ? 'ring-2 ring-destructive/60' : ''}`}>
+        // `cursor-pointer` serve anche a iOS Safari, che altrimenti non invia il clic a un elemento non interattivo;
+        // `touch-manipulation` toglie l'attesa del doppio tocco.
+        <div
+            onClick={onOpen ? handleTileClick : undefined}
+            className={`group h-full ${onOpen ? 'cursor-pointer touch-manipulation' : ''}`}
+        >
+        <PlaySection
+            as="div"
+            className={`flex h-full flex-col gap-3 transition-transform duration-150 ease-soft ${onOpen ? 'group-active:scale-[0.99]' : ''} ${isDown ? 'ring-2 ring-destructive/60' : ''}`}
+        >
             <div className="flex items-start gap-2">
                 {onOpen ? (
                     <button
                         type="button"
                         onClick={onOpen}
-                        aria-label={`Dettagli di ${name}`}
-                        className="-m-1 flex min-w-0 flex-1 items-center gap-3 rounded-2xl p-1 text-left transition-colors duration-150 hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        aria-label={openLabel ?? `Dettagli di ${name}`}
+                        className="-m-1 flex min-w-0 flex-1 items-center gap-3 rounded-2xl p-1 text-left transition-colors duration-150 group-hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                         {identity}
                     </button>
@@ -167,5 +189,6 @@ export const PartyMemberTile = ({
             )}
             {footer && <div className="mt-auto">{footer}</div>}
         </PlaySection>
+        </div>
     );
 };

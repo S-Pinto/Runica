@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import {
     applyDmAction, appendAppliedAction, buildDmAction, canDeletePost, canEditPost, canPostOnBoard, describeAgo,
-    dmActionProgress, isDmActionActive, isStale, legacySharedIds, pendingActionsFor, pendingDmActions, slotSummary,
+    dmActionProgress, isDmActionActive, isStale, pendingActionsFor, pendingDmActions, slotSummary,
     sortBoardPosts, sortParty, undoPatchFor, APPLIED_ACTIONS_LIMIT, DM_ACTION_TTL_MS, STALE_AFTER_MS,
 } from './campaign';
 import { createNewCharacter } from './defaults';
-import type { ICharacter, IDmAction, ISharedCharacter } from '../characterTypes';
+import type { ICharacter, IDmAction } from '../characterTypes';
 
 const NOW = 1_700_000_000_000;
 
@@ -146,13 +146,5 @@ describe('bacheca', () => {
         expect(canEditPost(post, 'dm')).toBe(false);
         expect(canDeletePost(post, 'dm', 'dm')).toBe(true);
         expect(canDeletePost(post, 'p2', 'player')).toBe(false);
-    });
-
-    it('individua i riepiloghi v1 da eliminare', () => {
-        const shared = [
-            { id: 'old', schemaVersion: undefined },
-            { id: 'new', schemaVersion: 2 },
-        ] as ISharedCharacter[];
-        expect(legacySharedIds(shared)).toEqual(['old']);
     });
 });

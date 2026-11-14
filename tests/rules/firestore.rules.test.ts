@@ -247,13 +247,25 @@ describe('proiezione party (sharedCharacters)', () => {
         await assertFails(setDoc(doc(db('p2'), 'campaigns', CAMPAIGN, 'sharedCharacters', 'c1'), sharedV2('p2')));
     });
 
-    it('campi v1 ammessi in modalità numerica, rifiutati in narrativa', async () => {
+    it('rifiuta i campi numerici v1 e i riepiloghi senza schemaVersion 2, in qualunque modalità', async () => {
         await seed({ members: ['p1'] });
-        await assertSucceeds(setDoc(doc(db('p1'), 'campaigns', CAMPAIGN, 'sharedCharacters', 'c1'), sharedV2('p1', { hpCurrent: 3, hpMax: 10, hpTemp: 0, armorClass: 12 })));
-        await env.clearFirestore();
-        await seed({ members: ['p1'], settings: { partyVitals: 'narrative', playerPosts: true } });
-        await assertFails(setDoc(doc(db('p1'), 'campaigns', CAMPAIGN, 'sharedCharacters', 'c1'), sharedV2('p1', { hpCurrent: 3 })));
-        await assertSucceeds(setDoc(doc(db('p1'), 'campaigns', CAMPAIGN, 'sharedCharacters', 'c1'), sharedV2('p1')));
+        const ref = doc(db('p1'), 'campaigns', CAMPAIGN, 'sharedCharacters', 'c1');
+        await assertFails(setDoc(ref, sharedV2('p1', { hpCurrent: 3, hpMax: 10, hpTemp: 0, armorClass: 12 })));
+        await assertFails(setDoc(ref, sharedV2('p1', { schemaVersion: 1 })));
+        const { schemaVersion: _omit, ...withoutVersion } = sharedV2('p1');
+        await assertFails(setDoc(ref, withoutVersion));
+        await assertSucceeds(setDoc(ref, sharedV2('p1')));
+    });
+
+    it('un riepilogo v1 rimasto si sostituisce per intero, non con un merge', async () => {
+        await seed({ members: ['p1'] });
+        await env.withSecurityRulesDisabled(async (ctx) => {
+            const admin = ctx.firestore() as unknown as Firestore;
+            await setDoc(doc(admin, 'campaigns', CAMPAIGN, 'sharedCharacters', 'c1'), { ownerUid: 'p1', name: 'Thalia', level: 5, hpCurrent: 3, hpMax: 10, lastUpdated: NOW });
+        });
+        const ref = doc(db('p1'), 'campaigns', CAMPAIGN, 'sharedCharacters', 'c1');
+        await assertFails(setDoc(ref, sharedV2('p1'), { merge: true }));
+        await assertSucceeds(setDoc(ref, sharedV2('p1')));
     });
 
     it('rifiuta campi sconosciuti o valori fuori elenco', async () => {

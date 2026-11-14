@@ -95,9 +95,6 @@ export const canReadPartyLiveStats = (campaign: Pick<ICampaign, 'settings'>, rol
 
 export const SHARED_SCHEMA_VERSION = 2;
 
-/** Chiavi v1 della proiezione party, tolte alla prima pubblicazione v2. */
-export const LEGACY_SHARED_KEYS = ['hpCurrent', 'hpMax', 'hpTemp', 'armorClass'] as const;
-
 export const NARRATIVE_VITALS_LABELS: Record<NarrativeVitals, string> = {
     healthy: 'Sano', wounded: 'Ferito', critical: 'Critico', down: 'A terra',
 };
@@ -377,7 +374,3 @@ export const canEditPost = (post: Pick<IBoardPost, 'authorUid'>, uid: string | n
 
 export const canDeletePost = (post: Pick<IBoardPost, 'authorUid'>, uid: string | null | undefined, role: CampaignRole | null): boolean =>
     role === 'dm' || canEditPost(post, uid);
-
-/** `sharedCharacters` scritti da client v1 (con i numeri): il DM li elimina passando a "narrativo". */
-export const legacySharedIds = (shared: readonly ISharedCharacter[]): string[] =>
-    shared.filter((c) => c.schemaVersion !== SHARED_SCHEMA_VERSION).map((c) => c.id);

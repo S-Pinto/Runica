@@ -40,7 +40,7 @@ export const DmLiveBoard = ({ campaign, user, live }: DmLiveBoardProps) => {
     const now = useNow();
     const [tab, setTab] = useTabParam<DmTab>(DM_TABS.map((t) => t.key), 'table');
     const [editing, setEditing] = useState(false);
-    const admin = useCampaignAdmin(campaign, user.uid, user.displayName, live.shared);
+    const admin = useCampaignAdmin(campaign, user.uid, user.displayName);
     const characterNames = useMemo(() => new Map(live.shared.map((c) => [c.id, c.name])), [live.shared]);
     const heroes = live.shared.length === 1 ? '1 eroe' : `${live.shared.length} eroi`;
 

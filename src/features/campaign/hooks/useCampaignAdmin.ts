@@ -2,8 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import * as campaignService from '../../../services/campaignService';
 import { describeDataError } from '../../../lib/errors';
 import { confirmDialog, toast } from '../../../components/ui/Dialogs';
-import type { ICampaign, ICampaignMember, ICampaignSettings, ISharedCharacter } from '../../character/characterTypes';
-import { getCampaignSettings, legacySharedIds } from '../../character/rules/campaign';
+import type { ICampaign, ICampaignMember, ICampaignSettings } from '../../character/characterTypes';
 
 const guard = async (action: () => Promise<void>, failure: string) => {
     try {
@@ -14,7 +13,7 @@ const guard = async (action: () => Promise<void>, failure: string) => {
 };
 
 /** Azioni di gestione della campagna con le relative conferme: DM (modifica, codice, impostazioni, membri) e giocatore (abbandona). */
-export const useCampaignAdmin = (campaign: ICampaign, uid: string, dmName: string, shared: ISharedCharacter[]) => {
+export const useCampaignAdmin = (campaign: ICampaign, uid: string, dmName: string) => {
     const navigate = useNavigate();
 
     const save = (name: string, description: string) =>
@@ -29,17 +28,8 @@ export const useCampaignAdmin = (campaign: ICampaign, uid: string, dmName: strin
         if (ok) await guard(async () => { await campaignService.regenerateInviteCode(campaign, dmName); }, 'Impossibile generare il codice.');
     };
 
-    const changeSettings = async (settings: ICampaignSettings) => {
-        const before = getCampaignSettings(campaign);
-        await guard(async () => {
-            await campaignService.updateCampaignSettings(campaign.id, settings);
-            // Passando a "narrativo" i riepiloghi v1 con i numeri non devono restare leggibili: i proprietari li ripubblicano in v2.
-            if (settings.partyVitals === 'narrative' && before.partyVitals !== 'narrative') {
-                const legacy = legacySharedIds(shared);
-                if (legacy.length > 0) await campaignService.deleteSharedCharacters(campaign.id, legacy);
-            }
-        }, 'Impostazioni non salvate.');
-    };
+    const changeSettings = (settings: ICampaignSettings) =>
+        guard(() => campaignService.updateCampaignSettings(campaign.id, settings), 'Impostazioni non salvate.');
 
     const removeMember = async (member: ICampaignMember) => {
         const ok = await confirmDialog({

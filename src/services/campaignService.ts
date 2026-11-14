@@ -13,7 +13,7 @@ import { getFirebase } from '../lib/getFirebase';
 import { settleOrQueue } from '../lib/async';
 import {
     generateInviteCode, normalizeInviteCode, isValidInviteCode, isInviteExpired, buildSharedCharacter, buildLiveStats,
-    DEFAULT_CAMPAIGN_SETTINGS, LEGACY_SHARED_KEYS, SHARED_SCHEMA_VERSION,
+    DEFAULT_CAMPAIGN_SETTINGS, SHARED_SCHEMA_VERSION,
 } from '../features/character/rules/campaign';
 import { cleanUndefinedValues } from '../features/character/rules/characterData';
 import { copyPortraitToCampaign, deleteCampaignPortrait } from './storageService';
@@ -378,12 +378,6 @@ export const deleteCampaign = async (campaign: ICampaign): Promise<void> => {
     }));
 };
 
-/** Elimina riepiloghi (es. quelli v1 con i numeri, al passaggio a "narrativo"). Solo il DM o il proprietario. */
-export const deleteSharedCharacters = async (campaignId: string, characterIds: readonly string[]): Promise<void> => {
-    await deleteInChunks(characterIds.map((id) => ({ ref: sharedRef(campaignId, id) })));
-    characterIds.forEach((id) => forgetPublished(campaignId, id));
-};
-
 // ---------- azioni del DM ----------
 
 export const sendDmAction = async (campaignId: string, action: Omit<IDmAction, 'id'>): Promise<void> => {
@@ -448,18 +442,19 @@ export const rememberPublished = (campaignId: string, characterId: string, finge
 export const forgetPublished = (campaignId: string, characterId: string) =>
     publishedFingerprints.delete(publishKey(campaignId, characterId));
 
-/** I campi v1 della proiezione party vengono tolti a ogni scrittura (merge + deleteField). */
-const legacyDeletes = () => Object.fromEntries(LEGACY_SHARED_KEYS.map((key) => [key, deleteField()]));
-
-/** Scrive le proiezioni party (senza toccare il ritratto) e tavolo (senza toccare `appliedActionIds`). */
+/**
+ * Scrive le proiezioni party e tavolo (senza toccare `appliedActionIds`).
+ * Con il ritratto noto (`portrait` definito, anche `null`) il riepilogo party si riscrive per intero: nessun campo
+ * fuori schema sopravvive. Senza (vista di gioco) si aggiornano solo i campi della proiezione e il ritratto resta.
+ */
 const writeProjections = async (campaignId: string, character: ICharacter, uid: string, portrait?: { url?: string; source?: string } | null) => {
-    const { id: _id, ...party } = buildSharedCharacter(character, uid);
-    const portraitFields = portrait === undefined
-        ? {}
-        : { portraitUrl: portrait?.url ?? deleteField(), portraitSource: portrait?.source ?? deleteField() };
+    const { id: _id, ...party } = buildSharedCharacter(character, uid, portrait ?? undefined);
     const { id: _liveId, ...live } = buildLiveStats(character, uid);
+    const sharedWrite = portrait === undefined
+        ? setDoc(sharedRef(campaignId, character.id), party, { mergeFields: Object.keys(party) })
+        : setDoc(sharedRef(campaignId, character.id), party);
     await Promise.all([
-        queueWrite(setDoc(sharedRef(campaignId, character.id), { ...party, ...portraitFields, ...legacyDeletes() }, { merge: true })),
+        queueWrite(sharedWrite),
         // mergeFields: ogni campo è sostituito per intero (es. livelli di slot spariti), gli altri restano.
         queueWrite(setDoc(liveRef(campaignId, character.id), live, { mergeFields: Object.keys(live) })),
     ]);

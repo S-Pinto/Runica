@@ -394,7 +394,7 @@ export type NarrativeVitals = 'healthy' | 'wounded' | 'critical' | 'down';
 
 /**
  * `campaigns/{id}/sharedCharacters/{characterId}`: proiezione *party*, leggibile da tutti i membri.
- * Dalla v2 non contiene numeri (stanno in `liveStats`); i campi v1 restano opzionali per i documenti vecchi.
+ * Non contiene numeri (stanno in `liveStats`); le regole accettano solo lo schema v2.
  */
 export interface ISharedCharacter {
   id: string;
@@ -412,12 +412,7 @@ export interface ISharedCharacter {
   /** URL del ritratto originale da cui è stata fatta la copia. */
   portraitSource?: string;
   lastUpdated: number;
-  schemaVersion?: number;
-  /** Campi v1, non più scritti. */
-  hpCurrent?: number;
-  hpMax?: number;
-  hpTemp?: number;
-  armorClass?: number;
+  schemaVersion: number;
 }
 
 /**

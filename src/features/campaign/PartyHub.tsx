@@ -40,7 +40,7 @@ export const PartyHub = ({ campaign, user, live }: PartyHubProps) => {
     const now = useNow();
     const [tab, setTab] = useTabParam<HubTab>(HUB_TABS.map((t) => t.key), 'party');
     const [pickerOpen, setPickerOpen] = useState(() => !!(location.state as { pickCharacter?: boolean } | null)?.pickCharacter);
-    const admin = useCampaignAdmin(campaign, user.uid, user.displayName, live.shared);
+    const admin = useCampaignAdmin(campaign, user.uid, user.displayName);
     const narrative = getCampaignSettings(campaign).partyVitals === 'narrative';
 
     const ownerNames = useMemo(() => new Map(live.members.map((m) => [m.uid, m.displayName])), [live.members]);
@@ -121,6 +121,8 @@ export const PartyHub = ({ campaign, user, live }: PartyHubProps) => {
                                             live={live.liveById.get(c.id)}
                                             isMine
                                             now={now}
+                                            onOpen={() => navigate(`/character/${c.id}`)}
+                                            openLabel={`Apri la scheda di ${c.name || 'Senza nome'}`}
                                             footer={
                                                 <Link to={`/character/${c.id}`} className={buttonClass('secondary', 'md', 'w-full')}>
                                                     Apri la tua scheda <ArrowRightIcon className="h-4 w-4" />
