@@ -430,3 +430,25 @@ export const BackpackIcon = (props: IconProps) => (
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 6V4.75A1.75 1.75 0 0110.75 3h2.5A1.75 1.75 0 0115 4.75V6m-6 0h6m-6 0a4 4 0 00-4 4v9a2 2 0 002 2h10a2 2 0 002-2v-9a4 4 0 00-4-4M8.5 21v-5a1 1 0 011-1h5a1 1 0 011 1v5M9.5 10.5h5" />
     </svg>
 );
+
+/** Ispirazione Eroica: stella a quattro punte dentro un alone. */
+export const InspirationIcon = (props: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3.75l1.9 5.35 5.35 1.9-5.35 1.9L12 18.25l-1.9-5.35L4.75 11l5.35-1.9L12 3.75z" />
+        <path strokeLinecap="round" d="M18.5 17.5l.9.9M5.5 17.5l-.9.9M12 20.25v.75" />
+    </svg>
+);
+
+/** Puntina: messaggio fissato in bacheca. */
+export const PinIcon = (props: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 3.75h6M10.25 3.75v5.5L7 13.5h10l-3.25-4.25v-5.5M12 13.5v6.75" />
+    </svg>
+);
+
+/** Fumetto: bacheca della campagna. */
+export const ChatBubbleIcon = (props: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3.75h6M3.75 18.75V6A2.25 2.25 0 016 3.75h12A2.25 2.25 0 0120.25 6v8.25A2.25 2.25 0 0118 16.5H8.25l-4.5 2.25z" />
+    </svg>
+);

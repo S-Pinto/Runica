@@ -1,6 +1,6 @@
 # Roadmap — Campagne al tavolo (DM Live Board e Party Hub)
 
-> Stato: **approvata** (incluse le 4 decisioni aperte del §6). **Step 1 fatto** (branch `feature-campaigns`); Step 2–4 da fare.
+> Stato: **approvata** (incluse le 4 decisioni aperte del §6). **Step 1, 2 e 3 fatti** (branch `feature-campaigns`); Step 4 da fare.
 > Ambito analizzato: `firestore.rules`, `storage.rules`, `services/campaignService.ts`, `providers/CampaignProvider.tsx`,
 > `features/character/rules/campaign.ts`, `campaignSync.ts`, `CharacterProvider.tsx`, `hooks/usePlayViewAutosave.ts`,
 > `features/campaign/**`, `components/CampaignManagerModal.tsx` e `components/campaign/**`, `routes/index.tsx`,
@@ -368,7 +368,10 @@ Da sapere: la pagina campagna resta quella della Fase G (con PF/CA dal vivo da `
 PG e il DM lo vede comparire; cambiando i PF dalla vista di gioco il riepilogo si aggiorna in ≤ 3 s; tutti i test delle
 regole passano in CI.
 
-### Step 2 — Schermo Live DM
+### Step 2 — Schermo Live DM — fatto
+
+Fatto: `CampaignPage` smista per ruolo fra `DmLiveBoard` (tab Tavolo · Bacheca · Note segrete · Gruppo, `?tab=` nell'URL) e `PartyHub`; `useCampaignLive` (membri, riepiloghi, `liveStats`, `dmActions` attive per il DM, "Dal vivo"/"Offline" da `metadata.fromCache` + `navigator.onLine`); `HpBar` estratta da `HPTracker`; `PartyMemberTile`, `SpellSlotPips`, `PassiveScoresRow`, `DmActionBar` (sticky, vetro), `PartyMemberDetail` (azioni per un solo PG e "Ritira" delle azioni in attesa); `useCampaignActions` montato in `CharacterLayout` (ispirazione e riposo lungo applicati con toast "Annulla", riposo breve con toast "Riposa" che apre il flusso di `PlayView` via `?rest=short`, `appliedActionIds` aggiornati; con l'editor di quel PG aperto l'azione aspetta); `DmNotesTab` (autosave 1,5 s); tab Gruppo con `InvitePanel`, `CampaignSettingsPanel` (pulizia dei `sharedCharacters` v1 al passaggio a narrativo) e `MemberList` ("siede come …"); `toast.action` in `Dialogs`; etichette `DM_ACTION_LABELS`/`conditionLabel` e icone `InspirationIcon`, `PinIcon`, `ChatBubbleIcon`; regole pure con test in `rules/campaignTable.test.ts` (`applyDmAction`, `undoPatchFor`, `pendingDmActions`, `dmActionProgress`, `sortParty`, `describeAgo`, `slotSummary`, bacheca). Rimossi `CampaignHeader` e `SharedCharacterCard`.
+Verificato a mano con dati di prova su desktop e a 375 px, temi Ambra e Pergamena. Da sapere: `firestore.rules` non è cambiato (le regole di `dmActions`, `board`, `dmPrivate` erano già nello Step 1); il flusso completo con due account reali (DM e giocatore) resta da provare su staging.
 
 1. `CampaignPage` → smistatore per ruolo: `DmLiveBoard` / `PartyHub` (pagina ≤ ~150 righe, sezioni in
    `features/campaign/components/`).
@@ -386,7 +389,9 @@ regole passano in CI.
 l'ispirazione e dichiara un riposo lungo; il giocatore riceve il toast, può annullare, e la board passa da
 "in attesa" ad "applicata". A 375 px la board resta leggibile (una colonna).
 
-### Step 3 — Vista Giocatore e Bacheca
+### Step 3 — Vista Giocatore e Bacheca — fatto
+
+Fatto: `PartyHub` (proprio eroe in cima con "Apri la tua scheda", compagni numerici o narrativi; in narrativa i `liveStats` altrui non vengono letti né renderizzati), cambio rapido "siedi come … ▾" (`CharacterPickerModal` ora toglie dalla campagna il PG che sedeva prima e aggiorna `activeCharacterId`), `CampaignBoard` + `BoardPostItem` condivisi (fissati in alto, composizione, modifica dell'autore, fissa/elimina del DM, bacheca chiusa se `playerPosts` è spento), chip "Le tue campagne" nella lista eroi (`CampaignChips`), badge campagna cliccabile nell'`HeroHeader` della vista di gioco, toast delle azioni del DM in tutte le rotte personaggio.
 
 1. `PartyHub`: mio PG in cima, compagni in modalità numerica/narrativa (variante di `PartyMemberTile`, nessun numero nel
    DOM in narrativa: i dati non vengono nemmeno letti).

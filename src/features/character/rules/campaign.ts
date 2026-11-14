@@ -1,8 +1,10 @@
 // Regole pure delle campagne condivise: codici d'invito, ruoli, impostazioni e proiezioni pubblicate ai membri.
 import type {
     ICampaign, ICampaignInvite, ICampaignSettings, ICharacter, ILiveStats, ISharedCharacter, CampaignRole, NarrativeVitals,
+    IDmAction, DmActionType, IBoardPost,
 } from '../characterTypes';
 import { calculateArmorClass, calculateSpellSaveDC, getPassiveScores, getSpeedBreakdown } from './combat';
+import { longRestUpdate } from './rest';
 
 // ---------- codici d'invito ----------
 
@@ -220,3 +222,162 @@ export const resolveCampaignName = (
     character: Pick<ICharacter, 'campaignId' | 'campaignName'>,
     known: ReadonlyMap<string, string>,
 ): string | undefined => (character.campaignId && known.get(character.campaignId)) || character.campaignName;
+
+// ---------- azioni del DM ----------
+
+/** Un'azione vale 12 ore: un riposo lungo dichiarato giorni fa non si applica più. */
+export const DM_ACTION_TTL_MS = 12 * 60 * 60 * 1000;
+/** Massimo di destinatari per azione (regole Firestore). */
+export const DM_ACTION_MAX_TARGETS = 12;
+/** Quante azioni applicate ricorda `liveStats.appliedActionIds` (regole Firestore). */
+export const APPLIED_ACTIONS_LIMIT = 30;
+
+export const buildDmAction = (
+    type: DmActionType,
+    targets: readonly string[],
+    createdBy: string,
+    now: number,
+): Omit<IDmAction, 'id'> => ({
+    type,
+    targets: [...new Set(targets)].slice(0, DM_ACTION_MAX_TARGETS),
+    createdBy,
+    createdAt: now,
+    expiresAt: now + DM_ACTION_TTL_MS,
+});
+
+export const isDmActionActive = (action: Pick<IDmAction, 'expiresAt'>, now: number): boolean => action.expiresAt > now;
+
+/**
+ * Effetto di un'azione sulla scheda: `patch` si applica subito (con "Annulla"),
+ * `prompt` chiede al giocatore di aprire il proprio flusso (riposo breve: i dadi vita li sceglie lui).
+ * `null` = niente da cambiare (es. ispirazione già presente).
+ */
+export type DmActionEffect = { kind: 'patch'; patch: Partial<ICharacter> } | { kind: 'prompt' } | null;
+
+export const applyDmAction = (character: ICharacter, type: DmActionType): DmActionEffect => {
+    const inspired = (Number(character.inspiration) || 0) > 0;
+    switch (type) {
+        case 'grantInspiration':
+            return inspired ? null : { kind: 'patch', patch: { inspiration: 1 } };
+        case 'revokeInspiration':
+            return inspired ? { kind: 'patch', patch: { inspiration: 0 } } : null;
+        case 'longRest':
+            return { kind: 'patch', patch: longRestUpdate(character) };
+        case 'shortRest':
+            return { kind: 'prompt' };
+        default:
+            return null;
+    }
+};
+
+/** I valori attuali dei campi che `patch` sta per cambiare: riapplicati, annullano l'azione. */
+export const undoPatchFor = (character: ICharacter, patch: Partial<ICharacter>): Partial<ICharacter> =>
+    Object.fromEntries(Object.keys(patch).map((key) => [key, character[key as keyof ICharacter]])) as Partial<ICharacter>;
+
+/** Coppie azione/personaggio ancora da applicare per i personaggi indicati (le più vecchie prima). */
+export const pendingDmActions = (
+    actions: readonly IDmAction[],
+    characterIds: ReadonlySet<string>,
+    isApplied: (characterId: string, actionId: string) => boolean,
+    now: number,
+): { action: IDmAction; characterId: string }[] =>
+    [...actions]
+        .filter((a) => isDmActionActive(a, now))
+        .sort((a, b) => a.createdAt - b.createdAt)
+        .flatMap((action) => action.targets
+            .filter((id) => characterIds.has(id) && !isApplied(id, action.id))
+            .map((characterId) => ({ action, characterId })));
+
+/** Aggiunge un id agli applicati tenendo solo gli ultimi `APPLIED_ACTIONS_LIMIT`. */
+export const appendAppliedAction = (ids: readonly string[] | undefined, id: string): string[] =>
+    [...(ids || []).filter((x) => x !== id), id].slice(-APPLIED_ACTIONS_LIMIT);
+
+/** Quanti destinatari hanno già applicato l'azione, dai `liveStats` pubblicati. */
+export const dmActionProgress = (
+    action: Pick<IDmAction, 'id' | 'targets'>,
+    liveById: ReadonlyMap<string, Pick<ILiveStats, 'appliedActionIds'>>,
+): { applied: number; total: number } => {
+    const applied = action.targets.filter((id) => (liveById.get(id)?.appliedActionIds || []).includes(action.id)).length;
+    return { applied, total: action.targets.length };
+};
+
+/** Le azioni ancora in attesa per un personaggio (più recenti prima). */
+export const pendingActionsFor = (
+    characterId: string,
+    actions: readonly IDmAction[],
+    live: Pick<ILiveStats, 'appliedActionIds'> | undefined,
+    now: number,
+): IDmAction[] =>
+    actions
+        .filter((a) => isDmActionActive(a, now) && a.targets.includes(characterId) && !(live?.appliedActionIds || []).includes(a.id))
+        .sort((a, b) => b.createdAt - a.createdAt);
+
+// ---------- tavolo ----------
+
+export type PartySort = 'name' | 'hp';
+
+/** Ordine della Live Board: per nome, oppure prima chi ha meno PF in percentuale (senza numeri in fondo). */
+export const sortParty = <T extends Pick<ISharedCharacter, 'id' | 'name'>>(
+    party: readonly T[],
+    sort: PartySort,
+    liveById: ReadonlyMap<string, Pick<ILiveStats, 'hp'>>,
+): T[] => {
+    const byName = (a: T, b: T) => (a.name || '').localeCompare(b.name || '');
+    if (sort === 'name') return [...party].sort(byName);
+    const ratio = (c: T) => {
+        const hp = liveById.get(c.id)?.hp;
+        if (!hp) return Number.POSITIVE_INFINITY;
+        return hp.max > 0 ? hp.current / hp.max : 1;
+    };
+    return [...party].sort((a, b) => {
+        const ra = ratio(a);
+        const rb = ratio(b);
+        return ra === rb ? byName(a, b) : ra < rb ? -1 : 1;
+    });
+};
+
+/** Oltre 10 minuti senza aggiornamenti il dato può non essere quello del tavolo. */
+export const STALE_AFTER_MS = 10 * 60 * 1000;
+export const isStale = (lastUpdated: number | undefined, now: number): boolean =>
+    !lastUpdated || now - lastUpdated > STALE_AFTER_MS;
+
+/** "adesso", "3 min fa", "2 h fa", "ieri", "4 giorni fa". */
+export const describeAgo = (timestamp: number | undefined, now: number): string => {
+    if (!timestamp) return 'mai';
+    const minutes = Math.floor(Math.max(0, now - timestamp) / 60000);
+    if (minutes < 1) return 'adesso';
+    if (minutes < 60) return `${minutes} min fa`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} h fa`;
+    const days = Math.floor(hours / 24);
+    return days === 1 ? 'ieri' : `${days} giorni fa`;
+};
+
+/** Slot per livello, in ordine: `[{ level: '1', max: 4, available: 2 }]`. */
+export const slotSummary = (slots: ILiveStats['spellSlots'] | undefined) =>
+    Object.entries(slots || {})
+        .map(([level, s]) => ({ level, max: s.max, available: Math.max(0, s.max - s.used) }))
+        .filter((s) => s.max > 0)
+        .sort((a, b) => Number(a.level) - Number(b.level));
+
+// ---------- bacheca ----------
+
+export const BOARD_POST_MAX = 4000;
+export const DM_NOTES_MAX = 20000;
+
+/** Fissati in alto, poi i più recenti. */
+export const sortBoardPosts = <T extends Pick<IBoardPost, 'pinned' | 'createdAt'>>(posts: readonly T[]): T[] =>
+    [...posts].sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.createdAt - a.createdAt);
+
+export const canPostOnBoard = (campaign: Pick<ICampaign, 'settings'>, role: CampaignRole | null): boolean =>
+    role === 'dm' || (role === 'player' && getCampaignSettings(campaign).playerPosts);
+
+export const canEditPost = (post: Pick<IBoardPost, 'authorUid'>, uid: string | null | undefined): boolean =>
+    !!uid && post.authorUid === uid;
+
+export const canDeletePost = (post: Pick<IBoardPost, 'authorUid'>, uid: string | null | undefined, role: CampaignRole | null): boolean =>
+    role === 'dm' || canEditPost(post, uid);
+
+/** `sharedCharacters` scritti da client v1 (con i numeri): il DM li elimina passando a "narrativo". */
+export const legacySharedIds = (shared: readonly ISharedCharacter[]): string[] =>
+    shared.filter((c) => c.schemaVersion !== SHARED_SCHEMA_VERSION).map((c) => c.id);

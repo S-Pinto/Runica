@@ -1,11 +1,11 @@
 import { useState, useEffect, Suspense, lazy, FC, createElement } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import * as characterRepository from './characterRepository';
 import { useCharacter } from './CharacterProvider';
 import { useCampaigns } from '../../providers/CampaignProvider';
 import { resolveCampaignName } from './rules/campaign';
 import { describeDataError } from '../../lib/errors';
-import { BackIcon, EditIcon, SparklesIcon, MoonIcon, SunIcon, PrinterIcon, DiceIcon, UserGroupIcon, HeartIcon, StarIcon, SwordIcon, UserCircleIcon, ShieldIcon } from '../../components/ui/icons';
+import { BackIcon, EditIcon, SparklesIcon, MoonIcon, SunIcon, PrinterIcon, DiceIcon, UserGroupIcon, HeartIcon, StarIcon, SwordIcon, UserCircleIcon, ShieldIcon, ChevronRightIcon } from '../../components/ui/icons';
 import { Button } from '../../components/ui/Button';
 import { AbilitiesDisplay } from './components/AbilitiesDisplay';
 import { ImageModal } from '../../components/ui/ImageModal';
@@ -55,7 +55,7 @@ export const PlayView: FC = () => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const { character, setCharacter, updateCharacter, publishLive } = useCharacter();
-    const { campaignNames } = useCampaigns();
+    const { campaignNames, campaigns } = useCampaigns();
     const [error, setError] = useState<string | null>(null);
     
     const tabParam = searchParams.get('tab') as PlayTab | null;
@@ -116,6 +116,20 @@ export const PlayView: FC = () => {
         toast.success('Riposo breve completato.');
     };
 
+    // `?rest=short`: il DM ha dichiarato un riposo breve e il giocatore ha scelto "Riposa" dal toast.
+    const restParam = searchParams.get('rest');
+    const characterReady = !!character && character.id === characterId;
+    useEffect(() => {
+        if (restParam !== 'short' || !characterReady) return;
+        setSearchParams((prev) => {
+            const next = new URLSearchParams(prev);
+            next.delete('rest');
+            return next;
+        }, { replace: true });
+        void handleShortRest();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [restParam, characterReady]);
+
     if (error) {
         return (
             <div className="mx-auto flex max-w-md flex-col items-center gap-4 px-4 py-24 text-center">
@@ -159,10 +173,22 @@ export const PlayView: FC = () => {
                 onBack={() => navigate('/')}
                 backLabel="Torna ai tuoi eroi"
                 badge={campaignName && (
-                    <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-medium text-accent">
-                        <UserGroupIcon className="h-3.5 w-3.5" />
-                        {campaignName}
-                    </span>
+                    character.campaignId && campaigns.some((c) => c.id === character.campaignId) ? (
+                        // Campagna condivisa: il badge porta al Party Hub (o alla Live Board se si è il DM).
+                        <Link
+                            to={`/campaigns/${character.campaignId}`}
+                            className="mt-1.5 inline-flex min-h-7 items-center gap-1 rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-medium text-accent transition-colors duration-150 hover:bg-accent/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                            <UserGroupIcon className="h-3.5 w-3.5" />
+                            {campaignName}
+                            <ChevronRightIcon aria-hidden className="h-3.5 w-3.5" />
+                        </Link>
+                    ) : (
+                        <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-medium text-accent">
+                            <UserGroupIcon className="h-3.5 w-3.5" />
+                            {campaignName}
+                        </span>
+                    )
                 )}
                 actions={<>
                     {/* Tutte le azioni sono a vista (niente menu "⋯"). Su telefono: riposi solo icona e "Combatti" nascosto, la tab Combattimento è subito sotto. */}

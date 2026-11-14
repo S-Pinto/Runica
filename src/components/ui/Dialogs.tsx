@@ -33,6 +33,16 @@ interface Toast {
   id: number;
   message: string;
   variant: ToastVariant;
+  /** Pulsante nel toast (es. "Annulla"): chiude il toast quando si preme. */
+  action?: { label: string; onAction: () => void };
+}
+
+export interface ToastActionOptions {
+  label: string;
+  onAction: () => void;
+  variant?: ToastVariant;
+  /** Durata in ms; con un'azione serve più tempo per leggerla e premerla (predefinito 10 s). */
+  duration?: number;
 }
 
 interface State {
@@ -70,20 +80,25 @@ export function alertDialog(title: string, message?: string): Promise<void> {
 }
 
 let toastId = 0;
-function pushToast(message: string, variant: ToastVariant) {
+const dismissToast = (id: number) => setState({ toasts: state.toasts.filter((t) => t.id !== id) });
+
+function pushToast(message: string, variant: ToastVariant, action?: Toast['action'], duration?: number) {
   if (!hostMounted) {
     window.alert(message);
     return;
   }
   const id = ++toastId;
-  setState({ toasts: [...state.toasts, { id, message, variant }] });
-  setTimeout(() => setState({ toasts: state.toasts.filter((t) => t.id !== id) }), variant === 'error' ? 6000 : 3500);
+  setState({ toasts: [...state.toasts, { id, message, variant, action }] });
+  setTimeout(() => dismissToast(id), duration ?? (variant === 'error' ? 6000 : 3500));
 }
 
 export const toast = {
   success: (m: string) => pushToast(m, 'success'),
   error: (m: string) => pushToast(m, 'error'),
   info: (m: string) => pushToast(m, 'info'),
+  /** Toast con un pulsante ("Annulla", "Riposa"…). */
+  action: (m: string, { label, onAction, variant = 'info', duration = 10000 }: ToastActionOptions) =>
+    pushToast(m, variant, { label, onAction }, duration),
 };
 
 // ---------- view ----------
@@ -181,6 +196,18 @@ export function DialogHost() {
           >
             <span className="dot mt-1.5 h-2 w-2 shrink-0 rounded-full" />
             <span className="flex-1">{t.message}</span>
+            {t.action && (
+              <button
+                type="button"
+                onClick={() => {
+                  dismissToast(t.id);
+                  t.action?.onAction();
+                }}
+                className="-my-1.5 -mr-2 min-h-9 shrink-0 rounded-lg px-3 text-sm font-semibold text-accent transition-colors duration-150 hover:bg-accent/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {t.action.label}
+              </button>
+            )}
           </div>
         ))}
       </div>

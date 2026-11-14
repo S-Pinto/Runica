@@ -208,6 +208,6 @@ Ogni fase è indipendente: si può fare in qualsiasi ordine, con un branch e una
 - **Fatto quando**: due utenti diversi vedono la stessa campagna.
 
 ### Campagne al tavolo — in corso
-Piano completo e stato degli step in `ROADMAP_CAMPAIGNS.md` (Step 1 fatto: schema, regole con test, inviti `RUN-XXXXXX` e link, join con scelta del personaggio, sincronizzazione dal vivo).
+Piano completo e stato degli step in `ROADMAP_CAMPAIGNS.md` (Step 1 fatto: schema, regole con test, inviti `RUN-XXXXXX` e link, join con scelta del personaggio, sincronizzazione dal vivo; Step 2–3 fatti: `/campaigns/:id` smista fra `DmLiveBoard` e `PartyHub`, azioni del DM applicate da `useCampaignActions` in `CharacterLayout`, bacheca e note segrete; resta lo Step 4).
 
 Dipendenze consigliate, non obbligatorie: B prima di D/F rende il refactor più sicuro; D semplifica E.

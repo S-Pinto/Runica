@@ -56,6 +56,13 @@ export const CharacterPickerModal = ({ open, onClose, campaign }: CharacterPicke
                 });
             }
             await campaignService.setActiveCharacter(campaign.id, currentUser.uid, character.id).catch(() => undefined);
+            // Cambio rapido: chi sedeva prima lascia il posto (il salvataggio ritira il suo riepilogo).
+            const previous = characters.filter((c) => c.id !== character.id && c.campaignId === campaign.id);
+            await Promise.all(previous.map((c) =>
+                saveCharacter({ ...c, campaignId: undefined, campaignName: undefined, lastUpdated: Date.now() }).catch((error) => {
+                    console.warn('Ritiro del personaggio precedente non riuscito', error);
+                }),
+            ));
             toast.success(`${character.name || 'Il tuo eroe'} siede al tavolo di «${campaign.name}».`);
             onClose();
         } catch (error) {

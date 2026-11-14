@@ -1,12 +1,13 @@
 // Campagne condivise (Firestore) e campagne locali storiche (localStorage).
 // Solo I/O: codici, ruoli, impostazioni e proiezioni sono calcolati in features/character/rules/campaign.ts.
 import {
-    collection, doc, getDoc, getDocs, onSnapshot, query, where, writeBatch, setDoc, updateDoc, deleteDoc, deleteField,
+    collection, doc, getDoc, getDocs, onSnapshot, query, where, orderBy, writeBatch, setDoc, updateDoc, deleteDoc, deleteField,
     arrayUnion, arrayRemove,
     type DocumentData, type DocumentReference, type DocumentSnapshot, type QuerySnapshot, type CollectionReference,
 } from 'firebase/firestore';
 import type {
     ICampaign, ICampaignInvite, ICampaignMember, ICampaignSettings, ICharacter, ILiveStats, ILocalCampaign, ISharedCharacter,
+    IBoardPost, IDmAction, IDmNotes,
 } from '../features/character/characterTypes';
 import { getFirebase } from '../lib/getFirebase';
 import { settleOrQueue } from '../lib/async';
@@ -137,16 +138,50 @@ export const onSharedCharactersSnapshot = (
 export const onLiveStatsSnapshot = (
     campaignId: string,
     ownerUid: string | null,
-    callback: (stats: ILiveStats[]) => void,
+    /** `fromCache` = dati della cache locale (offline o in attesa del server): la board mostra "offline". */
+    callback: (stats: ILiveStats[], fromCache: boolean) => void,
     onError?: (error: unknown) => void,
 ): Unsubscribe => {
     const source: CollectionReference<DocumentData> = subcollection(campaignId, 'liveStats');
     return onSnapshot(
         ownerUid ? query(source, where('ownerUid', '==', ownerUid)) : source,
-        (snapshot) => callback(withIds<ILiveStats>(snapshot)),
+        { includeMetadataChanges: true },
+        (snapshot) => callback(withIds<ILiveStats>(snapshot), snapshot.metadata.fromCache),
         (error) => onError?.(error),
     );
 };
+
+/** Azioni del DM non ancora scadute (`now` fissa il filtro all'apertura dell'ascolto). */
+export const onDmActionsSnapshot = (
+    campaignId: string,
+    now: number,
+    callback: (actions: IDmAction[]) => void,
+    onError?: (error: unknown) => void,
+): Unsubscribe =>
+    onSnapshot(
+        query(subcollection(campaignId, 'dmActions'), where('expiresAt', '>', now), orderBy('expiresAt', 'asc')),
+        (snapshot) => callback(withIds<IDmAction>(snapshot)),
+        (error) => onError?.(error),
+    );
+
+export const onBoardSnapshot = (
+    campaignId: string,
+    callback: (posts: IBoardPost[]) => void,
+    onError?: (error: unknown) => void,
+): Unsubscribe =>
+    onSnapshot(subcollection(campaignId, 'board'), (snapshot) => callback(withIds<IBoardPost>(snapshot)), (error) => onError?.(error));
+
+/** Note segrete del DM (`null` se non ancora scritte). Solo il DM può leggerle. */
+export const onDmNotesSnapshot = (
+    campaignId: string,
+    callback: (notes: IDmNotes | null) => void,
+    onError?: (error: unknown) => void,
+): Unsubscribe =>
+    onSnapshot(
+        doc(getFirebase().db, 'campaigns', campaignId, 'dmPrivate', 'notes'),
+        (snap) => callback(snap.exists() ? (snap.data() as IDmNotes) : null),
+        (error) => onError?.(error),
+    );
 
 // ---------- creazione, unione, uscita ----------
 
@@ -341,6 +376,61 @@ export const deleteCampaign = async (campaign: ICampaign): Promise<void> => {
             ? deleteCampaignPortrait(campaign.id, ownerUid, d.id).catch(() => undefined)
             : Promise.resolve();
     }));
+};
+
+/** Elimina riepiloghi (es. quelli v1 con i numeri, al passaggio a "narrativo"). Solo il DM o il proprietario. */
+export const deleteSharedCharacters = async (campaignId: string, characterIds: readonly string[]): Promise<void> => {
+    await deleteInChunks(characterIds.map((id) => ({ ref: sharedRef(campaignId, id) })));
+    characterIds.forEach((id) => forgetPublished(campaignId, id));
+};
+
+// ---------- azioni del DM ----------
+
+export const sendDmAction = async (campaignId: string, action: Omit<IDmAction, 'id'>): Promise<void> => {
+    await queueWrite(setDoc(doc(subcollection(campaignId, 'dmActions')), action));
+};
+
+export const deleteDmAction = async (campaignId: string, actionId: string): Promise<void> => {
+    await queueWrite(deleteDoc(doc(getFirebase().db, 'campaigns', campaignId, 'dmActions', actionId)));
+};
+
+/** Il giocatore segna un'azione come gestita (applicata o rifiutata): la board smette di mostrarla "in attesa". */
+export const setAppliedActions = async (campaignId: string, characterId: string, appliedActionIds: string[]): Promise<void> => {
+    await queueWrite(updateDoc(liveRef(campaignId, characterId), { appliedActionIds }));
+};
+
+// ---------- bacheca e note ----------
+
+const boardRef = (campaignId: string, postId: string) => doc(getFirebase().db, 'campaigns', campaignId, 'board', postId);
+
+export const createBoardPost = async (campaignId: string, author: CampaignUser, text: string, pinned = false): Promise<void> => {
+    const now = Date.now();
+    const post: Omit<IBoardPost, 'id'> = {
+        authorUid: author.uid,
+        authorName: (author.displayName || 'Giocatore').slice(0, 120),
+        text: text.trim(),
+        pinned,
+        createdAt: now,
+        updatedAt: now,
+    };
+    await queueWrite(setDoc(doc(subcollection(campaignId, 'board')), post));
+};
+
+export const editBoardPost = async (campaignId: string, postId: string, text: string): Promise<void> => {
+    await queueWrite(updateDoc(boardRef(campaignId, postId), { text: text.trim(), updatedAt: Date.now() }));
+};
+
+export const setBoardPostPinned = async (campaignId: string, postId: string, pinned: boolean): Promise<void> => {
+    await queueWrite(updateDoc(boardRef(campaignId, postId), { pinned, updatedAt: Date.now() }));
+};
+
+export const deleteBoardPost = async (campaignId: string, postId: string): Promise<void> => {
+    await queueWrite(deleteDoc(boardRef(campaignId, postId)));
+};
+
+export const saveDmNotes = async (campaignId: string, text: string): Promise<void> => {
+    const notes: IDmNotes = { text, updatedAt: Date.now() };
+    await queueWrite(setDoc(doc(getFirebase().db, 'campaigns', campaignId, 'dmPrivate', 'notes'), notes));
 };
 
 // ---------- proiezioni del personaggio ----------

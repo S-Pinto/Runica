@@ -4,6 +4,7 @@ import App from '../App'; // Il nostro layout principale
 
 // Importa le tue pagine dalla cartella 'features'
 import { CharacterProvider } from '../features/character/CharacterProvider';
+import { useCampaignActions } from '../features/character/hooks/useCampaignActions';
 import { CharacterList } from '../features/character/CharacterList';
 import { CharacterSheet } from '../features/character/CharacterSheet';
 import { PlayView } from '../features/character/PlayView';
@@ -19,8 +20,15 @@ const LegacyCampaignRedirect = () => {
   return <Navigate to={`/campaigns/${campaignId ?? ''}`} replace />;
 };
 
+/** Azioni del DM (ispirazione, riposi) ricevute in qualunque rotta personaggio. */
+const CampaignActionsListener = () => {
+  useCampaignActions();
+  return null;
+};
+
 const CharacterLayout = () => (
   <CharacterProvider>
+    <CampaignActionsListener />
     <Outlet />
   </CharacterProvider>
 );
